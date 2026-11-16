@@ -131,7 +131,7 @@ def main():
                     provenance={"sentence_sha256":sha(sentence),"document_id_sha256":doc_hash,"group_id":group_id,
                       "source_domain":host,"source_url_sha256":sha(source_url or ""),"crawl_date":str(date or ""),
                       "crawl_dump":str(dump or ""),"language_score":float(score),"token_count":int(tokens or 0),
-                      "revision":REVISION,"subset":"sample/10BT","shard":path,"row_group_id":int(rgid),
+                      "revision":REVISION,"subset":DATA_PATH,"shard":path,"row_group_id":int(rgid),
                       "shard_oid":str(item.get("oid") or ""),"shard_lfs_oid":str((item.get("lfs") or {}).get("oid","")),
                       "privacy_flags":[*(["long_numeric_sequence"] if LONG_NUMBER.search(sentence) else [])]}
                     pools[split].append((priority,record,provenance))
