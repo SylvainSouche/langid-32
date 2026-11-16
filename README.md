@@ -59,8 +59,24 @@ The CLI currently processes one input file per invocation. Raw downloads and gen
 - **A2:** hashed character n-gram EmbeddingBag with a compact linear head.
 - **B:** byte-level Transformer trained from scratch.
 
-All routes will share corpus splits and evaluation, including per-language metrics, confusion pairs, length sensitivity, calibration, latency, memory, and model size.
+The initial PyTorch model definitions and a shared training/validation loop are now implemented. Install the optional training dependency:
+
+```sh
+python -m pip install -e ".[train,dev]"
+```
+
+Train each route against the same prepared split directory:
+
+```sh
+langid32-train --route a1 --data data/processed/corpus --output runs/a1
+langid32-train --route a2 --data data/processed/corpus --output runs/a2
+langid32-train --route b  --data data/processed/corpus --output runs/b
+```
+
+The trainer selects checkpoints using validation loss and writes a training report with parameter counts and per-class validation metrics. It auto-selects CUDA, Apple MPS, or CPU; use `--device cpu`, `mps`, or `cuda` to override. These are first implementations, not yet benchmarked or validated on a full corpus. The test split is not read by the trainer.
+
+See [model design](docs/model-design.md) for architecture details.
 
 ## Status
 
-Repository scaffold and initial deterministic corpus-preparation CLI are in place. Model implementations, source-specific adapters, and the full evaluation protocol are next.
+Initial corpus preparation, model definitions, and a shared trainer are committed. Remaining work includes validating the source-specific Common Voice adapter against an actual MDC release, strengthening text-level personal-data review, benchmarking the three routes, and completing held-out test evaluation.
