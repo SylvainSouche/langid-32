@@ -123,7 +123,7 @@ def inventory(sentences_path: Path, base_path: Path | None,
                     SUM(CASE WHEN eligible=1 THEN 1 ELSE 0 END),
                     SUM(CASE WHEN eligible=1 AND base_id='0' THEN 1 ELSE 0 END),
                     SUM(CASE WHEN eligible=1 AND CAST(base_id AS INTEGER)>0 THEN 1 ELSE 0 END),
-                    SUM(CASE WHEN eligible=1 AND base_id IS NULL THEN 1 ELSE 0 END),
+                    SUM(CASE WHEN eligible=1 AND (base_id IS NULL OR base_id='\\N') THEN 1 ELSE 0 END),
                     COUNT(DISTINCT CASE WHEN eligible=1 THEN
                         CASE WHEN CAST(base_id AS INTEGER)>0 THEN base_id
                              ELSE CAST(sentence_id AS TEXT) END
