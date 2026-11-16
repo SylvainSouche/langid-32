@@ -309,16 +309,14 @@ def extract_language(connection, language: str, subset: str, revision: str,
         selected_provenance.extend(item["provenance"] for _, item in chosen)
 
     rejected.update({f"sentence_{key}": value for key, value in sentence_rejected.items()})
-    selected_lengths = [len(item["record"]["text"]) for item in
-                        (entry for split in split_candidates.values() for _, entry in split)]
-    selected_lengths.sort()
+    selected_lengths = sorted(len(item["text"]) for item in selected_records)
     selected_groups = {
-        split: len({item["record"]["group_id"] for _, item in values[:caps[split]]})
-        for split, values in split_candidates.items()
+        split: len({item["group_id"] for item in selected_records if item["split"] == split})
+        for split in caps
     }
     selected_documents = {
-        split: len({item["record"]["document_id_hash"] for _, item in values[:caps[split]]})
-        for split, values in split_candidates.items()
+        split: len({item["document_id_hash"] for item in selected_records if item["split"] == split})
+        for split in caps
     }
     sample_stats = http_stats(connection)
     report = {
