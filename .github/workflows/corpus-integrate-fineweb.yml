@@ -13,7 +13,7 @@ jobs:
   integrate:
     if: >-
       ${{ github.event.workflow_run.conclusion == 'success' &&
-          github.event.workflow_run.head_sha == 'ebdb586e5ec3c9ca7b6acd1ac4d5403627486e08' }}
+          github.event.workflow_run.head_sha == 'f2a87c4ea1c33ec13096a7a29a2d9fa859234069' }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
