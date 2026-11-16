@@ -19,7 +19,9 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from collections import Counter, defaultdict
-from pathlib import Path\n\nfrom langid32.merge import IPV4_RE, has_phone_like
+from pathlib import Path
+
+from langid32.merge import IPV4_RE, has_phone_like
 
 from langid32.fineweb2_inventory import TARGET_SUBSETS
 
@@ -30,8 +32,6 @@ SEED = "langid-32-fineweb2-v1"
 SENTENCE_SPLIT = re.compile(r"(?<=[.!?。！？؟؛।።])\s+|(?<=[。！？])")
 EMAIL = re.compile(r"(?i)\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b")
 URL = re.compile(r"(?i)(?:https?://|www\.)\S+")
-IPV4 = re.compile(r"\b(?:\d{1,3}\.){3}\d{1,3}\b")
-PHONE = re.compile(r"(?<!\w)\+?\d[\d .()/-]{7,}\d(?!\w)")
 LONG_NUMBER = re.compile(r"\d{9,}")
 SCRIPT_PREFIXES = {
     "Latn": ("LATIN",),
