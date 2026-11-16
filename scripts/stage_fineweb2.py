@@ -4,6 +4,8 @@ from __future__ import annotations
 import argparse, hashlib, json
 from pathlib import Path
 
+from langid32.merge import LONG_NUMBER_RE, has_phone_like
+
 LANGUAGE_BY_SUBSET = {
     "bul": "bg", "hrv": "hr", "ces": "cs", "dan": "da", "nld": "nl",
     "ekk": "et", "fin": "fi", "fra": "fr", "deu": "de", "ell": "el",
