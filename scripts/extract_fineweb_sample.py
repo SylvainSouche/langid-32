@@ -8,7 +8,7 @@ import unicodedata
 
 DATASET = "HuggingFaceFW/fineweb"
 REVISION = "9bb295ddab0e05d785b879661af7260fed5140fc"
-DATA_PATH = "sample/10BT"
+DATA_PATH = "data"
 SEED = "langid-32-fineweb2-v1"  # shared hostname split assignment with FineWeb2
 SENTENCE_SPLIT = re.compile(r"(?<=[.!?])\s+")
 EMAIL = re.compile(r"(?i)\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b")
