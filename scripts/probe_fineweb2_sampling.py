@@ -77,6 +77,7 @@ def main() -> None:
     con.execute("LOAD httpfs")
     con.execute("CALL enable_logging('HTTP', storage='memory')")
     report = {
+        "probe_version": "0.2",
         "dataset": DATASET,
         "revision": REVISION,
         "duckdb_version": con.execute("SELECT version()").fetchone()[0],
