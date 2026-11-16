@@ -12,7 +12,8 @@ import unicodedata
 from collections import Counter
 from pathlib import Path
 
-from langid32.merge import (EMAIL_RE, HTTP_FRAGMENT_RE, IPV4_RE, LONG_NUMBER_RE,\n                            URL_RE, WEB_FRAGMENT_RE, has_phone_like)
+from langid32.merge import (EMAIL_RE, HTTP_FRAGMENT_RE, IPV4_RE, LONG_NUMBER_RE,
+                            URL_RE, WEB_FRAGMENT_RE, has_phone_like)
 
 CODES = {
     "bg": ("bul",), "hr": ("hrv",), "cs": ("ces",), "da": ("dan",),
