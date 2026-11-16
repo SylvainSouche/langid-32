@@ -61,9 +61,15 @@ def main():
                                 "document_id_sha256", "source_domain", "source_url_sha256",
                                 "crawl_date", "crawl_dump", "language_score", "language_script",
                                 "minhash_cluster_size", "subset", "shard", "row_group_id",
-                                "shard_oid", "shard_lfs_oid", "privacy_flags"
+                                "shard_oid", "shard_lfs_oid"
                             )
-                        } | {"upstream_split": split},
+                        } | {
+                            "upstream_split": split,
+                            "privacy_flags": (
+                                (["phone_like"] if has_phone_like(row["text"]) else [])
+                                + (["long_numeric_sequence"] if LONG_NUMBER_RE.search(row["text"]) else [])
+                            ),
+                        },
                     }
                     output.write(json.dumps(record, ensure_ascii=False,
                                              separators=(",", ":")) + "\n")
