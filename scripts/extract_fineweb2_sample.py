@@ -19,7 +19,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from collections import Counter, defaultdict
-from pathlib import Path
+from pathlib import Path\n\nfrom langid32.merge import IPV4_RE, has_phone_like
 
 from langid32.fineweb2_inventory import TARGET_SUBSETS
 
