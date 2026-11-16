@@ -90,11 +90,11 @@ def stage(args):
                 if URL.search(text):
                     counts["url_excluded"] += 1
                     continue
-                if IPV4.search(text):
+                if IPV4_RE.search(text):
                     counts["ipv4_excluded"] += 1
                     continue
                 privacy_flags = []
-                if PHONE.search(text):
+                if has_phone_like(text):
                     privacy_flags.append("phone_like")
                     counts["phone_like_flagged"] += 1
                 if LONG_NUMBER.search(text):
