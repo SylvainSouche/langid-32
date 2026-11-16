@@ -102,6 +102,13 @@ def inventory_archive(language: str, archive_path: Path, min_chars: int,
     counts["unique_eligible_paragraphs"] = db.execute(
         "SELECT COUNT(*) FROM paragraph_hashes WHERE language=?", (language,)
     ).fetchone()[0]
+    counts["cross_language_shared_paragraphs"] = db.execute("""
+        SELECT COUNT(*) FROM paragraph_hashes AS p
+        WHERE p.language=? AND EXISTS (
+            SELECT 1 FROM paragraph_hashes AS q
+            WHERE q.text_hash=p.text_hash AND q.language<>p.language
+        )
+    """, (language,)).fetchone()[0]
     counts["unique_documents_by_hash"] = db.execute(
         "SELECT COUNT(*) FROM document_hashes WHERE language=?", (language,)
     ).fetchone()[0]
