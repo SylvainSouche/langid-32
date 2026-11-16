@@ -13,6 +13,8 @@ import unicodedata
 from collections import Counter
 from pathlib import Path
 
+from langid32.merge import IPV4_RE, has_phone_like
+
 CODES = {
     "bg": ("bul",), "hr": ("hrv",), "cs": ("ces",), "da": ("dan",),
     "nl": ("nld",), "en": ("eng",), "et": ("est",), "fi": ("fin",),
