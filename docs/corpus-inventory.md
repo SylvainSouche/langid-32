@@ -283,33 +283,51 @@ For each (source, release, language), record:
 
 Do not use archive byte size, number of audio clips, number of translation pairs, or document count as a substitute for usable text-example counts.
 
-## 5. Pipeline implications
+## 5. Global merge pipeline
 
-The current `langid32-prepare` command processes one input file per invocation and caps each invocation independently. That is not yet sufficient for a multi-source corpus: independently prepared outputs cannot safely be concatenated because duplicate removal, source balancing, document grouping, and the final 20,000-per-language cap must be applied globally.
+The single-source `langid32-prepare` command remains useful for CSV/TSV inputs, but it is not the multi-source corpus builder. A merge-first implementation is now available as `langid32-merge` / `python -m langid32.merge`.
 
-Before bulk ingestion, the corpus pipeline should gain a merge-first stage with an intermediate record containing at least:
-- `text`
-- `language`
-- `source_id` and `source_release`
-- `document_group` (or another stable leakage-control group)
-- `licence_id`
-- `text_origin` (`original`, `translated`, `unknown`)
+The source-neutral staging JSONL contract requires:
+- `text`, `language` (one of the 32 project labels)
+- `source`, `source_release`
+- `group_id` (stable and source-namespaced; shared across languages where applicable)
+- `licence_id` (include unresolved rights explicitly)
+- `text_origin` (`original`, `translated`, or `unknown`)
+- optional `split_group_id` when a source has an existing stable split key that must be preserved
+- optional `provenance` object (document/domain/hash/date/quality/privacy metadata)
 
-The internal staging data may retain provenance/group identifiers; the published training JSONL should continue to omit contributor identifiers and internal group IDs. Global deduplication and group-level train/validation/test splitting must happen after source ingestion and before the final cap. Related translations and repeated prompts must not be split across train and evaluation.
+The merge pipeline normalizes NFC and whitespace, applies common length filters, removes exact normalized duplicates across all inputs within each language, assigns deterministic group-level train/validation/test splits, and applies the 20,000-per-language cap only after global deduplication. It writes three text-only split files and an internal `records.jsonl` sidecar retaining group, licence and source provenance. It reports source contributions and duplicate counts; it does not apply hidden source quotas or silently prioritize a source.
 
-For source balancing, keep per-source counts and quotas visible. A language with 20,000 examples drawn almost entirely from legal text is not equivalent to one with broad domain coverage. Do not silently fill a shortfall with translated or synthetic sentences.
+Source adapters must preserve a shared group key across languages when the underlying source group is shared. FineWeb2 uses its hostname hash as `split_group_id` so the original validated split assignment remains unchanged; its source-namespaced `group_id` is retained separately. Other sources should use their stable document/translation group IDs.
 
-## 6. Global merge pipeline and current execution\n\nA merge-first implementation is now available as `langid32-merge` / `python -m langid32.merge`. Its source-neutral staging JSONL contract requires `text`, `language`, `source`, `source_release`, `group_id`, `licence_id`, and `text_origin`; optional `provenance` is retained internally. Group IDs must be source-namespaced, and the same group must retain the same ID across languages where source groups are shared. The pipeline normalizes NFC and whitespace, filters length, removes exact normalized duplicates across all inputs within each language, assigns deterministic group-level splits, applies the cap only after global deduplication, and writes text-only splits plus an internal provenance sidecar and count manifest. It deliberately applies no implicit source quotas.\n\nThe FineWeb2 adapter is `scripts/stage_fineweb2.py`; it joins the sample rows to their provenance sidecar, maps exact FineWeb2 subset identifiers to project language classes, preserves the hostname-derived group hash, and marks the licence as `ODC-By-1.0;underlying-crawled-text-rights-unresolved`. Workflow `.github/workflows/corpus-integrate-fineweb2.yml` downloads the verified 640k artifact from run 43929112868, runs the tests, stages it and executes the global pipeline. The output is a technical candidate, not a rights-cleared or quality-reviewed corpus.\n\nThe first merge run is intentionally FineWeb2-only: the other source inventories are not yet actual normalized text inputs. It establishes the adapter contract and baseline counts. Subsequent source adapters can be added without changing the merge engine. Cross-source duplicate counts, per-source contributions, group splits and privacy/provenance flags should be inspected before adding source quotas or calling this a final corpus.\n\n### Source-normalized JSONL contract\n\nOne record per candidate text, with fields:\n\n- `text`, `language` (one of the 32 project labels)\n- `source`, `source_release`\n- `group_id` (stable and source-namespaced; shared across languages where applicable)\n- `licence_id` (include unresolved rights explicitly rather than implying clearance)\n- `text_origin` (`original`, `translated`, or `unknown`)\n- optional `provenance` object (document/domain/hash/date/quality/privacy metadata)\n\nDo not pass contributor identifiers into this staging format. Keep detailed provenance private until privacy review. The merge output `records.jsonl` is internal; the three split files are text-only apart from language/source/split labels.\n\n## 7. Immediate execution sequence
+## 6. FineWeb2 integration result
 
-1. Use the v27 release metadata JSON to enumerate exact locale codes and preliminary `validatedSentences` counts; then inspect/download the corresponding MDC locale archives and count `validated_sentences.tsv` rows and usable text.
-2. Implement a read-only inventory/counting command that reports the measurements in section 4 without publishing text.
-3. Inspect DGT-TM release metadata and extract counts for all 24 EU languages.
-4. Measure Tatoeba CC0 per language and preserve its translation/base graph.
-5. Query OPUS corpus-by-corpus for the seven non-EU additions and Norwegian Bokmål/Nynorsk; shortlist by licence, volume, and source quality.
-6. Only then implement the merge-first global preparation stage and build the first corpus.
+The adapter is `scripts/stage_fineweb2.py`. It joins each selected sentence to the provenance sidecar, maps the exact FineWeb2 subset identifiers to project language labels, retains hashed document/URL provenance and the hostname group, and marks the licence as `ODC-By-1.0;underlying-crawled-text-rights-unresolved`.
 
-No source counts are currently claimed in this inventory beyond the published source-level statistics described above.
+Workflow `.github/workflows/corpus-integrate-fineweb2.yml` downloaded the verified source artifact from assembly run 43929112868, ran the test suite, staged the 640,000 records, and executed the global merge. The completed workflow is run [43930504989](https://github.com/SylvainSouche/langid-32/actions/runs/43930504989); its private 14-day artifact is `fineweb2-global-candidate-v1`.
 
+Verified merge result:
+- 31 languages, exactly 20,000 records each (640,000 total)
+- each language: 16,000 train / 2,000 validation / 2,000 test
+- zero records rejected by the common normalization/length stage
+- 77,767 distinct hostname groups
+- zero within-language exact duplicates remaining
+- zero cross-source duplicates measured yet (FineWeb2 is the only ingested text source)
+- source contribution is 100% FineWeb2 for these 31 language classes; English remains unfilled by this source
+
+This is a successful technical integration, **not** a rights-cleared or quality-reviewed corpus. FineWeb2's ODC-By licence for the dataset/compilation does not settle rights in underlying crawled pages. Its deterministic row-group sample is not statistically representative of each full language subset. Phone-like and long-number flags are retained in internal provenance and still require review. Do not publish or redistribute the text at this stage.
+
+## 7. Next ingestion sequence
+
+1. **DGT-TM 2021**: acquire the public five-volume release; parse TMX to source-normalized records for the 24 EU languages; retain EUR-Lex document grouping and mark text as translated/parallel. Measure unique usable segments, boilerplate and duplicates. Attribution terms must travel with the records.
+2. **Tatoeba CC0**: ingest only the CC0 sentence export; preserve the complete base/translation graph as group IDs; deduplicate against existing FineWeb2 and other sources. Do not ingest the CC BY export until attribution is represented correctly.
+3. **Målfrid 2026**: process Bokmål and Nynorsk separately; retain document/domain grouping and NLOD attribution metadata; sentence-segment the JSONL, run PII screening and compare overlap with FineWeb2.
+4. **Common Voice v27**: obtain the original MDC archives through the authorised route; extract only the text TSV; count active `is_used=true` sentences and preserve sentence IDs and locale provenance. Do not download or retain audio.
+5. **English**: Common Voice is a candidate. If volume or domain diversity is insufficient, evaluate original FineWeb separately, with the same underlying-rights caveat.
+6. **Korean**: use the already available FineWeb2 component as baseline while pursuing a better-documented Korean source; do not block the pipeline on the inaccessible Korean Law portal registration.
+7. Produce a per-language/per-source coverage and overlap report before setting source quotas or selecting a final 20,000 examples per class.
+
+The next source to ingest should be DGT-TM: it is public, compact enough to process in GitHub Actions, and adds a distinct translated legal/administrative domain across 24 EU languages. It will also give an early measurement of cross-source overlap against the FineWeb2 web sample.
 
 ## FineWeb2: priority multilingual web source
 
