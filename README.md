@@ -27,7 +27,7 @@ We record the source release, provenance, transformations, corpus configuration,
 
 ## Corpus preparation (initial implementation)
 
-The first preparation CLI accepts a UTF-8 CSV or TSV containing a text column, language column, and source document/group column. It applies NFC normalization, collapses whitespace, filters by character and UTF-8 byte length, removes duplicate text within each language, assigns deterministic group-level splits, and writes text-only JSONL plus a SHA-256 provenance manifest.
+The first preparation CLI accepts a UTF-8 CSV or TSV containing a text column, language column, and source document/group column. It applies NFC normalization, collapses whitespace, filters by character and UTF-8 byte length, removes duplicate text within each language, assigns deterministic group-level splits, and writes text-only JSONL plus a SHA-256 provenance manifest. The default cap is 20,000 examples per language in total, allocated across the three splits according to their configured fractions.
 
 Install and test:
 
