@@ -4,7 +4,7 @@ A reproducible multilingual language-identification project covering 32 language
 
 ## Dataset sourcing
 
-The corpus is the current project priority. See [the corpus source inventory](docs/corpus-inventory.md) for source coverage, the first Common Voice v27 metadata results, unresolved counts, and the acquisition plan. The read-only `langid32-cv-extract` command streams MDC archives and extracts only `validated_sentences.tsv` (no audio), then `langid32-cv-inventory` counts the extracted text. See the documentation for usage. Metadata counts are not yet verified usable-example counts.
+The corpus is the current project priority. See [the corpus source inventory](docs/corpus-inventory.md) for source coverage, preliminary Common Voice counts, FineWeb2 coverage, unresolved counts, and the acquisition plan. Read-only inventory commands cover Common Voice, FineWeb2 metadata, DGT-TM, Tatoeba, Målfrid and Korean Law Open Data. The FineWeb2 inventory downloads only its small published language-distribution CSV, never Parquet shards or document text. Metadata/document counts are not verified usable-example counts.
 
 ### Mozilla Common Voice
 
@@ -83,4 +83,4 @@ See [model design](docs/model-design.md) for architecture details.
 
 The corpus is now the active priority. The source inventory records 32-language coverage and preliminary source counts for Common Voice, DGT-TM, Europarl, JRC-Acquis, Tatoeba, Målfrid and candidate Korean sources. Common Voice v27 metadata has entries for all 32 target classes; 21 have at least 20,000 validated-sentence metadata entries, while 11 fall below that threshold. These are metadata counts, not yet filtered TSV counts.
 
-Read-only inventory tools are committed for Common Voice archives, Tatoeba CC0, Målfrid 2026 and the Korean Law Open Data API. No source corpus has yet been downloaded or processed into the final training corpus. Remaining corpus work is to run the inventories on actual source files, resolve Korean source access/terms, implement the multi-source merge/deduplication and global split pipeline, and complete text-level PII review. Model benchmarking and held-out evaluation follow once the corpus is built.
+Read-only inventory tools are committed for Common Voice archives, Tatoeba CC0, Målfrid 2026 and the Korean Law Open Data API. No source corpus has yet been downloaded or processed into the final training corpus. Remaining corpus work is to run inventories on actual source files, acquire and sample suitable FineWeb2 subsets, resolve missing Estonian/Latvian coverage and the English FineWeb route, implement the multi-source merge/deduplication and global split pipeline, and complete text-level PII review. Model benchmarking and held-out evaluation follow once the corpus is built.
