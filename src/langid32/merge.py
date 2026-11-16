@@ -25,9 +25,26 @@ EMAIL_RE = re.compile(r"(?i)\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b")
 URL_RE = re.compile(r"(?i)\b(?:https?://\s*|www\.)[A-Z0-9][A-Z0-9.-]*\.[A-Z]{2,}(?:/[^\s]*)?")
 WEB_FRAGMENT_RE = re.compile(r"(?i)\bwww\.(?=$|[\s,;])")
 HTTP_FRAGMENT_RE = re.compile(r"(?i)\bhttps?://(?=$|[\s,;])")
-IPV4_RE = re.compile(r"\b(?:\d{1,3}\.){3}\d{1,3}\b")
-PHONE_RE = re.compile(r"(?<!\w)\+?\d[\d .()/-]{7,}\d(?!\w)")
+IPV4_RE = re.compile(
+    r"\b(?:(?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\.){3}"
+    r"(?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\b"
+)
+PHONE_CANDIDATE_RE = re.compile(r"(?<!\w)\+?\d[\d -]{7,}\d(?!\w)")
 LONG_NUMBER_RE = re.compile(r"\d{9,}")
+
+
+def has_phone_like(text: str) -> bool:
+    for match in PHONE_CANDIDATE_RE.finditer(text):
+        value = match.group()
+        digits = re.sub(r"\D", "", value)
+        if not 9 <= len(digits) <= 15:
+            continue
+        if value.count(" ") + value.count("-") < 2 and "+" not in value:
+            continue
+        if re.fullmatch(r"\d{4}[-/]\d{1,2}[-/]\d{1,2}", value):
+            continue
+        return True
+    return False
 
 
 def normalize_text(value: str) -> str:
@@ -99,7 +116,7 @@ def read_inputs(paths: list[Path], args):
                 if not isinstance(privacy_flags, list):
                     privacy_flags = []
                 privacy_flags = {str(flag) for flag in privacy_flags}
-                if PHONE_RE.search(text):
+                if has_phone_like(text):
                     privacy_flags.add("phone_like")
                 if LONG_NUMBER_RE.search(text):
                     privacy_flags.add("long_numeric_sequence")
