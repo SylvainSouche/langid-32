@@ -115,7 +115,8 @@ def inventory(rows: list[dict[str, str]]) -> list[dict[str, object]]:
                 "test_documents": 0,
                 "removed_train_documents": 0,
                 "removed_train_parquet_bytes": 0,
-                "source_name": "English is distributed in the original FineWeb dataset",
+                "source_name": "English",
+                "status_note": "Use the original FineWeb dataset; FineWeb2 excludes English.",
             })
             continue
 
@@ -131,6 +132,7 @@ def inventory(rows: list[dict[str, str]]) -> list[dict[str, object]]:
             "source_language_code": train["code"] if train else "",
             "script": train["script"] if train else "",
             "source_name": train["name"] if train else "",
+            "status_note": "" if train else "No exact language/script subset found in the published distribution CSV.",
             "filtered_train_documents": as_int(train["documents"]) if train else 0,
             "filtered_train_words": as_int(train["words"]) if train else 0,
             "filtered_train_utf8_bytes": as_int(train["utf8_bytes"]) if train else 0,
@@ -138,9 +140,6 @@ def inventory(rows: list[dict[str, str]]) -> list[dict[str, object]]:
             "test_documents": as_int(test["documents"]) if test else 0,
             "removed_train_documents": as_int(removed["documents"]) if removed else 0,
             "removed_train_parquet_bytes": as_int(removed["parquet_bytes"]) if removed else 0,
-            "source_name": train["name"] if train else (
-                "No exact language/script subset found in the published distribution CSV"
-            ),
         })
     return result
 
@@ -175,6 +174,9 @@ def main() -> None:
         "english_route": "original FineWeb",
         "filtered_train_documents_total": sum(
             int(r["filtered_train_documents"]) for r in available
+        ),
+        "filtered_train_parquet_bytes_total": sum(
+            int(r["filtered_train_parquet_bytes"]) for r in available
         ),
         "note": "Publisher metadata only; no Parquet data or text downloaded.",
     }, ensure_ascii=False, indent=2))
