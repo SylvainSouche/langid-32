@@ -385,7 +385,7 @@ GitHub Actions run [43938190407](https://github.com/SylvainSouche/langid-32/acti
 | Tatoeba CC0 export, 2026-11-14 | 37,102 | 18 target languages |
 | **Total** | **640,000** | **32 target classes** |
 
-All 32 classes have exactly 16,000 train, 2,000 validation and 2,000 test records. The final output contains 186,190 source groups; 241,198 groups were present before the per-language cap. Group IDs are split-consistent across languages. Exact normalized-text duplicates within a language were absent, and no cross-source duplicate pairs were recorded.
+All 32 classes have exactly 16,000 train, 2,000 validation and 2,000 test records. The final output contains 186,190 source groups; 241,195 groups were present before the per-language cap. Group IDs are split-consistent across languages. Exact normalized-text duplicates within a language were absent, and no cross-source duplicate pairs were recorded.
 
 ### Source-specific notes
 
@@ -407,3 +407,5 @@ An earlier three-source candidate was superseded after an independent scan found
 - The candidate is not rights-cleared and must not be treated as a redistributable corpus yet.
 
 Only the documented 2021 DGT-TM package is included. Newer 2025 catalogue entries have not yet been reconciled with the JRC release documentation. Common Voice v27 and Målfrid 2026 remain the next source integrations; Common Voice must be obtained from the original Mozilla Data Collective distribution.
+
+The independent post-run review of v4 found 94 exact text strings (194 records) assigned to multiple language labels, measurable FineWeb2 hostname concentration in Maltese, Nynorsk and Irish, and 1,619 records with phone-like or long-number review flags. See [the candidate v4 audit](candidate-audit-v4.md) before treating the balanced row counts as evidence of balanced language quality.
