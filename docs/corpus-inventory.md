@@ -413,6 +413,6 @@ The independent post-run review of v4 found 94 exact text strings (194 records) 
 
 ## Current four-source candidate (2026-11-16)
 
-The English FineWeb source has now been extracted and integrated. The current technical candidate is the four-source [v5 audit](candidate-audit-v5.md): 640,000 records across 32 languages, with 20,000 per language. FineWeb contributes 6,075 English records (30.4% of the English class), reducing Tatoeba's English share from 89.0% in v4 to 61.9%. The source-specific extraction, quality and rights caveats are in [fineweb-inventory.md](fineweb-inventory.md).
+The English FineWeb source has now been extracted and integrated. The current technical candidate is the four-source [v5 audit](candidate-audit-v5.md): 640,000 records across 32 languages, with 20,000 per language. FineWeb contributes 5,968 English records (29.8% of the English class), reducing Tatoeba's English share from 89.0% in v4 to 61.9%. The source-specific extraction, quality and rights caveats are in [fineweb-inventory.md](fineweb-inventory.md).
 
 This is still a candidate, not a rights-cleared or human-validated training release. The 94 cross-language exact-text collisions remain unresolved, and privacy review remains outstanding.
