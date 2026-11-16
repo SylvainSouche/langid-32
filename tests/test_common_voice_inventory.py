@@ -14,7 +14,7 @@ def test_count_sentence_file_normalizes_and_deduplicates(tmp_path):
         )
         writer.writeheader()
         writer.writerow({"sentence_id": "1", "sentence": "École de ski en hiver.", "is_used": "true", "source": "user", "sentence_domain": "general"})
-        writer.writerow({"sentence_id": "2", "sentence": "  E\u0301cole   de ski en hiver. ", "is_used": "false"})
+        writer.writerow({"sentence_id": "2", "sentence": "  E\u0301cole   de ski en hiver. ", "is_used": "false", "source": "legacy", "sentence_domain": "general"})
         writer.writerow({"sentence_id": "3", "sentence": "Court.", "is_used": "true", "source": "user", "sentence_domain": ""})
     counts = count_sentence_file(path, min_chars=12, max_chars=100, max_bytes=200)
     assert counts["rows"] == 3
