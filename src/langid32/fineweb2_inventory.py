@@ -16,7 +16,7 @@ from pathlib import Path
 
 SOURCE_URL = (
     "https://raw.githubusercontent.com/huggingface/fineweb-2/"
-    "main/fineweb2-language-distribution.csv"
+    "d0defb24f193bb9a5a11b8b14524a03c4858e1b6/fineweb2-language-distribution.csv"
 )
 RELEASE = "v2.1.1"
 
@@ -167,6 +167,7 @@ def main() -> None:
     print(json.dumps({
         "output": str(args.output),
         "release": RELEASE,
+        "source_revision": "d0defb24f193bb9a5a11b8b14524a03c4858e1b6",
         "source": source,
         "target_languages": len(TARGET_SUBSETS),
         "available_filtered_subsets": len(available),
