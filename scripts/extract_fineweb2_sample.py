@@ -366,16 +366,12 @@ def extract_language(connection, language: str, subset: str, revision: str,
         "subset": subset,
         "revision": revision,
         "shard_count": len(files),
-        "selected_shard_index": file_index,
-        "selected_shard": path,
-        "selected_shard_bytes": int(file_item.get("size") or 0),
-        "row_group_count": group_count,
-        "selected_row_group_ids": row_group_ids,
-        "selected_row_group_rows": {
-            str(row[0]): int(row[1]) for row in metadata if int(row[0]) in row_group_ids
-        },
+        "selected_shard_count": len(shard_indices),
+        "selected_shard_indices": shard_indices,
+        "selected_shards": shard_reports,
         "documents_read": docs,
-        "documents_by_row_group": dict(sorted(docs_by_row_group.items(), key=lambda item: int(item[0]))),
+        "documents_by_shard": dict(sorted(docs_by_shard.items())),
+        "documents_by_row_group": dict(sorted(docs_by_row_group.items())),
         "distinct_hostnames": len(doc_domains),
         "candidate_sentences_before_document_cap": candidate_sentences_before_cap,
         "candidate_sentences_after_document_cap": candidate_sentences_after_cap,
@@ -411,7 +407,8 @@ def main() -> None:
     parser.add_argument("--languages", nargs="+", default=["es", "tr"])
     parser.add_argument("--revision", default=DEFAULT_REVISION)
     parser.add_argument("--target-per-language", type=int, default=20000)
-    parser.add_argument("--max-row-groups", type=int, default=4)
+    parser.add_argument("--max-row-groups", type=int, default=1)
+    parser.add_argument("--shards-per-language", type=int, default=8)
     parser.add_argument("--min-chars", type=int, default=25)
     parser.add_argument("--max-chars", type=int, default=400)
     parser.add_argument("--min-language-score", type=float, default=0.90)
@@ -419,8 +416,8 @@ def main() -> None:
     parser.add_argument("--timeout", type=int, default=120)
     parser.add_argument("--output-dir", required=True, type=Path)
     args = parser.parse_args()
-    if args.target_per_language < 1 or args.max_row_groups < 1:
-        parser.error("target and max row groups must be positive")
+    if args.target_per_language < 1 or args.max_row_groups < 1 or args.shards_per_language < 1:
+        parser.error("target, max row groups and shards per language must be positive")
     if args.min_chars < 1 or args.max_chars < args.min_chars:
         parser.error("invalid sentence length limits")
     if not 0 <= args.min_language_score <= 1:
@@ -446,8 +443,8 @@ def main() -> None:
         try:
             records, provenance, report = extract_language(
                 connection, language, TARGET_SUBSETS[language], args.revision,
-                args.target_per_language, args.max_row_groups, args.min_chars,
-                args.max_chars, args.min_language_score, args.timeout, args.seed,
+                args.target_per_language, args.max_row_groups, args.shards_per_language,
+                args.min_chars, args.max_chars, args.min_language_score, args.timeout, args.seed,
             )
             reports.append(report)
             all_records.extend(records)
@@ -490,6 +487,7 @@ def main() -> None:
         "selection": {
             "seed": args.seed,
             "row_groups_per_language": args.max_row_groups,
+        "shards_per_language": args.shards_per_language,
             "min_chars": args.min_chars,
             "max_chars": args.max_chars,
             "min_language_score": args.min_language_score,
