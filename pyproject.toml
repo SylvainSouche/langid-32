@@ -19,6 +19,7 @@ train = ["torch>=2.2"]
 [project.scripts]
 langid32-prepare = "langid32.corpus:main"
 langid32-cv-inventory = "langid32.common_voice_inventory:main"
+langid32-tatoeba-inventory = "langid32.tatoeba_inventory:main"
 langid32-train = "langid32.train:main"
 
 [tool.setuptools.packages.find]
