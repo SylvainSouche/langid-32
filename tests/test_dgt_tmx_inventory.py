@@ -28,6 +28,7 @@ def test_dgt_tmx_inventory_counts_languages_groups_and_duplicates(tmp_path):
     with (tmp_path / "dgt.csv").open(encoding="utf-8", newline="") as stream:
         import csv
         rows = {row["language"]: row for row in csv.DictReader(stream)}
+    assert rows["en"]["translation_units_with_language_segment"] == "2"
     assert rows["en"]["segments"] == "2"
     assert rows["en"]["unique_eligible_text"] == "1"
     assert rows["fr"]["segments"] == "2"
