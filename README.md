@@ -4,6 +4,8 @@ A reproducible multilingual language-identification project covering 32 language
 
 ## Dataset sourcing
 
+The corpus is the current project priority. See [the corpus source inventory](docs/corpus-inventory.md) for documented language coverage, source constraints, unresolved counts, and the acquisition plan. No corpus-wide usable counts have been measured yet.
+
 ### Mozilla Common Voice
 
 Mozilla's distribution policy is that Common Voice datasets are made available through the [Mozilla Data Collective](https://datacollective.mozillafoundation.org/), and that users should not obtain mirrored copies from GitHub, Hugging Face, or other third-party platforms. Please download the original dataset directly from MDC. This repository is not an access point or mirror for the original Common Voice distribution.
