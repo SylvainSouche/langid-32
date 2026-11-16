@@ -23,6 +23,8 @@ def test_count_sentence_file_normalizes_and_deduplicates(tmp_path):
     assert counts["unique_within_file"] == 1
     assert counts["duplicate_normalized_text"] == 1
     assert counts["too_short"] == 1
+    assert counts["is_used_true_within_length_limits"] == 1
+    assert counts["unique_is_used_true_within_length_limits"] == 1
     assert '"user": 2' in counts["source_counts_json"]
     assert '"general": 2' in counts["domain_counts_json"]
 
