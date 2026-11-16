@@ -285,3 +285,12 @@ The base sample plus the four short-language top-ups were assembled in GitHub Ac
 - assembly workflow: run 43929112868
 
 This is now the first complete FineWeb2-derived corpus candidate for langid-32. It is still a **candidate**, not yet the final corpus: the next stage is to merge it with the other selected sources, apply the common corpus normalization/deduplication pipeline, inspect cross-source duplicates and source-group leakage, and resolve licensing/provenance policy before publication.
+
+
+### Global merge integration (2026-11-16)
+
+FineWeb2 is now integrated with Tatoeba CC0 and DGT-TM 2021 in the privacy-audited [v4 640,000-record candidate](https://github.com/SylvainSouche/langid-32/actions/runs/43938190407). The global merge used a 20,100-per-language FineWeb2 buffer so that privacy exclusions could be refilled without reducing the 20,000-per-class target. FineWeb2 contributes 510,702 of the final 640,000 records; the remaining records come from DGT-TM 2021 (92,196) and Tatoeba CC0 (37,102).
+
+The global merge now uses Unicode-aware email detection and catches HTTP URLs even when they are attached directly to preceding text. An independent scan of the final artifact found no remaining email addresses, URLs or valid IPv4 addresses. The FineWeb2 source manifest remains included in the merged artifact. This does not resolve underlying crawled-text rights; keep the candidate private pending rights and quality review.
+
+The earlier statement that the next step was to assemble the FineWeb2-only candidate is superseded: the FineWeb2-only 640k artifact is now a source input to the three-source global candidate.
