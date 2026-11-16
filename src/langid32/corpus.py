@@ -44,9 +44,9 @@ def stable_fraction(language: str, group: str, seed: str) -> float:
     return number / 2**64
 
 
-def assign_split(language: str, group: str, seed: str,
-                 validation_fraction: float, test_fraction: float) -> str:
-    value = stable_fraction(language, group, seed)
+def assign_split(group: str, seed: str, validation_fraction: float,
+                 test_fraction: float) -> str:
+    value = stable_fraction(group, seed)
     if value < test_fraction:
         return "test"
     if value < test_fraction + validation_fraction:
@@ -95,7 +95,7 @@ def prepare(args: argparse.Namespace) -> dict:
             rejected["duplicate_text_within_language"] += 1
             continue
         seen.add(key)
-        split = assign_split(language, group, args.seed,
+        split = assign_split(group, args.seed,
                              args.validation_fraction, args.test_fraction)
         priority = hashlib.sha256(
             f"{args.seed}\0{language}\0{split}\0{text}".encode("utf-8")
