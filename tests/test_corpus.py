@@ -23,7 +23,7 @@ def test_prepare_writes_text_only_splits_and_manifest(tmp_path):
         writer.writerow({"sentence": "Bonjour, le monde !", "locale": "fr",
                          "sentence_id": "source-a"})
         writer.writerow({"sentence": "Hello, world!", "locale": "en",
-                         "sentence_id": "source-b"})
+                         "sentence_id": "source-a"})
     output = tmp_path / "out"
     args = argparse.Namespace(
         input=str(source), output=str(output), languages=["fr", "en"],
@@ -34,8 +34,13 @@ def test_prepare_writes_text_only_splits_and_manifest(tmp_path):
         source_licence="CC0-1.0", source_download_origin="local test",
     )
     manifest = prepare(args)
-    train = [json.loads(line) for line in (output / "train.jsonl").read_text().splitlines()]
-    assert {item["language"] for item in train} == {"fr", "en"}
-    assert all(set(item) == {"text", "language", "source", "split"} for item in train)
-    assert manifest["counts"]["fr:train"] == 1
+    records = []
+    for split in ("train", "validation", "test"):
+        records.extend(json.loads(line) for line in
+                       (output / f"{split}.jsonl").read_text().splitlines())
+    assert {item["language"] for item in records} == {"fr", "en"}
+    assert len({item["split"] for item in records}) == 1
+    assert all(set(item) == {"text", "language", "source", "split"} for item in records)
+    assert sum(value for key, value in manifest["counts"].items()
+               if key.startswith("fr:")) == 1
     assert (output / "manifest.json").exists()
