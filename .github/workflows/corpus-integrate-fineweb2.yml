@@ -6,7 +6,9 @@ on:
       - "src/langid32/merge.py"
       - "scripts/stage_fineweb2.py"
       - "tests/test_merge.py"
-      - "pyproject.toml"\n      - "scripts/stage_tatoeba.py"\n      - ".github/workflows/tatoeba-ingest.yml"
+      - "pyproject.toml"
+      - "scripts/stage_tatoeba.py"
+      - ".github/workflows/tatoeba-ingest.yml"
       - ".github/workflows/corpus-integrate-fineweb2.yml"
   workflow_dispatch:
 
