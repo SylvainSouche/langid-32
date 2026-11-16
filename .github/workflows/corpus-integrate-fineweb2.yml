@@ -34,7 +34,7 @@ jobs:
       - name: Download verified FineWeb2 source artifact
         uses: actions/download-artifact@v4
         with:
-          name: fineweb2-640k-v2.1.0
+          name: fineweb2-31x20100-buffer-v2.1.0
           path: input/fineweb2
           github-token: ${{ secrets.GITHUB_TOKEN }}
           repository: ${{ github.repository }}
@@ -61,7 +61,7 @@ jobs:
           cp input/tatoeba/tatoeba-cc0-staged.manifest.json reports/multisource-candidate/source-manifest-tatoeba.json
       - uses: actions/upload-artifact@v4
         with:
-          name: multisource-candidate-v1
+          name: multisource-candidate-v2-privacy-clean
           path: reports/multisource-candidate/
           retention-days: 14
           if-no-files-found: error
