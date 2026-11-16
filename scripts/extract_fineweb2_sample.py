@@ -124,32 +124,55 @@ def script_ratio(text: str, script: str) -> float:
     return matching / len(letters)
 
 
-def sentence_candidates(text: str, script: str, min_chars: int, max_chars: int):
+def sentence_candidates(text: str, script: str, min_chars: int, max_chars: int,
+                        rejected: Counter):
     text = unicodedata.normalize("NFC", text or "")
     text = text.replace("\\n", " ").replace("\\r", " ").replace("\\t", " ")
     parts = SENTENCE_SPLIT.split(text)
     seen = set()
     for part in parts:
         sentence = normalize(part).lstrip("-–—•*· ").strip()
+        if not sentence:
+            continue
         if sentence in seen:
+            rejected["duplicate_within_document"] += 1
             continue
         seen.add(sentence)
-        if not min_chars <= len(sentence) <= max_chars:
+        if len(sentence) < min_chars:
+            rejected["too_short"] += 1
             continue
-        if EMAIL.search(sentence) or URL.search(sentence) or IPV4.search(sentence):
+        if len(sentence) > max_chars:
+            rejected["too_long"] += 1
             continue
-        if PHONE.search(sentence) or LONG_NUMBER.search(sentence):
+        if EMAIL.search(sentence):
+            rejected["email"] += 1
+            continue
+        if URL.search(sentence):
+            rejected["url"] += 1
+            continue
+        if IPV4.search(sentence):
+            rejected["ipv4"] += 1
+            continue
+        if PHONE.search(sentence):
+            rejected["phone_like"] += 1
+            continue
+        if LONG_NUMBER.search(sentence):
+            rejected["long_number"] += 1
             continue
         letters = sum(char.isalpha() for char in sentence)
         if letters < 8 or letters / max(1, len(sentence.replace(" ", ""))) < 0.45:
+            rejected["low_letter_ratio"] += 1
             continue
         if script_ratio(sentence, script) < 0.70:
+            rejected["script_mismatch"] += 1
             continue
         # Avoid navigation fragments and short headings masquerading as sentences.
-        words = re.findall(r"[^\W_]+", sentence, flags=re.UNICODE)
+        words = re.findall(r"[^\\W_]+", sentence, flags=re.UNICODE)
         if script in {"Latn", "Cyrl", "Grek", "Arab"} and len(words) < 5:
+            rejected["too_few_words"] += 1
             continue
         if sentence[-1:] not in ".!?。！？؟؛।።" and len(sentence) < 80:
+            rejected["no_sentence_ending"] += 1
             continue
         yield sentence
 
@@ -254,10 +277,14 @@ def extract_language(connection, language: str, subset: str, revision: str,
             split = assign_split(group_id, seed)
             doc_hash = sha256(str(doc_id))
             candidates = list(sentence_candidates(text or "", subset.split("_")[1],
-                                                   min_chars, max_chars))
+                                                   min_chars, max_chars, sentence_rejected))
+            candidate_sentences_before_cap += len(candidates)
             # Per-document cap limits template-heavy pages dominating the sample.
-            candidates.sort(key=lambda sentence: sha256(f"{seed}\0{doc_hash}\0{sentence}"))
+            candidates.sort(key=lambda sentence: sha256(f"{seed}\\0{doc_hash}\\0{sentence}"))
+            if len(candidates) > max_sentences_per_doc:
+                rejected["document_sentence_cap"] += len(candidates) - max_sentences_per_doc
             candidates = candidates[:max_sentences_per_doc]
+            candidate_sentences_after_cap += len(candidates)
             for sentence in candidates:
                 if sentence in seen_text:
                     rejected["duplicate_sentence"] += 1
