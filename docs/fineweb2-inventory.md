@@ -16,7 +16,7 @@ FineWeb2 uses ISO 639-3 language codes and language-script subset names. The pro
 | da | `dan_Latn` | Danish |
 | nl | `nld_Latn` | Dutch |
 | en | — | FineWeb2 directs English users to original FineWeb |
-| et | `ekk_Latn` | Check published availability |
+| et | `ekk_Latn` | Standard Estonian (ISO 639-3 code `ekk`) |
 | fi | `fin_Latn` | Finnish |
 | fr | `fra_Latn` | French |
 | de | `deu_Latn` | German |
@@ -24,7 +24,7 @@ FineWeb2 uses ISO 639-3 language codes and language-script subset names. The pro
 | hu | `hun_Latn` | Hungarian |
 | ga | `gle_Latn` | Irish |
 | it | `ita_Latn` | Italian |
-| lv | `lvs_Latn` | Check published availability |
+| lv | `lvs_Latn` | Standard Latvian (ISO 639-3 code `lvs`) |
 | lt | `lit_Latn` | Lithuanian |
 | mt | `mlt_Latn` | Maltese |
 | pl | `pol_Latn` | Polish |
@@ -71,4 +71,12 @@ The filtered FineWeb2 corpus has already been globally deduplicated per language
 - Language distribution: https://github.com/huggingface/fineweb-2/blob/main/fineweb2-language-distribution.csv
 - Pipeline and per-language configurations: https://github.com/huggingface/fineweb-2
 - FineWeb2 dataset card declares ODC-By 1.0. Record that as the dataset/compilation licence; it does not establish that all underlying crawled pages are individually licensed for unrestricted redistribution.
-- The dataset card describes PII anonymization and provides an opt-out route. Our own source review and text-level checks remain necessary.
+- The dataset card says the pipeline anonymizes email addresses and IP addresses and provides an opt-out route; this is not a guarantee that all forms of personal data have been removed. Our own source review and text-level checks remain necessary.
+
+## Document schema and provenance
+
+The dataset viewer exposes these fields: `text`, `id`, `dump`, `url`, `date`, `file_path`, `language`, `language_score`, `language_script`, `minhash_cluster_size`, and `top_langs`. The card describes `id` as the original unique Common Crawl sample identifier. The `dump` and `date` fields identify the crawl snapshot/time; `url` gives the source page; `language_score` and `language_script` expose the GlotLID classification; and `minhash_cluster_size` records the pre-deduplication duplicate-cluster size.
+
+There is no ready-made domain field: derive the hostname from `url`, canonicalize it, and retain the original URL separately. For split assignment, domain-level grouping is a conservative default to reduce website/template leakage; preserve document ID as a second-level stable group key. Do not use the raw URL as a public training feature or publish it in the text-only sample output unless the source review explicitly allows it.
+
+FineWeb2's reported PII work specifically mentions email and IP-address anonymization. Treat that as a useful upstream filter, not a substitute for our own review of names, contact details, addresses, account identifiers, and other identifying text.
