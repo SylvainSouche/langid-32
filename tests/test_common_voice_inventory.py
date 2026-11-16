@@ -62,7 +62,7 @@ def test_build_rows_deduplicates_chinese_across_locale_files(tmp_path):
         ) as stream:
             writer = csv.DictWriter(
                 stream, fieldnames=["sentence_id", "sentence", "is_used"],
-                delimiter="\\t",
+                delimiter="\t",
             )
             writer.writeheader()
             writer.writerow({
