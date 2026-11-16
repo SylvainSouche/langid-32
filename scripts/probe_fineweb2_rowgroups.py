@@ -29,7 +29,7 @@ def main():
     out={"dataset":DATASET,"revision":REVISION,"columns":COLUMNS,"results":{}}
     for lang,path in SHARDS.items():
         url=f"https://huggingface.co/datasets/{DATASET}/resolve/{REVISION}/{path}"
-        fs=fsspec.filesystem("http")
+        fs=fsspec.filesystem("http", client_kwargs={"headers":{"User-Agent":"langid-32 FineWeb2 row-group probe/0.1"}})
         with fs.open(url,"rb",block_size=1024*1024,cache_type="readahead") as fh:
             pf=pq.ParquetFile(fh)
             groups=pick_groups(pf)
