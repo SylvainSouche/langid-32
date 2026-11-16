@@ -210,3 +210,37 @@ Selection filters include NFC/whitespace normalization, document language score 
 **Interpretation and caveats:** these are 20,000 *heuristically accepted* samples per class, not human-reviewed ground truth. The four row groups are a deterministic bounded sample, not a statistically representative sample of the entire language subset. The 10% test and 10% validation sets are split from the sampled upstream **train** documents by hostname; FineWeb2's own upstream `test` split was not used. The hostname grouping is not a full registrable-domain/public-suffix calculation, and the PII filters cannot guarantee anonymization. FineWeb2's ODC-By 1.0 dataset licence does not settle rights in each crawled page. Keep the artifact private pending manual quality, privacy and rights review.
 
 Compact metrics: [fineweb2-es-tr-pilot-summary.csv](data/fineweb2-es-tr-pilot-summary.csv). The extractor has been extended to run all 31 non-English target subsets in a separate workflow; English remains a separate FineWeb source route.
+
+
+### Full 31-language FineWeb2 bounded extraction (2026-11-16)
+
+The all-subset run has completed successfully. It extracted **20,000 unique samples for every one of the 31 non-English target classes**: 620,000 sentences total, with no language errors and no split shortfalls.
+
+<badge color="success">31 / 31 languages reached target</badge>
+
+| Result | Value |
+|---|---:|
+| Languages | 31 |
+| Samples per language | 20,000 |
+| Total samples | 620,000 |
+| Per-language train / validation / test | 16,000 / 2,000 / 2,000 |
+| Source documents read | 8,000 per language (248,000 total) |
+| Row groups read | 8 per language |
+| Total HTTP GET payload | 727,899,605 bytes (~728 MB) |
+| Compressed GitHub Actions artifact | ~204 MB |
+| Language shortfalls / extraction errors | 0 / 0 |
+
+The run used DuckDB v2.0.0 and pinned FineWeb2 revision `v2.1.0`. It selected one deterministic shard per language and eight evenly distributed row groups within that shard. It projected only the required columns. The highest transfer-to-shard ratio was 4.10% (Japanese, whose selected shard was relatively small); most languages were below 1%. No whole Parquet shard was downloaded.
+
+Validation of the generated artifact confirmed:
+- exactly 20,000 rows and 20,000 unique normalized texts in each language;
+- exactly 16,000 train, 2,000 validation and 2,000 test rows per language;
+- 620,000 provenance rows, each with all expected provenance fields;
+- 1,191 hostname-group hashes shared between two or more language samples, with **zero cross-language split conflicts**;
+- 52 exact sentence hashes shared across different language classes (kept rather than silently removed, since they can be useful ambiguous/hard-negative cases).
+
+The all-language sample and full manifest/provenance sidecar are in the private GitHub Actions artifact: [run 43921366526](https://github.com/SylvainSouche/langid-32/actions/runs/43921366526). It has 7-day retention; the sample text has not been committed to Git. Per-language counts, selected shards, row groups, host counts, sentence lengths and transfer totals are in [fineweb2-31-language-sample-summary.csv](data/fineweb2-31-language-sample-summary.csv).
+
+**This is a first bounded corpus build, not final ground truth.** It samples eight row groups from one shard per language; the deterministic selection is not statistically representative of each entire subset. The text-level filters are heuristics, not human review or a complete PII detector. Hostname grouping is not a public-suffix/registrable-domain calculation. The FineWeb2 ODC-By 1.0 licence applies to the dataset/compilation, but underlying crawled-page rights remain a separate question. Keep the artifact private until quality, privacy and rights review is complete. The sample's 10% validation and 10% test splits are made from upstream train documents; upstream FineWeb2 test and removed subsets are not mixed into this sample.
+
+English is still the 32nd class and is not part of FineWeb2; the dataset card directs English users to the separate original FineWeb dataset. The other project sources (Common Voice, DGT-TM, Tatoeba, etc.) also remain relevant; this 31-language FineWeb2 build is one source component, not the merged final corpus.
