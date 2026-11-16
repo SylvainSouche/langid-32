@@ -16,7 +16,7 @@ FineWeb2 uses ISO 639-3 language codes and language-script subset names. The pro
 | da | `dan_Latn` | Danish |
 | nl | `nld_Latn` | Dutch |
 | en | — | FineWeb2 directs English users to original FineWeb |
-| et | `est_Latn` | Check published availability |
+| et | `ekk_Latn` | Check published availability |
 | fi | `fin_Latn` | Finnish |
 | fr | `fra_Latn` | French |
 | de | `deu_Latn` | German |
@@ -24,7 +24,7 @@ FineWeb2 uses ISO 639-3 language codes and language-script subset names. The pro
 | hu | `hun_Latn` | Hungarian |
 | ga | `gle_Latn` | Irish |
 | it | `ita_Latn` | Italian |
-| lv | `lav_Latn` | Check published availability |
+| lv | `lvs_Latn` | Check published availability |
 | lt | `lit_Latn` | Lithuanian |
 | mt | `mlt_Latn` | Maltese |
 | pl | `pol_Latn` | Polish |
@@ -61,7 +61,7 @@ The report separates filtered train documents, test documents and removed train 
 
 ## Preliminary findings from the upstream distribution CSV
 
-The pinned distribution snapshot (upstream commit `d0defb24f193bb9a5a11b8b14524a03c4858e1b6`, 2025-10-27) confirms large filtered subsets for Korean (`kor_Hang`: 60,874,355 train documents), Irish (`gle_Latn`: 646,842), Maltese (`mlt_Latn`: 489,190), Nynorsk (`nno_Latn`: 1,214,870) and Bokmål (`nob_Latn`: 38,144,343). These are publisher-reported document counts, not sentence counts or usable samples. The 29 target subsets range from 489,190 filtered-train documents for Maltese to hundreds of millions for several high-resource languages. The table has exact subsets for 29 of the 32 target classes in the current mapping; English is separately distributed, while Estonian and Latvian are not listed as exact subsets in this mapping. Verify the live CSV before acquisition decisions.
+The pinned distribution snapshot (upstream commit `d0defb24f193bb9a5a11b8b14524a03c4858e1b6`, 2025-10-27) confirms large filtered subsets for Korean (`kor_Hang`: 60,874,355 train documents), Irish (`gle_Latn`: 646,842), Maltese (`mlt_Latn`: 489,190), Nynorsk (`nno_Latn`: 1,214,870) and Bokmål (`nob_Latn`: 38,144,343). These are publisher-reported document counts, not sentence counts or usable samples. The 29 target subsets range from 489,190 filtered-train documents for Maltese to hundreds of millions for several high-resource languages. The table has exact subsets for 31 of the 32 target classes in the current mapping; English is separately distributed in original FineWeb. The mapping deliberately uses `ekk` and `lvs` for Standard Estonian and Standard Latvian.
 
 The filtered FineWeb2 corpus has already been globally deduplicated per language. The dataset retains `minhash_cluster_size`, source URL, crawl dump/date and language confidence metadata. For our evaluation, split by source document or domain before sentence extraction; do not randomly split extracted sentences. A FineWeb2-held-out evaluation is also not independent of other Common Crawl derivatives such as HPLT or MADLAD-400.
 
