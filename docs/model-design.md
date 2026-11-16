@@ -1,0 +1,43 @@
+# Model routes
+
+All routes consume the same corpus splits and emit logits in the same fixed
+32-language class order (config/languages.txt). The model definitions are
+independent of any particular trainer so CPU, CUDA and Apple MPS runners can
+use the same architectures.
+
+## A1 — sparse character n-gram logistic regression
+
+- Unicode character n-grams of lengths 2–5, with ^ and $ boundaries.
+- Stable BLAKE2b hashing into 65,536 buckets.
+- Count features and a 32-way linear layer.
+- 2,097,184 trainable parameters (about 8.00 MiB in FP32).
+
+The PyTorch implementation accepts a coalesced sparse COO feature matrix.
+
+## A2 — character n-gram EmbeddingBag
+
+- Same n-gram extraction, hashed into 32,768 buckets.
+- 32-dimensional mean-pooled EmbeddingBag.
+- Linear 32-to-32 classifier.
+- 1,049,632 trainable parameters (about 4.00 MiB in FP32).
+
+## B — byte-level Transformer
+
+- UTF-8 bytes, truncated to 256 bytes, with a CLS token and padding.
+- Byte vocabulary: 259 IDs (padding, CLS, reserved ID, then 256 byte values).
+- Learned position embeddings for 257 positions.
+- Four pre-LayerNorm bidirectional encoder blocks.
+- Hidden size 128, four attention heads, feed-forward size 384.
+- CLS representation followed by a 32-class linear head.
+
+Parameter count is computed from the actual implementation and recorded by
+the experiment runner; it is not estimated from the design sketch.
+
+## Shared evaluation contract
+
+- One ordered class list for every route.
+- Same source-document-level train/validation/test assignments.
+- Cross-entropy training objective; validation-only model selection.
+- Report accuracy, macro-F1, per-class precision/recall/F1, confusion matrix,
+  parameter count, checkpoint bytes, and CPU/device inference latency.
+- Keep the frozen test split out of training and hyperparameter selection.
