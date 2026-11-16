@@ -1,4 +1,4 @@
-from langid32.fineweb2_shards import flatten_shards
+from langid32.fineweb2_shards import flatten_shards, target_failed_conversions
 
 
 def test_flatten_shards_filters_to_target_subsets_and_preserves_roles():
@@ -24,7 +24,7 @@ def test_flatten_shards_filters_to_target_subsets_and_preserves_roles():
 
     rows = flatten_shards(payload)
 
-    assert len(rows) == 4
+    assert len(rows) == 5
     assert {(r["language"], r["subset_role"], r["split"]) for r in rows} == {
         ("ko", "filtered", "train"),
         ("ko", "filtered", "test"),
@@ -36,3 +36,19 @@ def test_flatten_shards_filters_to_target_subsets_and_preserves_roles():
     assert partial["partial"] is True
     assert partial["api_split"] == "partial-train"
     assert rows[0]["size_bytes"] == 1234
+
+
+
+def test_target_failed_conversions_reports_only_project_subsets():
+    payload = {
+        "failed": [
+            {"kind": "config-parquet", "config": "spa_Latn", "split": None},
+            {"kind": "config-parquet", "config": "tur_Latn", "split": None},
+            {"kind": "config-parquet", "config": "amh_Ethi", "split": None},
+        ]
+    }
+
+    assert target_failed_conversions(payload) == [
+        {"config": "spa_Latn", "kind": "config-parquet"},
+        {"config": "tur_Latn", "kind": "config-parquet"},
+    ]
