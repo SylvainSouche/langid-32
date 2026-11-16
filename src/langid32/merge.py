@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import unicodedata
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -20,6 +21,13 @@ LANGUAGES = (
     "nb nn ru ja zh ko ar tr"
 ).split()
 SPLITS = ("train", "validation", "test")
+EMAIL_RE = re.compile(r"(?i)\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b")
+URL_RE = re.compile(r"(?i)\b(?:https?://\s*|www\.)[A-Z0-9][A-Z0-9.-]*\.[A-Z]{2,}(?:/[^\s]*)?")
+WEB_FRAGMENT_RE = re.compile(r"(?i)\bwww\.(?=$|[\s,;])")
+HTTP_FRAGMENT_RE = re.compile(r"(?i)\bhttps?://(?=$|[\s,;])")
+IPV4_RE = re.compile(r"\b(?:\d{1,3}\.){3}\d{1,3}\b")
+PHONE_RE = re.compile(r"(?<!\w)\+?\d[\d .()/-]{7,}\d(?!\w)")
+LONG_NUMBER_RE = re.compile(r"\d{9,}")
 
 
 def normalize_text(value: str) -> str:
@@ -75,6 +83,27 @@ def read_inputs(paths: list[Path], args):
                 if len(text.encode("utf-8")) > args.max_bytes:
                     rejected["outside_byte_limit"] += 1
                     continue
+                if EMAIL_RE.search(text):
+                    rejected["email_excluded"] += 1
+                    continue
+                if URL_RE.search(text) or WEB_FRAGMENT_RE.search(text) or HTTP_FRAGMENT_RE.search(text):
+                    rejected["url_excluded"] += 1
+                    continue
+                if IPV4_RE.search(text):
+                    rejected["ipv4_excluded"] += 1
+                    continue
+                provenance = row.get("provenance", {})
+                if not isinstance(provenance, dict):
+                    provenance = {}
+                privacy_flags = provenance.get("privacy_flags", [])
+                if not isinstance(privacy_flags, list):
+                    privacy_flags = []
+                privacy_flags = {str(flag) for flag in privacy_flags}
+                if PHONE_RE.search(text):
+                    privacy_flags.add("phone_like")
+                if LONG_NUMBER_RE.search(text):
+                    privacy_flags.add("long_numeric_sequence")
+                provenance["privacy_flags"] = sorted(privacy_flags)
                 group = str(row["group_id"]).strip()
                 if not group:
                     rejected["empty_group_id"] += 1
@@ -88,7 +117,7 @@ def read_inputs(paths: list[Path], args):
                     "group_id": group,
                     "licence_id": str(row["licence_id"]),
                     "text_origin": str(row["text_origin"]),
-                    "provenance": row.get("provenance", {}),
+                    "provenance": provenance,
                 }
                 split_group = str(row.get("split_group_id") or group)
                 normalized["split_group_id"] = split_group
@@ -191,6 +220,11 @@ def merge(args):
                                     separators=(",", ":")) + "\n")
     output_hashes[internal_path.name] = digest(internal_path.read_text(encoding="utf-8"))
 
+    privacy_flag_counts = Counter()
+    for row in internal_rows:
+        flags = row.get("provenance", {}).get("privacy_flags", [])
+        privacy_flag_counts.update(flags)
+
     manifest = {
         "schema_version": 1,
         "project": "langid-32",
@@ -210,12 +244,12 @@ def merge(args):
             "split_caps": caps,
             "deduplication": "exact normalized text within language across all inputs",
             "group_split": "deterministic hash of split_group_id (or group_id); shared groups stay in one split",
-            "source_balancing": "none; source counts are reported, no hidden quotas",
+            "source_balancing": "none; source counts are reported, no hidden quotas",\n            "privacy_filters": "exclude email, URL and IPv4 matches; retain phone-like and 9+ digit sequences with flags",
         },
         "counts": dict(sorted(counts.items())),
         "source_counts": dict(sorted(source_counts.items())),
         "rejected": dict(sorted(rejected.items())),
-        "duplicate_source_pairs": dict(sorted(duplicate_by_source_pair.items())),
+        "duplicate_source_pairs": dict(sorted(duplicate_by_source_pair.items())),\n        "privacy_flag_counts": dict(sorted(privacy_flag_counts.items())),
         "group_count": len(group_splits),
         "output_sha256": output_hashes,
         "rights_note": (
