@@ -409,3 +409,10 @@ An earlier three-source candidate was superseded after an independent scan found
 Only the documented 2021 DGT-TM package is included. Newer 2025 catalogue entries have not yet been reconciled with the JRC release documentation. Common Voice v27 and Målfrid 2026 remain the next source integrations; Common Voice must be obtained from the original Mozilla Data Collective distribution.
 
 The independent post-run review of v4 found 94 exact text strings (194 records) assigned to multiple language labels, measurable FineWeb2 hostname concentration in Maltese, Nynorsk and Irish, and 1,619 records with phone-like or long-number review flags. See [the candidate v4 audit](candidate-audit-v4.md) before treating the balanced row counts as evidence of balanced language quality.
+
+
+## Current four-source candidate (2026-11-16)
+
+The English FineWeb source has now been extracted and integrated. The current technical candidate is the four-source [v5 audit](candidate-audit-v5.md): 640,000 records across 32 languages, with 20,000 per language. FineWeb contributes 6,075 English records (30.4% of the English class), reducing Tatoeba's English share from 89.0% in v4 to 61.9%. The source-specific extraction, quality and rights caveats are in [fineweb-inventory.md](fineweb-inventory.md).
+
+This is still a candidate, not a rights-cleared or human-validated training release. The 94 cross-language exact-text collisions remain unresolved, and privacy review remains outstanding.
