@@ -114,9 +114,11 @@ The Parquet shard CSV contains **1,839 files**:
 
 The shard listing covers 29 languages. It has no entries for English (expected: separate FineWeb), **Spanish** (`spa_Latn`) or **Turkish** (`tur_Latn`). The metadata CSV expects 637,611,323,581 bytes of Spanish train shards and 134,789,283,815 bytes of Turkish train shards. Their combined **772,400,607,396-byte** gap exactly explains the difference between the metadata CSV's 8,565,676,448,996-byte aggregate and the shard listing's 7,793,275,841,600-byte filtered-train aggregate. For the 29 languages present, the shard byte totals match the metadata CSV exactly.
 
-This is a **manifest coverage gap**, not evidence that the Spanish and Turkish data do not exist. The Hugging Face dataset-viewer documentation says conversions can be partial and that large splits may be listed under names such as `partial-train`; the original shard CLI accepted only `train` and `test`. It has now been corrected to normalize `partial-train` / `partial-test` while preserving the original API split in `api_split`, and to report target languages without any shard entries. See the [dataset-viewer Parquet API documentation](https://huggingface.co/docs/dataset-viewer/parquet).
+This is a **dataset-viewer conversion coverage gap**, not evidence that the Spanish and Turkish source data do not exist. The regenerated report includes the raw `/parquet` API response. It contains 4,569 Parquet entries across 1,314 configurations, 556 failed configuration conversions, zero pending conversions, and `partial: false`. Both missing target subsets are explicitly present in `failed` as `kind: config-parquet` (`spa_Latn` and `tur_Latn`); neither appears in `parquet_files`. They are therefore not omitted `partial-train` entries. The 29 other target subsets are present, and their train-shard byte totals match the distribution CSV exactly.
 
-The shard sizes are mostly around 4.84 GB, with smaller final shards. This supports the earlier conclusion: do not download whole language subsets. The next step is to regenerate the manifest with the corrected CLI and see whether Spanish and Turkish appear as partial splits. If still absent, inspect the API's `pending`, `failed` and `partial` fields from the raw JSON response.
+Hugging Face's dataset card documents the original data layout under `data/{subset}/train` and gives direct access examples using `hf://datasets/HuggingFaceFW/fineweb-2/data/por_Latn/train`. That means the failed dataset-viewer conversion should not be treated as source-data absence. The next route is to inspect the original `main` branch files for `data/spa_Latn/train` and `data/tur_Latn/train`, then access those original Parquet shards directly (for example via the Hub's `hf://` interface or direct file URLs), rather than relying on `refs/convert/parquet`. The dataset card also notes that streaming is supported and no smaller sample release is currently provided. [Dataset card](https://huggingface.co/datasets/HuggingFaceFW/fineweb-2) · [dataset-viewer Parquet API documentation](https://huggingface.co/docs/dataset-viewer/parquet).
+
+The shard sizes are mostly around 4.84 GB, with smaller final shards. This supports the earlier conclusion: do not download whole language subsets. The immediate next step is to inventory original-branch shard paths and test a bounded remote read.
 
 ### Consistency checks
 
@@ -128,3 +130,16 @@ The shard sizes are mostly around 4.84 GB, with smaller final shards. This suppo
 ### Remote query feasibility
 
 The uploaded listing confirms that shard URLs are direct Hugging Face Parquet URLs. DuckDB's `httpfs` supports HTTP range requests for Parquet and can fetch only the metadata and column data needed by a query; Hugging Face also documents the `hf://` route for querying datasets directly. This is a credible path to test, but actual transferred bytes and compatibility with these FineWeb2 converted shards remain unmeasured. Sources: [DuckDB HTTP partial reads](https://duckdb.org/docs/current/core_extensions/httpfs/https), [Hugging Face DuckDB integration](https://huggingface.co/docs/hub/en/datasets-duckdb).
+
+
+### Raw Parquet API response (2026-11-16)
+
+The second user upload supplied the raw Hugging Face `/parquet` JSON as well as the regenerated CSV. This resolves the earlier uncertainty:
+
+- API response: 4,569 listed Parquet files, 1,314 configurations, 556 failed configuration conversions, zero pending conversions, `partial: false`.
+- Both target subsets missing from the converted-shard manifest are in `failed` as `config-parquet`: `spa_Latn` and `tur_Latn`.
+- Neither target is represented by a `partial-train` or `partial-test` split.
+- The regenerated target CSV still has 1,839 rows (1,810 train and 29 test); this is expected because the API did not publish converted Parquet files for those two configs.
+- The other 29 target subsets have converted shards, with train-byte sums matching the pinned distribution CSV exactly.
+
+This changes the diagnosis: the issue is specifically the dataset-viewer Parquet conversion for two configs, not a bug in our split-name handling. The upstream dataset card documents original files below `data/{subset}/train` and demonstrates direct `hf://` streaming. We should inspect the original `main`-branch file trees for `spa_Latn` and `tur_Latn`; a conversion failure is not proof that the underlying data are unavailable. The original files may have a different schema or layout, so inspect metadata before using them.
