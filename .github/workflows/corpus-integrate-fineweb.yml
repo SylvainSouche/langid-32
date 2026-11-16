@@ -1,10 +1,6 @@
 name: Build global 32-language corpus candidate v5
 
 on:
-  push:
-    paths:
-      - ".github/workflows/corpus-integrate-fineweb.yml"
-      - "scripts/stage_fineweb.py"
   workflow_run:
     workflows: ["Extract bounded English FineWeb sample"]
     types: [completed]
@@ -16,9 +12,8 @@ permissions:
 jobs:
   integrate:
     if: >-
-      ${{ github.event_name == 'push' ||
-          (github.event.workflow_run.conclusion == 'success' &&
-           github.event.workflow_run.head_sha == '277ee9fc52c44ad5d38101b337a517fa1fb7d2d1') }}
+      ${{ github.event.workflow_run.conclusion == 'success' &&
+          github.event.workflow_run.head_sha == 'ebdb586e5ec3c9ca7b6acd1ac4d5403627486e08' }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
@@ -35,11 +30,11 @@ jobs:
       - name: Download English FineWeb sample
         uses: actions/download-artifact@v4
         with:
-          name: fineweb-en-20000-main
+          name: fineweb-en-20000-v1.4.0
           path: input/fineweb-en
           github-token: ${{ github.token }}
           repository: ${{ github.repository }}
-          run-id: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || 43946321575 }}
+          run-id: ${{ github.event.workflow_run.id }}
       - name: Download FineWeb2 20,100-per-language buffer
         uses: actions/download-artifact@v4
         with:
