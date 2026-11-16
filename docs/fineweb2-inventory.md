@@ -167,3 +167,19 @@ The v2.1.0 totals match the current distribution CSV and the previously observed
 The inventory utility and its workflow are retained:
 - [scripts/inspect_fineweb2_revisions.py](../scripts/inspect_fineweb2_revisions.py)
 - [.github/workflows/fineweb2-revisions.yml](../.github/workflows/fineweb2-revisions.yml)
+
+
+### Original Parquet access tested successfully (2026-11-16)
+
+A second GitHub Actions probe used DuckDB's HTTPFS against the original v2.1.0 files, not the dataset-viewer conversion URLs. Before invoking DuckDB, the script sent a 1 KiB HTTP Range request and required an HTTP 206 response. Both files returned the expected Parquet magic bytes (PAR1) and advertised byte ranges:
+
+| Language | First shard | Remote file size | Range preflight | DuckDB schema + LIMIT 1 |
+|---|---|---:|---|---|
+| Spanish | spa_Latn/train/000_00000.parquet | 4,846,280,144 bytes | 206, 1,024 bytes | successful |
+| Turkish | tur_Latn/train/000_00000.parquet | 4,845,225,746 bytes | 206, 1,024 bytes | successful |
+
+DuckDB read the Parquet schema and returned the lengths of one text field and its ID for each language; document text itself was not written to the report. The schema matches the expected FineWeb2 fields: text, id, dump, url, date, file_path, language, language_score, language_script, minhash_cluster_size, and top_langs.
+
+This confirms the key technical route: **we can query original Spanish and Turkish Parquet files remotely with DuckDB without downloading entire shards**. The HTTP Range preflight proves the Hub/Xet delivery path supports byte ranges, and DuckDB's schema and row query both succeeded. The probe did not yet measure total bytes transferred by DuckDB, so we should still quantify that before scaling up.
+
+Probe summary: [fineweb2-remote-read-probe.csv](data/fineweb2-remote-read-probe.csv). Reproducible probe: [scripts/probe_fineweb2_remote_read.py](../scripts/probe_fineweb2_remote_read.py), workflow: [.github/workflows/fineweb2-remote-read.yml](../.github/workflows/fineweb2-remote-read.yml).
