@@ -270,3 +270,18 @@ The 31-language extraction transferred about 1.32 GB of compressed HTTP ranges f
 Selection remains deliberately conservative: 25–400 characters, FineWeb2 language score >=0.90, script check, exact normalized sentence deduplication within the sampled material, hostname-level split grouping shared across languages, email/URL/IPv4 exclusion, and phone-like/long-number review flags. The manifest explicitly records that this is a bounded deterministic sample, not a statistically representative sample of the full FineWeb2 subsets.
 
 Next: assemble the base and top-up artifacts into one canonical 640,000-sentence corpus artifact, then run the existing langid32.corpus normalization/deduplication and provenance checks before treating it as the first corpus candidate.
+
+### Complete 640,000-sentence FineWeb2 candidate assembled (2026-11-16)
+
+The base sample plus the four short-language top-ups were assembled in GitHub Actions and independently verified.
+
+- 31 languages × 20,000 sentences = **640,000 sentences**
+- per language: 16,000 train + 2,000 validation + 2,000 test
+- exact normalized sentence duplicates: none within a language
+- hostname group IDs: verified to map to one split globally
+- provenance sidecar retained
+- output SHA-256 hashes recorded in the manifest
+- final artifact: fineweb2-640k-v2.1.0
+- assembly workflow: run 43929112868
+
+This is now the first complete FineWeb2-derived corpus candidate for langid-32. It is still a **candidate**, not yet the final corpus: the next stage is to merge it with the other selected sources, apply the common corpus normalization/deduplication pipeline, inspect cross-source duplicates and source-group leakage, and resolve licensing/provenance policy before publication.
