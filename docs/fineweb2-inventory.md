@@ -61,14 +61,14 @@ The report separates filtered train documents, test documents and removed train 
 
 ## Preliminary findings from the upstream distribution CSV
 
-The pinned distribution snapshot (upstream commit `d0defb24f193bb9a5a11b8b14524a03c4858e1b6`, 2025-10-27) confirms large filtered subsets for Korean (`kor_Hang`: 60,874,355 train documents), Irish (`gle_Latn`: 646,842), Maltese (`mlt_Latn`: 489,190), Nynorsk (`nno_Latn`: 1,214,870) and Bokmål (`nob_Latn`: 38,144,343). These are publisher-reported document counts, not sentence counts or usable samples. The 31 target subsets range from 489,190 filtered-train documents for Maltese to hundreds of millions for several high-resource languages. The table has exact subsets for 31 of the 32 target classes in the current mapping; English is separately distributed in original FineWeb. The mapping deliberately uses `ekk` and `lvs` for Standard Estonian and Standard Latvian.
+The pinned distribution snapshot (upstream commit `d0defb24f193bb9a5a11b8b14524a03c4858e1b6`, 2025-10-27) confirms large filtered subsets for Korean (`kor_Hang`: 60,874,355 train documents), Irish (`gle_Latn`: 646,842), Maltese (`mlt_Latn`: 489,190), Nynorsk (`nno_Latn`: 1,214,870) and Bokmål (`nob_Latn`: 38,144,343). These are publisher-reported document counts, not sentence counts or usable samples. The 31 target subsets range from 489,190 filtered-train documents for Maltese to hundreds of millions for several high-resource languages. The table has exact subsets for 31 of the 32 target classes in the current mapping; English is separately distributed in original FineWeb. The mapping deliberately uses `ekk` and `lvs` for Standard Estonian and Standard Latvian. Summing the 31 filtered-train rows in the pinned CSV gives **4,498,336,994 documents** and **8,565,676,448,996 Parquet bytes (about 8.57 TB)**. This is the combined source inventory, not a download target: the project needs 20,000 samples per class, so acquisition must be bounded and selective.
 
 The filtered FineWeb2 corpus has already been globally deduplicated per language. The dataset retains `minhash_cluster_size`, source URL, crawl dump/date and language confidence metadata. For our evaluation, split by source document or domain before sentence extraction; do not randomly split extracted sentences. A FineWeb2-held-out evaluation is also not independent of other Common Crawl derivatives such as HPLT or MADLAD-400.
 
 ## Source and licence cautions
 
 - FineWeb2: https://huggingface.co/datasets/HuggingFaceFW/fineweb-2
-- Language distribution: https://github.com/huggingface/fineweb-2/blob/main/fineweb2-language-distribution.csv
+- Language distribution: https://github.com/huggingface/fineweb-2/blob/d0defb24f193bb9a5a11b8b14524a03c4858e1b6/fineweb2-language-distribution.csv
 - Pipeline and per-language configurations: https://github.com/huggingface/fineweb-2
 - FineWeb2 dataset card declares ODC-By 1.0. Record that as the dataset/compilation licence; it does not establish that all underlying crawled pages are individually licensed for unrestricted redistribution.
 - The dataset card says the pipeline anonymizes email addresses and IP addresses and provides an opt-out route; this is not a guarantee that all forms of personal data have been removed. Our own source review and text-level checks remain necessary.
