@@ -33,10 +33,11 @@ def request_json(url: str, timeout: int, retries: int = 4) -> tuple[object, dict
                 response_headers = {k.lower(): v for k, v in response.headers.items()}
                 return payload, response_headers
         except urllib.error.HTTPError as exc:
+            body = exc.read().decode("utf-8", errors="replace")[:1000]
             if exc.code in (404, 410):
-                return {"_not_found": exc.code, "_message": str(exc)}, {}
+                return {"_not_found": exc.code, "_message": body or str(exc)}, {}
             if exc.code not in (429, 500, 502, 503, 504) or attempt == retries - 1:
-                raise
+                raise RuntimeError(f"HTTP {exc.code}: {body or exc.reason}") from exc
         except (urllib.error.URLError, TimeoutError):
             if attempt == retries - 1:
                 raise
@@ -59,7 +60,7 @@ def list_tree(revision: str, path: str, timeout: int) -> tuple[list[dict], str |
     url = (
         f"https://huggingface.co/api/datasets/{DATASET}/tree/"
         f"{urllib.parse.quote(revision, safe='')}/{path}"
-        "?recursive=true&expand=true&limit=1000"
+        "?recursive=true&expand=false&limit=1000"
     )
     entries: list[dict] = []
     while url:
