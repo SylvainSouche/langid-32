@@ -35,3 +35,8 @@ def test_target_mapping_has_32_classes_and_expected_special_cases():
     assert TARGET_SUBSETS["ko"] == "kor_Hang"
     assert TARGET_SUBSETS["nn"] == "nno_Latn"
     assert TARGET_SUBSETS["en"] is None
+
+
+def test_standard_estonian_and_latvian_iso6393_aliases_are_mapped():
+    assert TARGET_SUBSETS["et"] == "ekk_Latn"
+    assert TARGET_SUBSETS["lv"] == "lvs_Latn"
