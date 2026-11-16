@@ -213,7 +213,7 @@ def extract_language(connection, language: str, subset: str, revision: str,
     connection.execute("CALL truncate_duckdb_logs()")
     cursor = connection.execute(
         "SELECT text, id, url, date, dump, language, language_score, "
-        "language_script, minhash_cluster_size "
+        "language_script, minhash_cluster_size, file_row_group_number "
         f"FROM read_parquet('{escaped}') "
         f"WHERE file_row_group_number IN ({group_ids_sql})"
     )
@@ -221,13 +221,18 @@ def extract_language(connection, language: str, subset: str, revision: str,
     split_candidates: dict[str, list[tuple[str, dict]]] = defaultdict(list)
     seen_text: set[str] = set()
     rejected = Counter()
+    sentence_rejected = Counter()
     docs = 0
     doc_domains = set()
+    docs_by_row_group = Counter()
+    candidate_sentences_before_cap = 0
+    candidate_sentences_after_cap = 0
     max_sentences_per_doc = 20
 
     for batch in iter(lambda: cursor.fetchmany(256), []):
-        for text, doc_id, source_url, crawl_date, dump, source_language, score, source_script, cluster_size in batch:
+        for text, doc_id, source_url, crawl_date, dump, source_language, score, source_script, cluster_size, row_group_id in batch:
             docs += 1
+            docs_by_row_group[str(row_group_id)] += 1
             if score is None or float(score) < min_score:
                 rejected["document_language_score"] += 1
                 continue
@@ -282,6 +287,9 @@ def extract_language(connection, language: str, subset: str, revision: str,
                     "revision": revision,
                     "subset": subset,
                     "shard": path,
+                    "row_group_id": int(row_group_id),
+                    "shard_oid": str(file_item.get("oid") or ""),
+                    "shard_lfs_oid": str((file_item.get("lfs") or {}).get("oid", "")),
                 }
                 split_candidates[split].append((priority, {"record": record, "provenance": provenance}))
 
@@ -300,6 +308,18 @@ def extract_language(connection, language: str, subset: str, revision: str,
         selected_records.extend(item["record"] for _, item in chosen)
         selected_provenance.extend(item["provenance"] for _, item in chosen)
 
+    rejected.update({f"sentence_{key}": value for key, value in sentence_rejected.items()})
+    selected_lengths = [len(item["record"]["text"]) for item in
+                        (entry for split in split_candidates.values() for _, entry in split)]
+    selected_lengths.sort()
+    selected_groups = {
+        split: len({item["record"]["group_id"] for _, item in values[:caps[split]]})
+        for split, values in split_candidates.items()
+    }
+    selected_documents = {
+        split: len({item["record"]["document_id_hash"] for _, item in values[:caps[split]]})
+        for split, values in split_candidates.items()
+    }
     sample_stats = http_stats(connection)
     report = {
         "language": language,
@@ -315,7 +335,18 @@ def extract_language(connection, language: str, subset: str, revision: str,
             str(row[0]): int(row[1]) for row in metadata if int(row[0]) in row_group_ids
         },
         "documents_read": docs,
+        "documents_by_row_group": dict(sorted(docs_by_row_group.items(), key=lambda item: int(item[0]))),
         "distinct_hostnames": len(doc_domains),
+        "candidate_sentences_before_document_cap": candidate_sentences_before_cap,
+        "candidate_sentences_after_document_cap": candidate_sentences_after_cap,
+        "selected_sentence_length_chars": {
+            "min": selected_lengths[0] if selected_lengths else 0,
+            "median": int(statistics.median(selected_lengths)) if selected_lengths else 0,
+            "p95": selected_lengths[int((len(selected_lengths) - 1) * 0.95)] if selected_lengths else 0,
+            "max": selected_lengths[-1] if selected_lengths else 0,
+        },
+        "selected_distinct_groups_by_split": selected_groups,
+        "selected_distinct_documents_by_split": selected_documents,
         "candidate_counts_by_split": {
             split: len(values) for split, values in split_candidates.items()
         },
