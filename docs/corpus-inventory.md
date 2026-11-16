@@ -318,30 +318,53 @@ Source adapters must preserve a shared group key across languages when the under
 
 The adapter is `scripts/stage_fineweb2.py`. It joins each selected sentence to the provenance sidecar, maps the exact FineWeb2 subset identifiers to project language labels, retains hashed document/URL provenance and the hostname group, and marks the licence as `ODC-By-1.0;underlying-crawled-text-rights-unresolved`.
 
-Workflow `.github/workflows/corpus-integrate-fineweb2.yml` downloaded the verified source artifact from assembly run 43929112868, ran the test suite, staged the 640,000 records, and executed the global merge. The completed workflow is run [43930504989](https://github.com/SylvainSouche/langid-32/actions/runs/43930504989); its private 14-day artifact is `fineweb2-global-candidate-v1`.
+Workflow `.github/workflows/corpus-integrate-fineweb2.yml` downloaded the verified source artifact from assembly run 43929112868, ran the test suite, staged the 620,000 non-English records, and executed the global merge. The completed baseline workflow is run [43930504989](https://github.com/SylvainSouche/langid-32/actions/runs/43930504989); its private artifact was `fineweb2-global-candidate-v1`.
 
-Verified merge result:
-- 31 languages, exactly 20,000 records each (640,000 total)
+Baseline result:
+- 31 languages, exactly 20,000 records each (620,000 total)
 - each language: 16,000 train / 2,000 validation / 2,000 test
 - zero records rejected by the common normalization/length stage
 - 77,767 distinct hostname groups
-- zero within-language exact duplicates remaining
-- zero cross-source duplicates measured yet (FineWeb2 is the only ingested text source)
-- source contribution is 100% FineWeb2 for these 31 language classes; English remains unfilled by this source
+- no exact within-language duplicates remaining
 
-This is a successful technical integration, **not** a rights-cleared or quality-reviewed corpus. FineWeb2's ODC-By licence for the dataset/compilation does not settle rights in underlying crawled pages. Its deterministic row-group sample is not statistically representative of each full language subset. Phone-like and long-number flags are retained in internal provenance and still require review. Do not publish or redistribute the text at this stage.
+FineWeb2's ODC-By licence for the dataset/compilation does not settle rights in underlying crawled pages. Its deterministic row-group sample is not statistically representative of each full language subset. Phone-like and long-number flags are retained in internal provenance and still require review. Do not publish or redistribute the text at this stage.
 
-## 7. Next ingestion sequence
+## 7. Two-source 32-language candidate
 
-1. **DGT-TM 2021**: acquire the public five-volume release; parse TMX to source-normalized records for the 24 EU languages; retain EUR-Lex document grouping and mark text as translated/parallel. Measure unique usable segments, boilerplate and duplicates. Attribution terms must travel with the records.
-2. **Tatoeba CC0**: ingest only the CC0 sentence export; preserve the complete base/translation graph as group IDs; deduplicate against existing FineWeb2 and other sources. Do not ingest the CC BY export until attribution is represented correctly.
-3. **Målfrid 2026**: process Bokmål and Nynorsk separately; retain document/domain grouping and NLOD attribution metadata; sentence-segment the JSONL, run PII screening and compare overlap with FineWeb2.
-4. **Common Voice v27**: obtain the original MDC archives through the authorised route; extract only the text TSV; count active `is_used=true` sentences and preserve sentence IDs and locale provenance. Do not download or retain audio.
-5. **English**: Common Voice is a candidate. If volume or domain diversity is insufficient, evaluate original FineWeb separately, with the same underlying-rights caveat.
-6. **Korean**: use the already available FineWeb2 component as baseline while pursuing a better-documented Korean source; do not block the pipeline on the inaccessible Korean Law portal registration.
-7. Produce a per-language/per-source coverage and overlap report before setting source quotas or selecting a final 20,000 examples per class.
+Tatoeba's CC0-only export has now been staged and merged with FineWeb2. The integration workflow downloads the FineWeb2 baseline artifact and the Tatoeba staging artifact, runs the common tests, performs cross-source exact deduplication, recomputes deterministic group splits, and enforces exact counts for all 32 languages. It retains both source manifests in the candidate artifact.
 
-The next source to ingest should be DGT-TM: it is public, compact enough to process in GitHub Actions, and adds a distinct translated legal/administrative domain across 24 EU languages. It will also give an early measurement of cross-source overlap against the FineWeb2 web sample.
+The completed run is [43931843065](https://github.com/SylvainSouche/langid-32/actions/runs/43931843065). Artifact: `multisource-candidate-v1` (artifact ID 14259711049; 14-day retention).
+
+Verified result:
+- **32 languages × 20,000 = 640,000 records**
+- every class has exactly 16,000 train / 2,000 validation / 2,000 test
+- 157,918 source groups across the merged candidate
+- no records rejected by the common merge stage
+- no exact normalized within-language duplicates across the two source inputs
+- no source quotas; source contributions are deterministic and reported in the manifest
+
+Source contributions after the cap:
+- English: 20,000 Tatoeba CC0
+- Russian: 10,555 Tatoeba CC0 / 9,445 FineWeb2
+- French: 8,287 Tatoeba CC0 / 11,713 FineWeb2
+- Finnish: 1,431 Tatoeba CC0
+- Swedish: 204 Tatoeba CC0
+- the other 27 classes receive at most 57 Tatoeba rows each; FineWeb2 supplies the balance
+
+Tatoeba's 80,151 staged target-language records were all marked as originals by the source base relation; no translated or unknown-base records were present in this CC0 subset. The CC0 subset therefore adds English coverage and some additional original-sentence variety, not a large parallel-text component. The broader Tatoeba CC BY export was not ingested.
+
+This is the first complete 32-class technical candidate, **not** a release-ready corpus. FineWeb2's underlying crawled-text rights remain unresolved. Tatoeba's included sentence text comes from the CC0 1.0 export. Text-level privacy, language quality, domain balance and source-specific rights/attribution still require review. The internal provenance sidecar must remain private until PII review.
+
+## 8. Next ingestion sequence
+
+1. **DGT-TM release selection**: resolve the discrepancy between the JRC technical page, whose download table ends at the 2021 release, and the data.europa.eu catalogue, which lists five additional distributions titled “New Volume 2025 part 1/5” through “part 5/5” while retaining version-2024 metadata and temporal coverage through 24 March 2024. Inspect the 2025 access/download metadata and archive contents before deciding whether those volumes supplement or replace the 2021 package. Then parse the selected TMX release(s) for the 24 EU languages, retaining EUR-Lex document grouping and translated/parallel origin.
+2. **Målfrid 2026**: process Bokmål and Nynorsk separately; retain document/domain grouping and NLOD attribution metadata; sentence-segment the JSONL, run PII screening and compare overlap with FineWeb2.
+3. **Common Voice v27**: obtain the original MDC archives through the authorised route; extract only the text TSV; count active `is_used=true` sentences and preserve sentence IDs and locale provenance. Do not download or retain audio.
+4. **English**: Tatoeba now fills the English class, but its source mix is entirely CC0 user-contributed originals. Add Common Voice English if its usable volume and terms are suitable; evaluate original FineWeb separately only if needed, with the same underlying-rights caveat.
+5. **Korean**: use FineWeb2 as the current baseline while pursuing a better-documented Korean source; do not block the pipeline on the inaccessible Korean Law portal registration.
+6. Produce a per-language/per-source coverage, domain, quality, privacy and overlap report before setting source quotas or selecting a final 20,000 examples per class.
+
+The next investigation is DGT-TM release identity, not blind ingestion of the 2021 files. Once the 2025 distributions are understood, DGT-TM is still the best next text source to add because it contributes a distinct translated legal/administrative domain across 24 EU languages.
 
 ## FineWeb2: priority multilingual web source
 
