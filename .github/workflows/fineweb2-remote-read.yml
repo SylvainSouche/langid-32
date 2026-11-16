@@ -1,0 +1,30 @@
+name: Probe FineWeb2 original Parquet range reads
+
+on:
+  push:
+    paths:
+      - "scripts/probe_fineweb2_remote_read.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install isolated probe dependencies
+        run: python -m pip install --disable-pip-version-check duckdb
+      - name: Probe bounded reads
+        run: python scripts/probe_fineweb2_remote_read.py --output reports/fineweb2-range-read-probe.json
+      - name: Upload probe report
+        uses: actions/upload-artifact@v4
+        with:
+          name: fineweb2-range-read-probe
+          path: reports/fineweb2-range-read-probe.json
+          if-no-files-found: error
