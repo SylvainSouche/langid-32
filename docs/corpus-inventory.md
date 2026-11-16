@@ -67,20 +67,74 @@ Coverage references and caveats:
 | P2 | Europarl v7 | Publicly documented per-language sentence counts; substantial volume for 21 languages | 1996–2011 parliamentary proceedings; strong domain bias; speaker/document markup; verify redistribution terms before publication. |
 | P3 | Other monolingual sources | Fill shortfalls and broaden register/domain | Only admit sources with clear per-component terms, provenance, stable identifiers and defensible language labels. |
 
-## 3. What is already established—and what is not
+## 3. Common Voice v27.0 metadata: first measured result
 
-Established from source documentation:
-- JRC-Acquis 3.0 covers 22 target languages and reports 463,792 texts across those languages. These are **document counts**, not usable sentence counts.
-- DGT-TM documentation lists 24 EU official languages; Irish is explicitly described as sparse and Croatian as smaller.
-- Europarl v7 documents 21 languages and per-language sentence counts, ranging from 387,490 Polish sentences to over 2.3 million Danish/Dutch sentences in the source corpus.
-- Tatoeba's ordinary export and CC0-only export are distinct. Do not label the entire ordinary export CC0.
-- OPUS contains many independent corpora with different licences; OPUS-wide totals are not evidence that any particular target language has 20,000 admissible examples.
+I parsed the upstream v27.0 release JSON directly:
+`cv-corpus-27.0-delta-2026-09-11.json`, blob SHA `9de5d5b46eabc3678174f58adae4b5c75dc1e641`.
 
-Not established:
-- Current Common Voice v27 text/TSV availability and usable counts for each of the 32 target locales.
-- Exact usable counts for any source after our text-length, language, duplicate, privacy and quality filters.
-- Per-language coverage and licence eligibility of Tatoeba CC0 and each OPUS candidate.
-- Whether 20,000 examples per language can be reached without over-relying on one domain or translated text.
+The metadata contains a matching locale entry for every one of our 32 target languages. There are 33 locale files to inspect because Chinese is represented by both `zh-CN` and `zh-TW`. The table below reports the upstream `validatedSentences` metadata field, not our own count of rows in the downloadable TSV and not the final usable count.
+
+| Target | Common Voice locale(s) | Metadata validatedSentences | Gap to 20,000 (metadata only) |
+|---|---|---:|---:|
+| bg | bg | 39,572 | 0 |
+| hr | hr | 1,781 | 18,219 |
+| cs | cs | 451,317 | 0 |
+| da | da | 20,986 | 0 |
+| nl | nl | 260,921 | 0 |
+| en | en | 1,682,617 | 0 |
+| et | et | 11,118 | 8,882 |
+| fi | fi | 5,865 | 14,135 |
+| fr | fr | 1,661,012 | 0 |
+| de | de | 2,058,031 | 0 |
+| el | el | 8,950 | 11,050 |
+| hu | hu | 326,554 | 0 |
+| ga | ga-IE | 4,883 | 15,117 |
+| it | it | 925,181 | 0 |
+| lv | lv | 34,689 | 0 |
+| lt | lt | 129,359 | 0 |
+| mt | mt | 5,274 | 14,726 |
+| pl | pl | 230,314 | 0 |
+| pt | pt | 43,656 | 0 |
+| ro | ro | 13,756 | 6,244 |
+| sk | sk | 22,194 | 0 |
+| sl | sl | 4,209 | 15,791 |
+| es | es | 1,082,797 | 0 |
+| sv | sv-SE | 26,893 | 0 |
+| nb | nb-NO | 4,419 | 15,581 |
+| nn | nn-NO | 5,318 | 14,682 |
+| ru | ru | 48,002 | 0 |
+| ja | ja | 44,606 | 0 |
+| zh | zh-CN + zh-TW | 80,036 | 0 |
+| ko | ko | 7,432 | 12,568 |
+| ar | ar | 59,439 | 0 |
+| tr | tr | 410,411 | 0 |
+
+**Initial signal:** 21 of 32 target languages have at least 20,000 entries in this metadata field. Eleven are below the target: hr, et, fi, el, ga, mt, ro, sl, nb, nn and ko. The metadata total across the 32 target languages is 9,711,592.
+
+This is encouraging but not yet evidence that Common Voice alone supplies the target corpus:
+- The release JSON field is a preliminary inventory statistic. We have not counted the corresponding TSV rows.
+- The TSV has an `is_used` flag. Retired sentences may be outdated, too similar, incorrect, or otherwise no longer eligible for recording. We should count all non-empty rows and the `is_used=true` subset separately; use the latter as the conservative first-pass pool.
+- The metadata's clip and user counts are not text-corpus counts and must not be used to infer the number of usable sentences.
+- A sentence-level file has no source-document ID. Retain `sentence_id` as the grouping key to prevent repeated prompt text from crossing splits; this does not solve broader document-level leakage.
+- For Chinese, retain the locale distinction during inventory and deduplication, then decide whether both script varieties belong in the single `zh` class. Do not discard the locale provenance.
+- Metadata counts can be very large relative to the clips reported for some locales. This reinforces why we must inspect the actual archive and TSV rather than infer availability from the JSON.
+
+The locale mapping used here is explicit: `ga-IE`, `sv-SE`, `nb-NO`, `nn-NO`, and `zh-CN` + `zh-TW`; the other targets use their two-letter locale codes.
+
+### Reproducible inventory command
+
+A read-only counter is now implemented at `src/langid32/common_voice_inventory.py`. It reads the official release JSON and, when given extracted locale directories, scans `validated_sentences.tsv` without copying sentence text into the report. It records raw rows, non-empty rows, `is_used` counts, basic length-filter counts, normalized within-file duplicates, and per-locale metadata.
+
+After installing the project in the existing development environment:
+
+```sh
+langid32-cv-inventory \
+  --release-json /path/to/cv-corpus-27.0-delta-2026-09-11.json \
+  --data-root /path/to/extracted/common-voice-v27 \
+  --output data/inventory/common-voice-v27.csv
+```
+
+The command also works without `--data-root`, in which case it emits metadata-only rows and explicitly marks TSV counts as unmeasured. It does not download data. Obtain original archives directly from MDC.
 
 ## 4. Required inventory measurements
 
