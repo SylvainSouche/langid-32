@@ -22,7 +22,7 @@ def main():
     args = parser.parse_args()
     root = args.input
     manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
-    revision = manifest.get("revision", "v2.1.0")
+    revision = manifest.get("source_revision", "v2.1.0")
     licence = "ODC-By-1.0;underlying-crawled-text-rights-unresolved"
     provenance = {}
     with (root / "provenance.jsonl").open(encoding="utf-8") as stream:
