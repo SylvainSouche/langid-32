@@ -266,6 +266,20 @@ langid32-tatoeba-inventory \
 
 The `sentences_base.csv` file is used to group translations with their source sentence; it is not itself used as training text. The counter stores only the CC0 sentence rows in a temporary SQLite database and removes it when finished. The export's base relation may point to a sentence outside the CC0 subset; that ID is still useful as an internal grouping key. A final merged corpus must still deduplicate against Common Voice and other sources.
 
+The source adapter is now implemented as `scripts/stage_tatoeba.py`, with workflow `.github/workflows/tatoeba-ingest.yml`. It downloads the official weekly CC0 and base exports, emits only CC0 sentence text, excludes email/URL/IPv4 matches, flags phone-like and long numeric strings, and records file hashes and sentence IDs without contributor names.
+
+The 14 November 2026 export was staged successfully in workflow run [43931414124](https://github.com/SylvainSouche/langid-32/actions/runs/43931414124). After length and basic privacy filters it produced **80,151 target-language records across 18 classes**:
+- English 41,230
+- Russian 22,717
+- French 14,182
+- Finnish 1,545
+- Swedish 208
+- all remaining represented classes: 57 or fewer each
+
+The base join reported **80,151 originals, zero translations and zero unknown-base rows**. Thus this CC0 subset is useful mainly as an original-sentence supplement; it does not contribute the multilingual translation pairs one might expect from Tatoeba's broader CC BY export. Four email and ten URL matches were excluded; 15 phone-like and one long-number match were flagged for review. The remaining corpus is not fully PII-cleared.
+
+The source page distinguishes the general CC BY 2.0 FR export from the separate CC0 1.0 sentence export. Only `sentences_CC0.csv` is used as text; `sentences_base.csv` contributes grouping metadata only. See https://tatoeba.org/en/downloads and https://downloads.tatoeba.org/exports/.
+
 ## 4. Required inventory measurements
 
 For each (source, release, language), record:
