@@ -17,7 +17,8 @@ dev = ["pytest>=8"]
 train = ["torch>=2.2"]
 
 [project.scripts]
-langid32-prepare = "langid32.corpus:main"\nlangid32-merge = "langid32.merge:main"
+langid32-prepare = "langid32.corpus:main"
+langid32-merge = "langid32.merge:main"
 langid32-cv-inventory = "langid32.common_voice_inventory:main"
 langid32-cv-extract = "langid32.common_voice_extract:main"
 langid32-tatoeba-inventory = "langid32.tatoeba_inventory:main"
