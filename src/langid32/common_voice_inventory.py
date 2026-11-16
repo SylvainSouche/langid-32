@@ -47,12 +47,19 @@ def count_sentence_file(path: Path, min_chars: int, max_chars: int,
                 counts["empty"] += 1
                 continue
             counts["nonempty"] += 1
-            if row.get("is_used", "").strip().lower() in {"true", "1", "yes"}:
+            used_value = (row.get("is_used") or "").strip().lower()
+            if used_value in {"true", "1", "yes"}:
                 counts["is_used_true"] += 1
-            elif row.get("is_used", "").strip().lower() in {"false", "0", "no"}:
+            elif used_value in {"false", "0", "no"}:
                 counts["is_used_false"] += 1
             else:
                 counts["is_used_unspecified"] += 1
+            source = (row.get("source") or "").strip() or "(blank)"
+            counts[f"source::{source}"] += 1
+            domains = (row.get("sentence_domain") or "").strip()
+            if domains:
+                for domain in domains.split(","):
+                    counts[f"domain::{domain.strip()}"] += 1
             if len(text) < min_chars:
                 counts["too_short"] += 1
                 continue
