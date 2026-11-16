@@ -206,126 +206,136 @@ def http_stats(connection) -> dict:
 
 
 def extract_language(connection, language: str, subset: str, revision: str,
-                     target: int, max_row_groups: int, min_chars: int,
-                     max_chars: int, min_score: float, timeout: int, seed: str) -> tuple[list, list, dict]:
+                     target: int, max_row_groups: int, shards_per_language: int,
+                     min_chars: int, max_chars: int, min_score: float,
+                     timeout: int, seed: str) -> tuple[list, list, dict]:
     files = list_train_files(subset, revision, timeout)
-    file_index = int(sha256(f"{seed}\0{subset}")[:12], 16) % len(files)
-    file_item = files[file_index]
-    path = str(file_item["path"])
-    url = f"https://huggingface.co/datasets/{DATASET}/resolve/{revision}/{path}"
-    escaped = url.replace("'", "''")
-
-    connection.execute("CALL truncate_duckdb_logs()")
-    metadata = connection.execute(
-        "SELECT row_group_id, max(row_group_num_rows) AS rows "
-        f"FROM parquet_metadata('{escaped}') "
-        "GROUP BY row_group_id ORDER BY row_group_id"
-    ).fetchall()
-    metadata_stats = http_stats(connection)
-    if not metadata:
-        raise RuntimeError(f"No row groups found in {path}")
-
-    group_count = len(metadata)
-    base = int(sha256(f"{seed}\0{path}\0rowgroups")[:12], 16) % group_count
-    row_group_ids = sorted({
-        (base + round(i * group_count / max_row_groups)) % group_count
-        for i in range(max_row_groups)
+    shard_count = min(max(1, shards_per_language), len(files))
+    shard_base = int(sha256(f"{seed}\0{subset}\0shards")[:12], 16) % len(files)
+    shard_indices = sorted({
+        (shard_base + round(i * len(files) / shard_count)) % len(files)
+        for i in range(shard_count)
     })
-    group_ids_sql = ",".join(str(value) for value in row_group_ids)
-
-    connection.execute("CALL truncate_duckdb_logs()")
-    cursor = connection.execute(
-        "SELECT text, id, url, date, dump, language, language_score, "
-        "language_script, minhash_cluster_size, file_row_group_number "
-        f"FROM read_parquet('{escaped}') "
-        f"WHERE file_row_group_number IN ({group_ids_sql})"
+    columns_sql = (
+        "text, id, url, date, dump, language, language_score, "
+        "language_script, minhash_cluster_size, file_row_group_number"
     )
-
     split_candidates: dict[str, list[tuple[str, dict]]] = defaultdict(list)
     seen_text: set[str] = set()
     rejected = Counter()
     sentence_rejected = Counter()
     docs = 0
     doc_domains = set()
+    docs_by_shard = Counter()
     docs_by_row_group = Counter()
     candidate_sentences_before_cap = 0
     candidate_sentences_after_cap = 0
+    shard_reports = []
     max_sentences_per_doc = 20
 
-    for batch in iter(lambda: cursor.fetchmany(256), []):
-        for text, doc_id, source_url, crawl_date, dump, source_language, score, source_script, cluster_size, row_group_id in batch:
-            docs += 1
-            docs_by_row_group[str(row_group_id)] += 1
-            if score is None or float(score) < min_score:
-                rejected["document_language_score"] += 1
-                continue
-            if source_language and str(source_language).lower() != subset.split("_")[0].lower():
-                rejected["document_language_code_mismatch"] += 1
-                continue
-            if source_script and str(source_script) != subset.split("_")[1]:
-                rejected["document_script_mismatch"] += 1
-                continue
-            hostname = urllib.parse.urlparse(source_url or "").hostname or ""
-            hostname = hostname.lower().removeprefix("www.").rstrip(".")
-            if hostname:
-                doc_domains.add(hostname)
-                group_material = f"host:{hostname}"
-            else:
-                rejected["missing_hostname"] += 1
-                group_material = f"document:{doc_id}"
-            group_id = sha256(group_material)
-            split = assign_split(group_id, seed)
-            doc_hash = sha256(str(doc_id))
-            candidates = list(sentence_candidates(text or "", subset.split("_")[1],
-                                                   min_chars, max_chars, sentence_rejected))
-            candidate_sentences_before_cap += len(candidates)
-            # Per-document cap limits template-heavy pages dominating the sample.
-            candidates.sort(key=lambda sentence: sha256(f"{seed}\\0{doc_hash}\\0{sentence}"))
-            if len(candidates) > max_sentences_per_doc:
-                rejected["document_sentence_cap"] += len(candidates) - max_sentences_per_doc
-            candidates = candidates[:max_sentences_per_doc]
-            candidate_sentences_after_cap += len(candidates)
-            for sentence in candidates:
-                if sentence in seen_text:
-                    rejected["duplicate_sentence"] += 1
+    for file_index in shard_indices:
+        file_item = files[file_index]
+        path = str(file_item["path"])
+        url = f"https://huggingface.co/datasets/{DATASET}/resolve/{revision}/{path}"
+        escaped = url.replace("'", "''")
+        connection.execute("CALL truncate_duckdb_logs()")
+        metadata = connection.execute(
+            "SELECT row_group_id, max(row_group_num_rows) AS rows "
+            f"FROM parquet_metadata('{escaped}') "
+            "GROUP BY row_group_id ORDER BY row_group_id"
+        ).fetchall()
+        metadata_stats = http_stats(connection)
+        if not metadata:
+            raise RuntimeError(f"No row groups found in {path}")
+        group_count = len(metadata)
+        base = int(sha256(f"{seed}\0{path}\0rowgroups")[:12], 16) % group_count
+        row_group_ids = sorted({
+            (base + round(i * group_count / max_row_groups)) % group_count
+            for i in range(max_row_groups)
+        })
+        group_ids_sql = ",".join(str(value) for value in row_group_ids)
+        connection.execute("CALL truncate_duckdb_logs()")
+        cursor = connection.execute(
+            f"SELECT {columns_sql} FROM read_parquet('{escaped}') "
+            f"WHERE file_row_group_number IN ({group_ids_sql})"
+        )
+        shard_docs = 0
+        shard_domains = set()
+        for batch in iter(lambda: cursor.fetchmany(256), []):
+            for text, doc_id, source_url, crawl_date, dump, source_language, score, source_script, cluster_size, row_group_id in batch:
+                docs += 1
+                shard_docs += 1
+                docs_by_shard[path] += 1
+                docs_by_row_group[f"{path}#{row_group_id}"] += 1
+                if score is None or float(score) < min_score:
+                    rejected["document_language_score"] += 1
                     continue
-                seen_text.add(sentence)
-                sentence_hash = sha256(sentence)
-                priority = sha256(f"{seed}\0{language}\0{split}\0{sentence}")
-                record = {
-                    "text": sentence,
-                    "language": language,
-                    "source": "fineweb2",
-                    "split": split,
-                    "group_id": group_id,
-                    "document_id_hash": doc_hash,
-                }
-                provenance = {
-                    "sentence_sha256": sentence_hash,
-                    "document_id_sha256": doc_hash,
-                    "group_id": group_id,
-                    "source_domain": hostname,
-                    "source_url_sha256": sha256(source_url or ""),
-                    "crawl_date": str(crawl_date or ""),
-                    "crawl_dump": str(dump or ""),
-                    "language_score": float(score),
-                    "language_script": str(source_script or ""),
-                    "minhash_cluster_size": int(cluster_size or 0),
-                    "revision": revision,
-                    "subset": subset,
-                    "shard": path,
-                    "row_group_id": int(row_group_id),
-                    "shard_oid": str(file_item.get("oid") or ""),
-                    "shard_lfs_oid": str((file_item.get("lfs") or {}).get("oid", "")),
-                    "privacy_flags": [
-                        flag for flag, pattern in (
-                            ("phone_like", PHONE), ("long_numeric_sequence", LONG_NUMBER)
-                        ) if pattern.search(sentence)
-                    ],
-                }
-                split_candidates[split].append((priority, {"record": record, "provenance": provenance}))
+                if source_language and str(source_language).lower() != subset.split("_")[0].lower():
+                    rejected["document_language_code_mismatch"] += 1
+                    continue
+                if source_script and str(source_script) != subset.split("_")[1]:
+                    rejected["document_script_mismatch"] += 1
+                    continue
+                hostname = urllib.parse.urlparse(source_url or "").hostname or ""
+                hostname = hostname.lower().removeprefix("www.").rstrip(".")
+                if hostname:
+                    doc_domains.add(hostname)
+                    shard_domains.add(hostname)
+                    group_material = f"host:{hostname}"
+                else:
+                    rejected["missing_hostname"] += 1
+                    group_material = f"document:{doc_id}"
+                group_id = sha256(group_material)
+                split = assign_split(group_id, seed)
+                doc_hash = sha256(str(doc_id))
+                candidates = list(sentence_candidates(
+                    text or "", subset.split("_")[1], min_chars, max_chars, sentence_rejected
+                ))
+                candidate_sentences_before_cap += len(candidates)
+                candidates.sort(key=lambda sentence: sha256(f"{seed}\0{doc_hash}\0{sentence}"))
+                if len(candidates) > max_sentences_per_doc:
+                    rejected["document_sentence_cap"] += len(candidates) - max_sentences_per_doc
+                candidates = candidates[:max_sentences_per_doc]
+                candidate_sentences_after_cap += len(candidates)
+                for sentence in candidates:
+                    if sentence in seen_text:
+                        rejected["duplicate_sentence"] += 1
+                        continue
+                    seen_text.add(sentence)
+                    sentence_hash = sha256(sentence)
+                    priority = sha256(f"{seed}\0{language}\0{split}\0{sentence}")
+                    record = {
+                        "text": sentence, "language": language, "source": "fineweb2",
+                        "split": split, "group_id": group_id, "document_id_hash": doc_hash,
+                    }
+                    provenance = {
+                        "sentence_sha256": sentence_hash, "document_id_sha256": doc_hash,
+                        "group_id": group_id, "source_domain": hostname,
+                        "source_url_sha256": sha256(source_url or ""),
+                        "crawl_date": str(crawl_date or ""), "crawl_dump": str(dump or ""),
+                        "language_score": float(score), "language_script": str(source_script or ""),
+                        "minhash_cluster_size": int(cluster_size or 0), "revision": revision,
+                        "subset": subset, "shard": path, "row_group_id": int(row_group_id),
+                        "shard_oid": str(file_item.get("oid") or ""),
+                        "shard_lfs_oid": str((file_item.get("lfs") or {}).get("oid", "")),
+                        "privacy_flags": [
+                            flag for flag, pattern in (
+                                ("phone_like", PHONE), ("long_numeric_sequence", LONG_NUMBER)
+                            ) if pattern.search(sentence)
+                        ],
+                    }
+                    split_candidates[split].append((priority, {"record": record, "provenance": provenance}))
+        shard_reports.append({
+            "shard_index": file_index, "shard": path,
+            "shard_bytes": int(file_item.get("size") or 0),
+            "row_group_count": group_count, "selected_row_group_ids": row_group_ids,
+            "selected_row_group_rows": {str(row[0]): int(row[1]) for row in metadata if int(row[0]) in row_group_ids},
+            "documents_read": shard_docs, "distinct_hostnames": len(shard_domains),
+            "metadata_http": metadata_stats, "sample_http": http_stats(connection),
+        })
 
     caps = {
+
         "train": target - round(target * 0.10) - round(target * 0.10),
         "validation": round(target * 0.10),
         "test": round(target * 0.10),
