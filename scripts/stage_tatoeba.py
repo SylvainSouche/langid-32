@@ -6,14 +6,13 @@ import argparse
 import csv
 import hashlib
 import json
-import re
 import sqlite3
 import tempfile
 import unicodedata
 from collections import Counter
 from pathlib import Path
 
-from langid32.merge import IPV4_RE, has_phone_like
+from langid32.merge import (EMAIL_RE, HTTP_FRAGMENT_RE, IPV4_RE, LONG_NUMBER_RE,\n                            URL_RE, WEB_FRAGMENT_RE, has_phone_like)
 
 CODES = {
     "bg": ("bul",), "hr": ("hrv",), "cs": ("ces",), "da": ("dan",),
@@ -26,13 +25,6 @@ CODES = {
     "zh": ("cmn",), "ko": ("kor",), "ar": ("ara",), "tr": ("tur",),
 }
 CODE_TO_LANGUAGE = {code: lang for lang, codes in CODES.items() for code in codes}
-EMAIL = re.compile(r"(?i)\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b")
-URL = re.compile(r"(?i)(?:https?://|www\.)\S+")
-IPV4 = re.compile(r"\b(?:\d{1,3}\.){3}\d{1,3}\b")
-PHONE = re.compile(r"(?<!\w)\+?\d[\d .()/-]{7,}\d(?!\w)")
-LONG_NUMBER = re.compile(r"\d{9,}")
-
-
 def normalize(text: str) -> str:
     return " ".join(unicodedata.normalize("NFC", text).split())
 
@@ -86,10 +78,10 @@ def stage(args):
                 if len(text.encode("utf-8")) > args.max_bytes:
                     counts["outside_byte_limit"] += 1
                     continue
-                if EMAIL.search(text):
+                if EMAIL_RE.search(text):
                     counts["email_excluded"] += 1
                     continue
-                if URL.search(text):
+                if (URL_RE.search(text) or WEB_FRAGMENT_RE.search(text) or HTTP_FRAGMENT_RE.search(text)):
                     counts["url_excluded"] += 1
                     continue
                 if IPV4_RE.search(text):
@@ -99,7 +91,7 @@ def stage(args):
                 if has_phone_like(text):
                     privacy_flags.append("phone_like")
                     counts["phone_like_flagged"] += 1
-                if LONG_NUMBER.search(text):
+                if LONG_NUMBER_RE.search(text):
                     privacy_flags.append("long_numeric_sequence")
                     counts["long_number_flagged"] += 1
                 modified = fields[3] if len(fields) > 3 else ""
