@@ -4,7 +4,7 @@ A reproducible multilingual language-identification project covering 32 language
 
 ## Dataset sourcing
 
-The corpus is the current project priority. See [the corpus source inventory](docs/corpus-inventory.md) for documented language coverage, source constraints, unresolved counts, and the acquisition plan. No corpus-wide usable counts have been measured yet.
+The corpus is the current project priority. See [the corpus source inventory](docs/corpus-inventory.md) for source coverage, the first Common Voice v27 metadata results, unresolved counts, and the acquisition plan. The read-only `langid32-cv-inventory` command inventories extracted Common Voice sentence TSVs; see the documentation for usage. Metadata counts are not yet verified usable-example counts.
 
 ### Mozilla Common Voice
 
