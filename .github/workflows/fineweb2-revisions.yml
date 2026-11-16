@@ -4,7 +4,6 @@ on:
   push:
     paths:
       - "scripts/inspect_fineweb2_revisions.py"
-      - ".github/workflows/fineweb2-revisions.yml"
   workflow_dispatch:
 
 permissions:
