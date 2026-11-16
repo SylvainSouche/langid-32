@@ -112,7 +112,7 @@ The metadata contains a matching locale entry for every one of our 32 target lan
 **Initial signal:** 21 of 32 target languages have at least 20,000 entries in this metadata field. Eleven are below the target: hr, et, fi, el, ga, mt, ro, sl, nb, nn and ko. The metadata total across the 32 target languages is 9,711,592.
 
 This is encouraging but not yet evidence that Common Voice alone supplies the target corpus:
-- The release JSON field is a preliminary inventory statistic. We have not counted the corresponding TSV rows.
+- The release JSON field is a preliminary inventory statistic. We have not counted the corresponding TSV rows. The per-locale metadata snapshot is committed at [common-voice-v27-metadata.csv](data/common-voice-v27-metadata.csv).
 - The TSV has an `is_used` flag. Retired sentences may be outdated, too similar, incorrect, or otherwise no longer eligible for recording. We should count all non-empty rows and the `is_used=true` subset separately; use the latter as the conservative first-pass pool.
 - The metadata's clip and user counts are not text-corpus counts and must not be used to infer the number of usable sentences.
 - A sentence-level file has no source-document ID. Retain `sentence_id` as the grouping key to prevent repeated prompt text from crossing splits; this does not solve broader document-level leakage.
@@ -123,7 +123,7 @@ The locale mapping used here is explicit: `ga-IE`, `sv-SE`, `nb-NO`, `nn-NO`, an
 
 ### Reproducible inventory command
 
-A read-only counter is now implemented at `src/langid32/common_voice_inventory.py`. It reads the official release JSON and, when given extracted locale directories, scans `validated_sentences.tsv` without copying sentence text into the report. It records raw rows, non-empty rows, `is_used` counts, basic length-filter counts, normalized within-file duplicates, and per-locale metadata.
+A read-only counter is now implemented at `src/langid32/common_voice_inventory.py`. It reads the official release JSON and, when given extracted locale directories, scans `validated_sentences.tsv` without copying sentence text into the report. It records raw rows, non-empty rows, `is_used` counts, basic length-filter counts, normalized within-file duplicates, and per-locale counts of sentence source and domain values.
 
 After installing the project in the existing development environment:
 
