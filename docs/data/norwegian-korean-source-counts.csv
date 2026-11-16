@@ -15,3 +15,4 @@ Korean Parallel Corpus (Bible component),2020,ko,kor,sentences,31000,CC BY-SA 3.
 NIKL Written Corpus 2025,2025,ko,kor,work_types,10293,Rights-cleared works; terms pending,Application/request access; verify reuse and redistribution terms before use.
 Open Korean Historical Corpus,2026,ko,kor,tokens,5100000000,CC BY-NC 4.0,"Historical, multi-period/multi-script; non-commercial only; not a modern-Korean general corpus."
 HPLT 3.0 Korean,2025,ko,kor,segments,2340000000,Underlying web text rights unresolved,"CC0 applies to packaging, not underlying text; no public text redistribution by default."
+Korean Law Open Data API,current,ko,kor,documents,,Copyright Act Article 7 excludes specified official legal texts; API terms pending,Current legislation and administrative rules via list/body XML/JSON; registration required; count after extraction
