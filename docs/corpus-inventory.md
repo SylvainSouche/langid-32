@@ -48,7 +48,7 @@ Legend:
 | tr | Turkish | ? | — | — | — | ? | ? |
 
 Coverage references and caveats:
-- Common Voice: v27.0 was announced on 2026-09-18 with 295 scripted-speech languages. The public catalogue identifies language, task, format and dataset size, but the catalogue view is not a reliable proxy for the availability or size of the text metadata needed here. Inspect each target locale's actual downloadable archive and TSV files. Source: https://discourse.mozilla.org/t/common-voice-scripted-speech-v27-0-and-spontaneous-speech-v5-0-released/149490 and https://commonvoice.mozilla.org/datasets
+- Common Voice: v27.0 was announced on 2026-09-18 with 295 scripted-speech languages. Its release documentation specifies a per-locale `validated_sentences.tsv` (available since corpus 17.0) with `sentence_id`, `sentence`, optional `variant`, and optional `sentence_domain`. This is the most directly relevant text inventory for this project; it is distinct from the audio clip TSVs. The release metadata JSON also reports a per-locale `validatedSentences` count, useful as a preliminary cross-check. We still need to verify the 32 exact locale codes and count the actual TSV rows after our own filters. Sources: https://github.com/common-voice/cv-dataset/blob/main/datasets/scripted-speech/README.md, https://github.com/common-voice/cv-dataset/blob/main/datasets/scripted-speech/cv-corpus-27.0-delta-2026-09-11.json, https://discourse.mozilla.org/t/common-voice-scripted-speech-v27-0-and-spontaneous-speech-v5-0-released/149490 and https://commonvoice.mozilla.org/datasets
 - JRC-Acquis 3.0 explicitly lists 22 languages. Its documentation reports text/document statistics per language. It excludes Croatian and Irish from this release. It is a research corpus, not a legal reference corpus. Source: https://joint-research-centre.ec.europa.eu/language-technology-resources/jrc-acquis_en
 - DGT-TM documents coverage of all 24 EU official languages, but Irish has very little material and Croatian less than older member-state languages. It consists of translation units, mostly sentence or sub-sentence segments, not full reproducible documents. Source: https://joint-research-centre.ec.europa.eu/language-technology-resources/dgt-translation-memory_en
 - Europarl v7 documents 21 languages and publishes per-language sentence counts. It does not cover Croatian, Irish or Maltese. It is old parliamentary proceedings, with strong domain and register bias. Source: https://www.statmt.org/europarl/
@@ -117,7 +117,7 @@ For source balancing, keep per-source counts and quotas visible. A language with
 
 ## 6. Immediate execution sequence
 
-1. Download/inspect the Common Voice v27 metadata for all target locales; establish which archives contain text and their actual TSV headers.
+1. Use the v27 release metadata JSON to enumerate exact locale codes and preliminary `validatedSentences` counts; then inspect/download the corresponding MDC locale archives and count `validated_sentences.tsv` rows and usable text.
 2. Implement a read-only inventory/counting command that reports the measurements in section 4 without publishing text.
 3. Inspect DGT-TM release metadata and extract counts for all 24 EU languages.
 4. Measure Tatoeba CC0 per language and preserve its translation/base graph.
