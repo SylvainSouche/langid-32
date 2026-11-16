@@ -12,48 +12,69 @@ Legend:
 - **?** = not yet verified against the current source catalogue or release.
 - A Y means coverage, not a guarantee of 20,000 usable examples.
 
-| Code | Language | Common Voice 27 | JRC-Acquis 3 | DGT-TM | Europarl v7 | Tatoeba CC0 | OPUS |
-|---|---|:---:|:---:|:---:|:---:|:---:|:---:|
-| bg | Bulgarian | Y | Y | Y | Y | — | ? |
-| hr | Croatian | Y | — | Y | — | — | ? |
-| cs | Czech | Y | Y | Y | Y | Y | ? |
-| da | Danish | Y | Y | Y | Y | Y | ? |
-| nl | Dutch | Y | Y | Y | Y | Y | ? |
-| en | English | Y | Y | Y | Y | Y | ? |
-| et | Estonian | Y | Y | Y | Y | — | ? |
-| fi | Finnish | Y | Y | Y | Y | Y | ? |
-| fr | French | Y | Y | Y | Y | Y | ? |
-| de | German | Y | Y | Y | Y | Y | ? |
-| el | Greek | Y | Y | Y | Y | — | ? |
-| hu | Hungarian | Y | Y | Y | Y | Y | ? |
-| ga | Irish | Y | — | Y | — | — | ? |
-| it | Italian | Y | Y | Y | Y | Y | ? |
-| lv | Latvian | Y | Y | Y | Y | — | ? |
-| lt | Lithuanian | Y | Y | Y | Y | — | ? |
-| mt | Maltese | Y | Y | Y | — | — | ? |
-| pl | Polish | Y | Y | Y | Y | Y | ? |
-| pt | Portuguese | Y | Y | Y | Y | Y | ? |
-| ro | Romanian | Y | Y | Y | Y | — | ? |
-| sk | Slovak | Y | Y | Y | Y | — | ? |
-| sl | Slovenian | Y | Y | Y | Y | — | ? |
-| es | Spanish | Y | Y | Y | Y | Y | ? |
-| sv | Swedish | Y | Y | Y | Y | Y | ? |
-| nb | Norwegian Bokmål | Y | — | — | — | Y | ? |
-| nn | Norwegian Nynorsk | Y | — | — | — | — | ? |
-| ru | Russian | Y | — | — | — | Y | ? |
-| ja | Japanese | Y | — | — | — | Y | ? |
-| zh | Chinese | Y | — | — | — | Y | ? |
-| ko | Korean | Y | — | — | — | — | ? |
-| ar | Arabic | Y | — | — | — | Y | ? |
-| tr | Turkish | Y | — | — | — | — | ? |
+| Code | Language | Common Voice 27 | HPLT 3.0 | JRC-Acquis 3 | DGT-TM | Europarl v7 | Tatoeba CC0 | OPUS |
+|---|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| bg | Bulgarian | Y | Y | Y | Y | Y | — | ? |
+| hr | Croatian | Y | Y | — | Y | — | — | ? |
+| cs | Czech | Y | Y | Y | Y | Y | Y | ? |
+| da | Danish | Y | Y | Y | Y | Y | Y | ? |
+| nl | Dutch | Y | Y | Y | Y | Y | Y | ? |
+| en | English | Y | Y | Y | Y | Y | Y | ? |
+| et | Estonian | Y | Y | Y | Y | Y | — | ? |
+| fi | Finnish | Y | Y | Y | Y | Y | Y | ? |
+| fr | French | Y | Y | Y | Y | Y | Y | ? |
+| de | German | Y | Y | Y | Y | Y | Y | ? |
+| el | Greek | Y | Y | Y | Y | Y | — | ? |
+| hu | Hungarian | Y | Y | Y | Y | Y | Y | ? |
+| ga | Irish | Y | Y | — | Y | — | — | ? |
+| it | Italian | Y | Y | Y | Y | Y | Y | ? |
+| lv | Latvian | Y | Y | Y | Y | Y | — | ? |
+| lt | Lithuanian | Y | Y | Y | Y | Y | — | ? |
+| mt | Maltese | Y | Y | Y | Y | — | — | ? |
+| pl | Polish | Y | Y | Y | Y | Y | Y | ? |
+| pt | Portuguese | Y | Y | Y | Y | Y | Y | ? |
+| ro | Romanian | Y | Y | Y | Y | Y | — | ? |
+| sk | Slovak | Y | Y | Y | Y | Y | — | ? |
+| sl | Slovenian | Y | Y | Y | Y | Y | — | ? |
+| es | Spanish | Y | Y | Y | Y | Y | Y | ? |
+| sv | Swedish | Y | Y | Y | Y | Y | Y | ? |
+| nb | Norwegian Bokmål | Y | Y | — | — | — | Y | ? |
+| nn | Norwegian Nynorsk | Y | Y | — | — | — | — | ? |
+| ru | Russian | Y | Y | — | — | — | Y | ? |
+| ja | Japanese | Y | Y | — | — | — | Y | ? |
+| zh | Chinese | Y | Y | — | — | — | Y | ? |
+| ko | Korean | Y | Y | — | — | — | — | ? |
+| ar | Arabic | Y | Y | — | — | — | Y | ? |
+| tr | Turkish | Y | Y | — | — | — | — | ? |
 
 Coverage references and caveats:
+- HPLT Monolingual Datasets 3.0 covers 198 language-script combinations and includes all 32 target language classes (Chinese has Simplified and Traditional variants). It is a very large Common Crawl/Internet Archive-derived web corpus (2012–2024), with document-level and segment-level language labels, provenance, WDS quality ordering, and PII-span annotations. Its v3 catalogue reports very large segment pools even for our smaller targets: Irish 3.77M, Maltese 17.22M, Norwegian Nynorsk 4.12M, Norwegian Bokmål 888.91M, and Korean 2.34B segments. These are source-level segments, not our filtered usable-example counts. Sources: https://hplt-project.org/datasets/v3.0 and https://data.hplt-project.org/three/sorted/manifest.json
 - Common Voice: v27.0 was announced on 2026-09-18 with 295 scripted-speech languages. Its release documentation specifies a per-locale `validated_sentences.tsv` (available since corpus 17.0) with `sentence_id`, `sentence`, optional `variant`, and optional `sentence_domain`. This is the most directly relevant text inventory for this project; it is distinct from the audio clip TSVs. The release metadata JSON also reports a per-locale `validatedSentences` count, useful as a preliminary cross-check. We still need to verify the 32 exact locale codes and count the actual TSV rows after our own filters. Sources: https://github.com/common-voice/cv-dataset/blob/main/datasets/scripted-speech/README.md, https://github.com/common-voice/cv-dataset/blob/main/datasets/scripted-speech/cv-corpus-27.0-delta-2026-09-11.json, https://discourse.mozilla.org/t/common-voice-scripted-speech-v27-0-and-spontaneous-speech-v5-0-released/149490 and https://commonvoice.mozilla.org/datasets
 - JRC-Acquis 3.0 explicitly lists 22 languages and reports 463,792 documents in total. It excludes Croatian and Irish. The JRC says it is a research corpus, not a legal reference corpus; the official conditions require source attribution and retention of Commission ownership, and distinguish public-domain official legislative material from other content. Do not assume the entire compiled corpus has one blanket CC0-style licence. Review the actual conditions before redistributing it. Source: https://joint-research-centre.ec.europa.eu/language-technology-resources/jrc-acquis_en
 - DGT-TM documents coverage of all 24 EU official languages, but Irish is sparse and Croatian has less material. It consists of translation units, mostly sentence or sub-sentence segments, not full reproducible documents. The current download page lists releases through DGT-TM-release 2021 (the 2020 data update); do not describe it as a current annual feed. The statistics PDF reports roughly 0.24M to 6.44M translation units per language in the 2011–2020 updates, but these are aligned translation units, not unique independent sentences. The Commission permits reuse subject to attribution, source/date identification and retention of Commission ownership. Sources: https://joint-research-centre.ec.europa.eu/language-technology-resources/dgt-translation-memory_en and https://wt-public.emm4u.eu/Resources/DGT-TM_Statistics.pdf
 - Europarl v7 documents 21 languages and publishes per-language sentence counts after XML removal. It does not cover Croatian, Irish or Maltese. All 21 target-language counts exceed 387,000; its documents retain IDs, which makes group-level splitting possible. It is parliamentary proceedings from 1996–2011, with strong domain/register bias. The project page says it is not aware of copyright restrictions, but this should still be recorded as the source's statement rather than a formal licence grant. Source: https://www.statmt.org/europarl/
 - Tatoeba publishes a full sentence export and a separate CC0-only export. The general sentence export is CC BY 2.0 FR; only the separately identified subset is CC0. The CC0 language list includes 18 of our target classes (cs, da, nl, en, fi, fr, de, hu, it, pl, pt, es, sv, nb, ru, ja, zh/Mandarin, ar); it does not list the other 14 target classes. This is a language-availability signal, not a count. Preserve the sentence-base and translation-link files to identify translations and prevent cross-split leakage. The CC0 export is updated weekly. The 14 November 2026 export index lists `sentences_CC0.csv` at 41.9 MB uncompressed (7.96 MB compressed) and `sentences_base.csv` at 196.9 MB uncompressed (64.1 MB compressed). The CC0 export uses ISO 639-3 language codes; Mandarin Chinese is the relevant Chinese variety for this inventory. Pin the weekly export date and hashes. Source: https://tatoeba.org/en/downloads and https://downloads.tatoeba.org/exports/
 - OPUS is an aggregator, not a single uniformly licensed dataset. Its catalogue spans many languages and corpora, but each corpus has its own coverage, provenance, quality and licence. Screen each candidate individually; do not ingest the aggregate indiscriminately. Source: https://opus.nlpl.eu/
+
+### HPLT 3.0: important high-volume candidate, but not a blanket text licence
+
+HPLT 3.0 is the strongest single-source volume discovery so far. The catalogue has 198 language-script combinations, and all 32 project targets are represented. Its data is full-document JSONL in Zstandard shards; the `text` field is segmented by paragraph-like newlines. Metadata includes the original crawl URL and date, document-level top-three language predictions, segment-level language labels, WDS quality scores, and PII spans. It is globally deduplicated for most languages, but explicitly not for Chinese, English and Russian. The v3 release is from July 2025; v4 (January 2026) is a raw pool and is not yet the same processed, language-specific dataset.
+
+This gives us a technically attractive route:
+- select the highest WDS bins first rather than download every shard;
+- use segment-level language labels, not just document-level predictions;
+- reject or carefully redact PII-annotated text;
+- retain URL/domain, crawl date, document ID and quality metadata internally;
+- deduplicate again across HPLT, Common Voice, DGT and other sources.
+
+**Licensing distinction:** HPLT says it licenses the *packaging* under CC0 and explicitly says it does not own the extracted text. Its terms also leave compliance with copyright and data-protection law to the user. Therefore CC0 on the packaging is not a blanket CC0 grant for the underlying web text. Do not publish HPLT-derived text as CC0 merely because the HPLT package is CC0. Treat it as a high-volume candidate for internal research/training only after the applicable text-and-data-mining basis and privacy policy have been reviewed; do not put it in a publicly redistributed corpus unless the underlying rights are cleared.
+
+The HPLT v3 source-level segment counts are far above the 20,000 target for the three non-EU shortfall languages:
+- Norwegian Nynorsk: 1.51M documents, 4.12M segments.
+- Norwegian Bokmål: 36.49M documents, 888.91M segments.
+- Korean: 74.79M documents, 2.34B segments.
+
+Other useful low-volume Common Voice languages also have large HPLT segment pools: Irish 3.77M, Maltese 17.22M, and Estonian 425.93M. These counts are not equivalent to clean, unique, privacy-screened examples. Sources: https://hplt-project.org/datasets/v3.0, https://data.hplt-project.org/three/sorted/manifest.json, and https://hplt-project.org/datasets/v4.0.
 
 ## 2. Source assessment and acquisition priority
 
@@ -65,6 +86,7 @@ Coverage references and caveats:
 | P1 | OPUS candidates | Likely essential for Russian, Japanese, Chinese, Korean, Arabic, Turkish and Norwegian varieties | Treat each corpus separately. Check per-language volume, license, domain, source document IDs and translation overlap. Prefer original monolingual material where possible. |
 | P2 | JRC-Acquis 3.0 | 22 languages and 463,792 documents; useful for EU language coverage and cross-language evaluation | Mostly legislative/legal register; overlaps substantially with DGT-TM. Compiled corpus has nuanced reuse conditions; inspect actual content rights and attribution requirements before publishing derived text. |
 | P2 | Europarl v7 | Publicly documented per-language sentence counts; substantial volume for 21 languages | 1996–2011 parliamentary proceedings; strong domain bias; speaker/document markup; verify redistribution terms before publication. |
+| P0 (technical) / legal hold | HPLT 3.0 | All 32 targets, very large segment counts, segment-level language IDs, PII spans and quality ordering | CC0 applies to packaging, not underlying text. Use only after rights/TDM review; do not redistribute extracted text by default. Very large shards; sample high-WDS bins. |
 | P3 | Other monolingual sources | Fill shortfalls and broaden register/domain | Only admit sources with clear per-component terms, provenance, stable identifiers and defensible language labels. |
 
 ## 3. Common Voice v27.0 metadata: first measured result
