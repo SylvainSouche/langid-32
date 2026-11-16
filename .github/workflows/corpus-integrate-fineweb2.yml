@@ -1,15 +1,20 @@
-name: Integrate FineWeb2 and Tatoeba into global corpus pipeline
+name: Build global 32-language corpus candidate
 
 on:
   push:
     paths:
       - "src/langid32/merge.py"
+      - "src/langid32/dgt_tmx_stage.py"
       - "scripts/stage_fineweb2.py"
-      - "tests/test_merge.py"
-      - "pyproject.toml"
       - "scripts/stage_tatoeba.py"
-      - ".github/workflows/tatoeba-ingest.yml"
+      - "tests/test_merge.py"
+      - "tests/test_dgt_tmx_stage.py"
+      - "tests/test_tatoeba_stage.py"
+      - "pyproject.toml"
       - ".github/workflows/corpus-integrate-fineweb2.yml"
+      - ".github/workflows/dgt-tmx-ingest.yml"
+      - ".github/workflows/tatoeba-ingest.yml"
+      - ".github/workflows/fineweb2-buffer.yml"
   workflow_dispatch:
 
 permissions:
@@ -19,49 +24,59 @@ permissions:
 jobs:
   integrate:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install package and test dependencies
+      - name: Install project and test dependency
         run: |
           python -m pip install --no-deps -e .
           python -m pip install pytest
-      - name: Run corpus pipeline tests
+      - name: Run corpus tests
         run: python -m pytest -q
-      - name: Download verified FineWeb2 source artifact
+      - name: Download FineWeb2 20,100-per-language buffer
         uses: actions/download-artifact@v4
         with:
           name: fineweb2-31x20100-buffer-v2.1.0
           path: input/fineweb2
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          repository: ${{ github.repository }}
+          github-token: \${{ secrets.GITHUB_TOKEN }}
+          repository: \${{ github.repository }}
           run-id: 43932999222
-      - name: Download Tatoeba CC0 staging artifact
+      - name: Download Tatoeba CC0 staging
         uses: actions/download-artifact@v4
         with:
           name: tatoeba-cc0-staged-weekly-2026-11-14
           path: input/tatoeba
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          repository: ${{ github.repository }}
-          run-id: 43931414124
-      - name: Convert FineWeb2 into source-normalized staging records
+          github-token: \${{ secrets.GITHUB_TOKEN }}
+          repository: \${{ github.repository }}
+          run-id: 43935243979
+      - name: Download DGT-TM 2021 staging
+        uses: actions/download-artifact@v4
+        with:
+          name: dgt-tm-2021-staged-5k
+          path: input/dgt-tm-2021
+          github-token: \${{ secrets.GITHUB_TOKEN }}
+          repository: \${{ github.repository }}
+          run-id: 43935397129
+      - name: Normalize FineWeb2
         run: python scripts/stage_fineweb2.py --input input/fineweb2 --output reports/fineweb2-staged.jsonl
-      - name: Run global normalization, cross-source deduplication and split audit
+      - name: Global normalization, privacy filtering, cross-source deduplication and split audit
         run: |
           python -m langid32.merge \
             --input reports/fineweb2-staged.jsonl \
             --input input/tatoeba/tatoeba-cc0-staged.jsonl \
-            --output reports/multisource-candidate \
+            --input input/dgt-tm-2021/dgt-tm-2021-staged.jsonl \
+            --output reports/multisource-candidate-v3-dgt-privacy-clean \
             --max-per-language 20000 \
             --require-exact-counts
-          cp input/fineweb2/manifest.json reports/multisource-candidate/source-manifest-fineweb2.json
-          cp input/tatoeba/tatoeba-cc0-staged.manifest.json reports/multisource-candidate/source-manifest-tatoeba.json
+          cp input/fineweb2/manifest.json reports/multisource-candidate-v3-dgt-privacy-clean/source-manifest-fineweb2.json
+          cp input/tatoeba/tatoeba-cc0-staged.manifest.json reports/multisource-candidate-v3-dgt-privacy-clean/source-manifest-tatoeba.json
+          cp input/dgt-tm-2021/dgt-tm-2021-staged.manifest.json reports/multisource-candidate-v3-dgt-privacy-clean/source-manifest-dgt-tm-2021.json
       - uses: actions/upload-artifact@v4
         with:
-          name: multisource-candidate-v2-privacy-clean
-          path: reports/multisource-candidate/
+          name: multisource-candidate-v3-dgt-privacy-clean
+          path: reports/multisource-candidate-v3-dgt-privacy-clean/
           retention-days: 14
           if-no-files-found: error
