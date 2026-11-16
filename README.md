@@ -4,7 +4,7 @@ A reproducible multilingual language-identification project covering 32 language
 
 ## Dataset sourcing
 
-The corpus is the current project priority. See [the corpus source inventory](docs/corpus-inventory.md) for source coverage, the first Common Voice v27 metadata results, unresolved counts, and the acquisition plan. The read-only `langid32-cv-inventory` command inventories extracted Common Voice sentence TSVs; see the documentation for usage. Metadata counts are not yet verified usable-example counts.
+The corpus is the current project priority. See [the corpus source inventory](docs/corpus-inventory.md) for source coverage, the first Common Voice v27 metadata results, unresolved counts, and the acquisition plan. The read-only `langid32-cv-extract` command streams MDC archives and extracts only `validated_sentences.tsv` (no audio), then `langid32-cv-inventory` counts the extracted text. See the documentation for usage. Metadata counts are not yet verified usable-example counts.
 
 ### Mozilla Common Voice
 
