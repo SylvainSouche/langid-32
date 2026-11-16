@@ -14,6 +14,8 @@ For this language-identification project, we prepare a targeted text-only corpus
 
 We record the source release, provenance, transformations, corpus configuration, and output hashes so that preparation is reproducible. Each source and any additional corpus component is documented separately. The preparation tool does not export source group IDs or contributor metadata. Textual personal-data screening requires a reviewed policy and source-specific checks; optional regular-expression exclusions are available, but are not a substitute for that review.
 
+**Code licence:** the MIT licence in `LICENSE` applies to the project code. It does not relicense source datasets or corpus contents; each dataset component retains its own documented terms.
+
 ## Data policy
 
 - Prefer datasets with permissive, clearly documented terms; prioritise MIT, BSD, and CC0 where applicable.
