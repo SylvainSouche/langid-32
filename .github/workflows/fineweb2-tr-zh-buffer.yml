@@ -31,6 +31,22 @@ jobs:
           --shards-per-language 4
           --max-row-groups 3
           --output-dir reports/fineweb2-tr-zh-buffer
+      - name: Verify complete buffer counts
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          manifest = json.loads(Path("reports/fineweb2-tr-zh-buffer/manifest.json").read_text())
+          expected = {"train": 16080, "validation": 2010, "test": 2010}
+          for item in manifest["languages"]:
+              if item.get("error"):
+                  raise SystemExit(f"{item['language']}: {item['error']}")
+              if item.get("selected_counts_by_split") != expected:
+                  raise SystemExit(f"{item['language']}: {item.get('selected_counts_by_split')} != {expected}")
+          if len(manifest["languages"]) != 2:
+              raise SystemExit(f"expected 2 languages, got {len(manifest['languages'])}")
+          print("Both languages have the exact 20,100 candidate split.")
+          PY
       - name: Upload candidates and provenance
         uses: actions/upload-artifact@v4
         with:
