@@ -29,12 +29,13 @@ def normalize(value: str) -> str:
 
 
 def count_sentence_file(path: Path, min_chars: int, max_chars: int,
-                        max_bytes: int) -> dict[str, int | str]:
+                        max_bytes: int, seen_all: set[str] | None = None,
+                        seen_active: set[str] | None = None) -> dict[str, int | str]:
     counts = Counter()
     source_counts = Counter()
     domain_counts = Counter()
-    seen_all: set[str] = set()
-    seen_active: set[str] = set()
+    seen_all = seen_all if seen_all is not None else set()
+    seen_active = seen_active if seen_active is not None else set()
     with path.open("r", encoding="utf-8-sig", newline="") as stream:
         reader = csv.DictReader(stream, delimiter="\t")
         required = {"sentence_id", "sentence"}
@@ -78,14 +79,14 @@ def count_sentence_file(path: Path, min_chars: int, max_chars: int,
                 counts["duplicate_normalized_text"] += 1
             else:
                 seen_all.add(text)
-                counts["unique_within_file"] += 1
+                counts["unique_within_target_language"] += 1
             if is_active:
                 counts["is_used_true_within_length_limits"] += 1
                 if text in seen_active:
                     counts["duplicate_is_used_true_text"] += 1
                 else:
                     seen_active.add(text)
-                    counts["unique_is_used_true_within_length_limits"] += 1
+                    counts["unique_is_used_true_within_target_language"] += 1
     counts["source_counts_json"] = json.dumps(
         dict(sorted(source_counts.items())), ensure_ascii=False, sort_keys=True
     )
@@ -115,12 +116,19 @@ def build_rows(release_json: Path, data_root: Path | None,
     locale_stats = release.get("locales", {})
     files = find_locale_files(data_root) if data_root else {}
     rows = []
+    seen_all_by_language = {language: set() for language in TARGET_LOCALES}
+    seen_active_by_language = {language: set() for language in TARGET_LOCALES}
     for language, locales in TARGET_LOCALES.items():
         for locale in locales:
             stats = locale_stats.get(locale)
             path = files.get(locale)
-            measured = (count_sentence_file(path, min_chars, max_chars, max_bytes)
-                        if path else {})
+            measured = (
+                count_sentence_file(
+                    path, min_chars, max_chars, max_bytes,
+                    seen_all_by_language[language],
+                    seen_active_by_language[language],
+                ) if path else {}
+            )
             rows.append({
                 "language": language,
                 "locale": locale,
