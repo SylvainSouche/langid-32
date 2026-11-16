@@ -183,3 +183,30 @@ DuckDB read the Parquet schema and returned the lengths of one text field and it
 This confirms the key technical route: **we can query original Spanish and Turkish Parquet files remotely with DuckDB without downloading entire shards**. The HTTP Range preflight proves the Hub/Xet delivery path supports byte ranges, and DuckDB's schema and row query both succeeded. The probe did not yet measure total bytes transferred by DuckDB, so we should still quantify that before scaling up.
 
 Probe summary: [fineweb2-remote-read-probe.csv](data/fineweb2-remote-read-probe.csv). Reproducible probe: [scripts/probe_fineweb2_remote_read.py](../scripts/probe_fineweb2_remote_read.py), workflow: [.github/workflows/fineweb2-remote-read.yml](../.github/workflows/fineweb2-remote-read.yml).
+
+
+### Bounded sentence extraction pilot: Spanish and Turkish (2026-11-16)
+
+The first end-to-end extraction run has now produced **20,000 unique sentence samples per language**, using only four selected Parquet row groups per language. The sample text is not committed to the repository; it is available as a short-lived private GitHub Actions artifact (7-day retention): [run 43920993618](https://github.com/SylvainSouche/langid-32/actions/runs/43920993618). The workflow and extractor are [fineweb2-extract.yml](../.github/workflows/fineweb2-extract.yml) and [extract_fineweb2_sample.py](../scripts/extract_fineweb2_sample.py).
+
+| Metric | Spanish | Turkish |
+|---|---:|---:|
+| Source documents read | 4,000 | 4,000 |
+| Distinct hostnames in those documents | 3,532 | 2,476 |
+| Candidate sentences after quality filters and document cap | 46,894 | 47,129 |
+| Selected train / validation / test | 16,000 / 2,000 / 2,000 | 16,000 / 2,000 / 2,000 |
+| Distinct hostname groups in selected train | 2,696 | 1,879 |
+| Median sentence length | 137 chars | 103 chars |
+| 95th percentile sentence length | 315 chars | 260 chars |
+| HTTP GET bytes transferred (metadata + selected columns) | 19,776,882 | 13,975,100 |
+| Transfer as percentage of selected Parquet shard size | 0.4081% | 0.4582% |
+
+The selected shards were `data/spa_Latn/train/000_00032.parquet` (4,846,060,914 bytes) and `data/tur_Latn/train/004_00003.parquet` (3,049,909,820 bytes). Each selected four row groups of 1,000 documents. The extraction read only the required columns and those row groups; it did not download either whole Parquet file. Total recorded HTTP GET payload was **33,751,982 bytes** for 40,000 selected sentences.
+
+The extractor now records per-sentence provenance without retaining full source URLs in the text corpus: hashed document ID, hashed hostname group, hostname, URL hash, crawl date/dump, language score/script, MinHash cluster size, shard path and object identifiers, and row-group number. The hostname-derived group hash is independent of language, so the same hostname is assigned to the same split across languages. The selected Spanish and Turkish samples had five shared hostname group hashes; all five were assigned to the same split in both languages.
+
+Selection filters include NFC/whitespace normalization, document language score >= 0.90, matching language/script labels, 25–400 character sentences, script proportion, minimum token count for space-delimited scripts, sentence-ending checks, exact sentence deduplication, a 20-sentence-per-document cap, and heuristic exclusion of email addresses, URLs, IPv4 addresses, phone-like strings and long numeric identifiers. The manifest records rejection counts for these filters.
+
+**Interpretation and caveats:** these are 20,000 *heuristically accepted* samples per class, not human-reviewed ground truth. The four row groups are a deterministic bounded sample, not a statistically representative sample of the entire language subset. The 10% test and 10% validation sets are split from the sampled upstream **train** documents by hostname; FineWeb2's own upstream `test` split was not used. The hostname grouping is not a full registrable-domain/public-suffix calculation, and the PII filters cannot guarantee anonymization. FineWeb2's ODC-By 1.0 dataset licence does not settle rights in each crawled page. Keep the artifact private pending manual quality, privacy and rights review.
+
+Compact metrics: [fineweb2-es-tr-pilot-summary.csv](data/fineweb2-es-tr-pilot-summary.csv). The extractor has been extended to run all 31 non-English target subsets in a separate workflow; English remains a separate FineWeb source route.
