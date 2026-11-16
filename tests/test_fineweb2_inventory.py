@@ -15,6 +15,12 @@ def test_fineweb2_inventory_maps_targets_and_keeps_test_and_removed_separate():
         {"subset": "bul_Cyrl", "split": "train", "code": "bul", "script": "Cyrl",
          "name": "Bulgarian", "words": "20000", "documents": "5000",
          "utf8_bytes": "100000", "parquet_bytes": "20000"},
+        {"subset": "ekk_Latn", "split": "train", "code": "ekk", "script": "Latn",
+         "name": "Standard Estonian", "words": "30000", "documents": "7000",
+         "utf8_bytes": "150000", "parquet_bytes": "30000"},
+        {"subset": "lvs_Latn", "split": "train", "code": "lvs", "script": "Latn",
+         "name": "Standard Latvian", "words": "40000", "documents": "8000",
+         "utf8_bytes": "180000", "parquet_bytes": "35000"},
     ]
 
     result = {row["language"]: row for row in inventory(rows)}
@@ -26,8 +32,11 @@ def test_fineweb2_inventory_maps_targets_and_keeps_test_and_removed_separate():
     assert result["ko"]["removed_train_documents"] == 50000
     assert result["ko"]["filtered_train_words"] == 100000
     assert result["bg"]["filtered_train_documents"] == 5000
+    assert result["et"]["status"] == "available"
+    assert result["et"]["filtered_train_documents"] == 7000
+    assert result["lv"]["status"] == "available"
+    assert result["lv"]["filtered_train_documents"] == 8000
     assert result["en"]["status"] == "separate_fineweb_dataset"
-    assert result["et"]["status"] == "not_listed"
 
 
 def test_target_mapping_has_32_classes_and_expected_special_cases():
