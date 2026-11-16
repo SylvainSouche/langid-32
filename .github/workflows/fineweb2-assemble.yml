@@ -1,6 +1,10 @@
 name: Assemble complete FineWeb2 640k corpus
 
 on:
+  push:
+    paths:
+      - "scripts/assemble_fineweb2_sample.py"
+      - ".github/workflows/fineweb2-assemble.yml"
   workflow_dispatch:
 
 permissions:
