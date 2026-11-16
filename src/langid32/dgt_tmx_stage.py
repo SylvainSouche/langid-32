@@ -15,7 +15,7 @@ from collections import Counter, defaultdict
 from pathlib import Path, PurePosixPath
 
 from langid32.merge import (
-    EMAIL_RE, HTTP_FRAGMENT_RE, IPV4_RE, LONG_NUMBER_RE, has_phone_like,
+    EMAIL_RE, HTTP_FRAGMENT_RE, IPV4_RE,
     URL_RE, WEB_FRAGMENT_RE, split_for,
 )
 
@@ -47,15 +47,21 @@ def sha256_file(path: Path) -> str:
 
 def iter_translation_units(stream):
     stack = []
+    processed = 0
     for event, element in ET.iterparse(stream, events=("start", "end")):
         if event == "start":
             stack.append(element)
             continue
         if local_name(element.tag) == "tu":
             yield element
-            if len(stack) > 1:
-                stack[-2].remove(element)
             element.clear()
+            processed += 1
+            # Clear the <body> child list in batches; repeated Element.remove()
+            # is quadratic for large TMX files.
+            if processed % 1000 == 0 and len(stack) > 1:
+                parent = stack[-2]
+                if local_name(parent.tag) == "body":
+                    parent.clear()
         stack.pop()
 
 
@@ -149,13 +155,10 @@ def stage(args):
                                         counts[f"duplicate_text::{language}"] += 1
                                         continue
                                     counts[f"eligible_unique::{language}"] += 1
+                                    # Numeric/phone flags are recomputed by the
+                                    # global merge on the bounded sample, not on every
+                                    # translation-memory segment.
                                     flags = []
-                                    if has_phone_like(text):
-                                        flags.append("phone_like")
-                                        counts[f"phone_like_flagged::{language}"] += 1
-                                    if LONG_NUMBER_RE.search(text):
-                                        flags.append("long_numeric_sequence")
-                                        counts[f"long_number_flagged::{language}"] += 1
                                     priority = priority_for(language, text, group_id)
                                     record = {
                                         "text": text,
