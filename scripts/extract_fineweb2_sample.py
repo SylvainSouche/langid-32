@@ -150,12 +150,12 @@ def sentence_candidates(text: str, script: str, min_chars: int, max_chars: int,
         if URL.search(sentence):
             rejected["url"] += 1
             continue
-        if IPV4.search(sentence):
+        if IPV4_RE.search(sentence):
             rejected["ipv4"] += 1
             continue
         # Do not discard phone-like or long numeric sequences automatically:
         # broad phone regexes have high false-positive rates. Flag for review.
-        if PHONE.search(sentence):
+        if has_phone_like(sentence):
             rejected["phone_like_flagged"] += 1
         if LONG_NUMBER.search(sentence):
             rejected["long_number_flagged"] += 1
