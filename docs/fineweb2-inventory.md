@@ -244,3 +244,29 @@ The all-language sample and full manifest/provenance sidecar are in the private 
 **This is a first bounded corpus build, not final ground truth.** It samples eight row groups from one shard per language; the deterministic selection is not statistically representative of each entire subset. The text-level filters are heuristics, not human review or a complete PII detector. Email, URL and IPv4 patterns are excluded; phone-like and long numeric sequences are retained with per-sentence review flags. The v0.3 run contains 6,918 selected sentences with at least one such flag; the candidate pool had 61,592 phone-like and 3,768 long-number flags. This follows the FineWeb2 card's warning that phone-number regexes have high false-positive rates. Hostname grouping is not a public-suffix/registrable-domain calculation. The FineWeb2 ODC-By 1.0 licence applies to the dataset/compilation, but underlying crawled-page rights remain a separate question. Keep the artifact private until quality, privacy and rights review is complete. The earlier two-language pilot above used v0.2; this 31-language run uses v0.3 and retains phone-like/long-number matches with review flags. The sample's 10% validation and 10% test splits are made from upstream train documents; upstream FineWeb2 test and removed subsets are not mixed into this sample.
 
 English is still the 32nd class and is not part of FineWeb2; the dataset card directs English users to the separate original FineWeb dataset. The other project sources (Common Voice, DGT-TM, Tatoeba, etc.) also remain relevant; this 31-language FineWeb2 build is one source component, not the merged final corpus.
+
+### Bounded 31-language extraction completed (2026-11-16)
+
+The original v2.1.0 Parquet shards were sampled remotely through DuckDB HTTP range reads. The first pass used 4 shards × 1 row group (1,000 documents) per selected shard for all 31 non-English target subsets. **27/31 languages reached the full 20,000-sentence target** (16,000 train / 2,000 validation / 2,000 test).
+
+The four shortfalls were:
+- Croatian: 10,612 / 1,185 / 1,420
+- Irish: 7,702 / 1,188 / 716
+- Maltese: 7,749 / 1,895 / 1,527
+- Nynorsk: 10,603 / 718 / 805
+
+These were not source absence: FineWeb2 has only 1 train shard for Irish, Maltese and Nynorsk, while Croatian has 4; the first pass simply sampled too few row groups.
+
+A deterministic top-up then used 3 row groups per available shard for those four languages. All four reached the full 20,000 target:
+- Croatian: 16,000 / 2,000 / 2,000
+- Irish: 16,000 / 2,000 / 2,000
+- Maltese: 16,000 / 2,000 / 2,000
+- Nynorsk: 16,000 / 2,000 / 2,000
+
+The 31-language base artifact contains 640,000 selected sentences before replacement of those four language partitions; the top-up artifact supplies their complete replacements. Both artifacts include manifest.json, split JSONL and provenance sidecars. No corpus text has been committed to Git.
+
+The 31-language extraction transferred about 1.32 GB of compressed HTTP ranges for metadata + selected row groups. The resulting artifact is about 190 MB compressed. This is orders of magnitude below downloading the underlying multi-terabyte corpus.
+
+Selection remains deliberately conservative: 25–400 characters, FineWeb2 language score >=0.90, script check, exact normalized sentence deduplication within the sampled material, hostname-level split grouping shared across languages, email/URL/IPv4 exclusion, and phone-like/long-number review flags. The manifest explicitly records that this is a bounded deterministic sample, not a statistically representative sample of the full FineWeb2 subsets.
+
+Next: assemble the base and top-up artifacts into one canonical 640,000-sentence corpus artifact, then run the existing langid32.corpus normalization/deduplication and provenance checks before treating it as the first corpus candidate.
