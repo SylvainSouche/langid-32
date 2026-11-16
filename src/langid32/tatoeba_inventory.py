@@ -61,7 +61,7 @@ def inventory(sentences_path: Path, base_path: Path | None,
         raw = Counter()
         empty = Counter()
         length_rejected = Counter()
-    invalid_id = Counter()
+        invalid_id = Counter()
         batch = []
         for fields in read_sentences(sentences_path):
             if len(fields) < 3:
