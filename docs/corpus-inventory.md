@@ -148,16 +148,29 @@ The locale mapping used here is explicit: `ga-IE`, `sv-SE`, `nb-NO`, `nn-NO`, an
 
 A read-only counter is now implemented at `src/langid32/common_voice_inventory.py`. It reads the official release JSON and, when given extracted locale directories, scans `validated_sentences.tsv` without copying sentence text into the report. It records raw rows, non-empty rows, `is_used` counts, length-filter counts, normalized duplicates across all rows and within the active `is_used=true` pool, plus per-locale source/domain counts.
 
-After installing the project in the existing development environment:
+After installing the project in the existing development environment, download the locale archives directly from MDC. The archive contains audio, but the project only needs `validated_sentences.tsv`. The new extractor streams the archive and writes only that TSV—no audio files are extracted or retained:
+
+```sh
+langid32-cv-extract \
+  --archive fr=/path/to/french.tar.gz \
+  --archive en=/path/to/english.tar.gz \
+  --archive ga-IE=/path/to/irish.tar.gz \
+  --output-root data/raw/common-voice-v27 \
+  --manifest data/inventory/common-voice-v27-extraction.json
+```
+
+Repeat `--archive LOCALE=PATH` for each locale. The 33 locale archives are: bg, hr, cs, da, nl, en, et, fi, fr, de, el, hu, ga-IE, it, lv, lt, mt, pl, pt, ro, sk, sl, es, sv-SE, nb-NO, nn-NO, ru, ja, zh-CN, zh-TW, ko, ar, tr.
+
+Then count the extracted text:
 
 ```sh
 langid32-cv-inventory \
   --release-json /path/to/cv-corpus-27.0-delta-2026-09-11.json \
-  --data-root /path/to/extracted/common-voice-v27 \
+  --data-root data/raw/common-voice-v27 \
   --output data/inventory/common-voice-v27.csv
 ```
 
-The command also works without `--data-root`, in which case it emits metadata-only rows and explicitly marks TSV counts as unmeasured. It does not download data. Obtain original archives directly from MDC.
+The counter also works without `--data-root`, in which case it emits metadata-only rows and explicitly marks TSV counts as unmeasured. Neither command downloads data.
 
 ### Reproducible Tatoeba CC0 inventory
 
