@@ -43,7 +43,7 @@ def list_files(timeout):
     return sorted(files,key=lambda x:x["path"])
 
 def normalize(text):
-    return " ".join(unicodedata.normalize("NFC",text or "").replace("\\n"," ").replace("\\r"," ").replace("\\t"," ").split())
+    return " ".join(unicodedata.normalize("NFC",text or "").replace("\n"," ").replace("\r"," ").replace("\t"," ").split())
 
 def candidates(text, rejected, min_chars, max_chars):
     seen=set()
@@ -147,14 +147,14 @@ def main():
     hashes={}
     for split in targets:
         path=args.output_dir/f"{split}.jsonl"
-        with path.open("w",encoding="utf-8",newline="\\n") as f:
+        with path.open("w",encoding="utf-8",newline="\n") as f:
             for _,row,_ in chosen:
-                if row["split"]==split: f.write(json.dumps(row,ensure_ascii=False,separators=(",",":"))+"\\n")
-        hashes[path.name]=sha(path.read_text(encoding="utf-8"))
+                if row["split"]==split: f.write(json.dumps(row,ensure_ascii=False,separators=(",",":"))+"\n")
+        hashes[path.name]=hashlib.sha256(path.read_bytes()).hexdigest()
     pp=args.output_dir/"provenance.jsonl"
     with pp.open("w",encoding="utf-8",newline="\\n") as f:
         for _,_,prov in chosen: f.write(json.dumps(prov,ensure_ascii=False,separators=(",",":"))+"\\n")
-    hashes[pp.name]=sha(pp.read_text(encoding="utf-8"))
+    hashes[pp.name]=hashlib.sha256(pp.read_bytes()).hexdigest()
     manifest={"schema_version":1,"extractor_version":"0.1.0","project":"langid-32","source":DATASET,
       "source_revision":REVISION,"source_dataset_licence":"ODC-By-1.0 (dataset/compilation; underlying Common Crawl page rights remain separate)",
       "target_per_language":args.target,"split_fractions":{"train":.8,"validation":.1,"test":.1},
