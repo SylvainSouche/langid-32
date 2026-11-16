@@ -15,7 +15,7 @@ from collections import Counter, defaultdict
 from pathlib import Path, PurePosixPath
 
 from langid32.merge import (
-    EMAIL_RE, HTTP_FRAGMENT_RE, IPV4_RE, LONG_NUMBER_RE, PHONE_RE,
+    EMAIL_RE, HTTP_FRAGMENT_RE, IPV4_RE, LONG_NUMBER_RE, has_phone_like,
     URL_RE, WEB_FRAGMENT_RE, split_for,
 )
 
@@ -150,7 +150,7 @@ def stage(args):
                                         continue
                                     counts[f"eligible_unique::{language}"] += 1
                                     flags = []
-                                    if PHONE_RE.search(text):
+                                    if has_phone_like(text):
                                         flags.append("phone_like")
                                         counts[f"phone_like_flagged::{language}"] += 1
                                     if LONG_NUMBER_RE.search(text):
