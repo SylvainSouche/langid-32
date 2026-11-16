@@ -29,9 +29,10 @@ The PyTorch implementation accepts a coalesced sparse COO feature matrix.
 - Four pre-LayerNorm bidirectional encoder blocks.
 - Hidden size 128, four attention heads, feed-forward size 384.
 - CLS representation followed by a 32-class linear head.
+- 731,936 trainable parameters in the current implementation (about 2.79 MiB in FP32).
 
-Parameter count is computed from the actual implementation and recorded by
-the experiment runner; it is not estimated from the design sketch.
+The architecture parameter counts are asserted by unit tests. Checkpoint size
+will be measured from the saved file rather than inferred from parameter count.
 
 ## Shared evaluation contract
 
