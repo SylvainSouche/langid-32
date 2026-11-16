@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+from datetime import date
 import hashlib
 import json
 import os
@@ -38,6 +39,11 @@ def parse_law_list(payload: bytes) -> tuple[int, list[dict[str, str]]]:
         if not serial:
             continue
         records.append({
+            "source_id": "korean-law-open-api",
+            "source_release": f"current-as-of-{date.today().isoformat()}",
+            "group_id": f"KR-LAW:{serial}",
+            "source_licence": "Korean Copyright Act Article 7 for listed official legal works; API terms apply separately",
+            "source_attribution": "Ministry of Government Legislation, National Law Information Center",
             "law_id": serial,
             "law_name": text_of(law, "법령명한글"),
             "law_short_name": text_of(law, "법령약칭명"),
@@ -45,7 +51,7 @@ def parse_law_list(payload: bytes) -> tuple[int, list[dict[str, str]]]:
             "effective_date": text_of(law, "시행일자"),
             "law_type": text_of(law, "법령구분명"),
             "department": text_of(law, "소관부처명"),
-            "detail_url": text_of(law, "법령상세링크"),
+            "source_url": text_of(law, "법령상세링크"),
         })
     return total, records
 
@@ -126,8 +132,10 @@ def inventory(oc: str, output: Path, max_documents: int,
 
     output.parent.mkdir(parents=True, exist_ok=True)
     fields = list(rows[0]) if rows else [
-        "law_id", "law_name", "law_short_name", "promulgation_date",
-        "effective_date", "law_type", "department", "detail_url",
+        "source_id", "source_release", "group_id", "source_licence",
+        "source_attribution", "law_id", "law_name", "law_short_name",
+        "promulgation_date", "effective_date", "law_type", "department",
+        "source_url",
     ]
     with output.open("w", encoding="utf-8", newline="") as stream:
         writer = csv.DictWriter(stream, fieldnames=fields)
