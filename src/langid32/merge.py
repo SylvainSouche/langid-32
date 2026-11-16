@@ -21,10 +21,12 @@ LANGUAGES = (
     "nb nn ru ja zh ko ar tr"
 ).split()
 SPLITS = ("train", "validation", "test")
-EMAIL_RE = re.compile(r"(?i)\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b")
-URL_RE = re.compile(r"(?i)\b(?:https?://\s*|www\.)[A-Z0-9][A-Z0-9.-]*\.[A-Z]{2,}(?:/[^\s]*)?")
-WEB_FRAGMENT_RE = re.compile(r"(?i)\bwww\.(?=$|[\s,;])")
-HTTP_FRAGMENT_RE = re.compile(r"(?i)\bhttps?://(?=$|[\s,;])")
+EMAIL_RE = re.compile(r"(?i)(?<![\w.+-])[\w.+-]+@[\w.-]+\.[A-Z]{2,}(?![\w.-])")
+URL_RE = re.compile(
+    r"(?i)(?:https?://[^\s<>""']+|(?<![A-Za-z0-9])www\.[A-Za-z0-9][A-Za-z0-9.-]*\.[A-Z]{2,}(?:/[^\s<>""']*)?)"
+)
+WEB_FRAGMENT_RE = re.compile(r"(?i)(?<![A-Za-z0-9])www\.(?=$|[\s,;])")
+HTTP_FRAGMENT_RE = re.compile(r"(?i)https?://(?=$|[\s,;])")
 IPV4_RE = re.compile(
     r"\b(?:(?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\.){3}"
     r"(?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\b"
