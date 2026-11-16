@@ -12,6 +12,8 @@ def test_flatten_shards_filters_to_target_subsets_and_preserves_roles():
              "size": 500, "url": "https://example.invalid/removed.parquet"},
             {"config": "ekk_Latn", "split": "train", "filename": "estonian.parquet",
              "size": 200, "url": "https://example.invalid/estonian.parquet"},
+            {"config": "tur_Latn", "split": "partial-train", "filename": "turkish.parquet",
+             "size": 400, "url": "https://example.invalid/turkish.parquet"},
             {"config": "eng_Latn", "split": "train", "filename": "english.parquet",
              "size": 300, "url": "https://example.invalid/english.parquet"},
         ],
@@ -28,5 +30,9 @@ def test_flatten_shards_filters_to_target_subsets_and_preserves_roles():
         ("ko", "filtered", "test"),
         ("ko", "removed", "train"),
         ("et", "filtered", "train"),
+        ("tr", "filtered", "train"),
     }
+    partial = next(r for r in rows if r["language"] == "tr")
+    assert partial["partial"] is True
+    assert partial["api_split"] == "partial-train"
     assert rows[0]["size_bytes"] == 1234
