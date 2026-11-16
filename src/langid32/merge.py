@@ -197,7 +197,7 @@ def merge(args):
             "max_per_language_total": args.max_per_language,
             "split_caps": caps,
             "deduplication": "exact normalized text within language across all inputs",
-            "group_split": "deterministic hash of source-namespaced group_id; shared groups stay in one split",
+            "group_split": "deterministic hash of split_group_id (or group_id); shared groups stay in one split",
             "source_balancing": "none; source counts are reported, no hidden quotas",
         },
         "counts": dict(sorted(counts.items())),
