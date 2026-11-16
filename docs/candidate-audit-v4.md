@@ -16,6 +16,7 @@ Audit date: 2026-11-16. Input: the private GitHub Actions artifact `multisource-
 | Conflicting splits for `split_group_id` | 0 |
 | Exact normalized duplicates within a language | 0 |
 | Output SHA-256 checks against manifest | all passed |
+| Public split rows match the sidecar's text/language/source/split projection | all 640,000 matched |
 
 The three public split files and the internal provenance sidecar have the expected row counts. The sidecar must remain private: it contains source grouping and provenance fields that are intentionally absent from the text-only split files.
 
