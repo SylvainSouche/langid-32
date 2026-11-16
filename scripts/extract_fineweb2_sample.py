@@ -23,7 +23,7 @@ from pathlib import Path
 
 from langid32.fineweb2_inventory import TARGET_SUBSETS
 
-EXTRACTOR_VERSION = "0.2.0"
+EXTRACTOR_VERSION = "0.3.0"
 DATASET = "HuggingFaceFW/fineweb-2"
 DEFAULT_REVISION = "v2.1.0"
 SEED = "langid-32-fineweb2-v1"
@@ -153,12 +153,12 @@ def sentence_candidates(text: str, script: str, min_chars: int, max_chars: int,
         if IPV4.search(sentence):
             rejected["ipv4"] += 1
             continue
+        # Do not discard phone-like or long numeric sequences automatically:
+        # broad phone regexes have high false-positive rates. Flag for review.
         if PHONE.search(sentence):
-            rejected["phone_like"] += 1
-            continue
+            rejected["phone_like_flagged"] += 1
         if LONG_NUMBER.search(sentence):
-            rejected["long_number"] += 1
-            continue
+            rejected["long_number_flagged"] += 1
         letters = sum(char.isalpha() for char in sentence)
         if letters < 8 or letters / max(1, len(sentence.replace(" ", ""))) < 0.45:
             rejected["low_letter_ratio"] += 1
@@ -317,6 +317,11 @@ def extract_language(connection, language: str, subset: str, revision: str,
                     "row_group_id": int(row_group_id),
                     "shard_oid": str(file_item.get("oid") or ""),
                     "shard_lfs_oid": str((file_item.get("lfs") or {}).get("oid", "")),
+                    "privacy_flags": [
+                        flag for flag, pattern in (
+                            ("phone_like", PHONE), ("long_numeric_sequence", LONG_NUMBER)
+                        ) if pattern.search(sentence)
+                    ],
                 }
                 split_candidates[split].append((priority, {"record": record, "provenance": provenance}))
 
@@ -481,12 +486,13 @@ def main() -> None:
             "max_sentences_per_document": 20,
             "grouping": "hostname-level; group hash shared across languages",
             "deduplication": "exact normalized sentence within language across sampled row groups",
-            "privacy_filters": ["email", "URL", "IPv4", "phone-like sequence", "9+ digit sequence"],
+            "privacy_exclusions": ["email", "URL", "IPv4"],
+            "privacy_review_flags": ["phone-like sequence", "9+ digit sequence"],
         },
         "duckdb_version": version,
         "languages": reports,
         "output_sha256": output_hashes,
-        "privacy_note": "Text-only sample plus provenance sidecar; source URL is hashed, hostname retained. Heuristic PII filtering is not a guarantee of anonymization. Review before publication.",
+        "privacy_note": "Text-only sample plus provenance sidecar; source URL is hashed, hostname retained. Email, URL and IPv4 patterns are excluded. Phone-like and long numeric sequences are retained with per-sample review flags because broad phone regexes have high false-positive rates. This is not a guarantee of anonymization; review before publication.",
         "limitation": "This is a bounded deterministic sample from selected row groups, not a statistically representative sample of the entire language subset.",
     }
     manifest_path = args.output_dir / "manifest.json"
