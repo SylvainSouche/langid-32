@@ -71,6 +71,17 @@ This is much better suited to the project than HPLT for Norwegian: explicit NLOD
 
 The corpus is a strong volume source, not a ready-to-use 20k sentence corpus. We still need to extract paragraph/sentence examples, check for mixed-language pages and PII, deduplicate across languages and sources, and sample across domains. The Nynorsk archive is 342.1 MB and the Bokmål archive 3.8 GB.
 
+A read-only inventory command is now implemented. It streams the per-language TAR, reads the gzipped JSONL members, and reports document hashes, domains, paragraph counts, length-filtered unique paragraphs, and language-label mismatches without exporting text. It explicitly marks PII screening as not performed.
+
+```sh
+langid32-maalfrid-inventory \
+  --archive nn=/path/to/maalfrid_2026_nno.tar \
+  --archive nb=/path/to/maalfrid_2026_nob.tar \
+  --output data/inventory/maalfrid-2026.csv
+```
+
+The inventory counts paragraphs, not sentences. Sentence segmentation and language-label audit remain later preparation steps.
+
 Additional Norwegian sources:
 - Målfrid 2021–2025 parallel text provides 145,267 English–Bokmål, 12,268 English–Nynorsk and 50,957 Bokmål–Nynorsk translation units under NLOD. Useful for translation-aware split groups, but not a replacement for monolingual text.
 - The randomized Nynorsk corpus contains 3.3M sentences / 57.5M words under CC BY 3.0, but is lemmatized and morphologically tagged; treat as supplementary rather than clean raw text.
