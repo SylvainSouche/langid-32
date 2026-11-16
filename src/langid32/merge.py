@@ -244,7 +244,8 @@ def merge(args):
             "split_caps": caps,
             "deduplication": "exact normalized text within language across all inputs",
             "group_split": "deterministic hash of split_group_id (or group_id); shared groups stay in one split",
-            "source_balancing": "none; source counts are reported, no hidden quotas",\n            "privacy_filters": "exclude email, URL and IPv4 matches; retain phone-like and 9+ digit sequences with flags",
+            "source_balancing": "none; source counts are reported, no hidden quotas",
+            "privacy_filters": "exclude email, URL and IPv4 matches; retain phone-like and 9+ digit sequences with flags",
         },
         "counts": dict(sorted(counts.items())),
         "source_counts": dict(sorted(source_counts.items())),
@@ -258,8 +259,9 @@ def merge(args):
             "must be reviewed independently before publication or redistribution."
         ),
         "privacy_note": (
-            "Provenance sidecar is internal. It may contain domains and source metadata; "
-            "review text and provenance for personal data before any release."
+            "Email, URL and IPv4 matches are excluded in the global merge. "
+            "Phone-like and 9+ digit sequences are retained with flags. The provenance "
+            "sidecar is internal; full PII review is still required."
         ),
     }
     (output / "manifest.json").write_text(
