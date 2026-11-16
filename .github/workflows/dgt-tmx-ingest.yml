@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - "src/langid32/dgt_tmx_stage.py"
+      - "src/langid32/merge.py"
       - "tests/test_dgt_tmx_stage.py"
       - ".github/workflows/dgt-tmx-ingest.yml"
       - "pyproject.toml"
