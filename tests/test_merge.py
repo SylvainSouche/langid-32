@@ -85,3 +85,13 @@ def test_privacy_patterns_do_not_treat_legal_numbers_as_ip_or_phone():
     assert IPV4_RE.search("Reference 2024.1.1.1") is None
     assert has_phone_like("Call +33 1 23 45 67 89")
     assert not has_phone_like("Decision 2024-01-01, article 12345")
+
+
+def test_privacy_regexes_handle_unicode_email_and_attached_urls():
+    from langid32.merge import EMAIL_RE, URL_RE, WEB_FRAGMENT_RE
+    assert EMAIL_RE.search("R-phost díolacháin@hmminghe.com")
+    assert EMAIL_RE.search("support@takarush.co.jp")
+    assert URL_RE.search("sitehttp://register.consilium.europa.eu")
+    assert URL_RE.search("COVID-19https://ec.europa.eu/info/file.pdf")
+    assert not URL_RE.search("awww.")
+    assert not WEB_FRAGMENT_RE.search("awww.")
