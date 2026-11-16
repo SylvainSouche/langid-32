@@ -234,6 +234,21 @@ langid32-cv-inventory \
 
 The counter also works without `--data-root`, in which case it emits metadata-only rows and explicitly marks TSV counts as unmeasured. Neither command downloads data.
 
+### Reproducible DGT-TM 2021 inventory
+
+The current JRC download page lists **DGT-TM-release 2021** as the latest available release. It contains the 2020 update in five ZIP volumes totalling 583 MB. Each volume contains TMX files identified by their EUR-Lex document number; the TMX is UTF-16LE, with language segments in `<tuv xml:lang>` / `<seg>` elements. The source documentation says the extracted files are English-centred parallel translation units; the original source language is unknown, and many documents were originally written in English. The sequence is not the original document order and repeated boilerplate such as “Article 1” occurs. The TMX file name supplies a document-group key.
+
+A read-only streaming counter is implemented as `langid32-dgt-inventory`. It reads TMX directly from the ZIP volumes (no Java/TMXtract step), counts per-language segments and unique normalized text, and retains the EUR-Lex document group for later global splitting. It does not export text or perform PII screening.
+
+```sh
+langid32-dgt-inventory \
+  --data-root data/raw/dgt-tm-2021 \
+  --output data/inventory/dgt-tm-2021.csv \
+  --max-files 10
+```
+
+The ten-file run is a parser smoke inventory. Remove `--max-files` to process all TMX members in the five release ZIPs. The default length filters match the other source counters. Do not treat the resulting segment totals as independent authored sentences; DGT-TM is one translated legal/administrative source bucket. Sources: https://joint-research-centre.ec.europa.eu/language-technology-resources/dgt-translation-memory_en and https://www.statmt.org/europarl/.
+
 ### Reproducible Tatoeba CC0 inventory
 
 A second read-only counter is implemented at `src/langid32/tatoeba_inventory.py`. It reads the CC0 sentence export and optionally joins the sentence-base export through a temporary SQLite database. It reports per-language raw rows, empty/length-filtered rows, unique eligible text, original/translated/unknown counts, and translation-group counts. It does not emit sentence text or contributor names.
