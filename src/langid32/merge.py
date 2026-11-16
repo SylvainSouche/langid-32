@@ -90,8 +90,10 @@ def read_inputs(paths: list[Path], args):
                     "text_origin": str(row["text_origin"]),
                     "provenance": row.get("provenance", {}),
                 }
+                split_group = str(row.get("split_group_id") or group)
+                normalized["split_group_id"] = split_group
                 normalized["split"] = split_for(
-                    group, args.seed, args.validation_fraction, args.test_fraction
+                    split_group, args.seed, args.validation_fraction, args.test_fraction
                 )
                 # A deterministic source-aware ordering selects one copy when
                 # the same normalized sentence occurs in multiple sources.
@@ -234,7 +236,7 @@ def main():
                         help="Total cap per language; 0 disables the cap")
     parser.add_argument("--validation-fraction", type=float, default=0.10)
     parser.add_argument("--test-fraction", type=float, default=0.10)
-    parser.add_argument("--seed", default="langid-32-global-v1")
+    parser.add_argument("--seed", default="langid-32-fineweb2-v1")
     args = parser.parse_args()
     if args.min_chars < 1 or args.max_chars < args.min_chars or args.max_bytes < 1:
         parser.error("invalid text length limits")
