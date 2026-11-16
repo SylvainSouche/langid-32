@@ -19,7 +19,7 @@ Legend:
 | cs | Czech | Y | — | Y | Y | Y | Y | Y | ? |
 | da | Danish | Y | — | Y | Y | Y | Y | Y | ? |
 | nl | Dutch | Y | — | Y | Y | Y | Y | Y | ? |
-| en | English | Y | Y* | Y | Y | Y | Y | Y | ? |
+| en | English | Y | — | Y | Y | Y | Y | Y | ? |
 | et | Estonian | Y | — | Y | Y | Y | Y | — | ? |
 | fi | Finnish | Y | — | Y | Y | Y | Y | Y | ? |
 | fr | French | Y | — | Y | Y | Y | Y | Y | ? |
@@ -78,6 +78,22 @@ Additional Norwegian sources:
 - The Norwegian Newspaper Corpus has large volumes (68M Nynorsk words and 1.68B Bokmål words) but is CC BY-NC; exclude from a permissive public corpus.
 
 Source metadata and counts: [norwegian-korean-source-counts.csv](data/norwegian-korean-source-counts.csv). Sources: https://www.nb.no/sprakbanken/ressurskatalog/oai-nb-no-sbr-107/ and https://data.norge.no/en/datasets/b3da2524-c7c6-30c9-b757-d813f228c76f/malfrid-2026.
+
+### Korean: a viable government-text route is emerging
+
+Korean remains the one non-EU Common Voice shortfall without a fully verified, permissive 20k source mix. Several candidates are now better defined:
+
+1. **Korea.kr policy briefing and ministry press releases.** Its copyright policy says text carrying a KOGL Type 1 mark can be reused with source attribution; items without that mark must not be assumed reusable. Individual 2026 articles now display additional KOGL AI-training conditions: prevent model outputs identical or substantially similar to source works, preserve source attribution when an output directly quotes a work, and do not resell AI-training datasets made from public works. This is a plausible source for a language-ID corpus, but terms must be recorded per article. It is not enough to label the whole site CC BY. The site's RSS service was discontinued on 1 July 2026, so acquisition would use its search/pagination pages rather than RSS.
+2. **NIKL Written Corpus 2025.** The National Institute of Korean Language lists 10,293 types of copyright-cleared written works across literary and informational genres. Access is by request; the public catalogue does not publish a blanket redistribution licence. It is a strong candidate if the actual approved-use terms permit the intended corpus use.
+3. **NSMC (Naver Sentiment Movie Corpus).** 200,000 short reviews are available. Licence metadata conflicts: the original GitHub repository has no clear licence file; the Hugging Face dataset card says CC BY 2.0, while its `dataset_infos.json` and the KLUE paper describe CC0. Do not ingest until this is resolved with the source. It is also user-generated, short-review text and needs PII/quality filtering.
+4. **Korean Wikipedia.** The 2020 Korean raw-text collection description reports 5.3M sentences from the Korean Wikipedia dump. A direct Wikimedia dump is a possible share-alike fallback, but retain page/revision attribution and treat CC BY-SA/GFDL separately from the preferred permissive sources.
+5. **Korean Parallel Corpus.** The repository provides 31k Bible sentences under CC BY-SA 3.0 plus other parallel sets. It is a narrow religious register and translated text; supplementary only.
+6. **Open Korean Historical Corpus.** 17.7M documents and 5.1B tokens, but the dataset is CC BY-NC 4.0, spans 1,300 years and several historical scripts/languages, and is not a default source for a modern, commercially reusable corpus.
+7. **HPLT v3 Korean.** 2.34B segments, but CC0 applies to packaging, not underlying web text; legal hold.
+
+The Korea.kr page-level conditions are particularly relevant: KOGL Type 1 itself permits commercial reuse and modification with attribution, but the newer AI-specific terms add conditions for AI training and prohibit resale of training datasets made from the public works. A free public release may be different from resale, but the exact scope should be confirmed before including those records in a redistributable corpus. See [Korea.kr copyright policy](https://www.korea.kr/guide/copyRight.do), [an example 2026 press release with AI conditions](https://www.korea.kr/briefing/pressReleaseView.do?newsId=156788833), and the official [KOGL Type 1 terms](https://www.kogl.or.kr/info/licenseTypeEn.do).
+
+The Korean candidate counts and rights status are recorded in [norwegian-korean-source-counts.csv](data/norwegian-korean-source-counts.csv). A dedicated acquisition/rights issue is open: [#4](https://github.com/SylvainSouche/langid-32/issues/4).
 
 ### HPLT 3.0: important high-volume candidate, but not a blanket text licence
 
