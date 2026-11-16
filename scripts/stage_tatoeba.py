@@ -6,6 +6,7 @@ import argparse
 import csv
 import hashlib
 import json
+import re
 import sqlite3
 import tempfile
 import unicodedata
@@ -23,11 +24,11 @@ CODES = {
     "zh": ("cmn",), "ko": ("kor",), "ar": ("ara",), "tr": ("tur",),
 }
 CODE_TO_LANGUAGE = {code: lang for lang, codes in CODES.items() for code in codes}
-EMAIL = re.compile(r"(?i)\\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}\\b")
-URL = re.compile(r"(?i)(?:https?://|www\\.)\\S+")
-IPV4 = re.compile(r"\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b")
-PHONE = re.compile(r"(?<!\\w)\\+?\\d[\\d .()/-]{7,}\\d(?!\\w)")
-LONG_NUMBER = re.compile(r"\\d{9,}")
+EMAIL = re.compile(r"(?i)\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b")
+URL = re.compile(r"(?i)(?:https?://|www\.)\S+")
+IPV4 = re.compile(r"\b(?:\d{1,3}\.){3}\d{1,3}\b")
+PHONE = re.compile(r"(?<!\w)\+?\d[\d .()/-]{7,}\d(?!\w)")
+LONG_NUMBER = re.compile(r"\d{9,}")
 
 
 def normalize(text: str) -> str:
@@ -53,10 +54,10 @@ def stage(args):
                 language TEXT NOT NULL,
                 text TEXT NOT NULL,
                 modified TEXT,
-                base_id TEXT
+                base_id TEXT,
+                privacy_flags TEXT NOT NULL
             )
         """)
-        db.execute("CREATE INDEX sentence_language ON sentence(language)")
         batch = []
         with args.sentences_cc0.open("r", encoding="utf-8-sig", newline="") as stream:
             for fields in csv.reader(stream, delimiter="\t"):
@@ -83,21 +84,36 @@ def stage(args):
                 if len(text.encode("utf-8")) > args.max_bytes:
                     counts["outside_byte_limit"] += 1
                     continue
+                if EMAIL.search(text):
+                    counts["email_excluded"] += 1
+                    continue
+                if URL.search(text):
+                    counts["url_excluded"] += 1
+                    continue
+                if IPV4.search(text):
+                    counts["ipv4_excluded"] += 1
+                    continue
+                privacy_flags = []
+                if PHONE.search(text):
+                    privacy_flags.append("phone_like")
+                    counts["phone_like_flagged"] += 1
+                if LONG_NUMBER.search(text):
+                    privacy_flags.append("long_numeric_sequence")
+                    counts["long_number_flagged"] += 1
                 modified = fields[3] if len(fields) > 3 else ""
-                batch.append((sentence_id, language, text, modified, None, json.dumps(privacy_flags)))
+                batch.append((sentence_id, language, text, modified, None,
+                              json.dumps(privacy_flags)))
                 counts[f"accepted_before_base_join:{language}"] += 1
                 if len(batch) >= 5000:
                     db.executemany("INSERT OR REPLACE INTO sentence VALUES (?,?,?,?,?,?)", batch)
                     batch.clear()
         if batch:
-            db.executemany("INSERT OR REPLACE INTO sentence VALUES (?,?,?,?,?)", batch)
+            db.executemany("INSERT OR REPLACE INTO sentence VALUES (?,?,?,?,?,?)", batch)
         db.commit()
 
         # The base export contains all Tatoeba sentences, not just CC0 ones.
         # Join only IDs in the CC0 subset, so no CC-BY text enters staging.
-        cc0_ids = set()
-        for (sentence_id,) in db.execute("SELECT id FROM sentence"):
-            cc0_ids.add(sentence_id)
+        cc0_ids = {row[0] for row in db.execute("SELECT id FROM sentence")}
         batch = []
         with args.sentences_base.open("r", encoding="utf-8-sig", newline="") as stream:
             for fields in csv.reader(stream, delimiter="\t"):
@@ -109,8 +125,7 @@ def stage(args):
                     continue
                 if sentence_id not in cc0_ids:
                     continue
-                base_id = fields[1]
-                batch.append((base_id, sentence_id))
+                batch.append((fields[1], sentence_id))
                 if len(batch) >= 10000:
                     db.executemany("UPDATE sentence SET base_id=? WHERE id=?", batch)
                     batch.clear()
@@ -121,10 +136,11 @@ def stage(args):
         output_count = 0
         with args.output.open("w", encoding="utf-8", newline="\n") as output:
             cursor = db.execute(
-                "SELECT id, language, text, modified, base_id, privacy_flags FROM sentence ORDER BY id"
+                "SELECT id, language, text, modified, base_id, privacy_flags "
+                "FROM sentence ORDER BY id"
             )
             for sentence_id, language, text, modified, base_id, privacy_flags in cursor:
-                if base_id is None or base_id in ("", "\\N"):
+                if base_id is None or base_id in ("", r"\N"):
                     origin = "unknown"
                     group_material = f"sentence:{sentence_id}"
                     counts["base_unknown"] += 1
@@ -148,6 +164,7 @@ def stage(args):
                         "sentence_id": sentence_id,
                         "base_id": base_id,
                         "last_modified": modified,
+                        "privacy_flags": json.loads(privacy_flags),
                         "source_url": "https://tatoeba.org/en/downloads",
                     },
                 }
@@ -175,6 +192,10 @@ def stage(args):
         "grouping": (
             "Base-zero sentences use their own sentence ID; translations use the "
             "base sentence ID; unknown bases use their own sentence ID."
+        ),
+        "privacy": (
+            "Email, URL and IPv4 matches are excluded. Phone-like and 9+ digit "
+            "sequences are retained with review flags. This is not full PII review."
         ),
         "caveat": (
             "The base relation is the source-provided translation parent, not a "
