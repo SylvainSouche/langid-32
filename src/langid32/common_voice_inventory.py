@@ -31,6 +31,8 @@ def normalize(value: str) -> str:
 def count_sentence_file(path: Path, min_chars: int, max_chars: int,
                         max_bytes: int) -> dict[str, int]:
     counts = Counter()
+    source_counts = Counter()
+    domain_counts = Counter()
     seen: set[str] = set()
     with path.open("r", encoding="utf-8-sig", newline="") as stream:
         reader = csv.DictReader(stream, delimiter="\t")
@@ -55,11 +57,11 @@ def count_sentence_file(path: Path, min_chars: int, max_chars: int,
             else:
                 counts["is_used_unspecified"] += 1
             source = (row.get("source") or "").strip() or "(blank)"
-            counts[f"source::{source}"] += 1
+            source_counts[source] += 1
             domains = (row.get("sentence_domain") or "").strip()
             if domains:
                 for domain in domains.split(","):
-                    counts[f"domain::{domain.strip()}"] += 1
+                    domain_counts[domain.strip()] += 1
             if len(text) < min_chars:
                 counts["too_short"] += 1
                 continue
@@ -75,6 +77,12 @@ def count_sentence_file(path: Path, min_chars: int, max_chars: int,
                 continue
             seen.add(text)
             counts["unique_within_file"] += 1
+    counts["source_counts_json"] = json.dumps(
+        dict(sorted(source_counts.items())), ensure_ascii=False, sort_keys=True
+    )
+    counts["domain_counts_json"] = json.dumps(
+        dict(sorted(domain_counts.items())), ensure_ascii=False, sort_keys=True
+    )
     return dict(counts)
 
 
