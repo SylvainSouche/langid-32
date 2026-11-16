@@ -4,7 +4,7 @@ A reproducible multilingual language-identification project covering 32 language
 
 ## Dataset sourcing
 
-The corpus is the current project priority. See [the corpus source inventory](docs/corpus-inventory.md) for source coverage, preliminary Common Voice counts, FineWeb2 coverage, unresolved counts, and the acquisition plan. Read-only inventory commands cover Common Voice, FineWeb2 metadata, DGT-TM, Tatoeba, Målfrid and Korean Law Open Data. The FineWeb2 inventory downloads only its small published language-distribution CSV, never Parquet shards or document text. Metadata/document counts are not verified usable-example counts.
+The corpus is the current project priority. See [the corpus source inventory](docs/corpus-inventory.md) for source coverage, preliminary Common Voice counts, FineWeb2 coverage, unresolved counts, and the acquisition plan. Read-only inventory commands cover Common Voice, FineWeb2 metadata, DGT-TM, Tatoeba, Målfrid and Korean Law Open Data. The FineWeb2 inventory downloads only its small published language-distribution CSV, never Parquet shards or document text. The 29 exact target subsets account for about 8.53 TB of Parquet data in aggregate, so the plan is bounded sampling, not wholesale download. Metadata/document counts are not verified usable-example counts.
 
 ### Mozilla Common Voice
 
