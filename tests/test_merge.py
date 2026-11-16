@@ -90,7 +90,7 @@ def test_privacy_patterns_do_not_treat_legal_numbers_as_ip_or_phone():
 def test_privacy_regexes_handle_unicode_email_and_attached_urls():
     from langid32.merge import EMAIL_RE, URL_RE, WEB_FRAGMENT_RE
     assert EMAIL_RE.search("R-phost díolacháin@hmminghe.com")
-    assert EMAIL_RE.search("support@takarush.co.jp")
+    assert EMAIL_RE.search("support@takarush.co.jp")\n    assert EMAIL_RE.search("support@takarush.co.jpまで")
     assert URL_RE.search("sitehttp://register.consilium.europa.eu")
     assert URL_RE.search("COVID-19https://ec.europa.eu/info/file.pdf")
     assert not URL_RE.search("awww.")
