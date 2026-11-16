@@ -9,11 +9,11 @@ import unicodedata
 DATASET = "HuggingFaceFW/fineweb"
 REVISION = "main"
 SEED = "langid-32-fineweb2-v1"  # shared hostname split assignment with FineWeb2
-SENTENCE_SPLIT = re.compile(r"(?<=[.!?])\\s+")
-EMAIL = re.compile(r"(?i)\\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}\\b")
-URL = re.compile(r"(?i)(?:https?://|www\\.)\\S+")
-IPV4 = re.compile(r"(?<![\\d.])(?:25[0-5]|2[0-4]\\d|1?\\d?\\d)(?:\\.(?:25[0-5]|2[0-4]\\d|1?\\d?\\d)){3}(?![\\d.])")
-LONG_NUMBER = re.compile(r"\\d{9,}")
+SENTENCE_SPLIT = re.compile(r"(?<=[.!?])\s+")
+EMAIL = re.compile(r"(?i)\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b")
+URL = re.compile(r"(?i)(?:https?://|www\.)\S+")
+IPV4 = re.compile(r"(?<![\d.])(?:25[0-5]|2[0-4]\d|1?\d?\d)(?:\.(?:25[0-5]|2[0-4]\d|1?\d?\d)){3}(?![\d.])")
+LONG_NUMBER = re.compile(r"\d{9,}")
 
 def sha(value):
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
@@ -66,7 +66,7 @@ def candidates(text, rejected, min_chars, max_chars):
         yield sentence
 
 def fraction(group_id):
-    return int.from_bytes(hashlib.sha256(f"{SEED}\\0{group_id}".encode()).digest()[:8],"big")/2**64
+    return int.from_bytes(hashlib.sha256(f"{SEED}\0{group_id}".encode()).digest()[:8],"big")/2**64
 
 def main():
     ap=argparse.ArgumentParser(description=__doc__)
@@ -90,7 +90,7 @@ def main():
     # Deterministically distribute selected shards over the sorted corpus; this avoids
     # concentrating the sample in one crawl dump or a contiguous range of shards.
     n=min(args.shards,len(files))
-    start=int(sha(SEED+"\\0fineweb-shards")[:12],16)%len(files)
+    start=int(sha(SEED+"\0fineweb-shards")[:12],16)%len(files)
     indices=sorted({(start+round(i*len(files)/n))%len(files) for i in range(n)})
     pools=defaultdict(list); seen=set(); rejected=Counter(); reports=[]
     docs=0; domains=set(); max_per_doc=20
@@ -101,7 +101,7 @@ def main():
         con.execute("CALL truncate_duckdb_logs()")
         metadata=con.execute(f"SELECT row_group_id,max(row_group_num_rows) FROM parquet_metadata('{escaped}') GROUP BY row_group_id ORDER BY row_group_id").fetchall()
         if not metadata: raise RuntimeError(f"No row groups in {path}")
-        count=len(metadata); base=int(sha(SEED+"\\0"+path)[:12],16)%count
+        count=len(metadata); base=int(sha(SEED+"\0"+path)[:12],16)%count
         rgids=sorted({(base+round(i*count/args.row_groups))%count for i in range(min(args.row_groups,count))})
         con.execute("CALL truncate_duckdb_logs()")
         cur=con.execute(f"SELECT text,id,url,date,dump,language,language_score,token_count,file_row_group_number FROM read_parquet('{escaped}') WHERE file_row_group_number IN ({','.join(map(str,rgids))})")
@@ -120,12 +120,12 @@ def main():
                 split="test" if split_value<.10 else "validation" if split_value<.20 else "train"
                 doc_hash=sha(str(id_))
                 parts=list(candidates(text,rejected,args.min_chars,args.max_chars))
-                parts.sort(key=lambda s:sha(SEED+"\\0"+doc_hash+"\\0"+s))
+                parts.sort(key=lambda s:sha(SEED+"\0"+doc_hash+"\0"+s))
                 if len(parts)>max_per_doc: rejected["document_sentence_cap"]+=len(parts)-max_per_doc
                 for sentence in parts[:max_per_doc]:
                     if sentence in seen: rejected["duplicate_sentence"]+=1; continue
                     seen.add(sentence)
-                    priority=sha(SEED+"\\0en\\0"+split+"\\0"+sentence)
+                    priority=sha(SEED+"\0en\0"+split+"\0"+sentence)
                     record={"text":sentence,"language":"en","source":"fineweb","split":split,"group_id":group_id,"document_id_hash":doc_hash}
                     provenance={"sentence_sha256":sha(sentence),"document_id_sha256":doc_hash,"group_id":group_id,
                       "source_domain":host,"source_url_sha256":sha(source_url or ""),"crawl_date":str(date or ""),
@@ -168,7 +168,7 @@ def main():
       "selected_counts_by_split":targets,"rejected":dict(rejected),"output_sha256":hashes,
       "privacy_note":"Email, URL and IPv4 patterns are excluded. Long numeric sequences are retained with review flags. Regex filtering is not complete PII clearance.",
       "limitation":"Deterministic bounded sample of selected Parquet row groups; not statistically representative of all FineWeb documents."}
-    (args.output_dir/"manifest.json").write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+"\\n",encoding="utf-8")
+    (args.output_dir/"manifest.json").write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     print(json.dumps({"documents_read":docs,"distinct_hostnames":len(domains),"candidate_counts_by_split":{k:len(v) for k,v in pools.items()},
       "selected_counts_by_split":targets,"shards":len(indices),"manifest":"manifest.json"},indent=2))
 
