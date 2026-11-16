@@ -57,7 +57,7 @@ jobs:
             --output reports/multisource-candidate \
             --max-per-language 20000 \
             --require-exact-counts
-          cp input/tatoeba/tatoeba-cc0-staged.manifest.json reports/multisource-candidate/source-manifest-tatoeba.json
+          cp input/fineweb2/manifest.json reports/multisource-candidate/source-manifest-fineweb2.json\n          cp input/tatoeba/tatoeba-cc0-staged.manifest.json reports/multisource-candidate/source-manifest-tatoeba.json
       - uses: actions/upload-artifact@v4
         with:
           name: multisource-candidate-v1
