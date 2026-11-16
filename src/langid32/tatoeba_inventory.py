@@ -80,7 +80,12 @@ def inventory(sentences_path: Path, base_path: Path | None,
             )
             if not eligible:
                 length_rejected[target] += 1
-            batch.append((int(sentence_id), target, text, int(eligible), None))
+            try:
+                numeric_id = int(sentence_id)
+            except ValueError:
+                length_rejected[target] += 1
+                continue
+            batch.append((numeric_id, target, text, int(eligible), None))
             if len(batch) >= 2000:
                 db.executemany(
                     "INSERT OR REPLACE INTO sentences VALUES (?,?,?,?,?)", batch
@@ -93,6 +98,9 @@ def inventory(sentences_path: Path, base_path: Path | None,
         db.commit()
 
         if base_path:
+            cc0_ids = {
+                row[0] for row in db.execute("SELECT sentence_id FROM sentences")
+            }
             batch = []
             for fields in read_base(base_path):
                 if len(fields) < 2:
@@ -101,6 +109,8 @@ def inventory(sentences_path: Path, base_path: Path | None,
                 try:
                     sentence_id = int(sentence_id)
                 except ValueError:
+                    continue
+                if sentence_id not in cc0_ids:
                     continue
                 batch.append((base_id, sentence_id))
                 if len(batch) >= 5000:
