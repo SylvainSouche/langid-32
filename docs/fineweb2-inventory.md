@@ -143,3 +143,27 @@ The second user upload supplied the raw Hugging Face `/parquet` JSON as well as 
 - The other 29 target subsets have converted shards, with train-byte sums matching the pinned distribution CSV exactly.
 
 This changes the diagnosis: the issue is specifically the dataset-viewer Parquet conversion for two configs, not a bug in our split-name handling. The upstream dataset card documents original files below `data/{subset}/train` and demonstrates direct `hf://` streaming. We should inspect the original `main`-branch file trees for `spa_Latn` and `tur_Latn`; a conversion failure is not proof that the underlying data are unavailable. The original files may have a different schema or layout, so inspect metadata before using them.
+
+
+### Historical revisions: Spanish and Turkish recovered (2026-11-16)
+
+A metadata-only inventory was run from GitHub Actions against the Hugging Face Hub tree API. It inspected the train and test folders for spa_Latn and tur_Latn in v2.0.0, v2.0.1, v2.1.0, v2.1.1, and main. It enumerated file paths, sizes and object identifiers; **no Parquet data was downloaded**.
+
+The result confirms that the Spanish and Turkish source shards exist in historical revisions:
+
+| Revision | Spanish train files | Spanish bytes | Turkish train files | Turkish bytes |
+|---|---:|---:|---:|---:|
+| v2.0.0 | 136 | 594,934,740,560 | 28 | 125,243,448,949 |
+| v2.0.1 | 137 | 597,493,126,238 | 28 | 126,286,680,890 |
+| v2.1.0 | 146 | 637,611,323,581 | 30 | 134,789,283,815 |
+| main | 146 | 637,611,323,581 | 30 | 134,789,283,815 |
+
+Each of these revisions also has one test Parquet file per language. Exact file counts and byte totals, including test splits, are in [fineweb2-historical-revision-summary.csv](data/fineweb2-historical-revision-summary.csv).
+
+The v2.1.0 totals match the current distribution CSV and the previously observed expected train-byte totals exactly. main has the same counts and byte totals for these two subsets. The literal v2.1.1 revision name returned HTTP 404 for the queried paths; current main is the usable latest snapshot, and its dataset card changelog identifies it as v2.1.1. We should therefore pin **v2.1.0 or main** for acquisition, not rely on the literal v2.1.1 revision name.
+
+**Conclusion:** the original FineWeb2 data are present; the failure is confined to the dataset-viewer /parquet conversion representation. We can bypass that conversion layer and use the original Parquet files from the Hub tree. The dataset card's hf:// examples are compatible with revision pinning; for reproducibility, use v2.1.0 explicitly (or record the resolved commit SHA if using main). This still does not justify downloading whole shards: next we should test bounded HTTP-range/column reads against a single original shard and verify actual bytes transferred.
+
+The inventory utility and its workflow are retained:
+- [scripts/inspect_fineweb2_revisions.py](../scripts/inspect_fineweb2_revisions.py)
+- [.github/workflows/fineweb2-revisions.yml](../.github/workflows/fineweb2-revisions.yml)
