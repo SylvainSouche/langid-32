@@ -108,14 +108,24 @@ def prepare(args: argparse.Namespace) -> dict:
     output.mkdir(parents=True, exist_ok=True)
     counts = Counter()
     output_hashes = {}
+    if args.max_per_language:
+        validation_cap = round(args.max_per_language * args.validation_fraction)
+        test_cap = round(args.max_per_language * args.test_fraction)
+        split_caps = {
+            "train": max(0, args.max_per_language - validation_cap - test_cap),
+            "validation": validation_cap,
+            "test": test_cap,
+        }
+    else:
+        split_caps = {"train": 0, "validation": 0, "test": 0}
     for split in ("train", "validation", "test"):
         destination = output / f"{split}.jsonl"
         with destination.open("w", encoding="utf-8", newline="\n") as stream:
             for language in args.languages:
                 items = sorted(candidates.get(f"{language}:{split}", []),
                                key=lambda item: item[0])
-                if args.max_per_language:
-                    items = items[:args.max_per_language]
+                if split_caps[split]:
+                    items = items[:split_caps[split]]
                 for _, record in items:
                     stream.write(json.dumps(record, ensure_ascii=False,
                                              separators=(",", ":")) + "\n")
@@ -139,7 +149,8 @@ def prepare(args: argparse.Namespace) -> dict:
             "min_chars": args.min_chars,
             "max_chars": args.max_chars,
             "max_bytes": args.max_bytes,
-            "max_per_language_per_split": args.max_per_language,
+            "max_per_language_total": args.max_per_language,
+            "per_language_split_caps": split_caps,
             "seed": args.seed,
             "validation_fraction": args.validation_fraction,
             "test_fraction": args.test_fraction,
@@ -179,7 +190,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--max-chars", type=int, default=500)
     parser.add_argument("--max-bytes", type=int, default=1500)
     parser.add_argument("--max-per-language", type=int, default=20000,
-                        help="Maximum per language per split; 0 means unlimited")
+                        help="Maximum total per language across all splits; 0 means unlimited")
     parser.add_argument("--validation-fraction", type=float, default=0.10)
     parser.add_argument("--test-fraction", type=float, default=0.10)
     parser.add_argument("--seed", default="langid-32-v1")
