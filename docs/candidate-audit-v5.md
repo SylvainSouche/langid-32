@@ -1,6 +1,6 @@
 # Independent audit: four-source candidate v5
 
-Audit date: 2026-11-16. Input: private GitHub Actions artifact `multisource-candidate-v5-fineweb-en`, produced by [run 43946858368](https://github.com/SylvainSouche/langid-32/actions/runs/43946858368). The archive was downloaded and its JSONL contents inspected locally. No corpus text was committed to Git.
+Audit date: 2026-11-16. Input: private GitHub Actions artifact `multisource-candidate-v5-fineweb-en`, produced by [run 43948367359](https://github.com/SylvainSouche/langid-32/actions/runs/43946858368). The archive was downloaded and its JSONL contents inspected locally. No corpus text was committed to Git.
 
 ## 1. Structural checks
 
@@ -10,8 +10,8 @@ Audit date: 2026-11-16. Input: private GitHub Actions artifact `multisource-cand
 | Records | 640,000 |
 | Train / validation / test | 512,000 / 64,000 / 64,000 |
 | Per language | 16,000 / 2,000 / 2,000 |
-| Output groups | 186,282 |
-| Candidate groups before per-language cap | 256,505 |
+| Output groups | 186,323 |
+| Candidate groups before per-language cap | 256,900 |
 | Conflicting splits for `group_id` | 0 |
 | Conflicting splits for `split_group_id` | 0 |
 | Exact normalized duplicates within a language | 0 |
@@ -25,9 +25,9 @@ The four-source merge completed successfully and the artifact contains the text-
 | Source | Final records | Share | Coverage |
 |---|---:|---:|---|
 | FineWeb2 v2.1.0 | 510,702 | 79.80% | 31 classes |
-| DGT-TM 2021 | 91,531 | 14.30% | 24 EU official languages |
-| Tatoeba CC0, 2026-11-14 | 31,692 | 4.95% | 17 classes represented |
-| FineWeb (English) | 6,075 | 0.95% | English only |
+| DGT-TM 2021 | 91,539 | 14.30% | 24 EU official languages |
+| Tatoeba CC0, 2026-11-14 | 31,791 | 4.97% | 17 classes represented |
+| FineWeb (English) | 5,968 | 0.93% | English only |
 | **Total** | **640,000** | **100%** | **32 classes** |
 
 The 31 non-English class source counts are unchanged from v4. The FineWeb integration affects the English class only.
@@ -36,18 +36,18 @@ The 31 non-English class source counts are unchanged from v4. The FineWeb integr
 
 | Source | Available staged candidates | Final English records | Final share |
 |---|---:|---:|---:|
-| FineWeb | 20,000 | 6,075 | 30.38% |
-| Tatoeba CC0 | 41,230 | 12,387 | 61.94% |
-| DGT-TM 2021 | 5,000 | 1,538 | 7.69% |
+| FineWeb | 20,000 | 5,968 | 29.84% |
+| Tatoeba CC0 | 41,230 | 12,486 | 62.43% |
+| DGT-TM 2021 | 5,000 | 1,546 | 7.73% |
 | **Total** | **66,230** | **20,000** | **100%** |
 
-The merge applies no fixed source quota. It normalizes and deduplicates the available source pools, assigns deterministic group-level splits, then selects the final per-language cap. The final source mix is therefore close to the relative sizes of the available English pools. FineWeb reduces Tatoeba's share from 89.0% in v4 to 61.9% in v5 and adds a web-crawl component at 30.4%. English is still more Tatoeba-heavy than most other classes, whose principal source is FineWeb2. Source/register balance remains a real evaluation confound and should be measured explicitly.
+The merge applies no fixed source quota. It normalizes and deduplicates the available source pools, assigns deterministic group-level splits, then selects the final per-language cap. The final source mix is therefore close to the relative sizes of the available English pools. FineWeb reduces Tatoeba's share from 89.0% in v4 to 62.4% in v5 and adds a web-crawl component at 29.8%. English is still more Tatoeba-heavy than most other classes, whose principal source is FineWeb2. Source/register balance remains a real evaluation confound and should be measured explicitly.
 
 ## 4. FineWeb sample quality and domain spread
 
 The English FineWeb input is documented separately in [fineweb-inventory.md](fineweb-inventory.md). Its bounded extraction read 95,979 documents from 24 selected shards spanning 24 Common Crawl dumps and 61,715 hostnames. The selected 20,000 sentences came from 15,705 hostnames; the largest hostname contributed 21 sentences (0.105%). Median sentence length was 108 characters, the 95th percentile 253, and the minimum retained FineWeb language score 0.90005.
 
-This is much less concentrated by hostname than the most concentrated FineWeb2 classes in v4. It does not establish genre balance or human-verified English labels. The extractor's source revision was recorded as `main`; per-shard object identifiers are retained in the private provenance sidecar.
+This is much less concentrated by hostname than the most concentrated FineWeb2 classes in v4. It does not establish genre balance or human-verified English labels. The extractor's source revision is pinned to FineWeb v1.4.0 commit `9bb295ddab0e05d785b879661af7260fed5140fc`; per-shard object identifiers are retained in the private provenance sidecar.
 
 ## 5. Cross-language label collisions
 
@@ -57,9 +57,9 @@ A text string present under multiple language labels has no uniquely inferable l
 
 ## 6. Privacy and text quality
 
-The global merge excluded 11 email matches and 31 URL matches. An independent scan found no residual email addresses, URLs or valid IPv4 addresses. **1,624 records (0.254%) carry privacy-review flags**:
+The global merge excluded 11 email matches and 31 URL matches. An independent scan found no residual email addresses, URLs or valid IPv4 addresses. **1,623 records (0.254%) carry privacy-review flags**:
 
-- 1,011 phone-like occurrences;
+- 1,010 phone-like occurrences;
 - 676 occurrences of 9+ digit sequences;
 - 63 records carry both flags.
 
