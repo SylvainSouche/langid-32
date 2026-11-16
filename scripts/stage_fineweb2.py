@@ -47,10 +47,11 @@ def main():
                     if language != row["language"]:
                         raise ValueError(f"subset/language mismatch: {prefix}/{row['language']}")
                     group_id = f"fineweb2:{prov['group_id']}"
+                    split_group_id = prov["group_id"]
                     record = {
                         "text": row["text"], "language": language,
                         "source": "fineweb2", "source_release": revision,
-                        "group_id": group_id, "licence_id": licence,
+                        "group_id": group_id, "split_group_id": split_group_id, "licence_id": licence,
                         "text_origin": "original",
                         "provenance": {
                             key: prov.get(key) for key in (
