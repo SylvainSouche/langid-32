@@ -152,8 +152,8 @@ def main():
                 if row["split"]==split: f.write(json.dumps(row,ensure_ascii=False,separators=(",",":"))+"\n")
         hashes[path.name]=hashlib.sha256(path.read_bytes()).hexdigest()
     pp=args.output_dir/"provenance.jsonl"
-    with pp.open("w",encoding="utf-8",newline="\\n") as f:
-        for _,_,prov in chosen: f.write(json.dumps(prov,ensure_ascii=False,separators=(",",":"))+"\\n")
+    with pp.open("w",encoding="utf-8",newline="\n") as f:
+        for _,_,prov in chosen: f.write(json.dumps(prov,ensure_ascii=False,separators=(",",":"))+"\n")
     hashes[pp.name]=hashlib.sha256(pp.read_bytes()).hexdigest()
     manifest={"schema_version":1,"extractor_version":"0.1.0","project":"langid-32","source":DATASET,
       "source_revision":REVISION,"source_dataset_licence":"ODC-By-1.0 (dataset/compilation; underlying Common Crawl page rights remain separate)",
