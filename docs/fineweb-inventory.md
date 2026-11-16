@@ -6,9 +6,9 @@ Extraction date: 2026-11-16. Source: [HuggingFaceFW/fineweb](https://huggingface
 
 The extractor reads selected Parquet row groups remotely through DuckDB HTTP range requests. It does not download whole shards and does not commit corpus text to Git.
 
-- GitHub Actions run: [43946321575](https://github.com/SylvainSouche/langid-32/actions/runs/43946321575)
-- Artifact: `fineweb-en-20000-main`, 14-day retention; artifact ID `14265621126`
-- FineWeb source revision recorded by the run: `main`
+- GitHub Actions run: [43948050604](https://github.com/SylvainSouche/langid-32/actions/runs/43948050604)
+- Artifact: `fineweb-en-20000-v1.4.0`, 14-day retention; artifact ID `14264699818`
+- FineWeb source revision: `9bb295ddab0e05d785b879661af7260fed5140fc` (v1.4.0)
 - 24 selected Parquet shards, from 24 distinct Common Crawl dumps
 - 4 selected row groups per shard
 - 95,979 source documents read
@@ -16,7 +16,7 @@ The extractor reads selected Parquet row groups remotely through DuckDB HTTP ran
 - 1,098,372 sentence candidates after sentence-level filters and document cap
 - 20,000 selected English sentences: 16,000 train / 2,000 validation / 2,000 test
 
-The selection is deterministic for the source file listing and seed, but it is a bounded sample, not a statistically representative census of FineWeb. Per-shard object identifiers are retained in the provenance sidecar; the source revision field is the branch name rather than a commit pin.
+The selection is deterministic for the pinned source revision and seed, but it is a bounded sample, not a statistically representative census of FineWeb. Per-shard object identifiers are retained in the provenance sidecar. The pinned rerun produced byte-identical public train/validation/test JSONL files to the earlier `main`-branch extraction; only the provenance sidecar differs because it records the pinned commit instead of the branch name.
 
 ## Selected-sample audit
 
