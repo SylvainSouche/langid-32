@@ -1,0 +1,17 @@
+# Example only. Pass equivalent column names to langid32-prepare.
+# Keep raw source files outside Git (data/raw/ is ignored).
+#
+# Common Voice TSV fields typically include:
+#   sentence_id, sentence, ...
+#
+# Use sentence_id as the grouping column so identical source sentences
+# cannot leak across train/validation/test splits.
+
+[source]
+name = "common-voice"
+release = "FILL_IN_FROM_MDC"
+licence = "CC0-1.0"
+download_origin = "https://datacollective.mozillafoundation.org/"
+text_column = "sentence"
+language_column = "locale"
+group_column = "sentence_id"
