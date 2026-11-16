@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Assemble the complete 640k FineWeb2 sample from base + short-language top-up."""
+# Deterministic assembly: base 27 languages plus four complete top-ups.
 from __future__ import annotations
 import argparse, hashlib, json
 from collections import Counter, defaultdict
