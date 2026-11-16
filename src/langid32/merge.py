@@ -248,7 +248,9 @@ def main():
                         help="Total cap per language; 0 disables the cap")
     parser.add_argument("--validation-fraction", type=float, default=0.10)
     parser.add_argument("--test-fraction", type=float, default=0.10)
-    parser.add_argument("--seed", default="langid-32-fineweb2-v1")\n    parser.add_argument("--require-exact-counts", action="store_true",\n                        help="Fail unless every target language reaches every split cap")
+    parser.add_argument("--seed", default="langid-32-fineweb2-v1")
+    parser.add_argument("--require-exact-counts", action="store_true",
+                        help="Fail unless every target language reaches every split cap")
     args = parser.parse_args()
     if args.min_chars < 1 or args.max_chars < args.min_chars or args.max_bytes < 1:
         parser.error("invalid text length limits")
