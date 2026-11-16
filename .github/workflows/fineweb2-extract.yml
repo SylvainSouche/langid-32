@@ -1,4 +1,4 @@
-name: Extract bounded FineWeb2 Spanish and Turkish samples
+name: Extract bounded FineWeb2 31-language samples
 
 on:
   push:
@@ -26,15 +26,15 @@ jobs:
       - name: Extract bounded multi-shard samples
         run: >-
           python scripts/extract_fineweb2_sample.py
-          --languages es tr
+          --languages bg hr cs da nl et fi fr de el hu ga it lv lt mt pl pt ro sk sl es sv nb nn ru ja zh ko ar tr
           --target-per-language 20000
-          --shards-per-language 8
+          --shards-per-language 4
           --max-row-groups 1
           --output-dir reports/fineweb2-es-tr
       - name: Upload samples and provenance
         uses: actions/upload-artifact@v4
         with:
-          name: fineweb2-es-tr-20000-v2.1.0-multishard
+          name: fineweb2-31x20000-v2.1.0-4shards
           path: reports/fineweb2-es-tr/
           retention-days: 7
           if-no-files-found: error
