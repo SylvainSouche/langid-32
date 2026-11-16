@@ -4,7 +4,6 @@ on:
   push:
     paths:
       - "scripts/extract_fineweb2_sample.py"
-      - ".github/workflows/fineweb2-extract-all.yml"
   workflow_dispatch:
 
 permissions:
