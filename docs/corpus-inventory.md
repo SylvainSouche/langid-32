@@ -12,40 +12,40 @@ Legend:
 - **?** = not yet verified against the current source catalogue or release.
 - A Y means coverage, not a guarantee of 20,000 usable examples.
 
-| Code | Language | Common Voice 27 | HPLT 3.0 | JRC-Acquis 3 | DGT-TM | Europarl v7 | Tatoeba CC0 | OPUS |
-|---|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| bg | Bulgarian | Y | Y | Y | Y | Y | — | ? |
-| hr | Croatian | Y | Y | — | Y | — | — | ? |
-| cs | Czech | Y | Y | Y | Y | Y | Y | ? |
-| da | Danish | Y | Y | Y | Y | Y | Y | ? |
-| nl | Dutch | Y | Y | Y | Y | Y | Y | ? |
-| en | English | Y | Y | Y | Y | Y | Y | ? |
-| et | Estonian | Y | Y | Y | Y | Y | — | ? |
-| fi | Finnish | Y | Y | Y | Y | Y | Y | ? |
-| fr | French | Y | Y | Y | Y | Y | Y | ? |
-| de | German | Y | Y | Y | Y | Y | Y | ? |
-| el | Greek | Y | Y | Y | Y | Y | — | ? |
-| hu | Hungarian | Y | Y | Y | Y | Y | Y | ? |
-| ga | Irish | Y | Y | — | Y | — | — | ? |
-| it | Italian | Y | Y | Y | Y | Y | Y | ? |
-| lv | Latvian | Y | Y | Y | Y | Y | — | ? |
-| lt | Lithuanian | Y | Y | Y | Y | Y | — | ? |
-| mt | Maltese | Y | Y | Y | Y | — | — | ? |
-| pl | Polish | Y | Y | Y | Y | Y | Y | ? |
-| pt | Portuguese | Y | Y | Y | Y | Y | Y | ? |
-| ro | Romanian | Y | Y | Y | Y | Y | — | ? |
-| sk | Slovak | Y | Y | Y | Y | Y | — | ? |
-| sl | Slovenian | Y | Y | Y | Y | Y | — | ? |
-| es | Spanish | Y | Y | Y | Y | Y | Y | ? |
-| sv | Swedish | Y | Y | Y | Y | Y | Y | ? |
-| nb | Norwegian Bokmål | Y | Y | — | — | — | Y | ? |
-| nn | Norwegian Nynorsk | Y | Y | — | — | — | — | ? |
-| ru | Russian | Y | Y | — | — | — | Y | ? |
-| ja | Japanese | Y | Y | — | — | — | Y | ? |
-| zh | Chinese | Y | Y | — | — | — | Y | ? |
-| ko | Korean | Y | Y | — | — | — | — | ? |
-| ar | Arabic | Y | Y | — | — | — | Y | ? |
-| tr | Turkish | Y | Y | — | — | — | — | ? |
+| Code | Language | Common Voice 27 | Målfrid 2026 | HPLT 3.0 | JRC-Acquis 3 | DGT-TM | Europarl v7 | Tatoeba CC0 | OPUS |
+|---|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| bg | Bulgarian | Y | — | Y | Y | Y | Y | — | ? |
+| hr | Croatian | Y | — | Y | — | Y | — | — | ? |
+| cs | Czech | Y | — | Y | Y | Y | Y | Y | ? |
+| da | Danish | Y | — | Y | Y | Y | Y | Y | ? |
+| nl | Dutch | Y | — | Y | Y | Y | Y | Y | ? |
+| en | English | Y | Y* | Y | Y | Y | Y | Y | ? |
+| et | Estonian | Y | — | Y | Y | Y | Y | — | ? |
+| fi | Finnish | Y | — | Y | Y | Y | Y | Y | ? |
+| fr | French | Y | — | Y | Y | Y | Y | Y | ? |
+| de | German | Y | — | Y | Y | Y | Y | Y | ? |
+| el | Greek | Y | — | Y | Y | Y | Y | — | ? |
+| hu | Hungarian | Y | — | Y | Y | Y | Y | Y | ? |
+| ga | Irish | Y | — | Y | — | Y | — | — | ? |
+| it | Italian | Y | — | Y | Y | Y | Y | Y | ? |
+| lv | Latvian | Y | — | Y | Y | Y | Y | — | ? |
+| lt | Lithuanian | Y | — | Y | Y | Y | Y | — | ? |
+| mt | Maltese | Y | — | Y | Y | Y | — | — | ? |
+| pl | Polish | Y | — | Y | Y | Y | Y | Y | ? |
+| pt | Portuguese | Y | — | Y | Y | Y | Y | Y | ? |
+| ro | Romanian | Y | — | Y | Y | Y | Y | — | ? |
+| sk | Slovak | Y | — | Y | Y | Y | Y | — | ? |
+| sl | Slovenian | Y | — | Y | Y | Y | Y | — | ? |
+| es | Spanish | Y | — | Y | Y | Y | Y | Y | ? |
+| sv | Swedish | Y | — | Y | Y | Y | Y | Y | ? |
+| nb | Norwegian Bokmål | Y | Y | Y | — | — | — | Y | ? |
+| nn | Norwegian Nynorsk | Y | Y | Y | — | — | — | — | ? |
+| ru | Russian | Y | — | Y | — | — | — | Y | ? |
+| ja | Japanese | Y | — | Y | — | — | — | Y | ? |
+| zh | Chinese | Y | — | Y | — | — | — | Y | ? |
+| ko | Korean | Y | — | Y | — | — | — | — | ? |
+| ar | Arabic | Y | — | Y | — | — | — | Y | ? |
+| tr | Turkish | Y | — | Y | — | — | — | — | ? |
 
 Coverage references and caveats:
 - HPLT Monolingual Datasets 3.0 covers 198 language-script combinations and includes all 32 target language classes (Chinese has Simplified and Traditional variants). It is a very large Common Crawl/Internet Archive-derived web corpus (2012–2024), with document-level and segment-level language labels, provenance, WDS quality ordering, and PII-span annotations. Its v3 catalogue reports very large segment pools even for our smaller targets: Irish 3.77M, Maltese 17.22M, Norwegian Nynorsk 4.12M, Norwegian Bokmål 888.91M, and Korean 2.34B segments. These are source-level segments, not our filtered usable-example counts. Sources: https://hplt-project.org/datasets/v3.0 and https://data.hplt-project.org/three/sorted/manifest.json
@@ -56,11 +56,34 @@ Coverage references and caveats:
 - Tatoeba publishes a full sentence export and a separate CC0-only export. The general sentence export is CC BY 2.0 FR; only the separately identified subset is CC0. The CC0 language list includes 18 of our target classes (cs, da, nl, en, fi, fr, de, hu, it, pl, pt, es, sv, nb, ru, ja, zh/Mandarin, ar); it does not list the other 14 target classes. This is a language-availability signal, not a count. Preserve the sentence-base and translation-link files to identify translations and prevent cross-split leakage. The CC0 export is updated weekly. The 14 November 2026 export index lists `sentences_CC0.csv` at 41.9 MB uncompressed (7.96 MB compressed) and `sentences_base.csv` at 196.9 MB uncompressed (64.1 MB compressed). The CC0 export uses ISO 639-3 language codes; Mandarin Chinese is the relevant Chinese variety for this inventory. Pin the weekly export date and hashes. Source: https://tatoeba.org/en/downloads and https://downloads.tatoeba.org/exports/
 - OPUS is an aggregator, not a single uniformly licensed dataset. Its catalogue spans many languages and corpora, but each corpus has its own coverage, provenance, quality and licence. Screen each candidate individually; do not ingest the aggregate indiscriminately. Source: https://opus.nlpl.eu/
 
+### Norwegian Bokmål and Nynorsk: Målfrid 2026 resolves the volume gap
+
+The National Library of Norway's **Målfrid 2026** corpus is a major discovery and should now be the primary candidate for both Norwegian classes. It contains documents from 720 Norwegian state-institution domains, crawled between December 2025 and January 2026, and is released under the Norwegian Licence for Open Government Data (NLOD) 2.0.
+
+| Language | Tokens |
+|---|---:|
+| Bokmål | 1,890,232,881 |
+| Nynorsk | 170,231,965 |
+
+The data is provided as separate per-language TAR archives containing gzipped JSONL documents. Each document includes `doc_id`, `doc_hash`, `domain`, `url`, `date`, `mimetype`, `title`, document-level `lang`, and `fulltext` as paragraph strings. The catalogue says exact duplicates were removed at the domain level. The published documentation warns that language identification between closely related languages is not perfect, so the Nynorsk/Bokmål labels must be audited rather than trusted blindly.
+
+This is much better suited to the project than HPLT for Norwegian: explicit NLOD 2.0, institutional source domains, separate locale archives, and stable document/domain provenance. For splitting, retain document IDs and consider domain-level grouping to reduce website-template leakage. The language label is document-level; a cross-check on paragraphs is needed.
+
+The corpus is a strong volume source, not a ready-to-use 20k sentence corpus. We still need to extract paragraph/sentence examples, check for mixed-language pages and PII, deduplicate across languages and sources, and sample across domains. The Nynorsk archive is 342.1 MB and the Bokmål archive 3.8 GB.
+
+Additional Norwegian sources:
+- Målfrid 2021–2025 parallel text provides 145,267 English–Bokmål, 12,268 English–Nynorsk and 50,957 Bokmål–Nynorsk translation units under NLOD. Useful for translation-aware split groups, but not a replacement for monolingual text.
+- The randomized Nynorsk corpus contains 3.3M sentences / 57.5M words under CC BY 3.0, but is lemmatized and morphologically tagged; treat as supplementary rather than clean raw text.
+- NorNE is CC0 and contains about 300k words each for Bokmål and Nynorsk, but it reuses the Norwegian Dependency Treebank texts and contains named-entity annotations.
+- The Norwegian Newspaper Corpus has large volumes (68M Nynorsk words and 1.68B Bokmål words) but is CC BY-NC; exclude from a permissive public corpus.
+
+Source metadata and counts: [norwegian-korean-source-counts.csv](data/norwegian-korean-source-counts.csv). Sources: https://www.nb.no/sprakbanken/ressurskatalog/oai-nb-no-sbr-107/ and https://data.norge.no/en/datasets/b3da2524-c7c6-30c9-b757-d813f228c76f/malfrid-2026.
+
 ### HPLT 3.0: important high-volume candidate, but not a blanket text licence
 
 HPLT 3.0 is the strongest single-source volume discovery so far. The catalogue has 198 language-script combinations, and all 32 project targets are represented. Its data is full-document JSONL in Zstandard shards; the `text` field is segmented by paragraph-like newlines. Metadata includes the original crawl URL and date, document-level top-three language predictions, segment-level language labels, WDS quality scores, and PII spans. It is globally deduplicated for most languages, but explicitly not for Chinese, English and Russian. The v3 release is from July 2025. The January 2026 v4 release cycle exposes a roughly 440-TiB pool of shallow-processed web documents; HPLT says this pool is not directly suitable for language engineering and that clean/noisy language-specific outputs are a separate, ongoing release. For the current corpus inventory, v3 remains the usable processed catalogue.
 
-This gives us a technically attractive route:
+This gives us a technically attractive route, but it is no longer the leading gap-filler for Norwegian: the National Library of Norway has released a very large, open-licensed Målfrid 2026 corpus for both Bokmål and Nynorsk (see below):
 - select the highest WDS bins first rather than download every shard;
 - use segment-level language labels, not just document-level predictions;
 - reject or carefully redact PII-annotated text;
@@ -69,10 +92,7 @@ This gives us a technically attractive route:
 
 **Licensing distinction:** HPLT says it licenses the *packaging* under CC0 and explicitly says it does not own the extracted text. Its terms also leave compliance with copyright and data-protection law to the user. Therefore CC0 on the packaging is not a blanket CC0 grant for the underlying web text. Do not publish HPLT-derived text as CC0 merely because the HPLT package is CC0. Treat it as a high-volume candidate for internal research/training only after the applicable text-and-data-mining basis and privacy policy have been reviewed; do not put it in a publicly redistributed corpus unless the underlying rights are cleared.
 
-The HPLT v3 source-level segment counts are far above the 20,000 target for the three non-EU shortfall languages:
-- Norwegian Nynorsk: 1.51M documents, 4.12M segments.
-- Norwegian Bokmål: 36.49M documents, 888.91M segments.
-- Korean: 74.79M documents, 2.34B segments.
+The HPLT v3 source-level segment counts are far above the 20,000 target for Korean (74.79M documents, 2.34B segments). Norwegian Bokmål and Nynorsk also have large HPLT pools, but Målfrid 2026 is a better documented, open-licensed source for those languages.
 
 Other useful low-volume Common Voice languages also have large HPLT segment pools: Irish 3.77M, Maltese 17.22M, and Estonian 425.93M. These counts are not equivalent to clean, unique, privacy-screened examples. The rounded catalogue figures for these eleven Common Voice shortfall languages are recorded in [hplt-v3-shortfall-language-counts.csv](data/hplt-v3-shortfall-language-counts.csv). Sources: https://hplt-project.org/datasets/v3.0, https://data.hplt-project.org/three/sorted/manifest.json, and https://hplt-project.org/datasets/v4.0.
 
@@ -87,7 +107,7 @@ Other useful low-volume Common Voice languages also have large HPLT segment pool
 | P2 | JRC-Acquis 3.0 | 22 languages and 463,792 documents; useful for EU language coverage and cross-language evaluation | Mostly legislative/legal register; overlaps substantially with DGT-TM. Compiled corpus has nuanced reuse conditions; inspect actual content rights and attribution requirements before publishing derived text. |
 | P2 | Europarl v7 | Publicly documented per-language sentence counts; substantial volume for 21 languages | 1996–2011 parliamentary proceedings; strong domain bias; speaker/document markup; verify redistribution terms before publication. |
 | P0 (technical) / legal hold | HPLT 3.0 | All 32 targets, very large segment counts, segment-level language IDs, PII spans and quality ordering | CC0 applies to packaging, not underlying text. Use only after rights/TDM review; do not redistribute extracted text by default. Very large shards; sample high-WDS bins. |
-| P3 | Other monolingual sources | Fill shortfalls and broaden register/domain | Only admit sources with clear per-component terms, provenance, stable identifiers and defensible language labels. |
+| P1 | Målfrid 2026 | 1.89B Bokmål tokens and 170.2M Nynorsk tokens from 720 Norwegian public-sector domains; NLOD 2.0 | Document-level language ID needs auditing; extract paragraphs/sentences, retain domain and document IDs, PII-check and deduplicate. |\n| P3 | Other monolingual sources | Fill shortfalls and broaden register/domain | Only admit sources with clear per-component terms, provenance, stable identifiers and defensible language labels. |
 
 ## 3. Common Voice v27.0 metadata: first measured result
 
