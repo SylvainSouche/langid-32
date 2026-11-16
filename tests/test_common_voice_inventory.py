@@ -9,13 +9,13 @@ def test_count_sentence_file_normalizes_and_deduplicates(tmp_path):
     with path.open("w", encoding="utf-8", newline="") as stream:
         writer = csv.DictWriter(
             stream,
-            fieldnames=["sentence_id", "sentence", "is_used"],
+            fieldnames=["sentence_id", "sentence", "is_used", "source", "sentence_domain"],
             delimiter="\t",
         )
         writer.writeheader()
-        writer.writerow({"sentence_id": "1", "sentence": "École de ski en hiver.", "is_used": "true"})
+        writer.writerow({"sentence_id": "1", "sentence": "École de ski en hiver.", "is_used": "true", "source": "user", "sentence_domain": "general"})
         writer.writerow({"sentence_id": "2", "sentence": "  E\u0301cole   de ski en hiver. ", "is_used": "false"})
-        writer.writerow({"sentence_id": "3", "sentence": "Court.", "is_used": "true"})
+        writer.writerow({"sentence_id": "3", "sentence": "Court.", "is_used": "true", "source": "user", "sentence_domain": ""})
     counts = count_sentence_file(path, min_chars=12, max_chars=100, max_bytes=200)
     assert counts["rows"] == 3
     assert counts["is_used_true"] == 2
@@ -23,6 +23,8 @@ def test_count_sentence_file_normalizes_and_deduplicates(tmp_path):
     assert counts["unique_within_file"] == 1
     assert counts["duplicate_normalized_text"] == 1
     assert counts["too_short"] == 1
+    assert '"user": 2' in counts["source_counts_json"]
+    assert '"general": 2' in counts["domain_counts_json"]
 
 
 def test_build_rows_maps_target_locales_and_metadata(tmp_path):
