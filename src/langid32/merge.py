@@ -162,6 +162,18 @@ def merge(args):
                     source_counts[f"{row['source']}:{language}:{split}"] += 1
         output_hashes[public_path.name] = digest(public_path.read_text(encoding="utf-8"))
 
+    if args.require_exact_counts and args.max_per_language:
+        shortfalls = {
+            f"{language}:{split}": {
+                "expected": caps[split],
+                "actual": counts[f"{language}:{split}"],
+            }
+            for language in LANGUAGES for split in SPLITS
+            if counts[f"{language}:{split}"] != caps[split]
+        }
+        if shortfalls:
+            raise ValueError(f"exact per-language split target not met: {shortfalls}")
+
     internal_path = output / "records.jsonl"
     internal_rows = []
     for split in SPLITS:
@@ -236,7 +248,7 @@ def main():
                         help="Total cap per language; 0 disables the cap")
     parser.add_argument("--validation-fraction", type=float, default=0.10)
     parser.add_argument("--test-fraction", type=float, default=0.10)
-    parser.add_argument("--seed", default="langid-32-fineweb2-v1")
+    parser.add_argument("--seed", default="langid-32-fineweb2-v1")\n    parser.add_argument("--require-exact-counts", action="store_true",\n                        help="Fail unless every target language reaches every split cap")
     args = parser.parse_args()
     if args.min_chars < 1 or args.max_chars < args.min_chars or args.max_bytes < 1:
         parser.error("invalid text length limits")
