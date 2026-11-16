@@ -77,3 +77,11 @@ def test_merge_excludes_obvious_pii_and_flags_numeric_sequences(tmp_path):
     internal = [json.loads(line) for line in (args.output / "records.jsonl").read_text().splitlines()]
     assert len(internal) == 1
     assert "phone_like" in internal[0]["provenance"]["privacy_flags"]
+
+
+def test_privacy_patterns_do_not_treat_legal_numbers_as_ip_or_phone():
+    from langid32.merge import IPV4_RE, has_phone_like
+    assert IPV4_RE.search("Host 192.0.2.10") is not None
+    assert IPV4_RE.search("Reference 2024.1.1.1") is None
+    assert has_phone_like("Call +33 1 23 45 67 89")
+    assert not has_phone_like("Decision 2024-01-01, article 12345")
