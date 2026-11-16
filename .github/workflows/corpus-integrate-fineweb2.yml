@@ -41,24 +41,24 @@ jobs:
         with:
           name: fineweb2-31x20100-buffer-v2.1.0
           path: input/fineweb2
-          github-token: \${{ github.token }}
-          repository: \${{ github.repository }}
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
           run-id: 43932999222
       - name: Download Tatoeba CC0 staging
         uses: actions/download-artifact@v4
         with:
           name: tatoeba-cc0-staged-weekly-2026-11-14
           path: input/tatoeba
-          github-token: \${{ github.token }}
-          repository: \${{ github.repository }}
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
           run-id: 43935243979
       - name: Download DGT-TM 2021 staging
         uses: actions/download-artifact@v4
         with:
           name: dgt-tm-2021-staged-5k
           path: input/dgt-tm-2021
-          github-token: \${{ github.token }}
-          repository: \${{ github.repository }}
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
           run-id: 43935397129
       - name: Normalize FineWeb2
         run: python scripts/stage_fineweb2.py --input input/fineweb2 --output reports/fineweb2-staged.jsonl
