@@ -392,11 +392,16 @@ def extract_language(connection, language: str, subset: str, revision: str,
             split: max(0, caps[split] - selected_counts[split]) for split in caps
         },
         "rejected": dict(rejected),
-        "metadata_http": metadata_stats,
-        "sample_http": sample_stats,
-        "sample_bytes_total": (
-            metadata_stats.get("get_content_length_bytes", 0)
-            + sample_stats.get("get_content_length_bytes", 0)
+        "metadata_get_bytes_total": sum(
+            item["metadata_http"].get("get_content_length_bytes", 0) for item in shard_reports
+        ),
+        "sample_get_bytes_total": sum(
+            item["sample_http"].get("get_content_length_bytes", 0) for item in shard_reports
+        ),
+        "sample_bytes_total": sum(
+            item["metadata_http"].get("get_content_length_bytes", 0)
+            + item["sample_http"].get("get_content_length_bytes", 0)
+            for item in shard_reports
         ),
     }
     return selected_records, selected_provenance, report
