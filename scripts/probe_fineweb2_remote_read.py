@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import json
 import urllib.error
+import urllib.parse
 import urllib.request
 from pathlib import Path
 
@@ -38,7 +39,7 @@ def probe_range(url: str, timeout: int) -> dict:
                 "accept_ranges": response.headers.get("Accept-Ranges"),
                 "bytes_read": len(sample),
                 "parquet_magic": sample[:4].decode("ascii", errors="replace"),
-                "final_url_host": urllib.request.urlparse(response.geturl()).netloc,
+                "final_url_host": urllib.parse.urlparse(response.geturl()).netloc,
                 "range_supported": response.status == 206 and
                     response.headers.get("Content-Range", "").startswith("bytes 0-"),
             }
