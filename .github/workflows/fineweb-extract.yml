@@ -27,14 +27,14 @@ jobs:
         run: >-
           python scripts/extract_fineweb_sample.py
           --target 20000
-          --shards 24
-          --row-groups 4
+          --shards 11
+          --row-groups 8
           --min-score 0.90
           --output-dir reports/fineweb-en
       - name: Upload sample and provenance
         uses: actions/upload-artifact@v4
         with:
-          name: fineweb-en-20000-main
+          name: fineweb-en-20000-10BT
           path: reports/fineweb-en/
           retention-days: 14
           if-no-files-found: error
