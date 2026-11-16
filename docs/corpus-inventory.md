@@ -208,7 +208,7 @@ The locale mapping used here is explicit: `ga-IE`, `sv-SE`, `nb-NO`, `nn-NO`, an
 
 ### Reproducible inventory command
 
-A read-only counter is now implemented at `src/langid32/common_voice_inventory.py`. It reads the official release JSON and, when given extracted locale directories, scans `validated_sentences.tsv` without copying sentence text into the report. It records raw rows, non-empty rows, `is_used` counts, length-filter counts, normalized duplicates across all rows and within the active `is_used=true` pool, plus per-locale source/domain counts.
+A read-only counter is now implemented at `src/langid32/common_voice_inventory.py`. It reads the official release JSON and, when given extracted locale directories, scans `validated_sentences.tsv` without copying sentence text into the report. It records raw rows, non-empty rows, `is_used` counts, length-filter counts, normalized duplicates across all rows and within the active `is_used=true` pool, plus per-locale source/domain counts. Duplicate sets are shared across locale files belonging to the same target class, so the two Chinese locale exports are deduplicated against each other.
 
 After installing the project in the existing development environment, download the locale archives directly from MDC. The archive contains audio, but the project only needs `validated_sentences.tsv`. The new extractor streams the archive and writes only that TSV—no audio files are extracted or retained:
 
