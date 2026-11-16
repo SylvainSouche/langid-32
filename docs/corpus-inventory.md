@@ -105,7 +105,18 @@ Korean remains the one non-EU Common Voice shortfall without a fully verified, p
 
 The Korea.kr page-level conditions are particularly relevant: KOGL Type 1 itself permits commercial reuse and modification with attribution, but the newer AI-specific terms add conditions for AI training and prohibit resale of training datasets made from the public works. A free public release may be different from resale, but the exact scope should be confirmed before including those records in a redistributable corpus. See [Korea.kr copyright policy](https://www.korea.kr/guide/copyRight.do), [an example 2026 press release with AI conditions](https://www.korea.kr/briefing/pressReleaseView.do?newsId=156788833), and the official [KOGL Type 1 terms](https://www.kogl.or.kr/info/licenseTypeEn.do).
 
-The Korean candidate counts and rights status are recorded in [norwegian-korean-source-counts.csv](data/norwegian-korean-source-counts.csv). The legislation/API route should be measured before deciding whether NIKL access or a share-alike fallback is necessary. A dedicated acquisition/rights issue is open: [#4](https://github.com/SylvainSouche/langid-32/issues/4).
+The Korean candidate counts and rights status are recorded in [norwegian-korean-source-counts.csv](data/norwegian-korean-source-counts.csv). The legislation/API route should be measured before deciding whether NIKL access or a share-alike fallback is necessary.
+
+A metadata/body counter is now implemented as `langid32-korean-law-inventory`. It uses the official `lawSearch.do` list endpoint and `lawService.do` body endpoint, stores only law metadata, article counts, rough sentence counts and body hashes, and reads the user-selected OC key from `LAW_API_OC` (never from a command-line argument or repository file).
+
+After registering at the Law Open Data portal and setting the OC key locally:
+
+```sh
+export LAW_API_OC='your-registered-OC-value'
+langid32-korean-law-inventory --output data/inventory/korean-laws-sample.csv --max-documents 100
+```
+
+The 100-document run is a smoke inventory; if the API returns valid counts, remove `--max-documents` for a full current-law inventory. The default one-second delay respects the portal's warning about excessive short-interval requests. This command does not export legal text. A dedicated acquisition/rights issue is open: [#4](https://github.com/SylvainSouche/langid-32/issues/4).
 
 ### HPLT 3.0: important high-volume candidate, but not a blanket text licence
 
