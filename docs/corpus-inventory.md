@@ -52,7 +52,7 @@ Coverage references and caveats:
 - JRC-Acquis 3.0 explicitly lists 22 languages and reports 463,792 documents in total. It excludes Croatian and Irish. The JRC says it is a research corpus, not a legal reference corpus; the official conditions require source attribution and retention of Commission ownership, and distinguish public-domain official legislative material from other content. Do not assume the entire compiled corpus has one blanket CC0-style licence. Review the actual conditions before redistributing it. Source: https://joint-research-centre.ec.europa.eu/language-technology-resources/jrc-acquis_en
 - DGT-TM documents coverage of all 24 EU official languages, but Irish is sparse and Croatian has less material. It consists of translation units, mostly sentence or sub-sentence segments, not full reproducible documents. The current download page lists releases through DGT-TM-release 2021 (the 2020 data update); do not describe it as a current annual feed. The statistics PDF reports roughly 0.24M to 6.44M translation units per language in the 2011–2020 updates, but these are aligned translation units, not unique independent sentences. The Commission permits reuse subject to attribution, source/date identification and retention of Commission ownership. Sources: https://joint-research-centre.ec.europa.eu/language-technology-resources/dgt-translation-memory_en and https://wt-public.emm4u.eu/Resources/DGT-TM_Statistics.pdf
 - Europarl v7 documents 21 languages and publishes per-language sentence counts after XML removal. It does not cover Croatian, Irish or Maltese. All 21 target-language counts exceed 387,000; its documents retain IDs, which makes group-level splitting possible. It is parliamentary proceedings from 1996–2011, with strong domain/register bias. The project page says it is not aware of copyright restrictions, but this should still be recorded as the source's statement rather than a formal licence grant. Source: https://www.statmt.org/europarl/
-- Tatoeba publishes a full sentence export and a separate CC0-only export. The general sentence export is CC BY 2.0 FR; only the separately identified subset is CC0. The CC0 language list includes 18 of our target classes (cs, da, nl, en, fi, fr, de, hu, it, pl, pt, es, sv, nb, ru, ja, zh/Mandarin, ar); it does not list the other 14 target classes. This is a language-availability signal, not a count. Preserve the sentence-base and translation-link files to identify translations and prevent cross-split leakage. The CC0 export is updated weekly. Source: https://tatoeba.org/en/downloads
+- Tatoeba publishes a full sentence export and a separate CC0-only export. The general sentence export is CC BY 2.0 FR; only the separately identified subset is CC0. The CC0 language list includes 18 of our target classes (cs, da, nl, en, fi, fr, de, hu, it, pl, pt, es, sv, nb, ru, ja, zh/Mandarin, ar); it does not list the other 14 target classes. This is a language-availability signal, not a count. Preserve the sentence-base and translation-link files to identify translations and prevent cross-split leakage. The CC0 export is updated weekly. The 14 November 2026 export index lists `sentences_CC0.csv` at 41.9 MB uncompressed (7.96 MB compressed) and `sentences_base.csv` at 196.9 MB uncompressed (64.1 MB compressed). The CC0 export uses ISO 639-3 language codes; Mandarin Chinese is the relevant Chinese variety for this inventory. Pin the weekly export date and hashes. Source: https://tatoeba.org/en/downloads and https://downloads.tatoeba.org/exports/
 - OPUS is an aggregator, not a single uniformly licensed dataset. Its catalogue spans many languages and corpora, but each corpus has its own coverage, provenance, quality and licence. Screen each candidate individually; do not ingest the aggregate indiscriminately. Source: https://opus.nlpl.eu/
 
 ## 2. Source assessment and acquisition priority
@@ -135,6 +135,21 @@ langid32-cv-inventory \
 ```
 
 The command also works without `--data-root`, in which case it emits metadata-only rows and explicitly marks TSV counts as unmeasured. It does not download data. Obtain original archives directly from MDC.
+
+### Reproducible Tatoeba CC0 inventory
+
+A second read-only counter is implemented at `src/langid32/tatoeba_inventory.py`. It reads the CC0 sentence export and optionally joins the sentence-base export through a temporary SQLite database. It reports per-language raw rows, empty/length-filtered rows, unique eligible text, original/translated/unknown counts, and translation-group counts. It does not emit sentence text or contributor names.
+
+The export files are tab-separated despite their `.csv` suffix. Download the CC0-only file and the base relation file from the Tatoeba weekly exports, then run:
+
+```sh
+langid32-tatoeba-inventory \
+  --sentences-cc0 /path/to/sentences_CC0.csv \
+  --sentences-base /path/to/sentences_base.csv \
+  --output data/inventory/tatoeba-cc0.csv
+```
+
+The `sentences_base.csv` file is used to group translations with their source sentence; it is not itself used as training text. The counter stores only the CC0 sentence rows in a temporary SQLite database and removes it when finished. The export's base relation may point to a sentence outside the CC0 subset; that ID is still useful as an internal grouping key. A final merged corpus must still deduplicate against Common Voice and other sources.
 
 ## 4. Required inventory measurements
 
