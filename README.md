@@ -41,8 +41,7 @@ langid32-prepare \
   --input data/raw/fr/train.tsv \
   --output data/processed/common-voice-fr \
   --text-column sentence \
-  --language-column locale \
-  --group-column sentence_id \
+  --group-column sentence \
   --source-name common-voice \
   --source-release "RECORD THE MDC RELEASE" \
   --source-licence CC0-1.0 \
