@@ -319,9 +319,8 @@ def extract_language(connection, language: str, subset: str, revision: str,
                         "shard_oid": str(file_item.get("oid") or ""),
                         "shard_lfs_oid": str((file_item.get("lfs") or {}).get("oid", "")),
                         "privacy_flags": [
-                            flag for flag, pattern in (
-                                ("phone_like", PHONE), ("long_numeric_sequence", LONG_NUMBER)
-                            ) if pattern.search(sentence)
+                            *(["phone_like"] if has_phone_like(sentence) else []),
+                            *(["long_numeric_sequence"] if LONG_NUMBER.search(sentence) else []),
                         ],
                     }
                     split_candidates[split].append((priority, {"record": record, "provenance": provenance}))
