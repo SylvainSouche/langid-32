@@ -12,40 +12,40 @@ Legend:
 - **?** = not yet verified against the current source catalogue or release.
 - A Y means coverage, not a guarantee of 20,000 usable examples.
 
-| Code | Language | Common Voice 27 | JRC-Acquis 3 | DGT-TM | Europarl v7 | Tatoeba | OPUS |
+| Code | Language | Common Voice 27 | JRC-Acquis 3 | DGT-TM | Europarl v7 | Tatoeba CC0 | OPUS |
 |---|---|:---:|:---:|:---:|:---:|:---:|:---:|
-| bg | Bulgarian | ? | Y | Y | Y | ? | ? |
-| hr | Croatian | ? | — | Y | — | ? | ? |
-| cs | Czech | ? | Y | Y | Y | ? | ? |
-| da | Danish | ? | Y | Y | Y | ? | ? |
-| nl | Dutch | ? | Y | Y | Y | ? | ? |
-| en | English | ? | Y | Y | Y | ? | ? |
-| et | Estonian | ? | Y | Y | Y | ? | ? |
-| fi | Finnish | ? | Y | Y | Y | ? | ? |
-| fr | French | ? | Y | Y | Y | ? | ? |
-| de | German | ? | Y | Y | Y | ? | ? |
-| el | Greek | ? | Y | Y | Y | ? | ? |
-| hu | Hungarian | ? | Y | Y | Y | ? | ? |
-| ga | Irish | ? | — | Y | — | ? | ? |
-| it | Italian | ? | Y | Y | Y | ? | ? |
-| lv | Latvian | ? | Y | Y | Y | ? | ? |
-| lt | Lithuanian | ? | Y | Y | Y | ? | ? |
-| mt | Maltese | ? | Y | Y | — | ? | ? |
-| pl | Polish | ? | Y | Y | Y | ? | ? |
-| pt | Portuguese | ? | Y | Y | Y | ? | ? |
-| ro | Romanian | ? | Y | Y | Y | ? | ? |
-| sk | Slovak | ? | Y | Y | Y | ? | ? |
-| sl | Slovenian | ? | Y | Y | Y | ? | ? |
-| es | Spanish | ? | Y | Y | Y | ? | ? |
-| sv | Swedish | ? | Y | Y | Y | ? | ? |
-| nb | Norwegian Bokmål | ? | — | — | — | ? | ? |
-| nn | Norwegian Nynorsk | ? | — | — | — | ? | ? |
-| ru | Russian | ? | — | — | — | ? | ? |
-| ja | Japanese | ? | — | — | — | ? | ? |
-| zh | Chinese | ? | — | — | — | ? | ? |
-| ko | Korean | ? | — | — | — | ? | ? |
-| ar | Arabic | ? | — | — | — | ? | ? |
-| tr | Turkish | ? | — | — | — | ? | ? |
+| bg | Bulgarian | Y | Y | Y | Y | — | ? |
+| hr | Croatian | Y | — | Y | — | — | ? |
+| cs | Czech | Y | Y | Y | Y | Y | ? |
+| da | Danish | Y | Y | Y | Y | Y | ? |
+| nl | Dutch | Y | Y | Y | Y | Y | ? |
+| en | English | Y | Y | Y | Y | Y | ? |
+| et | Estonian | Y | Y | Y | Y | — | ? |
+| fi | Finnish | Y | Y | Y | Y | Y | ? |
+| fr | French | Y | Y | Y | Y | Y | ? |
+| de | German | Y | Y | Y | Y | Y | ? |
+| el | Greek | Y | Y | Y | Y | — | ? |
+| hu | Hungarian | Y | Y | Y | Y | Y | ? |
+| ga | Irish | Y | — | Y | — | — | ? |
+| it | Italian | Y | Y | Y | Y | Y | ? |
+| lv | Latvian | Y | Y | Y | Y | — | ? |
+| lt | Lithuanian | Y | Y | Y | Y | — | ? |
+| mt | Maltese | Y | Y | Y | — | — | ? |
+| pl | Polish | Y | Y | Y | Y | Y | ? |
+| pt | Portuguese | Y | Y | Y | Y | Y | ? |
+| ro | Romanian | Y | Y | Y | Y | — | ? |
+| sk | Slovak | Y | Y | Y | Y | — | ? |
+| sl | Slovenian | Y | Y | Y | Y | — | ? |
+| es | Spanish | Y | Y | Y | Y | Y | ? |
+| sv | Swedish | Y | Y | Y | Y | Y | ? |
+| nb | Norwegian Bokmål | Y | — | — | — | Y | ? |
+| nn | Norwegian Nynorsk | Y | — | — | — | — | ? |
+| ru | Russian | Y | — | — | — | Y | ? |
+| ja | Japanese | Y | — | — | — | Y | ? |
+| zh | Chinese | Y | — | — | — | Y | ? |
+| ko | Korean | Y | — | — | — | — | ? |
+| ar | Arabic | Y | — | — | — | Y | ? |
+| tr | Turkish | Y | — | — | — | — | ? |
 
 Coverage references and caveats:
 - Common Voice: v27.0 was announced on 2026-09-18 with 295 scripted-speech languages. Its release documentation specifies a per-locale `validated_sentences.tsv` (available since corpus 17.0) with `sentence_id`, `sentence`, optional `variant`, and optional `sentence_domain`. This is the most directly relevant text inventory for this project; it is distinct from the audio clip TSVs. The release metadata JSON also reports a per-locale `validatedSentences` count, useful as a preliminary cross-check. We still need to verify the 32 exact locale codes and count the actual TSV rows after our own filters. Sources: https://github.com/common-voice/cv-dataset/blob/main/datasets/scripted-speech/README.md, https://github.com/common-voice/cv-dataset/blob/main/datasets/scripted-speech/cv-corpus-27.0-delta-2026-09-11.json, https://discourse.mozilla.org/t/common-voice-scripted-speech-v27-0-and-spontaneous-speech-v5-0-released/149490 and https://commonvoice.mozilla.org/datasets
@@ -109,7 +109,7 @@ The metadata contains a matching locale entry for every one of our 32 target lan
 | ar | ar | 59,439 | 0 |
 | tr | tr | 410,411 | 0 |
 
-**Initial signal:** 21 of 32 target languages have at least 20,000 entries in this metadata field. Eleven are below the target: hr, et, fi, el, ga, mt, ro, sl, nb, nn and ko. The metadata total across the 32 target languages is 9,711,592.
+**Initial signal:** 21 of 32 target languages have at least 20,000 entries in this metadata field. Eleven are below the target: hr, et, fi, el, ga, mt, ro, sl, nb, nn and ko. The metadata total across the 32 target language classes is 9,711,592 (33 locale entries because Chinese combines `zh-CN` and `zh-TW`).
 
 This is encouraging but not yet evidence that Common Voice alone supplies the target corpus:
 - The release JSON field is a preliminary inventory statistic. We have not counted the corresponding TSV rows. The per-locale metadata snapshot is committed at [common-voice-v27-metadata.csv](data/common-voice-v27-metadata.csv).
@@ -123,7 +123,7 @@ The locale mapping used here is explicit: `ga-IE`, `sv-SE`, `nb-NO`, `nn-NO`, an
 
 ### Reproducible inventory command
 
-A read-only counter is now implemented at `src/langid32/common_voice_inventory.py`. It reads the official release JSON and, when given extracted locale directories, scans `validated_sentences.tsv` without copying sentence text into the report. It records raw rows, non-empty rows, `is_used` counts, basic length-filter counts, normalized within-file duplicates, and per-locale counts of sentence source and domain values.
+A read-only counter is now implemented at `src/langid32/common_voice_inventory.py`. It reads the official release JSON and, when given extracted locale directories, scans `validated_sentences.tsv` without copying sentence text into the report. It records raw rows, non-empty rows, `is_used` counts, length-filter counts, normalized duplicates across all rows and within the active `is_used=true` pool, plus per-locale source/domain counts.
 
 After installing the project in the existing development environment:
 
