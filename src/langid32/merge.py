@@ -23,7 +23,7 @@ LANGUAGES = (
 SPLITS = ("train", "validation", "test")
 EMAIL_RE = re.compile(r"(?i)(?<![\w.+-])[\w.+-]+@[\w.-]+\.[A-Z]{2,}(?![\w.-])")
 URL_RE = re.compile(
-    r"(?i)(?:https?://[^\s<>""']+|(?<![A-Za-z0-9])www\.[A-Za-z0-9][A-Za-z0-9.-]*\.[A-Z]{2,}(?:/[^\s<>""']*)?)"
+    r"(?i)(?:https?://[^\s<>]+|(?<![A-Za-z0-9])www\.[A-Za-z0-9][A-Za-z0-9.-]*\.[A-Z]{2,}(?:/[^\s<>]*)?)"
 )
 WEB_FRAGMENT_RE = re.compile(r"(?i)(?<![A-Za-z0-9])www\.(?=$|[\s,;])")
 HTTP_FRAGMENT_RE = re.compile(r"(?i)https?://(?=$|[\s,;])")
