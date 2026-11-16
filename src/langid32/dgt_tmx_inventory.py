@@ -102,7 +102,11 @@ def inventory(data_root: Path, output: Path, min_chars: int,
                         with archive.open(member) as stream:
                             for tu in iter_translation_units(stream):
                                 counts["translation_units"] += 1
-                                for language, text in segments_from_tu(tu):
+                                tu_segments = list(segments_from_tu(tu))
+                                languages_in_tu = {language for language, _ in tu_segments}
+                                for language in languages_in_tu:
+                                    counts[f"translation_units::{language}"] += 1
+                                for language, text in tu_segments:
                                     counts[f"segments::{language}"] += 1
                                     if len(text) < min_chars or len(text) > max_chars:
                                         counts[f"outside_character_limits::{language}"] += 1
@@ -142,7 +146,8 @@ def inventory(data_root: Path, output: Path, min_chars: int,
                 "release": "DGT-TM-release-2021",
                 "zip_volumes_found": len(archives),
                 "tmx_files_processed": processed_files,
-                "translation_units": counts["translation_units"],
+                "translation_units_total_in_files": counts["translation_units"],
+                "translation_units_with_language_segment": counts[f"translation_units::{language}"],
                 "segments": counts[f"segments::{language}"],
                 "eligible_segments": counts[f"eligible_segments::{language}"],
                 "unique_eligible_text": unique,
