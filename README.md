@@ -95,7 +95,7 @@ A three-source **32-language / 640,000-row candidate** has passed the global mer
 |---|---:|---|
 | FineWeb2 v2.1.0 | 510,702 | 31 target languages |
 | DGT-TM release 2021 | 92,196 | 24 EU official languages |
-| Tatoeba CC0 export (14 Nov 2026) | 37,102 | 18 target languages |
+| Tatoeba CC0 export (14 Nov 2026) | 37,102 | 18 staged; 17 retained |
 | **Total** | **640,000** | **32 languages** |
 
 Every language has exactly 20,000 records: 16,000 train, 2,000 validation and 2,000 test. The final artifact is `multisource-candidate-v4-unicode-pii-clean`, produced by [GitHub Actions run 43938190407](https://github.com/SylvainSouche/langid-32/actions/runs/43938190407). It contains the text-only splits, an internal provenance sidecar, the merge manifest and source manifests. The artifact is retained by GitHub Actions for 14 days.
