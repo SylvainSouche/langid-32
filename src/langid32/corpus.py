@@ -124,7 +124,7 @@ def prepare(args: argparse.Namespace) -> dict:
             for language in args.languages:
                 items = sorted(candidates.get(f"{language}:{split}", []),
                                key=lambda item: item[0])
-                if split_caps[split]:
+                if args.max_per_language:
                     items = items[:split_caps[split]]
                 for _, record in items:
                     stream.write(json.dumps(record, ensure_ascii=False,
