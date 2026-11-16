@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Probe stratified row-group reads from original FineWeb2 Parquet via HTTP ranges."""
+# Triggered by workflow path changes; this marker also makes the first push explicit.
 from __future__ import annotations
 import argparse, json
 from pathlib import Path
