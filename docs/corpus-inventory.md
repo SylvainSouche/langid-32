@@ -309,3 +309,8 @@ For source balancing, keep per-source counts and quotas visible. A language with
 6. Only then implement the merge-first global preparation stage and build the first corpus.
 
 No source counts are currently claimed in this inventory beyond the published source-level statistics described above.
+
+
+## FineWeb2: priority multilingual web source
+
+FineWeb2 now has a read-only metadata inventory tool and a target-language distribution snapshot in `docs/data/fineweb2-target-distribution-v2.1.1.csv`. See [FineWeb2 inventory and acquisition notes](fineweb2-inventory.md). The published table provides filtered train, test and removed document counts and Parquet sizes without downloading any Parquet data. In the current mapping, exact filtered subsets are published for 29 target classes; English is separately served by original FineWeb, while Estonian and Latvian are not listed as exact FineWeb2 subsets. Korean has 60.9M filtered-train documents; Irish 646.8k; Maltese 489.2k; Nynorsk 1.21M; Bokmål 38.1M. These are document counts, not sample counts. The filtered train split is the candidate pool; keep the test split out of training and do not assume the `_removed` subset is clean.
