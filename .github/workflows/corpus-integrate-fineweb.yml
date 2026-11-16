@@ -13,7 +13,7 @@ jobs:
   integrate:
     if: >-
       ${{ github.event.workflow_run.conclusion == 'success' &&
-          github.event.workflow_run.head_sha == '17d3693d55e39bb64f31e2eb38fe988113b36d6f' }}
+          github.event.workflow_run.head_sha == '277ee9fc52c44ad5d38101b337a517fa1fb7d2d1' }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
@@ -30,7 +30,7 @@ jobs:
       - name: Download English FineWeb sample
         uses: actions/download-artifact@v4
         with:
-          name: fineweb-en-20000-10BT
+          name: fineweb-en-20000-main
           path: input/fineweb-en
           github-token: ${{ github.token }}
           repository: ${{ github.repository }}
