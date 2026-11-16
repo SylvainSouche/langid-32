@@ -5,7 +5,7 @@ on:
     paths:
       - "src/langid32/merge.py"
       - "scripts/stage_fineweb2.py"
-      - "tests/test_merge.py"
+      - "tests/test_merge.py"\n      - "pyproject.toml"
       - ".github/workflows/corpus-integrate-fineweb2.yml"
   workflow_dispatch:
 
