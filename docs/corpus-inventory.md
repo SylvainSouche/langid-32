@@ -372,3 +372,38 @@ FineWeb2 now has a read-only metadata inventory tool and a target-language distr
 
 
 FineWeb2's pinned target-language distribution CSV reports 4,498,336,994 filtered-train documents across the 31 exact target subsets, occupying approximately 8.57 TB of Parquet data. This is a metadata sum, not a recommended download: acquisition must be bounded to a small, reproducible sample per language.
+
+
+## Current merged candidate: v4
+
+GitHub Actions run [43938190407](https://github.com/SylvainSouche/langid-32/actions/runs/43938190407) produced artifact `multisource-candidate-v4-unicode-pii-clean`. This is a bounded technical candidate, not a public release.
+
+| Source | Final rows | Source coverage |
+|---|---:|---|
+| FineWeb2 v2.1.0 | 510,702 | 31 target languages |
+| DGT-TM release 2021 | 92,196 | 24 EU official languages |
+| Tatoeba CC0 export, 2026-11-14 | 37,102 | 18 target languages |
+| **Total** | **640,000** | **32 target classes** |
+
+All 32 classes have exactly 16,000 train, 2,000 validation and 2,000 test records. The final output contains 186,190 source groups; 241,198 groups were present before the per-language cap. Group IDs are split-consistent across languages. Exact normalized-text duplicates within a language were absent, and no cross-source duplicate pairs were recorded.
+
+### Source-specific notes
+
+- **FineWeb2:** 510,702 final records. The extraction used the original v2.1.0 Parquet files and a 20,100-per-language buffer to allow global privacy filtering without reducing the final class counts. English is not in FineWeb2's 31-class sample.
+- **DGT-TM 2021:** five official ZIP volumes (596,532,514 bytes) containing 2,445 TMX files and 564,332 translation units were processed. The staging sample was 5,000 records per each of the 24 EU official languages, capped at 20 segments per TMX document and language. The final merge retained 92,196 DGT-TM records. The original language of a segment is not identified by this extraction; treat the text as translation-memory material, not necessarily original prose. Segments may be fragments, boilerplate or translationese.
+- **Tatoeba:** the CC0 export yielded 80,151 staged records; 37,102 were retained in the final candidate. It supplies all 20,000 English records, plus substantial Russian and French contributions and smaller additions in other supported languages.
+
+### Privacy and deduplication audit
+
+The global merge excluded 11 email matches and 31 URL matches. An independent scan of the final 640,000 records found no remaining email addresses, URLs or valid IPv4 addresses. Phone-like and 9+ digit numeric sequences are not blanket-excluded; 1,006 and 676 occurrences respectively remain flagged in the internal provenance sidecar for review.
+
+An earlier three-source candidate was superseded after an independent scan found Unicode email addresses and URLs attached directly to preceding text. The v4 email and URL patterns account for Unicode local parts and missing whitespace; the URL pattern also avoids treating an ordinary word ending in `awww.` as a web address.
+
+### Rights and next integrations
+
+- FineWeb2's ODC-By compilation terms do not settle the rights in the underlying crawled text.
+- DGT-TM 2021 is reused under European Commission reuse conditions and attribution requirements; it is not CC0.
+- Tatoeba records in this pipeline come from the CC0 export.
+- The candidate is not rights-cleared and must not be treated as a redistributable corpus yet.
+
+Only the documented 2021 DGT-TM package is included. Newer 2025 catalogue entries have not yet been reconciled with the JRC release documentation. Common Voice v27 and Målfrid 2026 remain the next source integrations; Common Voice must be obtained from the original Mozilla Data Collective distribution.
