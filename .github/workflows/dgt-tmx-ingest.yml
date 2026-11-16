@@ -1,0 +1,57 @@
+name: Ingest DGT-TM 2021 source sample
+
+on:
+  push:
+    paths:
+      - "src/langid32/dgt_tmx_stage.py"
+      - "tests/test_dgt_tmx_stage.py"
+      - ".github/workflows/dgt-tmx-ingest.yml"
+      - "pyproject.toml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install project and test dependency
+        run: |
+          python -m pip install --no-deps -e .
+          python -m pip install pytest
+      - name: Run corpus tests
+        run: python -m pytest -q
+      - name: Download official DGT-TM 2021 ZIP volumes
+        run: |
+          mkdir -p input/dgt-tm-2021
+          curl --fail --location --retry 3 --output input/dgt-tm-2021/Vol_2020_1.zip https://wt-public.emm4u.eu/Resources/DGT-TM-2021/Vol_2020_1.zip
+          curl --fail --location --retry 3 --output input/dgt-tm-2021/Vol_2020_2.zip https://wt-public.emm4u.eu/Resources/DGT-TM-2021/Vol_2020_2.zip
+          curl --fail --location --retry 3 --output input/dgt-tm-2021/Vol_2020_3.zip https://wt-public.emm4u.eu/Resources/DGT-TM-2021/Vol_2020_3.zip
+          curl --fail --location --retry 3 --output input/dgt-tm-2021/Vol_2020_4.zip https://wt-public.emm4u.eu/Resources/DGT-TM-2021/Vol_2020_4.zip
+          curl --fail --location --retry 3 --output input/dgt-tm-2021/Vol_2020_5.zip https://wt-public.emm4u.eu/Resources/DGT-TM-2021/Vol_2020_5.zip
+          ls -lh input/dgt-tm-2021/
+      - name: Stage bounded document-balanced multilingual sample
+        run: |
+          python -m langid32.dgt_tmx_stage \
+            --archive input/dgt-tm-2021/Vol_2020_1.zip \
+            --archive input/dgt-tm-2021/Vol_2020_2.zip \
+            --archive input/dgt-tm-2021/Vol_2020_3.zip \
+            --archive input/dgt-tm-2021/Vol_2020_4.zip \
+            --archive input/dgt-tm-2021/Vol_2020_5.zip \
+            --target-per-language 5000 \
+            --max-per-document-language 20 \
+            --output reports/dgt-tm-2021-staged.jsonl
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dgt-tm-2021-staged-5k
+          path: |
+            reports/dgt-tm-2021-staged.jsonl
+            reports/dgt-tm-2021-staged.manifest.json
+          retention-days: 14
+          if-no-files-found: error
