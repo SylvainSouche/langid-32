@@ -80,3 +80,23 @@ The dataset viewer exposes these fields: `text`, `id`, `dump`, `url`, `date`, `f
 There is no ready-made domain field: derive the hostname from `url`, canonicalize it, and retain the original URL separately. For split assignment, domain-level grouping is a conservative default to reduce website/template leakage; preserve document ID as a second-level stable group key. Do not use the raw URL as a public training feature or publish it in the text-only sample output unless the source review explicitly allows it.
 
 FineWeb2's reported PII work specifically mentions email and IP-address anonymization. Treat that as a useful upstream filter, not a substitute for our own review of names, contact details, addresses, account identifiers, and other identifying text.
+
+## Parquet shard inventory and bounded access
+
+The second inventory command queries the Hugging Face dataset-viewer `/parquet` endpoint and records only file URLs, subset/split labels and byte sizes. It does not download Parquet contents.
+
+```sh
+langid32-fineweb2-shards \
+  --output data/inventory/fineweb2-shards.csv
+
+# Or process a previously saved response:
+langid32-fineweb2-shards \
+  --input-json data/inventory/fineweb2-parquet-api.json \
+  --output data/inventory/fineweb2-shards.csv
+```
+
+The command keeps filtered, test and `_removed` shard roles separate. The API can report pending or failed conversions; check these fields before treating the manifest as complete.
+
+A useful warning about acquisition scale: the Hugging Face file browser shows the Korean `kor_Hang/train` split as 25 Parquet files, mostly around 4.84 GB each, with smaller final shards; the directory is about 106 GB. Downloading whole shards is therefore not an acceptable default for this project. The next technical step is to prototype remote Parquet range reads against one shard and measure actual transferred bytes.
+
+DuckDB's `httpfs` extension supports HTTP(S) Parquet partial reads using metadata and HTTP range requests ([DuckDB documentation](https://duckdb.org/docs/current/core_extensions/httpfs/https)). Hugging Face also documents direct `hf://` dataset access through DuckDB ([Hugging Face support](https://duckdb.org/docs/current/core_extensions/httpfs/hugging_face)). This is a promising low-dependency alternative to installing the full `datasets`/Datatrove stack, but must be tested against FineWeb2's Xet-backed files before we rely on it. No extraction or training data has been downloaded yet.
