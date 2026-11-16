@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "langid-32"
 version = "0.1.0"
-description = "Reproducible 32-language identification experiments"
+description = "Reproducible 32-language language-identification experiments"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
@@ -14,9 +14,11 @@ dependencies = []
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
+train = ["torch>=2.2"]
 
 [project.scripts]
 langid32-prepare = "langid32.corpus:main"
+langid32-train = "langid32.train:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
