@@ -428,14 +428,22 @@ def main() -> None:
     for language in args.languages:
         if language not in TARGET_SUBSETS or TARGET_SUBSETS[language] is None:
             raise SystemExit(f"No FineWeb2 subset mapping for target language {language}")
-        records, provenance, report = extract_language(
-            connection, language, TARGET_SUBSETS[language], args.revision,
-            args.target_per_language, args.max_row_groups, args.min_chars,
-            args.max_chars, args.min_language_score, args.timeout, args.seed,
-        )
-        reports.append(report)
-        all_records.extend(records)
-        all_provenance.extend(provenance)
+        try:
+            records, provenance, report = extract_language(
+                connection, language, TARGET_SUBSETS[language], args.revision,
+                args.target_per_language, args.max_row_groups, args.min_chars,
+                args.max_chars, args.min_language_score, args.timeout, args.seed,
+            )
+            reports.append(report)
+            all_records.extend(records)
+            all_provenance.extend(provenance)
+        except Exception as exc:
+            reports.append({
+                "language": language,
+                "subset": TARGET_SUBSETS[language],
+                "revision": args.revision,
+                "error": f"{type(exc).__name__}: {exc}",
+            })
 
     connection.close()
     by_split = defaultdict(list)
@@ -489,9 +497,10 @@ def main() -> None:
         "languages": [
             {
                 "language": row["language"],
-                "selected_counts_by_split": row["selected_counts_by_split"],
-                "shortfall_by_split": row["shortfall_by_split"],
-                "sample_bytes_total": row["sample_bytes_total"],
+                "selected_counts_by_split": row.get("selected_counts_by_split", {}),
+                "shortfall_by_split": row.get("shortfall_by_split", {}),
+                "sample_bytes_total": row.get("sample_bytes_total", 0),
+                "error": row.get("error"),
             }
             for row in reports
         ],
