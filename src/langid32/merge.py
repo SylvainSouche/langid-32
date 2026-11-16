@@ -250,7 +250,8 @@ def merge(args):
         "counts": dict(sorted(counts.items())),
         "source_counts": dict(sorted(source_counts.items())),
         "rejected": dict(sorted(rejected.items())),
-        "duplicate_source_pairs": dict(sorted(duplicate_by_source_pair.items())),\n        "privacy_flag_counts": dict(sorted(privacy_flag_counts.items())),
+        "duplicate_source_pairs": dict(sorted(duplicate_by_source_pair.items())),
+        "privacy_flag_counts": dict(sorted(privacy_flag_counts.items())),
         "group_count": len(group_splits),
         "output_sha256": output_hashes,
         "rights_note": (
