@@ -382,7 +382,7 @@ GitHub Actions run [43938190407](https://github.com/SylvainSouche/langid-32/acti
 |---|---:|---|
 | FineWeb2 v2.1.0 | 510,702 | 31 target languages |
 | DGT-TM release 2021 | 92,196 | 24 EU official languages |
-| Tatoeba CC0 export, 2026-11-14 | 37,102 | 18 target languages |
+| Tatoeba CC0 export, 2026-11-14 | 37,102 | 18 staged; 17 retained |
 | **Total** | **640,000** | **32 target classes** |
 
 All 32 classes have exactly 16,000 train, 2,000 validation and 2,000 test records. The final output contains 186,190 source groups; 241,195 groups were present before the per-language cap. Group IDs are split-consistent across languages. Exact normalized-text duplicates within a language were absent, and no cross-source duplicate pairs were recorded.
