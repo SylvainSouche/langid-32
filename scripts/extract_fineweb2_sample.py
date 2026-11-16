@@ -23,7 +23,7 @@ from pathlib import Path
 
 from langid32.fineweb2_inventory import TARGET_SUBSETS
 
-EXTRACTOR_VERSION = "0.1.0"
+EXTRACTOR_VERSION = "0.2.0"
 DATASET = "HuggingFaceFW/fineweb-2"
 DEFAULT_REVISION = "v2.1.0"
 SEED = "langid-32-fineweb2-v1"
