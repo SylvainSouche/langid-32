@@ -19,6 +19,8 @@ def test_parse_current_law_list():
     total, records = parse_law_list(xml)
     assert total == 1
     assert records[0]["law_id"] == "12345"
+    assert records[0]["group_id"] == "KR-LAW:12345"
+    assert records[0]["source_licence"].startswith("Korean Copyright Act Article 7")
     assert records[0]["law_name"] == "테스트법"
     assert records[0]["effective_date"] == "20260201"
 
