@@ -55,10 +55,12 @@ def flatten_shards(payload: dict) -> list[dict[str, object]]:
             continue
         config = str(item.get("config", ""))
         split = str(item.get("split", ""))
+        base_split = split.removeprefix("partial-")
+        is_partial = base_split != split
         removed = config.endswith("_removed")
         base_config = config[:-8] if removed else config
         language = subset_to_language.get(base_config)
-        if language is None or split not in {"train", "test"}:
+        if language is None or base_split not in {"train", "test", "validation"}:
             continue
         size = item.get("size")
         if not isinstance(size, int) or size < 0:
@@ -67,7 +69,9 @@ def flatten_shards(payload: dict) -> list[dict[str, object]]:
             "language": language,
             "subset": base_config,
             "subset_role": "removed" if removed else "filtered",
-            "split": split,
+            "split": base_split,
+            "partial": is_partial,
+            "api_split": split,
             "filename": item.get("filename", ""),
             "size_bytes": size,
             "url": item.get("url", ""),
@@ -90,8 +94,8 @@ def main() -> None:
     rows = flatten_shards(payload)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     fields = [
-        "language", "subset", "subset_role", "split",
-        "filename", "size_bytes", "url",
+        "language", "subset", "subset_role", "split", "partial",
+        "api_split", "filename", "size_bytes", "url",
     ]
     with args.output.open("w", encoding="utf-8", newline="") as stream:
         writer = csv.DictWriter(stream, fieldnames=fields)
@@ -109,6 +113,10 @@ def main() -> None:
         "output": str(args.output),
         "target_languages": len(TARGET_SUBSETS),
         "matching_shards": len(rows),
+        "languages_with_shards": sorted({str(row["language"]) for row in rows}),
+        "target_languages_without_shards": sorted(
+            set(TARGET_SUBSETS) - {str(row["language"]) for row in rows}
+        ),
         "pending": payload.get("pending", []),
         "failed": payload.get("failed", []),
         "partial": payload.get("partial"),
