@@ -23,6 +23,7 @@ langid32-cv-extract = "langid32.common_voice_extract:main"
 langid32-tatoeba-inventory = "langid32.tatoeba_inventory:main"
 langid32-maalfrid-inventory = "langid32.maalfrid_inventory:main"
 langid32-korean-law-inventory = "langid32.korean_law_inventory:main"
+langid32-dgt-inventory = "langid32.dgt_tmx_inventory:main"
 langid32-train = "langid32.train:main"
 
 [tool.setuptools.packages.find]
