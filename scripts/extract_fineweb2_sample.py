@@ -167,7 +167,7 @@ def sentence_candidates(text: str, script: str, min_chars: int, max_chars: int,
             rejected["script_mismatch"] += 1
             continue
         # Avoid navigation fragments and short headings masquerading as sentences.
-        words = re.findall(r"[^\\W_]+", sentence, flags=re.UNICODE)
+        words = re.findall(r"[^\W_]+", sentence, flags=re.UNICODE)
         if script in {"Latn", "Cyrl", "Grek", "Arab"} and len(words) < 5:
             rejected["too_few_words"] += 1
             continue
