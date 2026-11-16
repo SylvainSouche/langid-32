@@ -27,7 +27,9 @@ We record the source release, provenance, transformations, corpus configuration,
 - Keep training, validation, and test splits separate; split by source document/group before extracting or cropping samples to avoid leakage.
 - Do not commit credentials, access tokens, raw source downloads, or unnecessary personal data.
 
-## Corpus preparation and global merge\n\nThe original `langid32-prepare` command remains a single-source CSV/TSV helper. A separate merge-first pipeline now accepts source-normalized JSONL records, applies shared NFC/whitespace normalization, exact cross-source deduplication within each language, deterministic group-level splits, and the final per-language cap. It retains licence and source provenance in an internal `records.jsonl` sidecar while keeping group IDs and detailed provenance out of the text-only split files. The merge does not silently balance or prioritize sources; it reports source counts so quotas can be designed from measured coverage.\n\nFineWeb2 v2.1.0 has been extracted and assembled as a private 640,000-sentence candidate (31 languages × 20,000). The new staging adapter and GitHub Actions workflow run it through the global merge pipeline. FineWeb2 remains a candidate only: its ODC-By compilation licence does not resolve rights in underlying crawled text, and the deterministic bounded sample still needs quality and privacy review. English remains a separate FineWeb acquisition route. See [FineWeb2 inventory](docs/fineweb2-inventory.md).\n\n## Corpus preparation (initial implementation)
+## Corpus preparation and global merge
+
+The original `langid32-prepare` command remains a single-source CSV/TSV helper. A separate merge-first pipeline now accepts source-normalized JSONL records, applies shared NFC/whitespace normalization, exact cross-source deduplication within each language, deterministic group-level splits, and the final per-language cap. It retains licence and source provenance in an internal `records.jsonl` sidecar while keeping group IDs and detailed provenance out of the text-only split files. The merge does not silently balance or prioritize sources; it reports source counts so quotas can be designed from measured coverage.\n\nFineWeb2 v2.1.0 has been extracted and assembled as a private 640,000-sentence candidate (31 languages × 20,000). The new staging adapter and GitHub Actions workflow run it through the global merge pipeline. FineWeb2 remains a candidate only: its ODC-By compilation licence does not resolve rights in underlying crawled text, and the deterministic bounded sample still needs quality and privacy review. English remains a separate FineWeb acquisition route. See [FineWeb2 inventory](docs/fineweb2-inventory.md).\n\n## Corpus preparation (initial implementation)
 
 The first preparation CLI accepts a UTF-8 CSV or TSV containing a text column, language column, and source document/group column. It applies NFC normalization, collapses whitespace, filters by character and UTF-8 byte length, removes duplicate text within each language, assigns deterministic group-level splits, and writes text-only JSONL plus a SHA-256 provenance manifest. The default cap is 20,000 examples per language in total, allocated across the three splits according to their configured fractions.
 
@@ -81,12 +83,29 @@ See [model design](docs/model-design.md) for architecture details.
 
 ## Status
 
-The corpus is now the active priority. The source inventory records 32-language coverage and preliminary source counts for Common Voice, DGT-TM, Europarl, JRC-Acquis, Tatoeba, Målfrid and candidate Korean sources. Common Voice v27 metadata has entries for all 32 target classes; 21 have at least 20,000 validated-sentence metadata entries, while 11 fall below that threshold. These are metadata counts, not yet filtered TSV counts.
+The corpus remains the active priority; model benchmarking is deferred until the source mix and rights review are complete.
 
-Read-only inventory tools are committed for Common Voice archives, Tatoeba CC0, Målfrid 2026 and the Korean Law Open Data API. A first **32-language / 640,000-row candidate** has now passed the global pipeline using two sources:
-- FineWeb2 v2.1.0: 31 languages, 20,000 initial samples per class.
-- Tatoeba CC0 weekly export (14 November 2026): 80,151 usable target-language records, providing the English class and supplements in 17 other classes.
+A three-source **32-language / 640,000-row candidate** has passed the global merge pipeline:
 
-The merged candidate has exactly 20,000 rows per language, with 16,000 train / 2,000 validation / 2,000 test in all 32 classes. Exact normalized within-language duplicates were absent across the two inputs; 157,918 source groups were retained. Source contributions are reported in the manifest: Tatoeba supplies all English, about half of Russian and 41% of French, with smaller additions elsewhere. No source quotas were imposed. The successful workflow is run 43931843065; artifact `multisource-candidate-v1` (14-day retention).
+| Source | Records in final candidate | Coverage |
+|---|---:|---|
+| FineWeb2 v2.1.0 | 510,702 | 31 target languages |
+| DGT-TM release 2021 | 92,196 | 24 EU official languages |
+| Tatoeba CC0 export (14 Nov 2026) | 37,102 | 18 target languages |
+| **Total** | **640,000** | **32 languages** |
 
-This is a technical candidate, not a release-ready corpus. FineWeb2's underlying crawled-text rights remain unresolved; Tatoeba's included text is from the CC0 export. Text-level privacy, language quality, domain balance and source-specific rights/attribution still need review. DGT-TM, Målfrid and Common Voice have not yet been ingested into the merged text corpus. Model benchmarking and held-out evaluation remain deferred.
+Every language has exactly 20,000 records: 16,000 train, 2,000 validation and 2,000 test. The final artifact is `multisource-candidate-v4-unicode-pii-clean`, produced by [GitHub Actions run 43938190407](https://github.com/SylvainSouche/langid-32/actions/runs/43938190407). It contains the text-only splits, an internal provenance sidecar, the merge manifest and source manifests. The artifact is retained by GitHub Actions for 14 days.
+
+The merge independently verifies exact per-language counts, exact normalized-text deduplication within each language, and globally consistent group splits. The final candidate has 186,190 output groups (241,198 candidate groups before the per-language cap); no exact duplicate pairs across sources were recorded. The global privacy pass excluded 11 email matches and 31 URL matches. An independent scan of the final 640,000 records found no residual email addresses, URLs or valid IPv4 addresses. Phone-like and long numeric sequences are retained with flags for review (1,006 and 676 occurrences respectively).
+
+Source composition is deliberately reported rather than balanced with hidden quotas. English consists of 17,797 Tatoeba and 2,203 DGT-TM records; Russian is 10,582 Tatoeba and 9,418 FineWeb2; French combines all three sources (10,252 FineWeb2, 7,189 Tatoeba, 2,559 DGT-TM). DGT-TM is an English-centred translation memory: its original-language status is unknown, and segments may be fragments or translationese.
+
+This is a technical candidate, **not a release-ready or rights-cleared corpus**:
+- FineWeb2's compilation licence does not resolve rights in the underlying crawled text.
+- DGT-TM is reused under the European Commission's reuse conditions and requires attribution; it is not CC0.
+- Tatoeba records come from its CC0 export.
+- Text quality, domain/source balance, remaining privacy risks and source-specific rights still need review.
+
+The DGT component uses the five-volume 2021 package. The newer 2025 catalogue entries have not yet been ingested or reconciled with the JRC release documentation. Common Voice v27 and Målfrid 2026 remain the next major source integrations; Common Voice must be obtained from the original Mozilla Data Collective distribution, not third-party mirrors.
+
+See [the corpus source inventory](docs/corpus-inventory.md), [FineWeb2 inventory](docs/fineweb2-inventory.md), and the DGT/Tatoeba source manifests in the candidate artifact.
