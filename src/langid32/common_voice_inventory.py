@@ -116,17 +116,17 @@ def build_rows(release_json: Path, data_root: Path | None,
     locale_stats = release.get("locales", {})
     files = find_locale_files(data_root) if data_root else {}
     rows = []
-    seen_all_by_language = {language: set() for language in TARGET_LOCALES}
-    seen_active_by_language = {language: set() for language in TARGET_LOCALES}
     for language, locales in TARGET_LOCALES.items():
+        # Keep deduplication shared across locale variants of one target class
+        # (notably zh-CN/zh-TW), but release each language's sets before moving on.
+        seen_all: set[str] = set()
+        seen_active: set[str] = set()
         for locale in locales:
             stats = locale_stats.get(locale)
             path = files.get(locale)
             measured = (
                 count_sentence_file(
-                    path, min_chars, max_chars, max_bytes,
-                    seen_all_by_language[language],
-                    seen_active_by_language[language],
+                    path, min_chars, max_chars, max_bytes, seen_all, seen_active
                 ) if path else {}
             )
             rows.append({
