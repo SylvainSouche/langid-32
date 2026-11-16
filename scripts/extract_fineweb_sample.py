@@ -7,7 +7,8 @@ from pathlib import Path
 import unicodedata
 
 DATASET = "HuggingFaceFW/fineweb"
-REVISION = "main"
+REVISION = "9bb295ddab0e05d785b879661af7260fed5140fc"
+DATA_PATH = "sample/10BT"
 SEED = "langid-32-fineweb2-v1"  # shared hostname split assignment with FineWeb2
 SENTENCE_SPLIT = re.compile(r"(?<=[.!?])\s+")
 EMAIL = re.compile(r"(?i)\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b")
@@ -32,14 +33,14 @@ def next_link(header):
     return None
 
 def list_files(timeout):
-    url=f"https://huggingface.co/api/datasets/{DATASET}/tree/{REVISION}/data?recursive=true&expand=false&limit=1000"
+    url=f"https://huggingface.co/api/datasets/{DATASET}/tree/{REVISION}/{DATA_PATH}?recursive=true&expand=false&limit=1000"
     files=[]
     while url:
         payload,headers=request_json(url,timeout)
         if not isinstance(payload,list): raise RuntimeError(f"Unexpected Hub response: {payload!r}")
         files.extend(x for x in payload if isinstance(x,dict) and str(x.get("path","")).endswith(".parquet"))
         url=next_link(headers.get("link",""))
-    if not files: raise FileNotFoundError("No FineWeb Parquet files found below data/")
+    if not files: raise FileNotFoundError("No FineWeb Parquet files found below sample/10BT/")
     return sorted(files,key=lambda x:x["path"])
 
 def normalize(text):
@@ -71,8 +72,8 @@ def fraction(group_id):
 def main():
     ap=argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--target",type=int,default=20000)
-    ap.add_argument("--shards",type=int,default=24)
-    ap.add_argument("--row-groups",type=int,default=4)
+    ap.add_argument("--shards",type=int,default=11)
+    ap.add_argument("--row-groups",type=int,default=8)
     ap.add_argument("--min-score",type=float,default=.90)
     ap.add_argument("--min-chars",type=int,default=25)
     ap.add_argument("--max-chars",type=int,default=400)
@@ -130,7 +131,7 @@ def main():
                     provenance={"sentence_sha256":sha(sentence),"document_id_sha256":doc_hash,"group_id":group_id,
                       "source_domain":host,"source_url_sha256":sha(source_url or ""),"crawl_date":str(date or ""),
                       "crawl_dump":str(dump or ""),"language_score":float(score),"token_count":int(tokens or 0),
-                      "revision":REVISION,"subset":"default","shard":path,"row_group_id":int(rgid),
+                      "revision":REVISION,"subset":"sample/10BT","shard":path,"row_group_id":int(rgid),
                       "shard_oid":str(item.get("oid") or ""),"shard_lfs_oid":str((item.get("lfs") or {}).get("oid","")),
                       "privacy_flags":[*(["long_numeric_sequence"] if LONG_NUMBER.search(sentence) else [])]}
                     pools[split].append((priority,record,provenance))
@@ -158,7 +159,7 @@ def main():
     manifest={"schema_version":1,"extractor_version":"0.1.0","project":"langid-32","source":DATASET,
       "source_revision":REVISION,"source_dataset_licence":"ODC-By-1.0 (dataset/compilation; underlying Common Crawl page rights remain separate)",
       "target_per_language":args.target,"split_fractions":{"train":.8,"validation":.1,"test":.1},
-      "selection":{"seed":SEED,"selected_shards":len(indices),"row_groups_per_shard":args.row_groups,
+      "selection":{"seed":SEED,"selected_shards":len(indices),"row_groups_per_shard":args.row_groups,"source_subset":DATA_PATH,
         "min_chars":args.min_chars,"max_chars":args.max_chars,"min_language_score":args.min_score,
         "max_sentences_per_document":max_per_doc,"grouping":"hostname hash; split assignment shared with FineWeb2",
         "deduplication":"exact normalized sentence within sampled FineWeb rows",
