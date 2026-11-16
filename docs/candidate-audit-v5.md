@@ -1,6 +1,6 @@
 # Independent audit: four-source candidate v5
 
-Audit date: 2026-11-16. Input: private GitHub Actions artifact `multisource-candidate-v5-fineweb-en`, produced by [run 43948367359](https://github.com/SylvainSouche/langid-32/actions/runs/43946858368). The archive was downloaded and its JSONL contents inspected locally. No corpus text was committed to Git.
+Audit date: 2026-11-16. Input: private GitHub Actions artifact `multisource-candidate-v5-fineweb-en`, produced by [run 43948367359](https://github.com/SylvainSouche/langid-32/actions/runs/43948367359). The archive was downloaded and its JSONL contents inspected locally. No corpus text was committed to Git.
 
 ## 1. Structural checks
 
@@ -76,6 +76,6 @@ Technical deduplication, successful CI and a complete manifest do not constitute
 
 ## 8. Conclusion and next work
 
-v5 is structurally sound as a 640,000-record four-source technical candidate. Adding FineWeb improves the English class materially: 30.4% of its records are now web-crawl sentences rather than the previous 0%. However, English remains 61.9% Tatoeba because the staged Tatoeba pool is more than twice the FineWeb pool. The corpus is still not a balanced, human-validated, privacy-cleared or rights-cleared training set.
+v5 is structurally sound as a 640,000-record four-source technical candidate. Adding FineWeb improves the English class materially: 29.8% of its records are now web-crawl sentences rather than the previous 0%. However, English remains 62.4% Tatoeba because the staged Tatoeba pool is more than twice the FineWeb pool. The corpus is still not a balanced, human-validated, privacy-cleared or rights-cleared training set.
 
 Next priorities remain: quarantine the 94 label collisions; review flagged and sampled unflagged text; measure register/source confounds across classes; integrate Common Voice v27 and Målfrid 2026 where rights and text-only conditions permit; and resolve the DGT-TM release/catalogue question before freezing a training corpus.
