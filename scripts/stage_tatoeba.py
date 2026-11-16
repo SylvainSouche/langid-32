@@ -23,6 +23,11 @@ CODES = {
     "zh": ("cmn",), "ko": ("kor",), "ar": ("ara",), "tr": ("tur",),
 }
 CODE_TO_LANGUAGE = {code: lang for lang, codes in CODES.items() for code in codes}
+EMAIL = re.compile(r"(?i)\\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}\\b")
+URL = re.compile(r"(?i)(?:https?://|www\\.)\\S+")
+IPV4 = re.compile(r"\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b")
+PHONE = re.compile(r"(?<!\\w)\\+?\\d[\\d .()/-]{7,}\\d(?!\\w)")
+LONG_NUMBER = re.compile(r"\\d{9,}")
 
 
 def normalize(text: str) -> str:
@@ -79,10 +84,10 @@ def stage(args):
                     counts["outside_byte_limit"] += 1
                     continue
                 modified = fields[3] if len(fields) > 3 else ""
-                batch.append((sentence_id, language, text, modified, None))
+                batch.append((sentence_id, language, text, modified, None, json.dumps(privacy_flags)))
                 counts[f"accepted_before_base_join:{language}"] += 1
                 if len(batch) >= 5000:
-                    db.executemany("INSERT OR REPLACE INTO sentence VALUES (?,?,?,?,?)", batch)
+                    db.executemany("INSERT OR REPLACE INTO sentence VALUES (?,?,?,?,?,?)", batch)
                     batch.clear()
         if batch:
             db.executemany("INSERT OR REPLACE INTO sentence VALUES (?,?,?,?,?)", batch)
@@ -116,9 +121,9 @@ def stage(args):
         output_count = 0
         with args.output.open("w", encoding="utf-8", newline="\n") as output:
             cursor = db.execute(
-                "SELECT id, language, text, modified, base_id FROM sentence ORDER BY id"
+                "SELECT id, language, text, modified, base_id, privacy_flags FROM sentence ORDER BY id"
             )
-            for sentence_id, language, text, modified, base_id in cursor:
+            for sentence_id, language, text, modified, base_id, privacy_flags in cursor:
                 if base_id is None or base_id in ("", "\\N"):
                     origin = "unknown"
                     group_material = f"sentence:{sentence_id}"
