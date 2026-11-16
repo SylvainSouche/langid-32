@@ -21,7 +21,7 @@ LANGUAGES = (
     "nb nn ru ja zh ko ar tr"
 ).split()
 SPLITS = ("train", "validation", "test")
-EMAIL_RE = re.compile(r"(?i)(?<![\w.+-])[\w.+-]+@[\w.-]+\.[A-Z]{2,}(?![\w.-])")
+EMAIL_RE = re.compile(r"(?i)(?<![\w.+-])[\w.+-]+@[\w.-]+\.[A-Z]{2,}(?![A-Za-z0-9_.-])")
 URL_RE = re.compile(
     r"(?i)(?:https?://[^\s<>]+|(?<![A-Za-z0-9])www\.[A-Za-z0-9][A-Za-z0-9.-]*\.[A-Z]{2,}(?:/[^\s<>]*)?)"
 )
