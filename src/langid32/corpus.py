@@ -38,14 +38,21 @@ def normalize_text(value: str) -> str:
     return " ".join(value.split())
 
 
-def stable_fraction(language: str, group: str, seed: str) -> float:
-    payload = f"{seed}\0{language}\0{group}".encode("utf-8")
+def stable_fraction(group: str, seed: str) -> float:
+    """Hash a group without language so shared groups stay in one split."""
+    payload = f"{seed}\0{group}".encode("utf-8")
     number = int.from_bytes(hashlib.sha256(payload).digest()[:8], "big")
     return number / 2**64
 
 
-def assign_split(group: str, seed: str, validation_fraction: float,
-                 test_fraction: float) -> str:
+def assign_split(*args) -> str:
+    """Assign a group split; accept and ignore a legacy leading language arg."""
+    if len(args) == 4:
+        group, seed, validation_fraction, test_fraction = args
+    elif len(args) == 5:
+        _language, group, seed, validation_fraction, test_fraction = args
+    else:
+        raise TypeError("assign_split expects (group, seed, validation, test)")
     value = stable_fraction(group, seed)
     if value < test_fraction:
         return "test"
