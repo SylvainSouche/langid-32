@@ -79,6 +79,25 @@ def flatten_shards(payload: dict) -> list[dict[str, object]]:
     return rows
 
 
+def target_failed_conversions(payload: dict) -> list[dict[str, str]]:
+    """Return failed dataset-viewer conversions for project target subsets."""
+    target_subsets = {subset for subset in TARGET_SUBSETS.values() if subset}
+    failures = payload.get("failed", [])
+    if not isinstance(failures, list):
+        return []
+    return sorted(
+        (
+            {
+                "config": str(item.get("config", "")),
+                "kind": str(item.get("kind", "")),
+            }
+            for item in failures
+            if isinstance(item, dict) and item.get("config") in target_subsets
+        ),
+        key=lambda item: item["config"],
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dataset", default=DATASET)
@@ -117,8 +136,9 @@ def main() -> None:
         "target_languages_without_shards": sorted(
             set(TARGET_SUBSETS) - {str(row["language"]) for row in rows}
         ),
-        "pending": payload.get("pending", []),
-        "failed": payload.get("failed", []),
+        "pending_count": len(payload.get("pending", [])),
+        "failed_count": len(payload.get("failed", [])),
+        "target_failed_conversions": target_failed_conversions(payload),
         "partial": payload.get("partial"),
         "by_language_role_split": dict(sorted(summary.items())),
         "note": "Shard metadata only; no Parquet data downloaded.",
