@@ -29,11 +29,12 @@ def normalize(value: str) -> str:
 
 
 def count_sentence_file(path: Path, min_chars: int, max_chars: int,
-                        max_bytes: int) -> dict[str, int]:
+                        max_bytes: int) -> dict[str, int | str]:
     counts = Counter()
     source_counts = Counter()
     domain_counts = Counter()
-    seen: set[str] = set()
+    seen_all: set[str] = set()
+    seen_active: set[str] = set()
     with path.open("r", encoding="utf-8-sig", newline="") as stream:
         reader = csv.DictReader(stream, delimiter="\t")
         required = {"sentence_id", "sentence"}
@@ -50,7 +51,8 @@ def count_sentence_file(path: Path, min_chars: int, max_chars: int,
                 continue
             counts["nonempty"] += 1
             used_value = (row.get("is_used") or "").strip().lower()
-            if used_value in {"true", "1", "yes"}:
+            is_active = used_value in {"true", "1", "yes"}
+            if is_active:
                 counts["is_used_true"] += 1
             elif used_value in {"false", "0", "no"}:
                 counts["is_used_false"] += 1
@@ -72,11 +74,18 @@ def count_sentence_file(path: Path, min_chars: int, max_chars: int,
                 counts["too_many_bytes"] += 1
                 continue
             counts["within_length_limits"] += 1
-            if text in seen:
+            if text in seen_all:
                 counts["duplicate_normalized_text"] += 1
-                continue
-            seen.add(text)
-            counts["unique_within_file"] += 1
+            else:
+                seen_all.add(text)
+                counts["unique_within_file"] += 1
+            if is_active:
+                counts["is_used_true_within_length_limits"] += 1
+                if text in seen_active:
+                    counts["duplicate_is_used_true_text"] += 1
+                else:
+                    seen_active.add(text)
+                    counts["unique_is_used_true_within_length_limits"] += 1
     counts["source_counts_json"] = json.dumps(
         dict(sorted(source_counts.items())), ensure_ascii=False, sort_keys=True
     )
