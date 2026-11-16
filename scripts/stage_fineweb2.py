@@ -30,6 +30,7 @@ def main():
             row = json.loads(line)
             prefix = str(row.get("subset", "")).split("_")[0]\n            source_language = LANGUAGE_BY_SUBSET.get(prefix)\n            if source_language:\n                provenance[(row["sentence_sha256"], source_language)] = row
     count = 0
+    args.output.parent.mkdir(parents=True, exist_ok=True)
     with args.output.open("w", encoding="utf-8", newline="\n") as output:
         for split in ("train", "validation", "test"):
             with (root / f"{split}.jsonl").open(encoding="utf-8") as stream:
