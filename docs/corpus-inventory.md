@@ -247,7 +247,7 @@ langid32-dgt-inventory \
   --max-files 10
 ```
 
-The ten-file run is a parser smoke inventory. Remove `--max-files` to process all TMX members in the five release ZIPs. The default length filters match the other source counters. Do not treat the resulting segment totals as independent authored sentences; DGT-TM is one translated legal/administrative source bucket. Sources: https://joint-research-centre.ec.europa.eu/language-technology-resources/dgt-translation-memory_en and https://www.statmt.org/europarl/.
+The ten-file run is a parser smoke inventory. Remove `--max-files` to process all TMX members in the five release ZIPs. The default length filters match the other source counters. Do not treat the resulting segment totals as independent authored sentences; DGT-TM is one translated legal/administrative source bucket. Sources: https://joint-research-centre.ec.europa.eu/language-technology-resources/dgt-translation-memory_en and https://wt-public.emm4u.eu/Resources/DGT-TM_Statistics.pdf.
 
 ### Reproducible Tatoeba CC0 inventory
 
