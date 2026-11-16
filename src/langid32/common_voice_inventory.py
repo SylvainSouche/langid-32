@@ -87,6 +87,15 @@ def count_sentence_file(path: Path, min_chars: int, max_chars: int,
                 else:
                     seen_active.add(text)
                     counts["unique_is_used_true_within_target_language"] += 1
+    for key in (
+        "rows", "empty", "nonempty", "is_used_true", "is_used_false",
+        "is_used_unspecified", "too_short", "too_long", "too_many_bytes",
+        "within_length_limits", "duplicate_normalized_text",
+        "unique_within_target_language", "is_used_true_within_length_limits",
+        "duplicate_is_used_true_text",
+        "unique_is_used_true_within_target_language",
+    ):
+        counts.setdefault(key, 0)
     counts["source_counts_json"] = json.dumps(
         dict(sorted(source_counts.items())), ensure_ascii=False, sort_keys=True
     )
