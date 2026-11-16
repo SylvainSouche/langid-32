@@ -17,6 +17,9 @@ dan_Latn_removed,train,dan,Latn,Danish,Indo-European,-,102791820,182598230161,17
 deu_Latn,train,deu,Latn,German,Indo-European,262271052199,495964485,1654784757688,1.51TB,772108850771,719.08GB,-,-
 deu_Latn,test,deu,Latn,German,Indo-European,34575067,65176,218086872,207.98MB,104264728,99.43MB,-,-
 deu_Latn_removed,train,deu,Latn,German,Indo-European,-,558814393,1271096761528,1.16TB,536302180899,499.47GB,-,-
+ekk_Latn,train,ekk,Latn,Standard Estonian,Uralic,6564292000,10218587,43834195267,40.82GB,19704343263,18.35GB,-,-
+ekk_Latn,test,ekk,Latn,Standard Estonian,Uralic,16252367,25786,108205903,103.19MB,49932831,47.62MB,-,-
+ekk_Latn_removed,train,ekk,Latn,Standard Estonian,Uralic,-,29308204,41864590718,38.99GB,18706435266,17.42GB,-,-
 ell_Grek,train,ell,Grek,Modern Greek (1453-),Indo-European,22827957288,47421073,238423993714,222.05GB,78555662908,73.16GB,-,-
 ell_Grek,test,ell,Grek,Modern Greek (1453-),Indo-European,16047490,32936,167421084,159.67MB,56274823,53.67MB,-,-
 ell_Grek_removed,train,ell,Grek,Modern Greek (1453-),Indo-European,-,97358213,309428468430,288.18GB,100719043719,93.80GB,-,-
@@ -47,6 +50,9 @@ kor_Hang_removed,train,kor,Hang,Korean,Koreanic,-,136937698,440226583489,409.99G
 lit_Latn,train,lit,Latn,Lithuanian,Indo-European,9132828961,13471965,60666590655,56.50GB,27650973813,25.75GB,-,-
 lit_Latn,test,lit,Latn,Lithuanian,Indo-European,18610359,27694,123598322,117.87MB,57479868,54.82MB,-,-
 lit_Latn_removed,train,lit,Latn,Lithuanian,Indo-European,-,32411196,60805771992,56.63GB,25601527126,23.84GB,-,-
+lvs_Latn,train,lvs,Latn,Standard Latvian,Indo-European,5371151279,8030316,35823658462,33.36GB,15786398599,14.70GB,-,-
+lvs_Latn,test,lvs,Latn,Standard Latvian,Indo-European,15139347,22185,101326706,96.63MB,45672154,43.56MB,-,-
+lvs_Latn_removed,train,lvs,Latn,Standard Latvian,Indo-European,-,26626345,39570725734,36.85GB,17311720568,16.12GB,-,-
 mlt_Latn,train,mlt,Latn,Maltese,Afro-Asiatic,286548586,489190,1642185804,1.53GB,733570632,699.59MB,0.002,0.003
 mlt_Latn,test,mlt,Latn,Maltese,Afro-Asiatic,3093925,5193,17714725,16.89MB,8136189,7.76MB,-,-
 mlt_Latn_removed,train,mlt,Latn,Maltese,Afro-Asiatic,-,9634147,11596518252,10.80GB,5362588985,4.99GB,-,-
