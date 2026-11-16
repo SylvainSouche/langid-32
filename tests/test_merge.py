@@ -57,3 +57,23 @@ def test_merge_applies_cap_after_dedup(tmp_path):
     merge(args)
     manifest = json.loads((args.output / "manifest.json").read_text())
     assert sum(v for k, v in manifest["counts"].items() if k.startswith("fr:")) == 20
+
+
+def test_merge_excludes_obvious_pii_and_flags_numeric_sequences(tmp_path):
+    source = tmp_path / "privacy.jsonl"
+    rows = [
+        _row("Contact team@example.org for more information", "fr", "a", "a:email"),
+        _row("Read https://example.org/details for details", "fr", "a", "a:url"),
+        _row("The server is at 192.0.2.10 today", "fr", "a", "a:ip"),
+        _row("Call us at +33 1 23 45 67 89 today", "fr", "a", "a:phone"),
+    ]
+    source.write_text("".join(json.dumps(row) + "\n" for row in rows))
+    args = _args(tmp_path, [source])
+    merge(args)
+    manifest = json.loads((args.output / "manifest.json").read_text())
+    assert manifest["rejected"]["email_excluded"] == 1
+    assert manifest["rejected"]["url_excluded"] == 1
+    assert manifest["rejected"]["ipv4_excluded"] == 1
+    internal = [json.loads(line) for line in (args.output / "records.jsonl").read_text().splitlines()]
+    assert len(internal) == 1
+    assert "phone_like" in internal[0]["provenance"]["privacy_flags"]
