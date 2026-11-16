@@ -19,7 +19,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install probe dependencies
-        run: python -m pip install --disable-pip-version-check pyarrow fsspec
+        run: python -m pip install --disable-pip-version-check pyarrow fsspec requests aiohttp
       - name: Probe stratified reads
         run: python scripts/probe_fineweb2_rowgroups.py --output reports/fineweb2-rowgroups.json
       - uses: actions/upload-artifact@v4
