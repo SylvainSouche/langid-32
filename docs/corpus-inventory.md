@@ -19,7 +19,7 @@ Legend:
 | cs | Czech | Y | — | Y | Y | Y | Y | Y | ? |
 | da | Danish | Y | — | Y | Y | Y | Y | Y | ? |
 | nl | Dutch | Y | — | Y | Y | Y | Y | Y | ? |
-| en | English | Y | — | Y | Y | Y | Y | Y | ? |
+| en | English | Y | Y | Y | Y | Y | Y | Y | ? |
 | et | Estonian | Y | — | Y | Y | Y | Y | — | ? |
 | fi | Finnish | Y | — | Y | Y | Y | Y | Y | ? |
 | fr | French | Y | — | Y | Y | Y | Y | Y | ? |
@@ -65,9 +65,9 @@ The National Library of Norway's **Målfrid 2026** corpus is a major discovery a
 | Bokmål | 1,890,232,881 |
 | Nynorsk | 170,231,965 |
 
-The data is provided as separate per-language TAR archives containing gzipped JSONL documents. Each document includes `doc_id`, `doc_hash`, `domain`, `url`, `date`, `mimetype`, `title`, document-level `lang`, and `fulltext` as paragraph strings. The catalogue says exact duplicates were removed at the domain level. The published documentation warns that language identification between closely related languages is not perfect, so the Nynorsk/Bokmål labels must be audited rather than trusted blindly.
+The data is provided as separate per-language TAR archives containing gzipped JSONL documents. Each document includes `doc_id`, `doc_hash`, `domain`, `url`, `date`, `mimetype`, `title`, document-level `lang`, and `fulltext` as paragraph strings. The catalogue says exact duplicates were removed at the domain level. The published documentation warns that language identification between closely related languages is not perfect, so the Nynorsk/Bokmål labels must be audited rather than trusted blindly. The corpus also includes 570.1M English tokens, although English is not a shortfall language.
 
-This is much better suited to the project than HPLT for Norwegian: explicit NLOD 2.0, institutional source domains, separate locale archives, and stable document/domain provenance. For splitting, retain document IDs and consider domain-level grouping to reduce website-template leakage. The language label is document-level; a cross-check on paragraphs is needed.
+This is much better suited to the project than HPLT for Norwegian: explicit NLOD 2.0, institutional source domains, separate locale archives, and stable document/domain provenance. NLOD permits use, modification and redistribution for any purpose with attribution, and expressly lists CC BY 4.0 as compatible for adapted/combined works. It does not cover personal data lacking a legitimate basis or third-party material the licensor cannot license, so PII and embedded third-party rights still require screening. For splitting, retain document IDs and consider domain-level grouping to reduce website-template leakage. The language label is document-level; a cross-check on paragraphs is needed.
 
 The corpus is a strong volume source, not a ready-to-use 20k sentence corpus. We still need to extract paragraph/sentence examples, check for mixed-language pages and PII, deduplicate across languages and sources, and sample across domains. The Nynorsk archive is 342.1 MB and the Bokmål archive 3.8 GB.
 
@@ -88,7 +88,7 @@ Additional Norwegian sources:
 - NorNE is CC0 and contains about 300k words each for Bokmål and Nynorsk, but it reuses the Norwegian Dependency Treebank texts and contains named-entity annotations.
 - The Norwegian Newspaper Corpus has large volumes (68M Nynorsk words and 1.68B Bokmål words) but is CC BY-NC; exclude from a permissive public corpus.
 
-Source metadata and counts: [norwegian-korean-source-counts.csv](data/norwegian-korean-source-counts.csv). Sources: https://www.nb.no/sprakbanken/ressurskatalog/oai-nb-no-sbr-107/ and https://data.norge.no/en/datasets/b3da2524-c7c6-30c9-b757-d813f228c76f/malfrid-2026.
+Source metadata and counts: [norwegian-korean-source-counts.csv](data/norwegian-korean-source-counts.csv). Sources: https://www.nb.no/sprakbanken/ressurskatalog/oai-nb-no-sbr-107/, https://data.norge.no/en/datasets/b3da2524-c7c6-30c9-b757-d813f228c76f/malfrid-2026, and https://data.norge.no/nlod/en/2.0.
 
 ### Korean: a viable government-text route is emerging
 
