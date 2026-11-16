@@ -37,7 +37,7 @@ def test_maalfrid_inventory_flags_same_paragraph_across_varieties(tmp_path):
                 "doc_id": doc_id, "doc_hash": f"hash-{doc_id}",
                 "domain": "example.no", "lang": language,
                 "fulltext": ["Dette er ei felles setning mellom variantane."],
-            }, ensure_ascii=False).encode("utf-8") + b"\\n"
+            }, ensure_ascii=False).encode("utf-8") + b"\n"
         )
         compressed = gzip.compress(payload)
         with tarfile.open(path, "w") as archive:
