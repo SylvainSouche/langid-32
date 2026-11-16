@@ -58,7 +58,7 @@ Coverage references and caveats:
 
 ### HPLT 3.0: important high-volume candidate, but not a blanket text licence
 
-HPLT 3.0 is the strongest single-source volume discovery so far. The catalogue has 198 language-script combinations, and all 32 project targets are represented. Its data is full-document JSONL in Zstandard shards; the `text` field is segmented by paragraph-like newlines. Metadata includes the original crawl URL and date, document-level top-three language predictions, segment-level language labels, WDS quality scores, and PII spans. It is globally deduplicated for most languages, but explicitly not for Chinese, English and Russian. The v3 release is from July 2025; v4 (January 2026) is a raw pool and is not yet the same processed, language-specific dataset.
+HPLT 3.0 is the strongest single-source volume discovery so far. The catalogue has 198 language-script combinations, and all 32 project targets are represented. Its data is full-document JSONL in Zstandard shards; the `text` field is segmented by paragraph-like newlines. Metadata includes the original crawl URL and date, document-level top-three language predictions, segment-level language labels, WDS quality scores, and PII spans. It is globally deduplicated for most languages, but explicitly not for Chinese, English and Russian. The v3 release is from July 2025. The January 2026 v4 release cycle exposes a roughly 440-TiB pool of shallow-processed web documents; HPLT says this pool is not directly suitable for language engineering and that clean/noisy language-specific outputs are a separate, ongoing release. For the current corpus inventory, v3 remains the usable processed catalogue.
 
 This gives us a technically attractive route:
 - select the highest WDS bins first rather than download every shard;
@@ -74,7 +74,7 @@ The HPLT v3 source-level segment counts are far above the 20,000 target for the 
 - Norwegian Bokmål: 36.49M documents, 888.91M segments.
 - Korean: 74.79M documents, 2.34B segments.
 
-Other useful low-volume Common Voice languages also have large HPLT segment pools: Irish 3.77M, Maltese 17.22M, and Estonian 425.93M. These counts are not equivalent to clean, unique, privacy-screened examples. Sources: https://hplt-project.org/datasets/v3.0, https://data.hplt-project.org/three/sorted/manifest.json, and https://hplt-project.org/datasets/v4.0.
+Other useful low-volume Common Voice languages also have large HPLT segment pools: Irish 3.77M, Maltese 17.22M, and Estonian 425.93M. These counts are not equivalent to clean, unique, privacy-screened examples. The rounded catalogue figures for these eleven Common Voice shortfall languages are recorded in [hplt-v3-shortfall-language-counts.csv](data/hplt-v3-shortfall-language-counts.csv). Sources: https://hplt-project.org/datasets/v3.0, https://data.hplt-project.org/three/sorted/manifest.json, and https://hplt-project.org/datasets/v4.0.
 
 ## 2. Source assessment and acquisition priority
 
