@@ -10,7 +10,7 @@ def test_normalize_preserves_diacritics_and_punctuation():
 
 
 def test_split_is_deterministic():
-    first = assign_split("fr", "document-42", "seed", 0.1, 0.1)
+    first = assign_split("document-42", "seed", 0.1, 0.1)
     assert first == assign_split("fr", "document-42", "seed", 0.1, 0.1)
 
 
