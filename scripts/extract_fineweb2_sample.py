@@ -126,10 +126,11 @@ def script_ratio(text: str, script: str) -> float:
 
 def sentence_candidates(text: str, script: str, min_chars: int, max_chars: int):
     text = unicodedata.normalize("NFC", text or "")
+    text = text.replace("\\n", " ").replace("\\r", " ").replace("\\t", " ")
     parts = SENTENCE_SPLIT.split(text)
     seen = set()
     for part in parts:
-        sentence = normalize(part)
+        sentence = normalize(part).lstrip("-–—•*· ").strip()
         if sentence in seen:
             continue
         seen.add(sentence)
@@ -222,7 +223,6 @@ def extract_language(connection, language: str, subset: str, revision: str,
     rejected = Counter()
     docs = 0
     doc_domains = set()
-    row_groups_seen = Counter()
     max_sentences_per_doc = 20
 
     for batch in iter(lambda: cursor.fetchmany(256), []):
@@ -253,7 +253,6 @@ def extract_language(connection, language: str, subset: str, revision: str,
             # Per-document cap limits template-heavy pages dominating the sample.
             candidates.sort(key=lambda sentence: sha256(f"{seed}\0{doc_hash}\0{sentence}"))
             candidates = candidates[:max_sentences_per_doc]
-            row_groups_seen[str(source_script or "unknown")] += 1
             for sentence in candidates:
                 if sentence in seen_text:
                     rejected["duplicate_sentence"] += 1
