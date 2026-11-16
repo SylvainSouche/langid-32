@@ -6,11 +6,11 @@ from pathlib import Path
 
 LANGUAGE_BY_SUBSET = {
     "bul": "bg", "hrv": "hr", "ces": "cs", "dan": "da", "nld": "nl",
-    "est": "et", "fin": "fi", "fra": "fr", "deu": "de", "ell": "el",
-    "hun": "hu", "gle": "ga", "ita": "it", "lav": "lv", "lit": "lt",
+    "ekk": "et", "fin": "fi", "fra": "fr", "deu": "de", "ell": "el",
+    "hun": "hu", "gle": "ga", "ita": "it", "lvs": "lv", "lit": "lt",
     "mlt": "mt", "pol": "pl", "por": "pt", "ron": "ro", "slk": "sk",
     "slv": "sl", "spa": "es", "swe": "sv", "nob": "nb", "nno": "nn",
-    "rus": "ru", "jpn": "ja", "zho": "zh", "kor": "ko", "ara": "ar",
+    "rus": "ru", "jpn": "ja", "cmn": "zh", "kor": "ko", "arb": "ar",
     "tur": "tr",
 }
 
@@ -28,7 +28,7 @@ def main():
     with (root / "provenance.jsonl").open(encoding="utf-8") as stream:
         for line in stream:
             row = json.loads(line)
-            provenance[row["sentence_sha256"]] = row
+            prefix = str(row.get("subset", "")).split("_")[0]\n            source_language = LANGUAGE_BY_SUBSET.get(prefix)\n            if source_language:\n                provenance[(row["sentence_sha256"], source_language)] = row
     count = 0
     with args.output.open("w", encoding="utf-8", newline="\n") as output:
         for split in ("train", "validation", "test"):
@@ -38,7 +38,7 @@ def main():
                     subset = row.get("subset", "")
                     # The extractor stores subset in the provenance sidecar.
                     text_hash = hashlib.sha256(row["text"].encode("utf-8")).hexdigest()
-                    prov = provenance.get(text_hash)
+                    prov = provenance.get((text_hash, row["language"]))
                     if not prov:
                         raise ValueError(f"missing provenance for {text_hash}")
                     prefix = str(prov.get("subset", "")).split("_")[0]
