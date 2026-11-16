@@ -61,6 +61,7 @@ def inventory(sentences_path: Path, base_path: Path | None,
         raw = Counter()
         empty = Counter()
         length_rejected = Counter()
+    invalid_id = Counter()
         batch = []
         for fields in read_sentences(sentences_path):
             if len(fields) < 3:
@@ -83,7 +84,7 @@ def inventory(sentences_path: Path, base_path: Path | None,
             try:
                 numeric_id = int(sentence_id)
             except ValueError:
-                length_rejected[target] += 1
+                invalid_id[target] += 1
                 continue
             batch.append((numeric_id, target, text, int(eligible), None))
             if len(batch) >= 2000:
@@ -146,6 +147,7 @@ def inventory(sentences_path: Path, base_path: Path | None,
                 "cc0_rows": raw[target],
                 "empty_text": empty[target],
                 "outside_length_limits": length_rejected[target],
+                "invalid_sentence_id": invalid_id[target],
                 "stored_rows": stats[0] or 0,
                 "unique_eligible_text": stats[1] or 0,
                 "eligible_rows": stats[2] or 0,
