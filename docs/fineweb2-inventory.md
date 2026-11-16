@@ -100,3 +100,31 @@ The command keeps filtered, test and `_removed` shard roles separate. The API ca
 A useful warning about acquisition scale: the Hugging Face file browser shows the Korean `kor_Hang/train` split as 25 Parquet files, mostly around 4.84 GB each, with smaller final shards; the directory is about 106 GB. Downloading whole shards is therefore not an acceptable default for this project. The next technical step is to prototype remote Parquet range reads against one shard and measure actual transferred bytes.
 
 DuckDB's `httpfs` extension supports HTTP(S) Parquet partial reads using metadata and HTTP range requests ([DuckDB documentation](https://duckdb.org/docs/current/core_extensions/httpfs/https)). Hugging Face also documents direct `hf://` dataset access through DuckDB ([Hugging Face support](https://duckdb.org/docs/current/core_extensions/httpfs/hugging_face)). This is a promising low-dependency alternative to installing the full `datasets`/Datatrove stack, but must be tested against FineWeb2's Xet-backed files before we rely on it. No extraction or training data has been downloaded yet.
+
+
+## First user-run inventory: findings (2026-11-16)
+
+The two uploaded reports have been inspected. The metadata CSV contains 32 project rows: 31 FineWeb2 language subsets plus the separate English route. All 31 non-English rows are marked available.
+
+The Parquet shard CSV contains **1,839 files**:
+- **1,810 filtered train shards**, totalling **7,793,275,841,600 bytes** (about 7.79 TB);
+- **29 filtered test shards**, totalling **1,638,147,059 bytes**;
+- no `_removed` shards in the supplied listing;
+- one test shard for each of the 29 languages represented.
+
+The shard listing covers 29 languages. It has no entries for English (expected: separate FineWeb), **Spanish** (`spa_Latn`) or **Turkish** (`tur_Latn`). The metadata CSV expects 637,611,323,581 bytes of Spanish train shards and 134,789,283,815 bytes of Turkish train shards. Their combined **772,400,607,396-byte** gap exactly explains the difference between the metadata CSV's 8,565,676,448,996-byte aggregate and the shard listing's 7,793,275,841,600-byte filtered-train aggregate. For the 29 languages present, the shard byte totals match the metadata CSV exactly.
+
+This is a **manifest coverage gap**, not evidence that the Spanish and Turkish data do not exist. The Hugging Face dataset-viewer documentation says conversions can be partial and that large splits may be listed under names such as `partial-train`; the original shard CLI accepted only `train` and `test`. It has now been corrected to normalize `partial-train` / `partial-test` while preserving the original API split in `api_split`, and to report target languages without any shard entries. See the [dataset-viewer Parquet API documentation](https://huggingface.co/docs/dataset-viewer/parquet).
+
+The shard sizes are mostly around 4.84 GB, with smaller final shards. This supports the earlier conclusion: do not download whole language subsets. The next step is to regenerate the manifest with the corrected CLI and see whether Spanish and Turkish appear as partial splits. If still absent, inspect the API's `pending`, `failed` and `partial` fields from the raw JSON response.
+
+### Consistency checks
+
+- For all 29 languages represented, summed filtered-train shard bytes equal the metadata CSV exactly.
+- No duplicate URLs or duplicate (language, role, split, filename) entries occur in the supplied CSV.
+- The uploaded shard manifest contains only the filtered train/test roles; it does not include the `_removed` datasets.
+- The manifest URLs use Hugging Face's `refs/convert/parquet` revision. These are converted Parquet references, not a pinned immutable dataset commit; retain the original API JSON and retrieval date for reproducibility.
+
+### Remote query feasibility
+
+The uploaded listing confirms that shard URLs are direct Hugging Face Parquet URLs. DuckDB's `httpfs` supports HTTP range requests for Parquet and can fetch only the metadata and column data needed by a query; Hugging Face also documents the `hf://` route for querying datasets directly. This is a credible path to test, but actual transferred bytes and compatibility with these FineWeb2 converted shards remain unmeasured. Sources: [DuckDB HTTP partial reads](https://duckdb.org/docs/current/core_extensions/httpfs/https), [Hugging Face DuckDB integration](https://huggingface.co/docs/hub/en/datasets-duckdb).
