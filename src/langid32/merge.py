@@ -257,7 +257,8 @@ def merge(args):
         "duplicate_source_pairs": dict(sorted(duplicate_by_source_pair.items())),
         "privacy_flag_counts": dict(sorted(privacy_flag_counts.items())),
         "group_count": len(output_groups),
-        "candidate_group_count": len(group_splits),\n        "group_counts_by_source": {source: len(groups) for source, groups in sorted(output_groups_by_source.items())},
+        "candidate_group_count": len(group_splits),
+        "group_counts_by_source": {source: len(groups) for source, groups in sorted(output_groups_by_source.items())},
         "output_sha256": output_hashes,
         "rights_note": (
             "Technical deduplication is not a rights clearance. Each source's licence, "
