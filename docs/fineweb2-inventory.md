@@ -216,7 +216,7 @@ Compact metrics: [fineweb2-es-tr-pilot-summary.csv](data/fineweb2-es-tr-pilot-su
 
 The all-subset run has completed successfully. It extracted **20,000 unique samples for every one of the 31 non-English target classes**: 620,000 sentences total, with no language errors and no split shortfalls.
 
-<badge color="success">31 / 31 languages reached target</badge>
+**Result: 31 / 31 languages reached target.**
 
 | Result | Value |
 |---|---:|
