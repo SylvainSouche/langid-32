@@ -9,20 +9,6 @@ on:
       - "docs/huggingface-dataset-card.md"
       - "docs/huggingface-licensing.md"
   workflow_dispatch:
-    inputs:
-      publish:
-        description: "Actually upload the prepared data to the Hugging Face dataset repository"
-        required: true
-        type: boolean
-        default: false
-      rights_review_ref:
-        description: "Required review record/reference if publishing (must document clearance of every included source)"
-        required: false
-        type: string
-      dataset_license:
-        description: "Exact approved dataset licence identifier (required if publishing)"
-        required: false
-        type: string
 
 permissions:
   actions: read
@@ -57,7 +43,7 @@ jobs:
           cp docs/huggingface-dataset-card.md /tmp/langid32-hf-dataset/README.md
           cp docs/huggingface-licensing.md /tmp/langid32-hf-dataset/LICENSING.md
 
-      - name: Upload prepared package as a GitHub Actions artifact
+      - name: Upload preparation package as a GitHub Actions artifact only
         uses: actions/upload-artifact@v4
         with:
           name: langid-32-hf-dataset-package
@@ -65,43 +51,7 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-      - name: Check explicit publication gate
-        if: ${{ inputs.publish }}
-        env:
-          RIGHTS_REVIEW_REF: ${{ inputs.rights_review_ref }}
-          DATASET_LICENSE: ${{ inputs.dataset_license }}
+      - name: Explicitly confirm no Hugging Face publication
         run: |
-          test -n "$RIGHTS_REVIEW_REF" || { echo "A source-rights review reference is required."; exit 1; }
-          test -n "$DATASET_LICENSE" || { echo "An approved dataset licence identifier is required."; exit 1; }
-          echo "Publication requested. Confirm the cited review actually clears every source and locale."
-
-      - name: Upload to Hugging Face
-        if: ${{ inputs.publish }}
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
-          DATASET_LICENSE: ${{ inputs.dataset_license }}
-        run: |
-          python -m pip install --disable-pip-version-check huggingface_hub
-          python - <<'PY'
-          import os
-          from pathlib import Path
-          from huggingface_hub import HfApi
-          root = Path("/tmp/langid32-hf-dataset")
-          readme = root / "README.md"
-          text = readme.read_text(encoding="utf-8")
-          marker = "---\\n"
-          if text.startswith(marker):
-              end = text.find(marker, len(marker))
-              if end >= 0:
-                  front = text[len(marker):end]
-                  if "license:" not in front:
-                      text = marker + front + f"license: {os.environ['DATASET_LICENSE']}\\n" + marker + text[end+len(marker):]
-          readme.write_text(text, encoding="utf-8")
-          api = HfApi(token=os.environ["HF_TOKEN"])
-          api.upload_folder(
-              repo_id="SylvainSouche/langid-32",
-              repo_type="dataset",
-              folder_path=str(root),
-              commit_message="Publish reviewed langid-32 candidate dataset",
-          )
-          PY
+          echo "Preparation only. No Hugging Face upload is configured."
+          echo "Public release is blocked until every language reaches 20,000-30,000 curated records from varied sources."
