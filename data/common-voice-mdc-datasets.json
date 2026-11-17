@@ -48,10 +48,10 @@
       "dataset_id": "cmu5ktqhe00pgmh07p1xamabd",
       "target_language": "German",
       "target_language_code": "de",
-      "api_key_env": "MOZILLA",
+      "api_key_env": "MOZILLA_LAPOSTE",
       "terms_reviewed_by_user": true,
       "terms_details_recorded": false,
-      "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted.",
+      "terms_review_note": "User explicitly confirmed acceptance of the dataset agreement for the MOZILLA_LAPOSTE account on 2026-11-17.",
       "mdc_portal_status": "completed",
       "mdc_portal_completed_date": "2026-11-17",
       "mdc_portal_status_source": "User-provided MDC dashboard table",
@@ -76,10 +76,10 @@
       "dataset_id": "cmu5jplf300nwmh07iqvk9leo",
       "target_language": "English",
       "target_language_code": "en",
-      "api_key_env": "MOZILLA",
+      "api_key_env": "MOZILLA_LAPOSTE",
       "terms_reviewed_by_user": true,
       "terms_details_recorded": false,
-      "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted.",
+      "terms_review_note": "User explicitly confirmed acceptance of the dataset agreement for the MOZILLA_LAPOSTE account on 2026-11-17.",
       "mdc_portal_status": "completed",
       "mdc_portal_completed_date": "2026-11-17",
       "mdc_portal_status_source": "User-provided MDC dashboard table",
@@ -91,26 +91,25 @@
       "target_language": "Icelandic",
       "target_language_code": "is",
       "api_key_env": "MOZILLA_LAPOSTE",
-      "terms_reviewed_by_user": false,
+      "terms_reviewed_by_user": true,
       "terms_details_recorded": false,
-      "scope_status": "outside_current_32_language_target_set",
-      "download_status": "do_not_download",
-      "download_reason": "Explicitly excluded by user; supplied under MOZILLA_LAPOSTE but do not download."
+      "terms_review_note": "User explicitly confirmed acceptance of the dataset agreement for the MOZILLA_LAPOSTE account on 2026-11-17.",
+      "scope_status": "outside_current_32_language_target_set"
     },
     {
       "locale": "nn",
       "dataset_id": "cmu5ox9rt00ylmh073m7dl7ij",
       "target_language": "Norwegian Nynorsk",
       "target_language_code": "nn",
-      "api_key_env": "MOZILLA",
-      "terms_reviewed_by_user": false,
+      "api_key_env": "MOZILLA_LAPOSTE",
+      "terms_reviewed_by_user": true,
       "terms_details_recorded": false,
-      "download_status": "already_downloaded_by_user",
-      "download_reason": "User has already downloaded this dataset locally; do not request another MDC download.",
       "mdc_portal_status": "completed",
       "mdc_portal_completed_date": "2026-11-17",
       "mdc_portal_status_source": "User-provided MDC dashboard table",
-      "mdc_portal_completion_count": 1
+      "mdc_portal_completion_count": 1,
+      "terms_review_note": "User explicitly confirmed acceptance of the dataset agreement for the MOZILLA_LAPOSTE account on 2026-11-17.",
+      "download_status": "explicitly_authorised_for_MOZILLA_LAPOSTE_batch_2026-11-17"
     },
     {
       "locale": "ru",
@@ -130,7 +129,7 @@
       "api_key_env": "MOZILLA_LAPOSTE",
       "terms_reviewed_by_user": true,
       "terms_details_recorded": false,
-      "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted."
+      "terms_review_note": "User explicitly confirmed acceptance of the dataset agreement for the MOZILLA_LAPOSTE account on 2026-11-17."
     },
     {
       "locale": "no-nb",
@@ -318,10 +317,10 @@
       "dataset_id": "cmu5kitx700pemi073feoiqqu",
       "target_language": "Spanish",
       "target_language_code": "es",
-      "api_key_env": "MOZILLA_NONE_GMAIL",
+      "api_key_env": "MOZILLA_LAPOSTE",
       "terms_reviewed_by_user": true,
       "terms_details_recorded": false,
-      "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted."
+      "terms_review_note": "User explicitly confirmed acceptance of the dataset agreement for the MOZILLA_LAPOSTE account on 2026-11-17."
     },
     {
       "locale": "pt",
@@ -350,9 +349,9 @@
       "target_language": "Turkish",
       "target_language_code": "tr",
       "api_key_env": "MOZILLA_LAPOSTE",
-      "terms_reviewed_by_user": false,
+      "terms_reviewed_by_user": true,
       "terms_details_recorded": false,
-      "terms_review_note": "Dataset URL supplied by user; agreement acceptance not yet explicitly confirmed for this dataset."
+      "terms_review_note": "User explicitly confirmed acceptance of the dataset agreement for the MOZILLA_LAPOSTE account on 2026-11-17."
     },
     {
       "locale": "lt",
@@ -382,14 +381,14 @@
     "The downloader streams the archive and writes only validated_sentences.tsv; it does not save the full archive.",
     "The supplied list currently covers 28 in-scope language codes plus Icelandic; compare against the 32-language inventory before treating Common Voice coverage as complete.",
     "The supplied zh dataset's exact Chinese locale is not yet established.",
-    "Do not download Icelandic (is): the user explicitly excludes it to preserve the 7-download daily quota.",
-    "Do not download Norwegian Nynorsk (nn): the user has already downloaded it locally.",
     "The dataset ID cmu5wom3z00ceo107guxtg4xa is Arabic (ar), not Austrian German; the user's original locale label was a typo and has been corrected.",
     "The user intends to keep complete datasets private and use only a small curated selection of extracted CC0 sentences in langid-32; do not mirror or republish the source datasets.",
     "Terms acceptance is recorded as user-confirmed for the supplied in-scope datasets; retain each dataset's actual MDC agreement and restrictions as authoritative.",
     "MOZILLA_LAPOSTE is the user's newly supplied account secret environment-variable name; its value must remain in GitHub Actions Secrets or the local environment.",
-    "Turkish (tr), Lithuanian (lt), and Maltese (mt) dataset IDs were supplied under MOZILLA_LAPOSTE. Do not download until their dataset-specific agreement acceptance is confirmed.",
-    "French (fr) is now assigned to MOZILLA_LAPOSTE rather than MOZILLA; Icelandic (is) is assigned to MOZILLA_LAPOSTE but remains explicitly excluded from downloads.",
-    "User-provided MDC dashboard on 2026-11-17 records seven Completed rows: Romanian (ro) twice, English (en) once, Slovak (sk) once, German (de) once, Polish (pl) once, and Norwegian Nynorsk (nn) once. Preserve row counts: Romanian completion count is 2. English is marked Completed by MDC despite an earlier incomplete/failed extraction attempt in GitHub Actions; portal completion and local extraction are distinct statuses. Do not infer that a portal Completed row means a local TSV was successfully retained or curated."
+    "User-provided MDC dashboard on 2026-11-17 records seven Completed rows: Romanian (ro) twice, English (en) once, Slovak (sk) once, German (de) once, Polish (pl) once, and Norwegian Nynorsk (nn) once. Preserve row counts: Romanian completion count is 2. English is marked Completed by MDC despite an earlier incomplete/failed extraction attempt in GitHub Actions; portal completion and local extraction are distinct statuses. Do not infer that a portal Completed row means a local TSV was successfully retained or curated.",
+    "On 2026-11-17, user confirmed acceptance of the dataset-specific MDC agreements for the MOZILLA_LAPOSTE batch: Turkish (tr), French (fr), Icelandic (is), Spanish (es), German (de), English (en), and Norwegian Nynorsk (nn).",
+    "MOZILLA_LAPOSTE batch is explicitly limited to tr, fr, is, es, de, en, nn (seven requests maximum). Lithuanian (lt) and Maltese (mt) are postponed.",
+    "Icelandic (is) is downloaded only because the user explicitly authorised it for this batch; it remains outside the 32-language training target and is excluded from curation.",
+    "Norwegian Nynorsk (nn) was already locally available, but the user explicitly authorised one additional MDC request using MOZILLA_LAPOSTE on 2026-11-17."
   ]
 }
