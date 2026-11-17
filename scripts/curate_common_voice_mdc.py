@@ -22,7 +22,7 @@ URL = re.compile(r"(?i)(?:https?://[^\s<>]+|www\.[^\s<>]+)")
 IPV4 = re.compile(r"(?<![\d.])(?:\d{1,3}\.){3}\d{1,3}(?![\d.])")
 LONG_NUMBER = re.compile(r"\d{9,}")
 PHONE = re.compile(r"(?<!\w)\+?\d[\d -]{7,}\d(?!\w)")
-LANGUAGES = ("ro", "pl", "de", "sk", "en", "ru", "nb", "nn", "nl", "ja", "hr", "bg", "cs", "el", "da", "et", "lv", "it", "hu", "fi", "ga", "ko", "sl", "ar", "sv", "es", "pt", "zh", "fr", "tr")
+LANGUAGES = ("bg", "hr", "cs", "da", "nl", "en", "et", "fi", "fr", "de", "el", "hu", "ga", "it", "lv", "lt", "mt", "pl", "pt", "ro", "sk", "sl", "es", "sv", "nb", "nn", "ru", "ja", "zh", "ko", "ar", "tr")
 
 
 def norm(value: str) -> str:
@@ -61,7 +61,7 @@ def main() -> None:
                 raise ValueError(f"{path}: unexpected TSV columns")
             for row in reader:
                 counts[f"{language}:rows"] += 1
-                if (row.get("is_used") or "").strip().lower() not in {"true", "1", "yes"}:
+                if "is_used" in row and (row.get("is_used") or "").strip().lower() not in {"true", "1", "yes"}:
                     counts[f"{language}:not_validated_or_inactive"] += 1
                     continue
                 text = norm(row.get("sentence") or "")
@@ -84,7 +84,7 @@ def main() -> None:
                     counts[f"{language}:within_language_duplicate"] += 1
                     continue
                 sid = (row.get("sentence_id") or "").strip()
-                group = hashlib.sha256(f"common-voice-v27:{language}:{text}".encode()).hexdigest()
+                group = hashlib.sha256(f"common-voice-v22:{language}:{text}".encode()).hexdigest()
                 candidates[language][text] = group
 
     # Remove every occurrence of any normalized string shared by language labels.
