@@ -1,6 +1,13 @@
 name: Prepare Hugging Face dataset package
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/prepare-hf-dataset.yml"
+      - "scripts/package_hf_dataset.py"
+      - "docs/huggingface-dataset-card.md"
+      - "docs/huggingface-licensing.md"
   workflow_dispatch:
     inputs:
       publish:
