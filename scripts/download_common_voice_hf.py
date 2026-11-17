@@ -12,7 +12,7 @@ REPO = "fsicoli/common_voice_22_0"
 BASE = f"https://huggingface.co/datasets/{REPO}/resolve"
 # One or more upstream locale directories per langid-32 class.
 LOCALES = {
-    "bg": ["bg"], "hr": ["hr"], "is": ["is"], "cs": ["cs"], "da": ["da"], "nl": ["nl"],
+    "bg": ["bg"], "hr": ["hr"], "is": ["is"], "ca": ["ca"], "cs": ["cs"], "da": ["da"], "nl": ["nl"],
     "en": ["en"], "et": ["et"], "fi": ["fi"], "fr": ["fr"], "de": ["de"],
     "el": ["el"], "hu": ["hu"], "ga": ["ga-IE"], "it": ["it"], "lv": ["lv"],
     "lt": ["lt"], "mt": ["mt"], "pl": ["pl"], "pt": ["pt"], "ro": ["ro"],
