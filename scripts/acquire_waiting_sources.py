@@ -2,6 +2,7 @@ import argparse,csv,gzip,hashlib,json,re,shutil,subprocess,tarfile,tempfile,unic
 from pathlib import Path
 from urllib.request import Request,urlopen
 from collections import Counter,defaultdict
+import heapq
 E=re.compile(r"(?i)\b[\w.+-]+@[\w.-]+\.[A-Z]{2,}\b"); U=re.compile(r"(?i)(https?://|www\.)\S+"); N=re.compile(r"\d{9,}")
 def clean(s,l):
  s=" ".join(unicodedata.normalize("NFC",str(s or "")).split()); a=sum(c.isalpha() for c in s)
@@ -17,10 +18,18 @@ def fetch(u,p):
    f.write(b);h.update(b);n+=len(b)
  return {"url":u,"bytes":n,"sha256":h.hexdigest()}
 def main():
- q=argparse.ArgumentParser();q.add_argument("--source",required=True);q.add_argument("--out",required=True);a=q.parse_args();t=Path(tempfile.mkdtemp());o=Path(a.out);o.mkdir(parents=True,exist_ok=True);R=defaultdict(list);D=[];notes=[]
+ q=argparse.ArgumentParser();q.add_argument("--source",required=True);q.add_argument("--out",required=True);a=q.parse_args();t=Path(tempfile.mkdtemp());o=Path(a.out);o.mkdir(parents=True,exist_ok=True);R=defaultdict(list);S=defaultdict(set);D=[];notes=[];scanned=Counter()
  def add(l,s,x,g=""):
   x=clean(x,l)
-  if x:R[l].append({"text":x,"language":l,"source":s,"group_id":g or hashlib.sha256((s+x).encode()).hexdigest()})
+  if not x:return
+  key=(l,s);h=hashlib.sha256(x.encode()).hexdigest();scanned[key]+=1
+  if h in S[key]:return
+  rank=int(h,16);item={"text":x,"language":l,"source":s,"group_id":g or hashlib.sha256((s+x).encode()).hexdigest()}
+  heap=R[key]
+  if len(heap)<50000:
+   heapq.heappush(heap,(-rank,item,h));S[key].add(h)
+  elif rank < -heap[0][0]:
+   removed=heapq.heapreplace(heap,(-rank,item,h));S[key].remove(removed[2]);S[key].add(h)
  def scan(root,l,s):
   for p in ([root] if root.is_file() else root.rglob("*")):
    if not p.is_file():continue
@@ -91,19 +100,21 @@ def main():
     add("ar","un_arabic_english_filtered:text_ar",x.get("text_ar"))
     if i%100000==0:print(f"Arabic pairs streamed: {i}",flush=True)
    notes.append("Full training split streamed; output capped at 50,000 unique candidate passages.")
-  seen=set();groups=defaultdict(list);stats=Counter()
-  for l,items in R.items():
-   for x in items:
-    h=hashlib.sha256(x["text"].encode()).hexdigest()
-    if (l,h) in seen:stats[l+":duplicates"]+=1;continue
-    seen.add((l,h));groups[(l,x["source"])].append(x)
-  chosen=[]
-  for (l,s),items in sorted(groups.items()):
-   items.sort(key=lambda x:hashlib.sha256((l+s+x["text"]).encode()).hexdigest());chosen+=items[:50000];stats[l+"|"+s+"|unique"]=len(items);stats[l+"|"+s+"|selected"]=min(50000,len(items))
+  chosen=[];stats=Counter()
+  for (l,s),heap in sorted(R.items()):
+   items=[x[1] for x in heap];chosen.extend(items)
+   stats[l+"|"+s+"|screened"]=scanned[(l,s)]
+   stats[l+"|"+s+"|unique_sampled"]=len(items)
+  seen=set();dedup=[]
+  for x in chosen:
+   k=(x["language"],hashlib.sha256(x["text"].encode()).hexdigest())
+   if k in seen:stats[x["language"]+":cross_source_sample_duplicates"]+=1;continue
+   seen.add(k);dedup.append(x)
+  chosen=dedup
   with (o/"candidates.jsonl").open("w",encoding="utf8") as f:
    for x in chosen:f.write(json.dumps(x,ensure_ascii=False)+"\n")
   c=Counter((x["language"],x["source"]) for x in chosen)
-  report={"source_group":a.source,"downloads":D,"counts":{"|".join(k):v for k,v in sorted(c.items())},"stats":dict(stats),"total_selected":len(chosen),"notes":notes,"status":"automated candidate only; legal and human quality review remain"}
+  report={"source_group":a.source,"downloads":D,"counts":{"|".join(k):v for k,v in sorted(c.items())},"stats":dict(stats),"total_selected":len(chosen),"notes":notes,"stats_note":"screened counts include repeated texts; unique_sampled is a deterministic hash-priority sample capped at 50k per source; cross-source dedup applies to sampled records only.","status":"automated candidate only; legal and human quality review remain"}
   (o/"manifest.json").write_text(json.dumps(report,ensure_ascii=False,indent=2)+"\n");print(json.dumps(report,ensure_ascii=False,indent=2))
  finally:shutil.rmtree(t,ignore_errors=True)
 if __name__=="__main__":main()
