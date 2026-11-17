@@ -136,14 +136,14 @@ def main() -> None:
         })
 
     source_summary = {
-        "status": "rights_review_pending_do_not_redistribute",
+        "status": "development_only_release_blocked_by_corpus_maturity",
         "sources": [
             {
                 "source": "common_voice_v22",
                 "repository": "https://huggingface.co/datasets/fsicoli/common_voice_22_0",
                 "release_claim": "Common Voice Corpus 22.0",
                 "source_claimed_license": "CC0-1.0",
-                "project_rights_status": "unverified; not cleared for redistribution",
+                "project_rights_status": "CC0 source data; applicable Common Voice ToS/dataset agreement also observed; partial curated selection only",
                 "locales": locale_sources,
             },
             {
@@ -155,8 +155,8 @@ def main() -> None:
                 "validated_sentences_tsv_sha256": hr.get("validated_sentences_tsv_sha256"),
                 "archive_checksum_verified": hr.get("archive_checksum_verified"),
                 "curated_rows": hr.get("selected_rows_in_combined_pilot"),
-                "terms_acceptance_status": "not present in release audit; Croatian-specific terms must be verified",
-                "project_rights_status": "not cleared for redistribution",
+                "terms_acceptance_status": "Common Voice ToS/dataset agreement includes a no-mirroring clause; project does not mirror the complete dataset",
+                "project_rights_status": "partial curated text selection only; no audio or direct contributor identifiers; no complete-dataset mirroring",
             },
         ],
     }
@@ -176,7 +176,7 @@ def main() -> None:
             "Automated pattern filtering is not complete PII clearance.",
             "No human language or content quality review is represented.",
             "No train/validation/test split has been assigned.",
-            "Source licensing and redistribution rights are unresolved.",
+            "The current corpus is below the 20,000-30,000-per-language target and lacks the planned source diversity.",
         ],
         "candidate_jsonl_sha256": sha256(source),
         "parquet_sha256": sha256(parquet_path),
@@ -187,10 +187,11 @@ def main() -> None:
     )
     (args.output_dir / "LICENSING_STATUS.md").write_text(
         "# Licensing status\n\n"
-        "**Not cleared for redistribution.** The source-level CC0-1.0 labels are not a project-level "
-        "rights determination. See the dataset card and source summary. Do not publish or mirror "
-        "the candidate data until the Common Voice 22 conversion and Croatian v27 accepted terms "
-        "have been checked and a dataset licence has been explicitly approved.\n",
+        "**Development-only; do not publish to Hugging Face yet.** The current corpus does not meet "
+        "the project target of 20,000-30,000 curated records per language from varied sources. "
+        "The Common Voice source data is identified as CC0; the separate ToS/dataset agreement "
+        "includes a no-mirroring clause, which the project observes by using only partial curated "
+        "text selections and excluding audio and direct contributor identifiers. See LICENSING.md.\n",
         encoding="utf-8",
     )
     print(json.dumps({
