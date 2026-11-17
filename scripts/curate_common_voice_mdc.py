@@ -84,7 +84,7 @@ def main() -> None:
                     counts[f"{language}:within_language_duplicate"] += 1
                     continue
                 sid = (row.get("sentence_id") or "").strip()
-                group = hashlib.sha256(f"common-voice-v27:{language}:{sid}".encode()).hexdigest()
+                group = hashlib.sha256(f"common-voice-v27:{language}:{text}".encode()).hexdigest()
                 candidates[language][text] = group
 
     # Remove every occurrence of any normalized string shared by language labels.
