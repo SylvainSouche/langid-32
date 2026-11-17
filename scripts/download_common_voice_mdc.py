@@ -13,7 +13,6 @@ import json
 import os
 import sys
 import tarfile
-import time
 import urllib.error
 import urllib.request
 from datetime import datetime, timezone
@@ -148,15 +147,12 @@ def main() -> int:
     parser.add_argument("--locales")
     parser.add_argument("--batch-index", type=int, default=0)
     parser.add_argument("--max-downloads", type=int, default=MAX_DOWNLOADS_PER_RUN)
-    parser.add_argument("--retries", type=int, default=3, help="Retries after the first attempt (0-5).")
-    parser.add_argument("--retry-delay", type=float, default=5.0, help="Base delay in seconds; exponential backoff.")
+    parser.add_argument("--retries", type=int, choices=[0], default=0, help="Fixed at zero: each MDC download request is attempted exactly once.")
     args = parser.parse_args()
     if not 1 <= args.max_downloads <= MAX_DOWNLOADS_PER_RUN:
         parser.error(f"--max-downloads must be between 1 and {MAX_DOWNLOADS_PER_RUN}.")
     if args.batch_index < 0:
         parser.error("--batch-index must be zero or greater.")
-    if not 0 <= args.retries <= 5 or args.retry_delay < 0:
-        parser.error("--retries must be 0-5 and --retry-delay non-negative.")
     locales = None if not args.locales else {v.strip() for v in args.locales.split(",") if v.strip()}
     if args.locales and not locales:
         parser.error("--locales did not contain any locale codes.")
@@ -191,7 +187,7 @@ def main() -> int:
         print(f"Requesting MDC download: {locale} ({dataset_id}) using ${key_env}...", flush=True)
         success = False
         last_error = None
-        for attempt in range(args.retries + 1):
+        for attempt in range(1):
             archive_path = args.output_dir / f".{locale}.archive.part"
             archive_path.unlink(missing_ok=True)
             try:
@@ -230,10 +226,6 @@ def main() -> int:
             except Exception as exc:
                 last_error = f"{type(exc).__name__}: {exc}"
                 destination.unlink(missing_ok=True)
-                if attempt < args.retries:
-                    delay = args.retry_delay * (2 ** attempt)
-                    print(f"{locale}: attempt {attempt + 1} failed ({last_error}); retrying in {delay:g}s.", file=sys.stderr, flush=True)
-                    time.sleep(delay)
             finally:
                 archive_path.unlink(missing_ok=True)
         if not success:
@@ -241,10 +233,10 @@ def main() -> int:
             local["failures"] = [r for r in local["failures"]
                                  if not (r.get("locale") == locale and r.get("dataset_id") == dataset_id)]
             local["failures"].append({"locale": locale, "dataset_id": dataset_id,
-                                      "attempts": args.retries + 1, "error": last_error,
+                                      "download_attempts": 1, "error": last_error,
                                       "failed_at_utc": now()})
             save_manifest(manifest_path, local)
-            print(f"FAILED {locale} after {args.retries + 1} attempts: {last_error}", file=sys.stderr, flush=True)
+            print(f"FAILED {locale} after its single download attempt: {last_error}", file=sys.stderr, flush=True)
     local["updated_at_utc"] = now()
     save_manifest(manifest_path, local)
     print(f"Local manifest: {manifest_path}")
