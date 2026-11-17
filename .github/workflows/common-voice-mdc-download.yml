@@ -1,4 +1,4 @@
-name: Common Voice MDC — first authorised batch
+name: Common Voice MDC — authorised account batches
 
 on:
   push:
@@ -12,13 +12,13 @@ permissions:
   contents: read
 
 concurrency:
-  group: common-voice-mdc-first-batch
+  group: common-voice-mdc-authorised-batches
   cancel-in-progress: false
 
 jobs:
   download-curate-check:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 240
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -28,30 +28,38 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Download the six approved first-batch datasets
-        id: download
+      # Each request is attempted exactly once. Each account receives at most
+      # seven requests in this run; raw TSVs stay on this runner only.
+      - name: Download seven datasets from MOZILLA_SYLVAIN_SOUCHE_GMAIL
+        id: gmail
         continue-on-error: true
         env:
-          MOZILLA: ${{ secrets.MOZILLA }}
           MOZILLA_SYLVAIN_SOUCHE_GMAIL: ${{ secrets.MOZILLA_SYLVAIN_SOUCHE_GMAIL }}
-          MOZILLA_SYLVAIN_SOUCHE_FR_GMAIL: ${{ secrets.MOZILLA_SYLVAIN_SOUCHE_FR_GMAIL }}
-          MOZILLA_NONE_GMAIL: ${{ secrets.MOZILLA_NONE_GMAIL }}
-          MOZILLA_LAPOSTE: ${{ secrets.MOZILLA_LAPOSTE }}
         run: |
-          python scripts/download_common_voice_mdc.py \
-            --output-dir /tmp/common-voice-private \
-            --locales ro,pl,de,sk,en,ru \
-            --max-downloads 7 \
-            --retries 3 \
-            --retry-delay 8
+          python scripts/download_common_voice_mdc.py --output-dir /tmp/common-voice-private --locales nb,nl,ja,hr,bg,cs,el --max-downloads 7 --retries 0
 
-      - name: Curate all successfully downloaded locales
+      - name: Download seven datasets from MOZILLA_SYLVAIN_SOUCHE_FR_GMAIL
+        id: fr_gmail
+        if: always()
+        continue-on-error: true
+        env:
+          MOZILLA_SYLVAIN_SOUCHE_FR_GMAIL: ${{ secrets.MOZILLA_SYLVAIN_SOUCHE_FR_GMAIL }}
+        run: |
+          python scripts/download_common_voice_mdc.py --output-dir /tmp/common-voice-private --locales da,et,lv,it,hu,fi,ga --max-downloads 7 --retries 0
+
+      - name: Download seven datasets from MOZILLA_NONE_GMAIL
+        id: none_gmail
+        if: always()
+        continue-on-error: true
+        env:
+          MOZILLA_NONE_GMAIL: ${{ secrets.MOZILLA_NONE_GMAIL }}
+        run: |
+          python scripts/download_common_voice_mdc.py --output-dir /tmp/common-voice-private --locales ko,sl,ar,sv,es,pt,zh --max-downloads 7 --retries 0
+
+      - name: Curate all downloaded approved locales
         if: always()
         run: |
-          python scripts/curate_common_voice_mdc.py \
-            --input-root /tmp/common-voice-private \
-            --output /tmp/common-voice-curated \
-            --per-language-cap 9000
+          python scripts/curate_common_voice_mdc.py --input-root /tmp/common-voice-private --output /tmp/common-voice-curated --per-language-cap 9000
 
       - name: Include per-locale download outcomes in the report artifact
         if: always()
@@ -63,7 +71,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: common-voice-v27-first-batch-curated
+          name: common-voice-v27-other-accounts-curated
           path: /tmp/common-voice-curated/
           if-no-files-found: warn
           retention-days: 7
@@ -72,8 +80,14 @@ jobs:
         if: always()
         run: rm -rf /tmp/common-voice-private
 
-      - name: Mark partial download as failed after preserving its report
-        if: steps.download.outcome == 'failure'
+      - name: Fail if any account batch failed
+        if: always()
+        env:
+          GMAIL_OUTCOME: ${{ steps.gmail.outcome }}
+          FR_GMAIL_OUTCOME: ${{ steps.fr_gmail.outcome }}
+          NONE_GMAIL_OUTCOME: ${{ steps.none_gmail.outcome }}
         run: |
-          echo "One or more locales failed after retries; successful locale data and the failure manifest were retained for this run's curation/report."
-          exit 1
+          if [ "$GMAIL_OUTCOME" != "success" ] || [ "$FR_GMAIL_OUTCOME" != "success" ] || [ "$NONE_GMAIL_OUTCOME" != "success" ]; then
+            echo "At least one locale failed its single permitted request. Curated report has been uploaded."
+            exit 1
+          fi
