@@ -12,6 +12,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: common-voice-hf-text-ingestion
@@ -41,19 +42,32 @@ jobs:
         run: |
           python scripts/curate_common_voice_mdc.py --input-root /tmp/common-voice-private --output /tmp/common-voice-curated --per-language-cap 9000
 
-      - name: Retrieve the previously curated Common Voice 27 Croatian subset\n        uses: actions/download-artifact@v4\n        with:\n          name: common-voice-v27-other-accounts-curated\n          path: /tmp/common-voice-v27\n          run-id: 44058539144\n          github-token: ${{ secrets.GITHUB_TOKEN }}\n\n      - name: Replace missing HF Croatian with the retained v27 subset\n        run: |\n          python scripts/merge_common_voice_v27_hr.py --hf-curated /tmp/common-voice-curated --v27-artifact /tmp/common-voice-v27\n\n      - name: Assemble text-only audit artifact
+      - name: Retrieve the previously curated Common Voice 27 Croatian subset
+        uses: actions/download-artifact@v4
+        with:
+          name: common-voice-v27-other-accounts-curated
+          path: /tmp/common-voice-v27
+          run-id: 44058539144
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Replace missing HF Croatian with the retained v27 subset
+        run: |
+          python scripts/merge_common_voice_v27_hr.py --hf-curated /tmp/common-voice-curated --v27-artifact /tmp/common-voice-v27
+
+      - name: Assemble text-only audit artifact
         if: always()
         run: |
           mkdir -p /tmp/common-voice-artifact
           cp /tmp/common-voice-private/hf-common-voice-download-manifest.json /tmp/common-voice-artifact/ 2>/dev/null || true
           cp /tmp/common-voice-curated/common_voice_candidates.jsonl /tmp/common-voice-artifact/ 2>/dev/null || true
-          cp /tmp/common-voice-curated/common_voice_report.json /tmp/common-voice-artifact/ 2>/dev/null || true\n          cp /tmp/common-voice-curated/common_voice_v27_hr_provenance.json /tmp/common-voice-artifact/ 2>/dev/null || true
+          cp /tmp/common-voice-curated/common_voice_report.json /tmp/common-voice-artifact/ 2>/dev/null || true
+          cp /tmp/common-voice-curated/common_voice_v27_hr_provenance.json /tmp/common-voice-artifact/ 2>/dev/null || true
 
       - name: Upload curated text and audit manifest only
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: common-voice-v22-hf-curated-text
+          name: common-voice-mixed-curated-text
           path: /tmp/common-voice-artifact/
           if-no-files-found: warn
           retention-days: 14
@@ -61,8 +75,8 @@ jobs:
       - name: Remove private source TSVs and temporary files
         if: always()
         run: |
-          rm -rf /tmp/common-voice-private /tmp/common-voice-curated
+          rm -rf /tmp/common-voice-private /tmp/common-voice-curated /tmp/common-voice-v27
 
-      - name: Fail if any source locale failed
+      - name: Fail if any HF source locale failed
         if: always() && steps.download.outcome == 'failure'
         run: exit 1
