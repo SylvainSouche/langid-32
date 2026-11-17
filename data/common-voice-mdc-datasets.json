@@ -67,7 +67,9 @@
       "api_key_env": "MOZILLA",
       "terms_reviewed_by_user": false,
       "terms_details_recorded": false,
-      "scope_status": "outside_current_32_language_target_set"
+      "scope_status": "outside_current_32_language_target_set",
+      "download_status": "do_not_download",
+      "download_reason": "Explicitly excluded by user to stay within the daily download quota."
     },
     {
       "locale": "nn",
@@ -76,7 +78,9 @@
       "target_language_code": "nn",
       "api_key_env": "MOZILLA",
       "terms_reviewed_by_user": false,
-      "terms_details_recorded": false
+      "terms_details_recorded": false,
+      "download_status": "already_downloaded_by_user",
+      "download_reason": "User has already downloaded this dataset locally; do not request another MDC download."
     },
     {
       "locale": "ru",
@@ -295,9 +299,10 @@
     "Use only accounts and API credentials the user is authorized to operate. This manifest records account assignments; it does not establish that cross-account quota pooling is permitted by MDC.",
     "The downloader streams the archive and writes only validated_sentences.tsv; it does not save the full archive.",
     "Extracted text remains local. Do not commit it, upload it as a GitHub artifact, or otherwise re-host/share it, in particular for Romanian where the user-recorded conditions expressly prohibit re-hosting or re-sharing.",
-    "Icelandic (is) is outside the current 32-language target set and is retained as an optional, non-target dataset.",
     "The supplied list currently covers 28 in-scope language codes plus Icelandic; compare against the 32-language inventory before treating Common Voice coverage as complete.",
     "Locale mappings cz→cs and at→de are provisional; verify the MDC locale metadata before ingestion.",
-    "The supplied zh dataset's exact Chinese locale is not yet established."
+    "The supplied zh dataset's exact Chinese locale is not yet established.",
+    "Do not download Icelandic (is): the user explicitly excludes it to preserve the 7-download daily quota.",
+    "Do not download Norwegian Nynorsk (nn): the user has already downloaded it locally."
   ]
 }
