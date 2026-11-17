@@ -1,12 +1,10 @@
-name: Common Voice MDC — authorised account batches
+name: Common Voice MDC — Spanish quota check
 
 on:
   push:
     branches: [main]
     paths:
       - ".github/workflows/common-voice-mdc-download.yml"
-      - "scripts/download_common_voice_mdc.py"
-      - "scripts/curate_common_voice_mdc.py"
 
 permissions:
   contents: read
@@ -16,9 +14,9 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  download-curate-check:
+  spanish-quota-check:
     runs-on: ubuntu-latest
-    timeout-minutes: 240
+    timeout-minutes: 30
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -28,66 +26,14 @@ jobs:
         with:
           python-version: "3.12"
 
-      # Each request is attempted exactly once. Each account receives at most
-      # seven requests in this run; raw TSVs stay on this runner only.
-      - name: Download seven datasets from MOZILLA_SYLVAIN_SOUCHE_GMAIL
-        id: gmail
-        continue-on-error: true
-        env:
-          MOZILLA_SYLVAIN_SOUCHE_GMAIL: ${{ secrets.MOZILLA_SYLVAIN_SOUCHE_GMAIL }}
-        run: |
-          python scripts/download_common_voice_mdc.py --output-dir /tmp/common-voice-private --locales nb,nl,ja,hr,bg,cs,el --max-downloads 7 --retries 0
-
-      - name: Download seven datasets from MOZILLA_SYLVAIN_SOUCHE_FR_GMAIL
-        id: fr_gmail
-        if: always()
-        continue-on-error: true
-        env:
-          MOZILLA_SYLVAIN_SOUCHE_FR_GMAIL: ${{ secrets.MOZILLA_SYLVAIN_SOUCHE_FR_GMAIL }}
-        run: |
-          python scripts/download_common_voice_mdc.py --output-dir /tmp/common-voice-private --locales da,et,lv,it,hu,fi,ga --max-downloads 7 --retries 0
-
-      - name: Download seven datasets from MOZILLA_NONE_GMAIL
-        id: none_gmail
-        if: always()
-        continue-on-error: true
+      # User explicitly authorised one further Spanish request to verify the
+      # seven-download account limit. No other locale is requested in this run.
+      - name: Single Spanish quota-check request
         env:
           MOZILLA_NONE_GMAIL: ${{ secrets.MOZILLA_NONE_GMAIL }}
         run: |
-          python scripts/download_common_voice_mdc.py --output-dir /tmp/common-voice-private --locales ko,sl,ar,sv,es,pt,zh --max-downloads 7 --retries 0
-
-      - name: Curate all downloaded approved locales
-        if: always()
-        run: |
-          python scripts/curate_common_voice_mdc.py --input-root /tmp/common-voice-private --output /tmp/common-voice-curated --per-language-cap 9000
-
-      - name: Include per-locale download outcomes in the report artifact
-        if: always()
-        run: |
-          mkdir -p /tmp/common-voice-curated
-          if [ -f /tmp/common-voice-private/mdc-download-manifest.json ]; then cp /tmp/common-voice-private/mdc-download-manifest.json /tmp/common-voice-curated/; fi
-
-      - name: Upload curated text-only candidates and aggregate report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: common-voice-v27-other-accounts-curated
-          path: /tmp/common-voice-curated/
-          if-no-files-found: warn
-          retention-days: 7
+          python scripts/download_common_voice_mdc.py --output-dir /tmp/common-voice-private --locales es --max-downloads 1 --retries 0
 
       - name: Remove private source TSVs
         if: always()
         run: rm -rf /tmp/common-voice-private
-
-      - name: Fail if any account batch failed
-        if: always()
-        env:
-          GMAIL_OUTCOME: ${{ steps.gmail.outcome }}
-          FR_GMAIL_OUTCOME: ${{ steps.fr_gmail.outcome }}
-          NONE_GMAIL_OUTCOME: ${{ steps.none_gmail.outcome }}
-        run: |
-          if [ "$GMAIL_OUTCOME" != "success" ] || [ "$FR_GMAIL_OUTCOME" != "success" ] || [ "$NONE_GMAIL_OUTCOME" != "success" ]; then
-            echo "At least one locale failed its single permitted request. Curated report has been uploaded."
-            exit 1
-          fi
