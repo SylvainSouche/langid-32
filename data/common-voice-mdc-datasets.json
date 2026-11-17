@@ -26,7 +26,8 @@
       "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted.",
       "mdc_portal_status": "completed",
       "mdc_portal_completed_date": "2026-11-17",
-      "mdc_portal_status_source": "User-provided MDC dashboard table"
+      "mdc_portal_status_source": "User-provided MDC dashboard table",
+      "mdc_portal_completion_count": 2
     },
     {
       "locale": "pl",
@@ -39,7 +40,8 @@
       "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted.",
       "mdc_portal_status": "completed",
       "mdc_portal_completed_date": "2026-11-17",
-      "mdc_portal_status_source": "User-provided MDC dashboard table"
+      "mdc_portal_status_source": "User-provided MDC dashboard table",
+      "mdc_portal_completion_count": 1
     },
     {
       "locale": "de",
@@ -52,7 +54,8 @@
       "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted.",
       "mdc_portal_status": "completed",
       "mdc_portal_completed_date": "2026-11-17",
-      "mdc_portal_status_source": "User-provided MDC dashboard table"
+      "mdc_portal_status_source": "User-provided MDC dashboard table",
+      "mdc_portal_completion_count": 1
     },
     {
       "locale": "sk",
@@ -65,7 +68,8 @@
       "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted.",
       "mdc_portal_status": "completed",
       "mdc_portal_completed_date": "2026-11-17",
-      "mdc_portal_status_source": "User-provided MDC dashboard table"
+      "mdc_portal_status_source": "User-provided MDC dashboard table",
+      "mdc_portal_completion_count": 1
     },
     {
       "locale": "en",
@@ -78,7 +82,8 @@
       "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted.",
       "mdc_portal_status": "completed",
       "mdc_portal_completed_date": "2026-11-17",
-      "mdc_portal_status_source": "User-provided MDC dashboard table"
+      "mdc_portal_status_source": "User-provided MDC dashboard table",
+      "mdc_portal_completion_count": 1
     },
     {
       "locale": "is",
@@ -104,7 +109,8 @@
       "download_reason": "User has already downloaded this dataset locally; do not request another MDC download.",
       "mdc_portal_status": "completed",
       "mdc_portal_completed_date": "2026-11-17",
-      "mdc_portal_status_source": "User-provided MDC dashboard table"
+      "mdc_portal_status_source": "User-provided MDC dashboard table",
+      "mdc_portal_completion_count": 1
     },
     {
       "locale": "ru",
@@ -384,6 +390,6 @@
     "MOZILLA_LAPOSTE is the user's newly supplied account secret environment-variable name; its value must remain in GitHub Actions Secrets or the local environment.",
     "Turkish (tr), Lithuanian (lt), and Maltese (mt) dataset IDs were supplied under MOZILLA_LAPOSTE. Do not download until their dataset-specific agreement acceptance is confirmed.",
     "French (fr) is now assigned to MOZILLA_LAPOSTE rather than MOZILLA; Icelandic (is) is assigned to MOZILLA_LAPOSTE but remains explicitly excluded from downloads.",
-    "User-provided MDC dashboard on 2026-11-17 marked Romanian (ro), Polish (pl), German (de), Slovak (sk), English (en), and Norwegian Nynorsk (nn) as Completed. Romanian appeared twice in the supplied table; record it once. This records the MDC portal status only and does not assert that the extracted TSV files are present on the GitHub Actions runner."
+    "User-provided MDC dashboard on 2026-11-17 records seven Completed rows: Romanian (ro) twice, English (en) once, Slovak (sk) once, German (de) once, Polish (pl) once, and Norwegian Nynorsk (nn) once. Preserve row counts: Romanian completion count is 2. English is marked Completed by MDC despite an earlier incomplete/failed extraction attempt in GitHub Actions; portal completion and local extraction are distinct statuses. Do not infer that a portal Completed row means a local TSV was successfully retained or curated."
   ]
 }
