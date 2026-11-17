@@ -6,7 +6,8 @@
     "MOZILLA",
     "MOZILLA_SYLVAIN_SOUCHE_GMAIL",
     "MOZILLA_SYLVAIN_SOUCHE_FR_GMAIL",
-    "MOZILLA_NONE_GMAIL"
+    "MOZILLA_NONE_GMAIL",
+    "MOZILLA_LAPOSTE"
   ],
   "datasets": [
     {
@@ -69,12 +70,12 @@
       "dataset_id": "cmu610o1500jxnq07ezvxicx2",
       "target_language": "Icelandic",
       "target_language_code": "is",
-      "api_key_env": "MOZILLA",
+      "api_key_env": "MOZILLA_LAPOSTE",
       "terms_reviewed_by_user": false,
       "terms_details_recorded": false,
       "scope_status": "outside_current_32_language_target_set",
       "download_status": "do_not_download",
-      "download_reason": "Explicitly excluded by user to stay within the daily download quota."
+      "download_reason": "Explicitly excluded by user; supplied under MOZILLA_LAPOSTE but do not download."
     },
     {
       "locale": "nn",
@@ -102,7 +103,7 @@
       "dataset_id": "cmu5kub4600pkmh078n7n5ogl",
       "target_language": "French",
       "target_language_code": "fr",
-      "api_key_env": "MOZILLA",
+      "api_key_env": "MOZILLA_LAPOSTE",
       "terms_reviewed_by_user": true,
       "terms_details_recorded": false,
       "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted."
@@ -318,6 +319,36 @@
       "terms_details_recorded": false,
       "mapping_note": "Verify whether this dataset represents zh-CN, zh-TW, or another Chinese locale",
       "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted."
+    },
+    {
+      "locale": "tr",
+      "dataset_id": "cmu5wkah500c2o10719lem8m8",
+      "target_language": "Turkish",
+      "target_language_code": "tr",
+      "api_key_env": "MOZILLA_LAPOSTE",
+      "terms_reviewed_by_user": false,
+      "terms_details_recorded": false,
+      "terms_review_note": "Dataset URL supplied by user; agreement acceptance not yet explicitly confirmed for this dataset."
+    },
+    {
+      "locale": "lt",
+      "dataset_id": "cmu5vxsgs00banq07u540znhb",
+      "target_language": "Lithuanian",
+      "target_language_code": "lt",
+      "api_key_env": "MOZILLA_LAPOSTE",
+      "terms_reviewed_by_user": false,
+      "terms_details_recorded": false,
+      "terms_review_note": "Dataset URL supplied by user; agreement acceptance not yet explicitly confirmed for this dataset."
+    },
+    {
+      "locale": "mt",
+      "dataset_id": "cmu62c12900n4o107ruq053ro",
+      "target_language": "Maltese",
+      "target_language_code": "mt",
+      "api_key_env": "MOZILLA_LAPOSTE",
+      "terms_reviewed_by_user": false,
+      "terms_details_recorded": false,
+      "terms_review_note": "Dataset URL supplied by user; agreement acceptance not yet explicitly confirmed for this dataset."
     }
   ],
   "operational_notes": [
@@ -331,6 +362,9 @@
     "Do not download Norwegian Nynorsk (nn): the user has already downloaded it locally.",
     "The dataset ID cmu5wom3z00ceo107guxtg4xa is Arabic (ar), not Austrian German; the user's original locale label was a typo and has been corrected.",
     "The user intends to keep complete datasets private and use only a small curated selection of extracted CC0 sentences in langid-32; do not mirror or republish the source datasets.",
-    "Terms acceptance is recorded as user-confirmed for the supplied in-scope datasets; retain each dataset's actual MDC agreement and restrictions as authoritative."
+    "Terms acceptance is recorded as user-confirmed for the supplied in-scope datasets; retain each dataset's actual MDC agreement and restrictions as authoritative.",
+    "MOZILLA_LAPOSTE is the user's newly supplied account secret environment-variable name; its value must remain in GitHub Actions Secrets or the local environment.",
+    "Turkish (tr), Lithuanian (lt), and Maltese (mt) dataset IDs were supplied under MOZILLA_LAPOSTE. Do not download until their dataset-specific agreement acceptance is confirmed.",
+    "French (fr) is now assigned to MOZILLA_LAPOSTE rather than MOZILLA; Icelandic (is) is assigned to MOZILLA_LAPOSTE but remains explicitly excluded from downloads."
   ]
 }
