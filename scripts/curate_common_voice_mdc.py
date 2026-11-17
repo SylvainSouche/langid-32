@@ -117,23 +117,23 @@ def main() -> None:
                 out.write(json.dumps({
                     "text": text,
                     "language": language,
-                    "source": "common_voice_v27",
-                    "source_release": "Scripted Speech 27.0",
+                    "source": "common_voice_v22",
+                    "source_release": "Common Voice Corpus 22.0",
                     "group_id": group,
                     "licence_id": "CC0-1.0",
-                    "text_origin": "Mozilla Data Collective authorised download",
+                    "text_origin": "Hugging Face fsicoli/common_voice_22_0 transcript-only conversion",
                 }, ensure_ascii=False, separators=(",", ":")) + "\n")
     report = {
-        "source": "Mozilla Common Voice Scripted Speech 27.0",
-        "downloaded_locales": list(LANGUAGES),
+        "source": "fsicoli/common_voice_22_0 (Common Voice 22.0)",
+        "target_languages": list(LANGUAGES),
         "raw_tsvs_uploaded": False,
         "audio_saved": False,
-        "selection": "is_used=true; NFC/whitespace normalization; 12-500 chars; <=1500 UTF-8 bytes; conservative PII/identifier exclusions; within-language deduplication; all-label collision removal; deterministic cap",
+        "selection": "validated_sentences.tsv; if is_used exists require true; NFC/whitespace normalization; 12-500 chars; <=1500 UTF-8 bytes; conservative PII/identifier exclusions; within-language deduplication; all-label collision removal; deterministic cap",
         "cross_language_collision_strings_removed": len(collisions),
         "per_language": final_counts,
         "counts": dict(sorted(counts.items())),
         "candidate_file_sha256": hashlib.sha256(output_path.read_bytes()).hexdigest(),
-        "note": "Curated text-only candidate sample, not a complete Common Voice dataset; retain source-specific terms and restrictions.",
+        "note": "Curated text-only candidate sample from an unofficial third-party Common Voice 22.0 conversion; retain source-specific licence and distribution-policy review.",
     }
     (args.output / "common_voice_report.json").write_text(
         json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
