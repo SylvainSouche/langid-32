@@ -53,6 +53,12 @@ jobs:
             --output /tmp/common-voice-curated \
             --per-language-cap 9000
 
+      - name: Include per-locale download outcomes in the report artifact
+        if: always()
+        run: |
+          mkdir -p /tmp/common-voice-curated
+          if [ -f /tmp/common-voice-private/mdc-download-manifest.json ]; then cp /tmp/common-voice-private/mdc-download-manifest.json /tmp/common-voice-curated/; fi
+
       - name: Upload curated text-only candidates and aggregate report
         if: always()
         uses: actions/upload-artifact@v4
