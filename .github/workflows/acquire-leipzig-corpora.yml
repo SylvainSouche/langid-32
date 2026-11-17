@@ -1,12 +1,18 @@
-name: Leipzig Corpora Collection audit and acquisition
+name: Leipzig Corpora Collection inventory and bulk audit
 on:
   workflow_dispatch:
     inputs:
-      sentences_per_corpus:
-        description: Maximum standard corpus size to request per corpus
+      max_archives_per_language:
+        description: Maximum archives to download per target language
         required: true
         type: choice
-        options: ["10000","30000","100000","300000","1000000"]
+        options: ["1","2","3","5"]
+        default: "3"
+      sample_per_archive:
+        description: Candidate sentence cap used for audit metrics
+        required: true
+        type: choice
+        options: ["30000","100000","300000"]
         default: "100000"
   push:
     paths:
@@ -15,7 +21,7 @@ on:
 permissions:
   contents: read
 jobs:
-  inventory:
+  inventory-and-audit:
     runs-on: ubuntu-latest
     timeout-minutes: 360
     steps:
@@ -24,11 +30,13 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install parsers
-        run: python -m pip install requests beautifulsoup4
-      - name: Inventory Leipzig corpora and linked downloads
+        run: python -m pip install --disable-pip-version-check requests beautifulsoup4
+      - name: Crawl Leipzig catalogue and acquire target-language archives
         run: |
-          python scripts/acquire_leipzig.py --out out/leipzig --sentences-per-corpus "${{ inputs.sentences_per_corpus || '100000' }}"
-      - name: Upload inventory and acquisition results
+          python scripts/acquire_leipzig.py --out out/leipzig \
+            --max-archives-per-language "${{ inputs.max_archives_per_language || '3' }}" \
+            --sample-per-archive "${{ inputs.sample_per_archive || '100000' }}"
+      - name: Upload complete audit, manifests, hashes and staged archives
         if: always() && hashFiles('out/**') != ''
         uses: actions/upload-artifact@v4
         with:
