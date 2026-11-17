@@ -33,7 +33,7 @@ These exclusions are applied globally across all staged sources before quota sel
 2. Apply shared NFC and whitespace normalization and common length/script sanity checks.
 3. Remove PII/identifier matches and all cross-language collision strings; remove within-language duplicates.
 4. Split by stable document/group before selecting records; preserve source group boundaries across languages where applicable.
-5. Select up to 30,000 per language using deterministic seeded sampling and source quotas. Prefer source diversity up to the 30% target; never exceed 50% absent a recorded low-resource exception.
+5. Select up to 30,000 per language using deterministic seeded sampling and source quotas. Prefer source diversity up to the 30% target; never exceed 50%.
 6. Label records 1–20,000 per language as core and 20,001–30,000 as reserve. Keep reserve separate from train/validation/test until explicitly promoted.
 7. Produce per-language/source counts, exclusions, group counts, domain mix, licence/provenance manifest, hashes and a validation report.
 
