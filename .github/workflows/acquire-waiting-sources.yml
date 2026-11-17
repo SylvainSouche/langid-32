@@ -24,7 +24,7 @@ jobs:
         run: |
           set +e
           failed=0
-          for source in catalan icelandic norwegian arabic; do
+          for source in catalan icelandic norwegian korean fineweb2 arabic; do
             python scripts/acquire_waiting_sources.py --source "$source" --out "out/$source"
             rc=$?
             if [ "$rc" -ne 0 ]; then failed=1; echo "::error::Source group $source failed with exit $rc"; fi
