@@ -1,6 +1,6 @@
 # langid-32
 
-A reproducible multilingual language-identification project covering 32 languages. The project compares two compact character-based classifiers with a byte-level Transformer, using a shared corpus preparation and evaluation pipeline.
+A reproducible multilingual language-identification project. The `langid-32` name identifies the original 32-language scope; the supported language inventory can grow beyond 32 while preserving the original benchmark. The project compares two compact character-based classifiers with a byte-level Transformer, using a shared corpus preparation and evaluation pipeline.
 
 ## Dataset sourcing
 
@@ -14,7 +14,7 @@ Mozilla's distribution policy is that Common Voice datasets are made available t
 
 Common Voice is released under CC0. Mozilla's request about where the original dataset is distributed is its data-distribution and stewardship policy; it is distinct from the CC0 licence applied to the dataset. Individual MDC datasheets also display dataset-level forbidden-use statements (including speaker re-identification and re-hosting/re-sharing the original dataset). We record those conditions separately from the SPDX CC0-1.0 field. This repository does not mirror the original archives; this statement does not pre-judge the legal status of a separately curated text-only derivative.
 
-For this language-identification project, we prepare a targeted text-only corpus rather than republishing the original Common Voice dataset. The preparation pipeline selects and transforms sentence text for the 32 language classes. It excludes audio, speaker recordings, speaker or contributor identifiers, demographic metadata, and text that identifies a person or contains personal identifying information. The aim is to avoid retaining material that would identify a contributor, and to keep the resulting corpus focused on language identification rather than voice or speaker analysis.
+For this language-identification project, we prepare a targeted text-only corpus rather than republishing the original Common Voice dataset. The preparation pipeline selects and transforms sentence text for the configured language classes. It excludes audio, speaker recordings, speaker or contributor identifiers, demographic metadata, and text that identifies a person or contains personal identifying information. The aim is to avoid retaining material that would identify a contributor, and to keep the resulting corpus focused on language identification rather than voice or speaker analysis.
 
 We record the source release, provenance, transformations, corpus configuration, and output hashes so that preparation is reproducible. Each source and any additional corpus component is documented separately. The preparation tool does not export source group IDs or contributor metadata. Textual personal-data screening requires a reviewed policy and source-specific checks; optional regular-expression exclusions are available, but are not a substitute for that review.
 
@@ -91,7 +91,7 @@ See [model design](docs/model-design.md) for architecture details.
 
 The corpus remains the active priority; model benchmarking is deferred until the source mix and rights review are complete.
 
-A three-source **32-language / 640,000-row candidate** has passed the global merge pipeline:
+A three-source **original 32-language / 640,000-row candidate** has passed the global merge pipeline. This remains the historical baseline; subsequent language additions are versioned extensions.
 
 | Source | Records in final candidate | Coverage |
 |---|---:|---|
