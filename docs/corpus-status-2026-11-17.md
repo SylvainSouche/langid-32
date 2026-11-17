@@ -47,7 +47,7 @@ This report distinguishes measured candidate counts from rights-cleared usable c
 | ar | 20,000 | 19,998 | 0 | 2 | 0 |
 | tr | 20,000 | 20,000 | 0 | 0 | 0 |
 
-Source totals in this candidate: FineWeb2 510,702; DGT-TM 91,539; Tatoeba CC0 31,791; FineWeb 5,968.
+Source totals in this candidate: FineWeb2 510,702; DGT-TM 91,539; Tatoeba CC0 31,791; FineWeb 5,968.\n\nA fresh official Tatoeba export/staging completed successfully in run [44121162591](https://github.com/SylvainSouche/langid-32/actions/runs/44121162591), artifact [14345216923](https://github.com/SylvainSouche/langid-32/actions/runs/44121162591). It contains 80,155 staged CC0 rows: en 41,230; ru 22,721; fr 14,182; fi 1,545; sv 208; nl 49; da 33; es 36; pl 57; de 45; pt 16; it 19; cs 4; nb 4; ja 2; ar 2; hu 1; zh 1. It adds no Catalan or Icelandic. These are pre-global-merge staging counts, not additive to the v5 counts.
 
 **The 50% source ceiling fails in all 32 languages in this candidate.** FineWeb2 supplies about 80% in most EU classes, 100% in several non-EU classes; English is 62.4% Tatoeba and Russian is 52.9% Tatoeba. French is 51.3% FineWeb2. The source mix must be rebuilt; do not train or publish from this artifact as-is.
 
@@ -94,7 +94,7 @@ Pilot limitations: no train/validation/test split; no global deduplication again
 
 Two source refresh workflows were triggered by commits to the watched workflow files:
 
-- Tatoeba fresh official CC0/base export: [run 44121162591](https://github.com/SylvainSouche/langid-32/actions/runs/44121162591) — running when this report was written.
+- Tatoeba fresh official CC0/base export: [run 44121162591](https://github.com/SylvainSouche/langid-32/actions/runs/44121162591) — **completed successfully**; 80,155 staged rows, artifact 14345216923.
 - DGT-TM 2021 archive refresh and staging: [run 44121170635](https://github.com/SylvainSouche/langid-32/actions/runs/44121170635) — running when this report was written.
 
 The repository's existing global integration workflow was also triggered twice ([44121162341](https://github.com/SylvainSouche/langid-32/actions/runs/44121162341), [44121170605](https://github.com/SylvainSouche/langid-32/actions/runs/44121170605)). Its current YAML downloads **fixed older artifact run IDs**, not the two fresh artifacts above. Treat those integration outputs as stale with respect to the refresh; the workflow needs refactoring before a refreshed, valid global merge can be claimed.
