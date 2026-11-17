@@ -75,7 +75,7 @@ Counts below are selected rows after the pilot's own normalization, basic privac
 | zh | 9,000 | ko | 6,258 |
 | ar | 9,000 | tr | 9,000 |
 
-Total selected: 261,076. Icelandic and Catalan are present here but have no rows in the v5 multisource candidate. Eleven classes are below 5,000 in this pilot: hr, is, ga, sl, nb, nn, plus? (see exact table; counts remain far below the 20k minimum in every class). No pilot class reaches 20,000.
+Total selected: 261,076. Icelandic and Catalan are present here but have no rows in the v5 multisource candidate. Ten classes are below the 9,000 pilot cap: hr, is, fi, el, ga, mt, sl, nb, nn and ko. Every class remains far below the 20,000 minimum. No pilot class reaches 20,000.
 
 Pilot limitations: no train/validation/test split; no global deduplication against v5 or the refreshed Tatoeba/DGT staging; automated privacy patterns are not complete PII clearance; no human language/content review; source terms and immutable upstream revisions still need final verification. The HF CV22 download manifest did not return a resolved commit for Catalan, so that locale is not immutably pinned.
 
