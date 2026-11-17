@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/common-voice-mdc-download.yml"
+      - "scripts/download_common_voice_mdc.py"
+      - "scripts/curate_common_voice_mdc.py"
 
 permissions:
   contents: read
@@ -16,7 +18,7 @@ concurrency:
 jobs:
   download-curate-check:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 120
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -27,6 +29,8 @@ jobs:
           python-version: "3.12"
 
       - name: Download the six approved first-batch datasets
+        id: download
+        continue-on-error: true
         env:
           MOZILLA: ${{ secrets.MOZILLA }}
           MOZILLA_SYLVAIN_SOUCHE_GMAIL: ${{ secrets.MOZILLA_SYLVAIN_SOUCHE_GMAIL }}
@@ -37,23 +41,33 @@ jobs:
           python scripts/download_common_voice_mdc.py \
             --output-dir /tmp/common-voice-private \
             --locales ro,pl,de,sk,en,ru \
-            --max-downloads 7
+            --max-downloads 7 \
+            --retries 3 \
+            --retry-delay 8
 
-      - name: Curate, normalize, deduplicate and privacy-screen
+      - name: Curate all successfully downloaded locales
+        if: always()
         run: |
           python scripts/curate_common_voice_mdc.py \
             --input-root /tmp/common-voice-private \
             --output /tmp/common-voice-curated \
             --per-language-cap 9000
 
-      - name: Remove private source TSVs before artifact creation
-        if: always()
-        run: rm -rf /tmp/common-voice-private
-
       - name: Upload curated text-only candidates and aggregate report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: common-voice-v27-first-batch-curated
           path: /tmp/common-voice-curated/
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 7
+
+      - name: Remove private source TSVs
+        if: always()
+        run: rm -rf /tmp/common-voice-private
+
+      - name: Mark partial download as failed after preserving its report
+        if: steps.download.outcome == 'failure'
+        run: |
+          echo "One or more locales failed after retries; successful locale data and the failure manifest were retained for this run's curation/report."
+          exit 1
