@@ -37,31 +37,35 @@ language:
 - sv
 - tr
 - zh
-size_categories:
-- 100K<n<1M
 ---
 
 # langid-32
 
-**Status: preparation snapshot — not a released or rights-cleared dataset.**
+**Status: private development project — no dataset release is currently published or authorised.**
 
-This repository is being prepared as a multilingual text dataset for language identification. The project retains the name `langid-32` for historical continuity; the current pilot contains **34 language labels**.
+The project retains the name `langid-32` for historical continuity; the current pilot covers **34 language labels**. This repository is being developed for sentence-level language identification.
 
-## Important publication notice
+## Release policy
 
-No dataset licence is declared in this card. The MIT licence in the companion GitHub software repository applies to software, not to these text records.
+We will not publish a dataset snapshot to Hugging Face until the corpus has reached the project's target scale of **20,000–30,000 curated records per language**, with meaningful source diversity within each language.
 
-The current candidate combines:
-- Common Voice Corpus 22.0 text obtained from the third-party Hugging Face conversion `fsicoli/common_voice_22_0`.
-- A previously acquired and curated Croatian subset from Mozilla Common Voice Scripted Speech 27.0.
+The current Common Voice-based material is an initial component of that work, not a release candidate. We are identifying and integrating additional sources. A raw or early-stage pilot is not representative of the intended final corpus.
 
-The conversion's CC0 label and the Common Voice source's licence/terms have not yet been independently reconciled for every locale. The Croatian-specific Data Collective acceptance and redistribution terms have not been verified in the project audit. The presence of a `CC0-1.0` field in the staging records is a source claim, not a legal determination by this project.
+## Sources and terms
 
-**Do not treat this snapshot as cleared for redistribution, training, or commercial use.** The candidate data is not uploaded as part of this preparation snapshot. A public data release will require a documented per-source and per-locale rights review, an explicit dataset licence decision, and a separate release approval.
+The current technical pilot combines:
+- Common Voice Corpus 22.0 text obtained through the third-party Hugging Face conversion `fsicoli/common_voice_22_0`. The underlying Common Voice text is identified as CC0. The upstream-to-conversion publication chain is recorded for provenance.
+- A partial, curated Croatian subset from Mozilla Common Voice Scripted Speech 27.0, retained from an authorised acquisition.
 
-## Planned data format
+CC0 is the data licence. Mozilla's Terms of Service and dataset agreements are separate contractual terms, not a replacement data licence. Those terms have changed over time. The project's understanding is that the public Common Voice publication sequence stopped at version 22 around the period of those changes; this is a historical hypothesis, not a verified causal statement.
 
-The planned public table has these columns:
+The relevant no-mirroring restriction is respected: this project does not mirror or redistribute the complete Common Voice dataset. It works only with a partial, curated text selection, with direct speaker/contributor identifiers and audio excluded and no intended means of identifying individual contributors. This minimisation reduces identification risk but is not a guarantee that every text fragment is free of personal or identifying information.
+
+See `LICENSING.md` for the project's source and terms interpretation. Source-level rights and contractual restrictions remain documented separately.
+
+## Intended data format
+
+The planned public table is:
 
 | Column | Type | Meaning |
 |---|---|---|
@@ -69,20 +73,18 @@ The planned public table has these columns:
 | `label` | string | ISO 639-1 project language label |
 | `source` | string | Source family and release key |
 | `source_release` | string | Human-readable source release |
-| `source_license_claim` | string | Licence label reported by the source; not a project rights grant |
+| `source_license_claim` | string | Source-reported licence identifier |
 
-Internal group identifiers, raw download URLs, signed URLs, speaker information, audio, and raw source manifests are excluded from the public table.
+The eventual release will include a source-level provenance summary, per-language counts, quality information, and a clear dataset-level licensing statement consistent with all applicable source terms.
 
-## Current preparation snapshot
+## Current development snapshot
 
-The latest technical candidate has 261,076 rows across 34 labels. It is an un-split candidate pool: no train/validation/test partition is claimed. Per-language counts range from 1,450 (Irish) to 9,000 (the sampling cap for many labels). See the accompanying preparation report when a package is generated.
+The current technical pilot contains 261,076 rows across 34 labels. It is an un-split candidate pool: no train/validation/test partition is claimed. Per-language counts are unequal and do not meet the project's target of 20,000–30,000 records per language.
 
-The current data has undergone automated Unicode NFC and whitespace normalization, length filtering, basic identifier/PII-pattern filtering, within-label exact deduplication, cross-label exact-string collision removal, and deterministic per-label sampling. These checks are heuristic and are not complete privacy review, human language validation, or quality assurance.
+Automated processing includes Unicode NFC and whitespace normalization, length filtering, basic identifier/PII-pattern filtering, within-label exact deduplication, cross-label exact-string collision removal, and deterministic per-language sampling. These are curation heuristics, not complete privacy clearance, human language validation, or quality assurance.
 
-## Intended use
-
-The intended research task is sentence-level language identification. The current snapshot should be used only for technical pipeline validation by the project maintainers while source rights remain under review.
+**This development snapshot is not published on Hugging Face and must not be presented as the completed langid-32 dataset.**
 
 ## Citation
 
-If and when a release is approved, cite the exact dataset revision and the source releases listed in its provenance manifest. No citable public data release is made by this preparation snapshot.
+A citable dataset release will be assigned only after the corpus meets the release criteria and a versioned release is approved. Cite the exact dataset revision and its source manifest at that time.
