@@ -416,3 +416,24 @@ The independent post-run review of v4 found 94 exact text strings (194 records) 
 The English FineWeb source has now been extracted and integrated. The current technical candidate is the four-source [v5 audit](candidate-audit-v5.md): 640,000 records across 32 languages, with 20,000 per language. FineWeb contributes 5,968 English records (29.8% of the English class), reducing Tatoeba's English share from 89.0% in v4 to 61.9%. The source-specific extraction, quality and rights caveats are in [fineweb-inventory.md](fineweb-inventory.md).
 
 This is still a candidate, not a rights-cleared or human-validated training release. The 94 cross-language exact-text collisions remain unresolved, and privacy review remains outstanding.
+
+## 2. Added languages: Icelandic and Catalan (2026-11-17)
+
+The target inventory now contains **34 classes**. These two additions were not included in the original 32-language FineWeb2 extraction, so do not infer that the earlier 640,000-record candidate covers them.
+
+| Source | Icelandic (is / isl) | Catalan (ca / cat) | Role and caveats |
+|---|---|---|---|
+| Common Voice 22.0 HF conversion | Present: 4,993 validated-sentence TSV rows fetched | Present: 1,302,361 rows fetched | Technical text-only pilot. The latest run applied NFC/whitespace normalization, length limits, basic email/URL/IP/number/phone-pattern checks, within-language deduplication, cross-label collision removal and deterministic sampling. This is heuristic sanitization, not complete PII clearance or human language review. The HF repository is an unofficial conversion; verify provenance, exact upstream release, licence and distribution terms before treating the text as cleared. |
+| HPLT Monolingual 3.0 | Present (`isl_Latn`) | Present (`cat_Latn`) | Strong independent web-text source candidate. HPLT v3 covers 198 language-script combinations and publishes per-language shards, metadata and PII annotations. It is derived from Common Crawl and Internet Archive; the dataset/compilation terms do not settle rights in every underlying page. Use bounded sampling and retain document/domain provenance. |
+| HPLT Parallel Corpora release 3 | Present | Present | Potential translation-aligned supplementary source. Keep it separate from monolingual text; translated register and alignment leakage need explicit treatment. |
+| Tatoeba CC0 export | Not listed | Listed | Catalan can be sourced from the weekly CC0 export. Icelandic is present in the full sentence export, but not in the CC0-only language list; the general export is CC BY 2.0 FR and must not be conflated with CC0. Preserve sentence IDs and translation links for grouping and leakage control. |
+| DGT-TM / JRC-Acquis / Europarl | Not covered | Not covered | These EU institutional parallel sources do not provide either language in the reviewed language lists. Do not extrapolate EU corpus coverage to Catalan or Icelandic. |
+| FineWeb2 v2.1.0 | Not in the committed 31-language extraction | Not in the committed 31-language extraction | The earlier FineWeb2 extraction is not a source for these additions. The source inventory must be extended separately if FineWeb2 is to be sampled for them. |
+
+### Common Voice 22.0 pilot result
+
+Workflow run [44083112053](https://github.com/SylvainSouche/langid-32/actions/runs/44083112053) completed the download, curation, artifact upload and cleanup steps. It fetched 34 locale files successfully and failed one: Croatian (`hr`) returned HTTP 404 because that locale is not present at the expected path in this conversion. The final workflow status is therefore **failure**, intentionally, rather than a complete 34-language import. The curated artifact contains Icelandic and Catalan candidates, but is not a final corpus.
+
+The curation report recorded 4,993 Icelandic rows and 1,302,361 Catalan rows before filtering. Icelandic produced 4,991 eligible unique candidates after the current filters; Catalan was capped at 9,000 after filtering (the exact eligible count is in the run artifact). These are source-run counts, not final training-set counts.
+
+The latest run's source revision was requested as `main`; the manifest records the resolved repository commit per locale where the server returned it. Pin the resolved commit before a reproducible production build. The run artifact is short-lived and should be treated as an audit output, not as a durable source archive.
