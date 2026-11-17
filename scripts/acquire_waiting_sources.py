@@ -94,6 +94,27 @@ def main():
      with tarfile.open(p) as f:f.extractall(d,filter="data")
      scan(d,l,"maalfrid2026:"+l)
     except Exception as e:notes.append(l+": "+repr(e))
+  elif a.source=="korean":
+   from datasets import load_dataset
+   # CC BY-SA/GFDL candidate; keep separate from permissive sources.
+   ds=load_dataset("wikimedia/wikipedia","20231101.ko",split="train",streaming=True)
+   import re as _re
+   for i,x in enumerate(ds):
+    for para in _re.split(r"(?<=[.!?。！？])\\s+|\\n+",x.get("text","")):
+     add("ko","korean_wikipedia_20231101",para,str(x.get("id") or i))
+    if i>=499999:break
+   notes.append("Wikimedia Korean dump streamed up to 500k articles; CC BY-SA/GFDL attribution and share-alike obligations retained.")
+  elif a.source=="fineweb2":
+   from datasets import load_dataset
+   for lang,config in (("ca","cat_Latn"),("is","isl_Latn")):
+    try:
+     ds=load_dataset("HuggingFaceFW/fineweb-2",config,split="train",streaming=True)
+     src="fineweb2:"+config
+     for i,x in enumerate(ds):
+      add(lang,src,x.get("text"))
+      if i>=499999:break
+     notes.append(config+": streamed up to 500k documents; underlying web-text rights unresolved, technical candidates only.")
+    except Exception as e:notes.append(config+": "+repr(e))
   elif a.source=="arabic":
    from datasets import load_dataset
    for i,x in enumerate(load_dataset("ymoslem/UN-Arabic-English-Filtered",split="train",streaming=True)):
