@@ -1,4 +1,4 @@
-name: Common Voice 22 — Hugging Face text-only ingestion
+name: Common Voice mixed-source text-only ingestion
 
 on:
   push:
@@ -7,6 +7,7 @@ on:
       - ".github/workflows/common-voice-hf.yml"
       - "scripts/download_common_voice_hf.py"
       - "scripts/curate_common_voice_mdc.py"
+      - "scripts/merge_common_voice_v27_hr.py"
   workflow_dispatch:
 
 permissions:
@@ -33,20 +34,20 @@ jobs:
         id: download
         continue-on-error: true
         run: |
-          python scripts/download_common_voice_hf.py --output-dir /tmp/common-voice-private --languages bg,hr,is,ca,cs,da,nl,en,et,fi,fr,de,el,hu,ga,it,lv,lt,mt,pl,pt,ro,sk,sl,es,sv,nb,nn,ru,ja,zh,ko,ar,tr
+          python scripts/download_common_voice_hf.py --output-dir /tmp/common-voice-private --languages bg,is,ca,cs,da,nl,en,et,fi,fr,de,el,hu,ga,it,lv,lt,mt,pl,pt,ro,sk,sl,es,sv,nb,nn,ru,ja,zh,ko,ar,tr
 
       - name: Curate text-only candidates
         if: always()
         run: |
           python scripts/curate_common_voice_mdc.py --input-root /tmp/common-voice-private --output /tmp/common-voice-curated --per-language-cap 9000
 
-      - name: Assemble text-only audit artifact
+      - name: Retrieve the previously curated Common Voice 27 Croatian subset\n        uses: actions/download-artifact@v4\n        with:\n          name: common-voice-v27-other-accounts-curated\n          path: /tmp/common-voice-v27\n          run-id: 44058539144\n          github-token: ${{ secrets.GITHUB_TOKEN }}\n\n      - name: Replace missing HF Croatian with the retained v27 subset\n        run: |\n          python scripts/merge_common_voice_v27_hr.py --hf-curated /tmp/common-voice-curated --v27-artifact /tmp/common-voice-v27\n\n      - name: Assemble text-only audit artifact
         if: always()
         run: |
           mkdir -p /tmp/common-voice-artifact
           cp /tmp/common-voice-private/hf-common-voice-download-manifest.json /tmp/common-voice-artifact/ 2>/dev/null || true
           cp /tmp/common-voice-curated/common_voice_candidates.jsonl /tmp/common-voice-artifact/ 2>/dev/null || true
-          cp /tmp/common-voice-curated/common_voice_report.json /tmp/common-voice-artifact/ 2>/dev/null || true
+          cp /tmp/common-voice-curated/common_voice_report.json /tmp/common-voice-artifact/ 2>/dev/null || true\n          cp /tmp/common-voice-curated/common_voice_v27_hr_provenance.json /tmp/common-voice-artifact/ 2>/dev/null || true
 
       - name: Upload curated text and audit manifest only
         if: always()
