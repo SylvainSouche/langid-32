@@ -94,7 +94,7 @@
       "terms_reviewed_by_user": true,
       "terms_details_recorded": false,
       "terms_review_note": "User explicitly confirmed acceptance of the dataset agreement for the MOZILLA_LAPOSTE account on 2026-11-17.",
-      "scope_status": "outside_current_32_language_target_set"
+      "scope_note": "Downloaded only by explicit user authorisation for this account batch; excluded from the langid-32 curation target set."
     },
     {
       "locale": "nn",
