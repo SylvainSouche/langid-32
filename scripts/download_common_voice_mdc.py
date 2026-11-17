@@ -122,10 +122,15 @@ def extract_validated_tsv(archive_path: Path, destination: Path) -> tuple[int, s
 def choose_batch(datasets: list[dict], locales: set[str] | None,
                  batch_index: int, batch_size: int) -> list[dict]:
     eligible = []
+    matched_codes: set[str] = set()
     for item in datasets:
         locale = item.get("locale")
-        if locales is not None and locale not in locales:
+        target_code = item.get("target_language_code")
+        aliases = {str(v) for v in (locale, target_code) if v}
+        if locales is not None and not (aliases & locales):
             continue
+        if locales is not None:
+            matched_codes.update(aliases & locales)
         if item.get("scope_status") == "outside_current_32_language_target_set":
             continue
         if item.get("download_status") in {"do_not_download", "already_downloaded_by_user"}:
@@ -136,6 +141,13 @@ def choose_batch(datasets: list[dict], locales: set[str] | None,
             raise RuntimeError(f"Manifest entry {locale!r} lacks dataset_id/api_key_env.")
         eligible.append(item)
     start = batch_index * batch_size
+    if locales is not None:
+        unknown = sorted(locales - matched_codes)
+        if unknown:
+            raise RuntimeError(
+                "Requested locale code(s) absent from the manifest: "
+                + ", ".join(unknown)
+            )
     return eligible[start:start + batch_size]
 
 
