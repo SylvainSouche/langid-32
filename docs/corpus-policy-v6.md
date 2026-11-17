@@ -39,9 +39,9 @@ These exclusions are applied globally across all staged sources before quota sel
 
 ## Source priority
 
-Actively acquire and evaluate alternatives before using FineWeb2. Common Voice v27 is a priority source, followed by eligible official/institutional and curated multilingual text sources (including DGT-TM, JRC-Acquis, Europarl where applicable, Målfrid for Bokmål/Nynorsk, Tatoeba CC0, and screened OPUS corpora). FineWeb2 is a backfill source, not the default majority source. FineWeb original is only relevant to English.
+Actively acquire and evaluate alternatives before using FineWeb2. Common Voice 22 via the Hugging Face conversion `fsicoli/common_voice_22_0` is the current technical pilot, subject to source-conversion and rights verification; followed by eligible official/institutional and curated multilingual text sources (including DGT-TM, JRC-Acquis, Europarl where applicable, Målfrid for Bokmål/Nynorsk, Tatoeba CC0, and screened OPUS corpora). FineWeb2 is a backfill source, not the default majority source. FineWeb original is only relevant to English.
 
-Common Voice must be obtained through Mozilla Data Collective's authorised original distribution. Do not use third-party mirrors. Ingest only the required sentence-text metadata; exclude audio, speaker/contributor identifiers and demographic fields. If MDC access requires a user download, pause only that acquisition step and ask the user to place the official archives in the configured local input directory. Never ask the user to paste an access token or password into chat.
+The project has retired its Mozilla Data Collective acquisition workflow. The current technical pilot reads only `transcript/<locale>/validated_sentences.tsv` from `fsicoli/common_voice_22_0`; it must not fetch audio or speaker/demographic metadata. This is an unofficial third-party conversion, not an official Mozilla distribution. Verify the conversion's provenance, exact upstream release, licence and applicable distribution terms before treating its records as cleared for publication. If those checks fail, exclude this source rather than silently reverting to MDC or another mirror.
 
 ## Reproducibility and release status
 
