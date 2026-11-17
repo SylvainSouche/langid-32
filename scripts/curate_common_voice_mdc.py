@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build a small, text-only Common Voice candidate sample from private MDC TSVs.
+"""Build a small, text-only Common Voice candidate sample from private Common Voice TSVs.
 
 Raw TSVs stay on the ephemeral runner and are never uploaded or committed.
 Only deterministic, deduplicated sentence text (up to 9,000/language) and an
@@ -22,7 +22,7 @@ URL = re.compile(r"(?i)(?:https?://[^\s<>]+|www\.[^\s<>]+)")
 IPV4 = re.compile(r"(?<![\d.])(?:\d{1,3}\.){3}\d{1,3}(?![\d.])")
 LONG_NUMBER = re.compile(r"\d{9,}")
 PHONE = re.compile(r"(?<!\w)\+?\d[\d -]{7,}\d(?!\w)")
-LANGUAGES = ("bg", "hr", "cs", "da", "nl", "en", "et", "fi", "fr", "de", "el", "hu", "ga", "it", "lv", "lt", "mt", "pl", "pt", "ro", "sk", "sl", "es", "sv", "nb", "nn", "ru", "ja", "zh", "ko", "ar", "tr")
+LANGUAGES = ("bg", "hr", "is", "cs", "da", "nl", "en", "et", "fi", "fr", "de", "el", "hu", "ga", "it", "lv", "lt", "mt", "pl", "pt", "ro", "sk", "sl", "es", "sv", "nb", "nn", "ru", "ja", "zh", "ko", "ar", "tr")
 
 
 def norm(value: str) -> str:
