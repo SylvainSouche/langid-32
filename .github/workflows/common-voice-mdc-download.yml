@@ -1,0 +1,59 @@
+name: Common Voice MDC — first authorised batch
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/common-voice-mdc-download.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: common-voice-mdc-first-batch
+  cancel-in-progress: false
+
+jobs:
+  download-curate-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Download the six approved first-batch datasets
+        env:
+          MOZILLA: ${{ secrets.MOZILLA }}
+          MOZILLA_SYLVAIN_SOUCHE_GMAIL: ${{ secrets.MOZILLA_SYLVAIN_SOUCHE_GMAIL }}
+          MOZILLA_SYLVAIN_SOUCHE_FR_GMAIL: ${{ secrets.MOZILLA_SYLVAIN_SOUCHE_FR_GMAIL }}
+          MOZILLA_NONE_GMAIL: ${{ secrets.MOZILLA_NONE_GMAIL }}
+          MOZILLA_LAPOSTE: ${{ secrets.MOZILLA_LAPOSTE }}
+        run: |
+          python scripts/download_common_voice_mdc.py \
+            --output-dir /tmp/common-voice-private \
+            --locales ro,pl,de,sk,en,ru \
+            --max-downloads 7
+
+      - name: Curate, normalize, deduplicate and privacy-screen
+        run: |
+          python scripts/curate_common_voice_mdc.py \
+            --input-root /tmp/common-voice-private \
+            --output /tmp/common-voice-curated \
+            --per-language-cap 9000
+
+      - name: Remove private source TSVs before artifact creation
+        if: always()
+        run: rm -rf /tmp/common-voice-private
+
+      - name: Upload curated text-only candidates and aggregate report
+        uses: actions/upload-artifact@v4
+        with:
+          name: common-voice-v27-first-batch-curated
+          path: /tmp/common-voice-curated/
+          if-no-files-found: error
+          retention-days: 7
