@@ -1,10 +1,13 @@
-name: Common Voice MDC — Spanish quota check
+name: Common Voice MDC — Laposte authorised batch
 
 on:
   push:
     branches: [main]
     paths:
       - ".github/workflows/common-voice-mdc-download.yml"
+      - "scripts/download_common_voice_mdc.py"
+      - "scripts/curate_common_voice_mdc.py"
+      - "data/common-voice-mdc-datasets.json"
 
 permissions:
   contents: read
@@ -14,9 +17,9 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  spanish-quota-check:
+  laposte-batch:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -26,14 +29,41 @@ jobs:
         with:
           python-version: "3.12"
 
-      # User explicitly authorised one further Spanish request to verify the
-      # seven-download account limit. No other locale is requested in this run.
-      - name: Single Spanish quota-check request
+      - name: Make one request per explicitly authorised locale (maximum seven)
+        id: download
+        continue-on-error: true
         env:
-          MOZILLA_NONE_GMAIL: ${{ secrets.MOZILLA_NONE_GMAIL }}
+          MOZILLA_LAPOSTE: ${{ secrets.MOZILLA_LAPOSTE }}
         run: |
-          python scripts/download_common_voice_mdc.py --output-dir /tmp/common-voice-private --locales es --max-downloads 1 --retries 0
+          python scripts/download_common_voice_mdc.py --output-dir /tmp/common-voice-private --locales tr,fr,is,es,de,en,nn --max-downloads 7 --retries 0
 
-      - name: Remove private source TSVs
+      - name: Curate approved in-scope language TSVs
         if: always()
-        run: rm -rf /tmp/common-voice-private
+        run: |
+          python scripts/curate_common_voice_mdc.py --input-root /tmp/common-voice-private --output /tmp/common-voice-curated --per-language-cap 9000
+
+      - name: Assemble text-only audit artifact
+        if: always()
+        run: |
+          mkdir -p /tmp/common-voice-artifact
+          cp /tmp/common-voice-private/mdc-download-manifest.json /tmp/common-voice-artifact/ 2>/dev/null || true
+          cp /tmp/common-voice-curated/common_voice_candidates.jsonl /tmp/common-voice-artifact/ 2>/dev/null || true
+          cp /tmp/common-voice-curated/common_voice_report.json /tmp/common-voice-artifact/ 2>/dev/null || true
+
+      - name: Upload curated text and audit manifest only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: common-voice-laposte-curated-text
+          path: /tmp/common-voice-artifact/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Remove private source TSVs and temporary files
+        if: always()
+        run: |
+          rm -rf /tmp/common-voice-private /tmp/common-voice-curated
+
+      - name: Fail if any authorised download failed
+        if: always() && steps.download.outcome == 'failure'
+        run: exit 1
