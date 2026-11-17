@@ -22,7 +22,7 @@ URL = re.compile(r"(?i)(?:https?://[^\s<>]+|www\.[^\s<>]+)")
 IPV4 = re.compile(r"(?<![\d.])(?:\d{1,3}\.){3}\d{1,3}(?![\d.])")
 LONG_NUMBER = re.compile(r"\d{9,}")
 PHONE = re.compile(r"(?<!\w)\+?\d[\d -]{7,}\d(?!\w)")
-LANGUAGES = ("ro", "pl", "de", "sk", "en", "ru")
+LANGUAGES = ("ro", "pl", "de", "sk", "en", "ru", "nb", "nl", "ja", "hr", "bg", "cs", "el", "da", "et", "lv", "it", "hu", "fi", "ga", "ko", "sl", "ar", "sv", "es", "pt", "zh")
 
 
 def norm(value: str) -> str:
