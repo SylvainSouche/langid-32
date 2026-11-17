@@ -1,7 +1,7 @@
 {
   "source": "Mozilla Common Voice Scripted Speech 27.0",
   "api": "https://mozilladatacollective.com/api/datasets/{datasetId}/download",
-  "terms_status": "User supplied dataset IDs and account-secret assignments. Terms acceptance is recorded only for Romanian; all other locales remain pending explicit review.",
+  "terms_status": "User confirmed reviewing and accepting the agreement presented for each supplied dataset download URL. Dataset-specific restrictions remain binding; Romanian's recorded details are CC0-1.0, no speaker identification, and no re-hosting/re-sharing.",
   "account_secret_env_vars": [
     "MOZILLA",
     "MOZILLA_SYLVAIN_SOUCHE_GMAIL",
@@ -21,7 +21,8 @@
       "restrictions": [
         "Do not attempt to identify speakers",
         "Do not re-host or re-share dataset"
-      ]
+      ],
+      "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted."
     },
     {
       "locale": "pl",
@@ -29,8 +30,9 @@
       "target_language": "Polish",
       "target_language_code": "pl",
       "api_key_env": "MOZILLA",
-      "terms_reviewed_by_user": false,
-      "terms_details_recorded": false
+      "terms_reviewed_by_user": true,
+      "terms_details_recorded": false,
+      "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted."
     },
     {
       "locale": "de",
@@ -38,8 +40,9 @@
       "target_language": "German",
       "target_language_code": "de",
       "api_key_env": "MOZILLA",
-      "terms_reviewed_by_user": false,
-      "terms_details_recorded": false
+      "terms_reviewed_by_user": true,
+      "terms_details_recorded": false,
+      "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted."
     },
     {
       "locale": "sk",
@@ -47,8 +50,9 @@
       "target_language": "Slovak",
       "target_language_code": "sk",
       "api_key_env": "MOZILLA",
-      "terms_reviewed_by_user": false,
-      "terms_details_recorded": false
+      "terms_reviewed_by_user": true,
+      "terms_details_recorded": false,
+      "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted."
     },
     {
       "locale": "en",
@@ -56,8 +60,9 @@
       "target_language": "English",
       "target_language_code": "en",
       "api_key_env": "MOZILLA",
-      "terms_reviewed_by_user": false,
-      "terms_details_recorded": false
+      "terms_reviewed_by_user": true,
+      "terms_details_recorded": false,
+      "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted."
     },
     {
       "locale": "is",
@@ -88,8 +93,9 @@
       "target_language": "Russian",
       "target_language_code": "ru",
       "api_key_env": "MOZILLA",
-      "terms_reviewed_by_user": false,
-      "terms_details_recorded": false
+      "terms_reviewed_by_user": true,
+      "terms_details_recorded": false,
+      "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted."
     },
     {
       "locale": "fr",
@@ -97,8 +103,9 @@
       "target_language": "French",
       "target_language_code": "fr",
       "api_key_env": "MOZILLA",
-      "terms_reviewed_by_user": false,
-      "terms_details_recorded": false
+      "terms_reviewed_by_user": true,
+      "terms_details_recorded": false,
+      "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted."
     },
     {
       "locale": "no-nb",
@@ -106,8 +113,9 @@
       "target_language": "Norwegian Bokmål",
       "target_language_code": "nb",
       "api_key_env": "MOZILLA_SYLVAIN_SOUCHE_GMAIL",
-      "terms_reviewed_by_user": false,
-      "terms_details_recorded": false
+      "terms_reviewed_by_user": true,
+      "terms_details_recorded": false,
+      "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted."
     },
     {
       "locale": "nl",
@@ -115,8 +123,9 @@
       "target_language": "Dutch",
       "target_language_code": "nl",
       "api_key_env": "MOZILLA_SYLVAIN_SOUCHE_GMAIL",
-      "terms_reviewed_by_user": false,
-      "terms_details_recorded": false
+      "terms_reviewed_by_user": true,
+      "terms_details_recorded": false,
+      "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted."
     },
     {
       "locale": "ja",
@@ -124,8 +133,9 @@
       "target_language": "Japanese",
       "target_language_code": "ja",
       "api_key_env": "MOZILLA_SYLVAIN_SOUCHE_GMAIL",
-      "terms_reviewed_by_user": false,
-      "terms_details_recorded": false
+      "terms_reviewed_by_user": true,
+      "terms_details_recorded": false,
+      "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted."
     },
     {
       "locale": "hr",
@@ -133,8 +143,9 @@
       "target_language": "Croatian",
       "target_language_code": "hr",
       "api_key_env": "MOZILLA_SYLVAIN_SOUCHE_GMAIL",
-      "terms_reviewed_by_user": false,
-      "terms_details_recorded": false
+      "terms_reviewed_by_user": true,
+      "terms_details_recorded": false,
+      "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted."
     },
     {
       "locale": "bg",
@@ -142,8 +153,9 @@
       "target_language": "Bulgarian",
       "target_language_code": "bg",
       "api_key_env": "MOZILLA_SYLVAIN_SOUCHE_GMAIL",
-      "terms_reviewed_by_user": false,
-      "terms_details_recorded": false
+      "terms_reviewed_by_user": true,
+      "terms_details_recorded": false,
+      "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted."
     },
     {
       "locale": "cz",
@@ -151,9 +163,10 @@
       "target_language": "Czech",
       "target_language_code": "cs",
       "api_key_env": "MOZILLA_SYLVAIN_SOUCHE_GMAIL",
-      "terms_reviewed_by_user": false,
+      "terms_reviewed_by_user": true,
       "terms_details_recorded": false,
-      "mapping_note": "MDC dataset label supplied as cz; mapped to standard Czech language code cs"
+      "mapping_note": "MDC dataset label supplied as cz; mapped to standard Czech language code cs",
+      "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted."
     },
     {
       "locale": "el",
@@ -161,8 +174,9 @@
       "target_language": "Greek",
       "target_language_code": "el",
       "api_key_env": "MOZILLA_SYLVAIN_SOUCHE_GMAIL",
-      "terms_reviewed_by_user": false,
-      "terms_details_recorded": false
+      "terms_reviewed_by_user": true,
+      "terms_details_recorded": false,
+      "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted."
     },
     {
       "locale": "da",
@@ -170,8 +184,9 @@
       "target_language": "Danish",
       "target_language_code": "da",
       "api_key_env": "MOZILLA_SYLVAIN_SOUCHE_FR_GMAIL",
-      "terms_reviewed_by_user": false,
-      "terms_details_recorded": false
+      "terms_reviewed_by_user": true,
+      "terms_details_recorded": false,
+      "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted."
     },
     {
       "locale": "et",
@@ -179,8 +194,9 @@
       "target_language": "Estonian",
       "target_language_code": "et",
       "api_key_env": "MOZILLA_SYLVAIN_SOUCHE_FR_GMAIL",
-      "terms_reviewed_by_user": false,
-      "terms_details_recorded": false
+      "terms_reviewed_by_user": true,
+      "terms_details_recorded": false,
+      "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted."
     },
     {
       "locale": "lv",
@@ -188,8 +204,9 @@
       "target_language": "Latvian",
       "target_language_code": "lv",
       "api_key_env": "MOZILLA_SYLVAIN_SOUCHE_FR_GMAIL",
-      "terms_reviewed_by_user": false,
-      "terms_details_recorded": false
+      "terms_reviewed_by_user": true,
+      "terms_details_recorded": false,
+      "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted."
     },
     {
       "locale": "it",
@@ -197,8 +214,9 @@
       "target_language": "Italian",
       "target_language_code": "it",
       "api_key_env": "MOZILLA_SYLVAIN_SOUCHE_FR_GMAIL",
-      "terms_reviewed_by_user": false,
-      "terms_details_recorded": false
+      "terms_reviewed_by_user": true,
+      "terms_details_recorded": false,
+      "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted."
     },
     {
       "locale": "hu",
@@ -206,8 +224,9 @@
       "target_language": "Hungarian",
       "target_language_code": "hu",
       "api_key_env": "MOZILLA_SYLVAIN_SOUCHE_FR_GMAIL",
-      "terms_reviewed_by_user": false,
-      "terms_details_recorded": false
+      "terms_reviewed_by_user": true,
+      "terms_details_recorded": false,
+      "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted."
     },
     {
       "locale": "fi",
@@ -215,8 +234,9 @@
       "target_language": "Finnish",
       "target_language_code": "fi",
       "api_key_env": "MOZILLA_SYLVAIN_SOUCHE_FR_GMAIL",
-      "terms_reviewed_by_user": false,
-      "terms_details_recorded": false
+      "terms_reviewed_by_user": true,
+      "terms_details_recorded": false,
+      "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted."
     },
     {
       "locale": "ga",
@@ -224,8 +244,9 @@
       "target_language": "Irish",
       "target_language_code": "ga",
       "api_key_env": "MOZILLA_SYLVAIN_SOUCHE_FR_GMAIL",
-      "terms_reviewed_by_user": false,
-      "terms_details_recorded": false
+      "terms_reviewed_by_user": true,
+      "terms_details_recorded": false,
+      "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted."
     },
     {
       "locale": "ko",
@@ -233,8 +254,9 @@
       "target_language": "Korean",
       "target_language_code": "ko",
       "api_key_env": "MOZILLA_NONE_GMAIL",
-      "terms_reviewed_by_user": false,
-      "terms_details_recorded": false
+      "terms_reviewed_by_user": true,
+      "terms_details_recorded": false,
+      "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted."
     },
     {
       "locale": "sl",
@@ -242,8 +264,9 @@
       "target_language": "Slovenian",
       "target_language_code": "sl",
       "api_key_env": "MOZILLA_NONE_GMAIL",
-      "terms_reviewed_by_user": false,
-      "terms_details_recorded": false
+      "terms_reviewed_by_user": true,
+      "terms_details_recorded": false,
+      "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted."
     },
     {
       "locale": "ar",
@@ -251,8 +274,9 @@
       "target_language": "Arabic",
       "target_language_code": "ar",
       "api_key_env": "MOZILLA_NONE_GMAIL",
-      "terms_reviewed_by_user": false,
-      "terms_details_recorded": false
+      "terms_reviewed_by_user": true,
+      "terms_details_recorded": false,
+      "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted."
     },
     {
       "locale": "sv",
@@ -260,8 +284,9 @@
       "target_language": "Swedish",
       "target_language_code": "sv",
       "api_key_env": "MOZILLA_NONE_GMAIL",
-      "terms_reviewed_by_user": false,
-      "terms_details_recorded": false
+      "terms_reviewed_by_user": true,
+      "terms_details_recorded": false,
+      "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted."
     },
     {
       "locale": "es",
@@ -269,8 +294,9 @@
       "target_language": "Spanish",
       "target_language_code": "es",
       "api_key_env": "MOZILLA_NONE_GMAIL",
-      "terms_reviewed_by_user": false,
-      "terms_details_recorded": false
+      "terms_reviewed_by_user": true,
+      "terms_details_recorded": false,
+      "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted."
     },
     {
       "locale": "pt",
@@ -278,8 +304,9 @@
       "target_language": "Portuguese",
       "target_language_code": "pt",
       "api_key_env": "MOZILLA_NONE_GMAIL",
-      "terms_reviewed_by_user": false,
-      "terms_details_recorded": false
+      "terms_reviewed_by_user": true,
+      "terms_details_recorded": false,
+      "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted."
     },
     {
       "locale": "zh",
@@ -287,9 +314,10 @@
       "target_language": "Chinese",
       "target_language_code": "zh",
       "api_key_env": "MOZILLA_NONE_GMAIL",
-      "terms_reviewed_by_user": false,
+      "terms_reviewed_by_user": true,
       "terms_details_recorded": false,
-      "mapping_note": "Verify whether this dataset represents zh-CN, zh-TW, or another Chinese locale"
+      "mapping_note": "Verify whether this dataset represents zh-CN, zh-TW, or another Chinese locale",
+      "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted."
     }
   ],
   "operational_notes": [
@@ -297,11 +325,12 @@
     "Each dataset is assigned to the API key secret specified by api_key_env. Do not silently fall back to another account's key.",
     "Use only accounts and API credentials the user is authorized to operate. This manifest records account assignments; it does not establish that cross-account quota pooling is permitted by MDC.",
     "The downloader streams the archive and writes only validated_sentences.tsv; it does not save the full archive.",
-    "Extracted text remains local. Do not commit it, upload it as a GitHub artifact, or otherwise re-host/share it, in particular for Romanian where the user-recorded conditions expressly prohibit re-hosting or re-sharing.",
     "The supplied list currently covers 28 in-scope language codes plus Icelandic; compare against the 32-language inventory before treating Common Voice coverage as complete.",
     "The supplied zh dataset's exact Chinese locale is not yet established.",
     "Do not download Icelandic (is): the user explicitly excludes it to preserve the 7-download daily quota.",
     "Do not download Norwegian Nynorsk (nn): the user has already downloaded it locally.",
-    "The dataset ID cmu5wom3z00ceo107guxtg4xa is Arabic (ar), not Austrian German; the user's original locale label was a typo and has been corrected."
+    "The dataset ID cmu5wom3z00ceo107guxtg4xa is Arabic (ar), not Austrian German; the user's original locale label was a typo and has been corrected.",
+    "The user intends to keep complete datasets private and use only a small curated selection of extracted CC0 sentences in langid-32; do not mirror or republish the source datasets.",
+    "Terms acceptance is recorded as user-confirmed for the supplied in-scope datasets; retain each dataset's actual MDC agreement and restrictions as authoritative."
   ]
 }
