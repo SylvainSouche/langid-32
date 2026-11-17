@@ -1,0 +1,38 @@
+name: Leipzig Corpora Collection audit and acquisition
+on:
+  workflow_dispatch:
+    inputs:
+      sentences_per_corpus:
+        description: Maximum standard corpus size to request per corpus
+        required: true
+        type: choice
+        options: ["10000","30000","100000","300000","1000000"]
+        default: "100000"
+  push:
+    paths:
+      - "scripts/acquire_leipzig.py"
+      - ".github/workflows/acquire-leipzig-corpora.yml"
+permissions:
+  contents: read
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install parsers
+        run: python -m pip install requests beautifulsoup4
+      - name: Inventory Leipzig corpora and linked downloads
+        run: |
+          python scripts/acquire_leipzig.py --out out/leipzig --sentences-per-corpus "${{ inputs.sentences_per_corpus || '100000' }}"
+      - name: Upload inventory and acquisition results
+        if: always() && hashFiles('out/**') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: leipzig-corpus-audit-${{ github.run_id }}
+          path: out/leipzig/
+          retention-days: 30
+          if-no-files-found: warn
