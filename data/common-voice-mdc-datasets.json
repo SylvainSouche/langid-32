@@ -1,0 +1,22 @@
+{
+  "source": "Mozilla Common Voice Scripted Speech 27.0",
+  "api": "https://mozilladatacollective.com/api/datasets/{datasetId}/download",
+  "terms_status": "user-supplied dataset list; acceptance is not inferred from public availability",
+  "datasets": [
+    {"locale": "ro", "dataset_id": "cmu5w65wf00ccnq07n7jxral6", "target_language": "Romanian", "terms_reviewed_by_user": true, "terms_details_recorded": true, "restrictions": ["Do not attempt to identify speakers", "Do not re-host or re-share dataset"], "license": "CC0-1.0"},
+    {"locale": "pl", "dataset_id": "cmu5wsxwp00e0nq07m8v0274j", "target_language": "Polish", "terms_reviewed_by_user": true, "terms_details_recorded": false},
+    {"locale": "de", "dataset_id": "cmu5ktqhe00pgmh07p1xamabd", "target_language": "German", "terms_reviewed_by_user": true, "terms_details_recorded": false},
+    {"locale": "sk", "dataset_id": "cmu62gcol00ohnq0758656ndx", "target_language": "Slovak", "terms_reviewed_by_user": true, "terms_details_recorded": false},
+    {"locale": "en", "dataset_id": "cmu5jplf300nwmh07iqvk9leo", "target_language": "English", "terms_reviewed_by_user": true, "terms_details_recorded": false},
+    {"locale": "is", "dataset_id": "cmu610o1500jxnq07ezvxicx2", "target_language": "Icelandic", "terms_reviewed_by_user": true, "terms_details_recorded": false, "scope_status": "outside_current_32_language_target_set"},
+    {"locale": "nn", "dataset_id": "cmu5ox9rt00ylmh073m7dl7ij", "target_language": "Norwegian Nynorsk", "terms_reviewed_by_user": true, "terms_details_recorded": false},
+    {"locale": "ru", "dataset_id": "cmu5x45pn00dao107j4o9w2yv", "target_language": "Russian", "terms_reviewed_by_user": true, "terms_details_recorded": false},
+    {"locale": "fr", "dataset_id": "cmu5kub4600pkmh078n7n5ogl", "target_language": "French", "terms_reviewed_by_user": true, "terms_details_recorded": false}
+  ],
+  "operational_notes": [
+    "MDC's current API documentation states a default quota of 7 dataset downloads per day, resetting at 00:00 UTC.",
+    "The downloader streams the archive and writes only validated_sentences.tsv; it does not save the full archive.",
+    "Extracted text remains local. Do not commit it, upload it as a GitHub artifact, or otherwise re-host/share it.",
+    "The current langid-32 target set includes 32 languages but not Icelandic (is); keep Icelandic out of the target corpus unless the user changes the target set."
+  ]
+}
