@@ -1,4 +1,5 @@
 name: Ingest Tatoeba CC0 source
+# Refresh run requested 2026-11-17: re-download official CC0 export and recompute usable counts.
 
 on:
   push:
