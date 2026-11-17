@@ -38,3 +38,5 @@ jobs:
           path: out/
           retention-days: 14
           if-no-files-found: warn
+
+# Re-run against the bounded-memory deterministic sampler revision.
