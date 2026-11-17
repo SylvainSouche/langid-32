@@ -2,11 +2,11 @@ import argparse,csv,gzip,hashlib,json,re,shutil,subprocess,tarfile,tempfile,unic
 from pathlib import Path
 from urllib.request import Request,urlopen
 from collections import Counter,defaultdict
-E=re.compile(r"(?i)\\b[\\w.+-]+@[\\w.-]+\\.[A-Z]{2,}\\b"); U=re.compile(r"(?i)(https?://|www\\.)\\S+"); N=re.compile(r"\\d{9,}")
+E=re.compile(r"(?i)\b[\w.+-]+@[\w.-]+\.[A-Z]{2,}\b"); U=re.compile(r"(?i)(https?://|www\.)\S+"); N=re.compile(r"\d{9,}")
 def clean(s,l):
  s=" ".join(unicodedata.normalize("NFC",str(s or "")).split()); a=sum(c.isalpha() for c in s)
  if len(s)<40 or len(s)>12000 or a<25 or a/len(s)<.45 or E.search(s) or U.search(s) or N.search(s):return None
- if l=="ar" and sum("\\u0600"<=c<="\\u06ff" for c in s)<max(10,a*.35):return None
+ if l=="ar" and sum("\u0600"<=c<="\u06ff" for c in s)<max(10,a*.35):return None
  return s
 def fetch(u,p):
  h=hashlib.sha256();n=0
@@ -22,7 +22,7 @@ def main():
   x=clean(x,l)
   if x:R[l].append({"text":x,"language":l,"source":s,"group_id":g or hashlib.sha256((s+x).encode()).hexdigest()})
  def scan(root,l,s):
-  for p in root.rglob("*"):
+  for p in ([root] if root.is_file() else root.rglob("*")):
    if not p.is_file():continue
    try:
     if p.name.endswith(".jsonl") or p.name.endswith(".jsonl.gz"):
@@ -42,7 +42,7 @@ def main():
        elif isinstance(x,str):add(l,s,x)
     elif p.suffix.lower() in (".txt",".tsv",".csv"):
      with p.open(encoding="utf8",errors="replace") as f:
-      for row in (csv.reader(f,delimiter="\\t") if p.suffix.lower()==".tsv" else f):
+      for row in (csv.reader(f,delimiter="\t") if p.suffix.lower()==".tsv" else f):
        if isinstance(row,list):
         if row:add(l,s,row[0])
        else:add(l,s,row)
@@ -52,7 +52,7 @@ def main():
    r=t/"temu";subprocess.run(["git","clone","--depth","1","https://github.com/TeMU-BSC/catalan_CC0_sentences.git",str(r)],check=True)
    fs=["catalan_government_crawling_frases_seleccionades_filtrades.txt","datasets_sentences.tsv","edited_generated_selected_chatbot.txt","edited_selected_chatbot.txt","frases_spl.txt","generades_spl_seleccionades.txt","more_intents.txt","plantilles_intents.txt","literatura.txt","sentences_from_xitxat_corpus.txt","sentences_from_xitxat_corpus2.txt","wikidata_sentences.txt"]
    for n in fs:
-    if (r/n).exists():scan(r/n.parent,"ca","temu_cc0:"+n)
+    if (r/n).exists():scan(r/n,"ca","temu_cc0:"+n)
    try:
     from datasets import load_dataset
     for i,x in enumerate(load_dataset("catallama/Catalan-DPO-V2",split="train",streaming=True)):
@@ -62,7 +62,7 @@ def main():
      if i>=23499:break
    except Exception as e:notes.append("DPO: "+repr(e))
    base="https://huggingface.co/datasets/BSC-LT/Legal_Catalan_Spanish_Parallel_Corpus/resolve/main/"
-   for n in ("legal_ca-es_dataset_clean.tsv","apdcat_ca-es.docs.jsonl"):
+   for n in ("dogc_ca-es.tsv","legal_ca-es_dataset_clean.tsv","apdcat_ca-es.docs.jsonl"):
     p=t/n
     try:D.append(fetch(base+n,p));scan(p,"ca","bsc_legal:"+n)
     except Exception as e:notes.append(n+": "+repr(e))
@@ -89,8 +89,8 @@ def main():
    from datasets import load_dataset
    for i,x in enumerate(load_dataset("ymoslem/UN-Arabic-English-Filtered",split="train",streaming=True)):
     add("ar","un_arabic_english_filtered:text_ar",x.get("text_ar"))
-    if i>=499999:break
-   notes.append("500,000 training pairs streamed as assessment sample; full source not downloaded.")
+    if i%100000==0:print(f"Arabic pairs streamed: {i}",flush=True)
+   notes.append("Full training split streamed; output capped at 50,000 unique candidate passages.")
   seen=set();groups=defaultdict(list);stats=Counter()
   for l,items in R.items():
    for x in items:
@@ -101,9 +101,9 @@ def main():
   for (l,s),items in sorted(groups.items()):
    items.sort(key=lambda x:hashlib.sha256((l+s+x["text"]).encode()).hexdigest());chosen+=items[:50000];stats[l+"|"+s+"|unique"]=len(items);stats[l+"|"+s+"|selected"]=min(50000,len(items))
   with (o/"candidates.jsonl").open("w",encoding="utf8") as f:
-   for x in chosen:f.write(json.dumps(x,ensure_ascii=False)+"\\n")
+   for x in chosen:f.write(json.dumps(x,ensure_ascii=False)+"\n")
   c=Counter((x["language"],x["source"]) for x in chosen)
   report={"source_group":a.source,"downloads":D,"counts":{"|".join(k):v for k,v in sorted(c.items())},"stats":dict(stats),"total_selected":len(chosen),"notes":notes,"status":"automated candidate only; legal and human quality review remain"}
-  (o/"manifest.json").write_text(json.dumps(report,ensure_ascii=False,indent=2)+"\\n");print(json.dumps(report,ensure_ascii=False,indent=2))
+  (o/"manifest.json").write_text(json.dumps(report,ensure_ascii=False,indent=2)+"\n");print(json.dumps(report,ensure_ascii=False,indent=2))
  finally:shutil.rmtree(t,ignore_errors=True)
 if __name__=="__main__":main()
