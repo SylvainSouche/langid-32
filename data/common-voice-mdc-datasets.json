@@ -23,7 +23,10 @@
         "Do not attempt to identify speakers",
         "Do not re-host or re-share dataset"
       ],
-      "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted."
+      "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted.",
+      "mdc_portal_status": "completed",
+      "mdc_portal_completed_date": "2026-11-17",
+      "mdc_portal_status_source": "User-provided MDC dashboard table"
     },
     {
       "locale": "pl",
@@ -33,7 +36,10 @@
       "api_key_env": "MOZILLA",
       "terms_reviewed_by_user": true,
       "terms_details_recorded": false,
-      "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted."
+      "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted.",
+      "mdc_portal_status": "completed",
+      "mdc_portal_completed_date": "2026-11-17",
+      "mdc_portal_status_source": "User-provided MDC dashboard table"
     },
     {
       "locale": "de",
@@ -43,7 +49,10 @@
       "api_key_env": "MOZILLA",
       "terms_reviewed_by_user": true,
       "terms_details_recorded": false,
-      "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted."
+      "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted.",
+      "mdc_portal_status": "completed",
+      "mdc_portal_completed_date": "2026-11-17",
+      "mdc_portal_status_source": "User-provided MDC dashboard table"
     },
     {
       "locale": "sk",
@@ -53,7 +62,10 @@
       "api_key_env": "MOZILLA",
       "terms_reviewed_by_user": true,
       "terms_details_recorded": false,
-      "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted."
+      "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted.",
+      "mdc_portal_status": "completed",
+      "mdc_portal_completed_date": "2026-11-17",
+      "mdc_portal_status_source": "User-provided MDC dashboard table"
     },
     {
       "locale": "en",
@@ -63,7 +75,10 @@
       "api_key_env": "MOZILLA",
       "terms_reviewed_by_user": true,
       "terms_details_recorded": false,
-      "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted."
+      "terms_review_note": "User confirmed that the agreement presented when obtaining this dataset's download URL was reviewed and accepted.",
+      "mdc_portal_status": "completed",
+      "mdc_portal_completed_date": "2026-11-17",
+      "mdc_portal_status_source": "User-provided MDC dashboard table"
     },
     {
       "locale": "is",
@@ -86,7 +101,10 @@
       "terms_reviewed_by_user": false,
       "terms_details_recorded": false,
       "download_status": "already_downloaded_by_user",
-      "download_reason": "User has already downloaded this dataset locally; do not request another MDC download."
+      "download_reason": "User has already downloaded this dataset locally; do not request another MDC download.",
+      "mdc_portal_status": "completed",
+      "mdc_portal_completed_date": "2026-11-17",
+      "mdc_portal_status_source": "User-provided MDC dashboard table"
     },
     {
       "locale": "ru",
@@ -365,6 +383,7 @@
     "Terms acceptance is recorded as user-confirmed for the supplied in-scope datasets; retain each dataset's actual MDC agreement and restrictions as authoritative.",
     "MOZILLA_LAPOSTE is the user's newly supplied account secret environment-variable name; its value must remain in GitHub Actions Secrets or the local environment.",
     "Turkish (tr), Lithuanian (lt), and Maltese (mt) dataset IDs were supplied under MOZILLA_LAPOSTE. Do not download until their dataset-specific agreement acceptance is confirmed.",
-    "French (fr) is now assigned to MOZILLA_LAPOSTE rather than MOZILLA; Icelandic (is) is assigned to MOZILLA_LAPOSTE but remains explicitly excluded from downloads."
+    "French (fr) is now assigned to MOZILLA_LAPOSTE rather than MOZILLA; Icelandic (is) is assigned to MOZILLA_LAPOSTE but remains explicitly excluded from downloads.",
+    "User-provided MDC dashboard on 2026-11-17 marked Romanian (ro), Polish (pl), German (de), Slovak (sk), English (en), and Norwegian Nynorsk (nn) as Completed. Romanian appeared twice in the supplied table; record it once. This records the MDC portal status only and does not assert that the extracted TSV files are present on the GitHub Actions runner."
   ]
 }
