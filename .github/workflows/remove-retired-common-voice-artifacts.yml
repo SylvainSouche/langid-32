@@ -1,0 +1,37 @@
+name: Remove retired Common Voice artifacts
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/trigger-common-voice-cleanup.txt"
+      - ".github/workflows/remove-retired-common-voice-artifacts.yml"
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  delete-retired-artifacts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete artifacts containing retired Common Voice material
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_API_URL: ${{ github.api_url }}
+          GH_REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          for artifact_id in 14319841407 14332474956 14423311681; do
+            code="$(curl --silent --show-error --output /tmp/delete-response.txt --write-out '%{http_code}' \
+              --request DELETE \
+              --header "Authorization: Bearer $GH_TOKEN" \
+              --header "Accept: application/vnd.github+json" \
+              "$GH_API_URL/repos/$GH_REPOSITORY/actions/artifacts/$artifact_id")"
+            case "$code" in
+              204) echo "Deleted artifact $artifact_id" ;;
+              404) echo "Artifact $artifact_id already absent" ;;
+              *) cat /tmp/delete-response.txt; echo "Unexpected HTTP $code deleting $artifact_id"; exit 1 ;;
+            esac
+          done
