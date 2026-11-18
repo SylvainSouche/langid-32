@@ -109,13 +109,13 @@ def test_source_exclusion_registry_removes_document_and_all_derived_split_group(
     rows[0]["provenance"]["source_url"] = "https://example.org/a"
     rows[1]["provenance"]["source_url"] = "https://example.org/a"
     rows[2]["provenance"]["source_url"] = "https://example.org/b"
-    source.write_text("".join(json.dumps(row) + "\\n" for row in rows))
+    source.write_text("".join(json.dumps(row) + "\n" for row in rows))
     registry = tmp_path / "exclusions.jsonl"
     registry.write_text(json.dumps({
         "scope": "url", "source_url": "https://example.org/a",
         "reason_code": "rights_notice", "case_id": "CASE-1",
         "effective_at": "2026-11-18T00:00:00Z", "status": "active",
-    }) + "\\n")
+    }) + "\n")
     args = _args(tmp_path, [source])
     args.exclusions = registry
     merge(args)
@@ -131,12 +131,12 @@ def test_source_exclusion_registry_domain_matches_subdomains(tmp_path):
     source = tmp_path / "source.jsonl"
     row = _row("Sentence from blocked host", "fr", "web", "web:doc1")
     row["provenance"]["source_url"] = "https://news.example.org/article"
-    source.write_text(json.dumps(row) + "\\n")
+    source.write_text(json.dumps(row) + "\n")
     registry = tmp_path / "exclusions.jsonl"
     registry.write_text(json.dumps({
         "scope": "domain", "domain": "example.org",
         "reason_code": "provider_restriction", "effective_at": "2026-11-18",
-    }) + "\\n")
+    }) + "\n")
     args = _args(tmp_path, [source])
     args.exclusions = registry
     merge(args)
