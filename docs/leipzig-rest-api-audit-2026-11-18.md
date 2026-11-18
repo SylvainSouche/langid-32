@@ -50,7 +50,7 @@ The OpenAPI `info` object declares:
 
 - API licence label: **CC BY 4.0**
 - Licence URL: http://creativecommons.org/licenses/by/4.0/
-- Terms-of-service URL: https://wortschatz-leipzig.de/usage
+- Terms-of-service URL: https://wortschatz-leipzig.de/usage\n\nA direct retrieval of the terms URL returned HTTP 200 but only an Anubis anti-bot challenge page; the actual terms text was not accessible to the automated probe. The challenge response was saved in artifact [14423486561](https://github.com/SylvainSouche/langid-32/actions/runs/44295012095/artifacts/14423486561), with SHA-256 `a4c6b8d9376ba31793b501941d4ff1308d1436eeb165217f72e8d96e09f9dc05`. Thus the CC BY 4.0 label is confirmed in OpenAPI metadata, but the linked usage terms themselves remain unreviewed.
 
 Do not interpret the API specification's CC BY 4.0 label as a blanket licence for every sentence or source article. The official Leipzig corpus-statistics portal describes its corpus types as follows:
 
@@ -60,7 +60,7 @@ Do not interpret the API specification's CC BY 4.0 label as a blanket licence fo
 
 The portal also states that source material is collected from selected publicly available sources and that authors are responsible for the content and opinions. This means a Leipzig sentence can be accompanied by a useful source URL without the underlying publisher having granted redistribution rights. For Wikipedia-derived corpora, the applicable Wikipedia licence and revision attribution need to be established; for news/web-derived corpora, the original publisher's terms and any applicable licence must be checked per source work.
 
-**Current decision: technically viable API lead; rights HOLD; no Leipzig text acquired.** Before any sentence is staged, preserve the returned source ID, URL and date, resolve the original page's title/author/publisher and licence or permission, and apply the project's excerpt-level rights gate. Missing or contradictory source rights mean hold/exclude, not attribution-only release.
+**Current decision: technically viable API lead; rights HOLD; no Leipzig text acquired.** The linked usage terms remain unreviewed because the terms page returned an Anubis challenge. Before any sentence is staged, preserve the returned source ID, URL and date, resolve the original page's title/author/publisher and licence or permission, and apply the project's excerpt-level rights gate. Missing or contradictory source rights mean hold/exclude, not attribution-only release.
 
 ## Scholarly citation
 
