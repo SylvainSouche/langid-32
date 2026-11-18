@@ -47,6 +47,7 @@ Earlier workflow runs already uploaded text-bearing artifacts before this policy
 | [44121162591](https://github.com/SylvainSouche/langid-32/actions/runs/44121162591) | 14345216923 | Tatoeba CC0 staged rows |
 | [44291075180](https://github.com/SylvainSouche/langid-32/actions/runs/44291075180) | 14421763101 | DGT-TM 2021 staged translation units |
 | [44241908630](https://github.com/SylvainSouche/langid-32/actions/runs/44241908630) | 14403758073 | Historical waiting-source candidate rows |
+| [44315031026](https://github.com/SylvainSouche/langid-32/actions/runs/44315031026) | 14431583044 | HF-hosted CC0 Common Voice source manifest and aggregate report only; no sentence text |
 
 Run [44293866614](https://github.com/SylvainSouche/langid-32/actions/runs/44293866614) was still running when this note was written and was started before the metadata-only workflow change. Its original workflow definition may still upload candidate text. Its completion and artifact contents must be checked.
 
