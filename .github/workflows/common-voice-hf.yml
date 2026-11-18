@@ -4,7 +4,6 @@ on:
   push:
     branches: [main]
     paths:
-      - ".github/workflows/common-voice-hf.yml"
       - "scripts/download_common_voice_hf.py"
       - "scripts/curate_common_voice_mdc.py"
       - "scripts/merge_common_voice_v27_hr.py"
@@ -59,11 +58,10 @@ jobs:
         run: |
           mkdir -p /tmp/common-voice-artifact
           cp /tmp/common-voice-private/hf-common-voice-download-manifest.json /tmp/common-voice-artifact/ 2>/dev/null || true
-          cp /tmp/common-voice-curated/common_voice_candidates.jsonl /tmp/common-voice-artifact/ 2>/dev/null || true
           cp /tmp/common-voice-curated/common_voice_report.json /tmp/common-voice-artifact/ 2>/dev/null || true
           cp /tmp/common-voice-curated/common_voice_v27_hr_provenance.json /tmp/common-voice-artifact/ 2>/dev/null || true
 
-      - name: Upload curated text and audit manifest only
+      - name: Upload metadata manifests only (public repository; no sentence text)
         if: always()
         uses: actions/upload-artifact@v4
         with:
