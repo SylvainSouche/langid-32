@@ -210,6 +210,20 @@ def read_inputs(paths: list[Path], args):
                 if LONG_NUMBER_RE.search(text):
                     privacy_flags.add("long_numeric_sequence")
                 provenance["privacy_flags"] = sorted(privacy_flags)
+                if not provenance.get("rights_status"):
+                    source_name = str(row["source"])
+                    if source_name.startswith(("fineweb", "fineweb2")):
+                        provenance["rights_status"] = "hold_underlying_web_text_rights_unresolved"
+                    elif source_name == "common_voice_v22":
+                        provenance["rights_status"] = "hold_locale_terms_and_conversion_chain_review"
+                    elif source_name == "common_voice_v27":
+                        provenance["rights_status"] = "hold_locale_terms_acceptance_not_recorded"
+                    elif source_name == "dgt-tm-2021":
+                        provenance["rights_status"] = "attribution_notice_required"
+                    elif source_name == "tatoeba-cc0":
+                        provenance["rights_status"] = "cc0_export_rows_only"
+                    else:
+                        provenance["rights_status"] = "rights_review_required"
                 group = str(row["group_id"]).strip()
                 if not group:
                     rejected["empty_group_id"] += 1
@@ -300,8 +314,6 @@ def merge(args):
     exclusions = load_exclusions(exclusions_path)
     rows, rejected = read_inputs(args.inputs, args)
 
-    # Remove every occurrence of any normalized string shared by more than one
-    # target language. Such strings are ambiguous labels, not useful examples.
     owners = defaultdict(set)
     for row in rows:
         owners[row["text"]].add(row["language"])
@@ -338,79 +350,129 @@ def merge(args):
     if not 0 < preferred_share <= hard_share <= 1:
         raise ValueError("source shares must satisfy 0 < preferred <= maximum <= 1")
 
+    if args.max_per_language:
+        total_target = args.max_per_language
+        core_target = min(getattr(args, "core_per_language", 20000), total_target)
+        reserve_target = total_target - core_target
+        core_caps = {
+            "train": max(0, core_target
+                         - round(core_target * args.validation_fraction)
+                         - round(core_target * args.test_fraction)),
+            "validation": round(core_target * args.validation_fraction),
+            "test": round(core_target * args.test_fraction),
+        }
+    else:
+        total_target = core_target = None
+        reserve_target = 0
+        core_caps = {name: None for name in SPLITS}
+
     by_bucket = defaultdict(list)
     for row in selected:
         by_bucket[(row["language"], row["split"])].append(row)
-    if args.max_per_language:
-        caps = {
-            "train": max(0, args.max_per_language
-                         - round(args.max_per_language * args.validation_fraction)
-                         - round(args.max_per_language * args.test_fraction)),
-            "validation": round(args.max_per_language * args.validation_fraction),
-            "test": round(args.max_per_language * args.test_fraction),
-        }
-    else:
-        # Zero disables both the per-language total cap and source-share caps.
-        caps = {name: None for name in SPLITS}
 
-    output = args.output
-    output.mkdir(parents=True, exist_ok=True)
-    counts = Counter()
-    source_counts = Counter()
+    core_by_bucket = {}
     source_quota_shortfalls = {}
-    output_hashes = {}
-    public_keys = ("text", "language", "source", "split")
-    selected_by_bucket = {}
+    core_split_groups = set()
     for language in LANGUAGES:
         for split in SPLITS:
             bucket = sorted(by_bucket[(language, split)], key=lambda row: row["_priority"])
             if args.max_per_language:
                 chosen, bucket_source_counts = _select_source_balanced(
-                    bucket, caps[split], preferred_share, hard_share
+                    bucket, core_caps[split], preferred_share, hard_share
                 )
-                if len(chosen) < caps[split]:
-                    source_quota_shortfalls[f"{language}:{split}"] = {
-                        "expected": caps[split],
+                if len(chosen) < core_caps[split]:
+                    source_quota_shortfalls[f"{language}:core:{split}"] = {
+                        "expected": core_caps[split],
                         "actual": len(chosen),
                         "source_counts": dict(sorted(bucket_source_counts.items())),
                         "reason": "insufficient source diversity or source records under hard share cap",
                     }
             else:
                 chosen = bucket
-            selected_by_bucket[(language, split)] = chosen
+            core_by_bucket[(language, split)] = chosen
+            core_split_groups.update(row["split_group_id"] for row in chosen)
+
+    reserve_by_language = {language: [] for language in LANGUAGES}
+    reserve_counts = Counter()
+    if args.max_per_language and reserve_target:
+        reserve_candidates = defaultdict(list)
+        for row in selected:
+            if row["split_group_id"] not in core_split_groups:
+                reserve_candidates[row["language"]].append(row)
+        for language in LANGUAGES:
+            bucket = sorted(reserve_candidates[language], key=lambda row: row["_priority"])
+            chosen, bucket_source_counts = _select_source_balanced(
+                bucket, reserve_target, preferred_share, hard_share
+            )
+            if len(chosen) < reserve_target:
+                source_quota_shortfalls[f"{language}:reserve"] = {
+                    "expected": reserve_target,
+                    "actual": len(chosen),
+                    "source_counts": dict(sorted(bucket_source_counts.items())),
+                    "reason": "insufficient unused document groups or source diversity under hard share cap",
+                }
+            for row in chosen:
+                item = dict(row)
+                item["pool_role"] = "reserve"
+                item["reserved_split_assignment"] = item.pop("split")
+                reserve_by_language[language].append(item)
+                reserve_counts[language] += 1
+
+    output = args.output
+    output.mkdir(parents=True, exist_ok=True)
+    counts = Counter()
+    source_counts = Counter()
+    output_hashes = {}
+    public_keys = ("text", "language", "source", "split")
+    internal_rows = []
+    for language in LANGUAGES:
+        for split in SPLITS:
+            for row in core_by_bucket[(language, split)]:
+                item = dict(row)
+                item["pool_role"] = "core"
+                internal_rows.append(item)
+    for language in LANGUAGES:
+        internal_rows.extend(reserve_by_language[language])
 
     for split in SPLITS:
         public_path = output / f"{split}.jsonl"
         with public_path.open("w", encoding="utf-8", newline="\n") as public:
             for language in LANGUAGES:
-                for row in selected_by_bucket[(language, split)]:
+                for row in core_by_bucket[(language, split)]:
                     public.write(json.dumps(
                         {key: row[key] for key in public_keys},
                         ensure_ascii=False, separators=(",", ":")
                     ) + "\n")
                     counts[f"{language}:{split}"] += 1
-                    source_counts[f"{row['source']}:{language}:{split}"] += 1
+                    source_counts[f"{row['source']}:{language}:core:{split}"] += 1
         output_hashes[public_path.name] = digest(public_path.read_text(encoding="utf-8"))
+
+    reserve_path = output / "reserve.jsonl"
+    with reserve_path.open("w", encoding="utf-8", newline="\n") as reserve:
+        for language in LANGUAGES:
+            for row in reserve_by_language[language]:
+                reserve.write(json.dumps({
+                    "text": row["text"],
+                    "language": row["language"],
+                    "source": row["source"],
+                    "pool_role": "reserve",
+                }, ensure_ascii=False, separators=(",", ":")) + "\n")
+                source_counts[f"{row['source']}:{language}:reserve"] += 1
+    output_hashes[reserve_path.name] = digest(reserve_path.read_text(encoding="utf-8"))
 
     if args.require_exact_counts and args.max_per_language:
         shortfalls = {
             f"{language}:{split}": {
-                "expected": caps[split],
+                "expected": core_caps[split],
                 "actual": counts[f"{language}:{split}"],
             }
             for language in LANGUAGES for split in SPLITS
-            if counts[f"{language}:{split}"] != caps[split]
+            if counts[f"{language}:{split}"] != core_caps[split]
         }
         if shortfalls:
-            raise ValueError(f"exact per-language split target not met: {shortfalls}")
+            raise ValueError(f"exact per-language core split target not met: {shortfalls}")
 
     internal_path = output / "records.jsonl"
-    internal_rows = []
-    for split in SPLITS:
-        for language in LANGUAGES:
-            for row in selected_by_bucket[(language, split)]:
-                internal_rows.append({key: value for key, value in row.items()
-                                      if key != "_priority"})
     with internal_path.open("w", encoding="utf-8", newline="\n") as stream:
         for row in internal_rows:
             stream.write(json.dumps(row, ensure_ascii=False,
@@ -418,13 +480,20 @@ def merge(args):
     output_hashes[internal_path.name] = digest(internal_path.read_text(encoding="utf-8"))
 
     privacy_flag_counts = Counter()
+    rights_status_counts = Counter()
     output_groups = set()
     output_groups_by_source = defaultdict(set)
+    core_group_ids = set()
+    reserve_group_ids = set()
     for row in internal_rows:
-        flags = row.get("provenance", {}).get("privacy_flags", [])
-        privacy_flag_counts.update(flags)
+        privacy_flag_counts.update(row.get("provenance", {}).get("privacy_flags", []))
+        rights_status_counts[row.get("provenance", {}).get("rights_status", "unclassified")] += 1
         output_groups.add(row["group_id"])
         output_groups_by_source[row["source"]].add(row["group_id"])
+        if row["pool_role"] == "core":
+            core_group_ids.add(row["split_group_id"])
+        else:
+            reserve_group_ids.add(row["split_group_id"])
 
     manifest = {
         "schema_version": 1,
@@ -441,28 +510,35 @@ def merge(args):
             "seed": args.seed,
             "validation_fraction": args.validation_fraction,
             "test_fraction": args.test_fraction,
-            "max_per_language_total": args.max_per_language,
-            "split_caps": caps,
+            "max_per_language_total": total_target,
+            "core_per_language": core_target,
+            "reserve_per_language": reserve_target,
+            "core_split_caps": core_caps,
             "deduplication": "exact normalized text within language across all inputs",
             "cross_language_collision_policy": "remove every occurrence of a normalized string present in more than one target language",
-            "group_split": "deterministic hash of split_group_id (or group_id); shared split groups stay in one split",
+            "group_split": "deterministic hash of split_group_id (or group_id); reserve excludes every group used in core",
             "source_balancing": {
-                "preferred_max_share_per_language_and_split": preferred_share,
-                "hard_max_share_per_language_and_split": hard_share,
+                "preferred_max_share_per_language_and_bucket": preferred_share,
+                "hard_max_share_per_language_and_bucket": hard_share,
                 "policy": "fill to preferred share per source first; relax only as needed up to hard maximum; underfill rather than exceed hard maximum",
             },
+            "reserve_policy": "reserve is emitted separately without a train/validation/test split and excludes every split group selected into core",
             "privacy_filters": "exclude email, URL and IPv4 matches; retain phone-like and 9+ digit sequences with flags",
             "source_exclusion_registry": str(exclusions_path) if exclusions_path else None,
             "exclusion_matching": "document, exact URL/hash, domain, archive batch or source dataset; any matched group/split group is cascaded out",
         },
         "counts": dict(sorted(counts.items())),
+        "reserve_counts": dict(sorted(reserve_counts.items())),
         "source_counts": dict(sorted(source_counts.items())),
         "source_quota_shortfalls": source_quota_shortfalls,
         "cross_language_collision_strings_removed": len(cross_language_texts),
         "rejected": dict(sorted(rejected.items())),
         "duplicate_source_pairs": dict(sorted(duplicate_by_source_pair.items())),
         "privacy_flag_counts": dict(sorted(privacy_flag_counts.items())),
+        "rights_status_counts": dict(sorted(rights_status_counts.items())),
         "group_count": len(output_groups),
+        "core_group_count": len(core_group_ids),
+        "reserve_group_count": len(reserve_group_ids),
         "candidate_group_count": len(group_splits),
         "group_counts_by_source": {source: len(groups) for source, groups in sorted(output_groups_by_source.items())},
         "output_sha256": output_hashes,
@@ -483,7 +559,8 @@ def merge(args):
     (output / "manifest.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
-    print(json.dumps({"counts": manifest["counts"], "source_counts": manifest["source_counts"],
+    print(json.dumps({"counts": manifest["counts"], "reserve_counts": manifest["reserve_counts"],
+                      "source_counts": manifest["source_counts"],
                       "source_quota_shortfalls": manifest["source_quota_shortfalls"],
                       "rejected": manifest["rejected"], "groups": manifest["group_count"]},
                      ensure_ascii=False, indent=2))
@@ -499,8 +576,10 @@ def main():
     parser.add_argument("--min-chars", type=int, default=12)
     parser.add_argument("--max-chars", type=int, default=500)
     parser.add_argument("--max-bytes", type=int, default=1500)
-    parser.add_argument("--max-per-language", type=int, default=20000,
-                        help="Total cap per language; 0 disables all caps")
+    parser.add_argument("--max-per-language", type=int, default=30000,
+                        help="Total candidate pool per language; 0 disables all caps")
+    parser.add_argument("--core-per-language", type=int, default=20000,
+                        help="Core pool per language; remainder is held separately as reserve")
     parser.add_argument("--preferred-source-share", type=float, default=0.30,
                         help="Preferred maximum share for one source in a language/split bucket")
     parser.add_argument("--max-source-share", type=float, default=0.50,
@@ -515,6 +594,10 @@ def main():
         parser.error("invalid text length limits")
     if args.max_per_language < 0:
         parser.error("--max-per-language must be >= 0")
+    if args.core_per_language < 0:
+        parser.error("--core-per-language must be >= 0")
+    if args.max_per_language and args.core_per_language > args.max_per_language:
+        parser.error("--core-per-language cannot exceed --max-per-language")
     if not 0 < args.preferred_source_share <= args.max_source_share <= 1:
         parser.error("source shares must satisfy 0 < preferred <= maximum <= 1")
     if not 0 <= args.validation_fraction < 1 or not 0 <= args.test_fraction < 1:
