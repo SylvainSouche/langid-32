@@ -1,3 +1,5 @@
+> **Historical audit of v4.** This is a frozen analysis of the 16 November 2026 artifact, not the current corpus inventory or acquisition plan. See [the canonical source register](source-register.md) for current source status.
+
 # Independent audit: three-source candidate v4
 
 Audit date: 2026-11-16. Input: the private GitHub Actions artifact `multisource-candidate-v4-unicode-pii-clean`, produced by [run 43938190407](https://github.com/SylvainSouche/langid-32/actions/runs/43938190407). The archive was downloaded and its JSONL contents inspected locally. No corpus text was committed to Git.
