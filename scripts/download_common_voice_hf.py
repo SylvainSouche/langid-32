@@ -4,7 +4,7 @@
 No audio, clips, speaker IDs, demographic metadata, or full dataset archive is fetched.
 """
 from __future__ import annotations
-import argparse, csv, hashlib, json, os, time, urllib.error, urllib.request
+import argparse, csv, hashlib, json, os, re, time, urllib.error, urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -71,9 +71,12 @@ def main():
     unknown=sorted(set(wanted)-set(LOCALES))
     if unknown: p.error("Unknown target language(s): "+", ".join(unknown))
     a.output_dir.mkdir(parents=True,exist_ok=True)
-    from huggingface_hub import HfApi
-    resolved_revision = HfApi().dataset_info(REPO, revision=a.revision).sha
-    if not resolved_revision:
+    api_url = f"https://huggingface.co/api/datasets/{REPO}"
+    request = urllib.request.Request(api_url, headers={"User-Agent": "langid-32/0.4"})
+    with urllib.request.urlopen(request, timeout=60) as response:
+        repo_info = json.load(response)
+    resolved_revision = repo_info.get("sha")
+    if not resolved_revision or not re.fullmatch(r"[0-9a-f]{40}", resolved_revision):
         raise RuntimeError(f"Could not resolve immutable revision for {REPO}@{a.revision}")
     manifest_path=a.output_dir/"hf-common-voice-download-manifest.json"
     manifest={"source":REPO,"release":"Common Voice Corpus 22.0 (unofficial HF conversion)",
