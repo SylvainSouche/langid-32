@@ -1,4 +1,4 @@
-"""Three comparable 32-class language-ID model families."""
+"""Three comparable language-ID model families; class count is configurable."""
 from __future__ import annotations
 
 import torch
@@ -8,7 +8,7 @@ from torch.nn import functional as F
 
 class SparseNgramLogReg(nn.Module):
     """A1: hashed character n-gram counts followed by a linear classifier."""
-    def __init__(self, buckets: int = 65536, classes: int = 32):
+    def __init__(self, buckets: int = 65536, classes: int = 34):
         super().__init__()
         self.weight = nn.Parameter(torch.empty(classes, buckets))
         self.bias = nn.Parameter(torch.zeros(classes))
