@@ -121,7 +121,7 @@ def normalize_file(source_path: Path, destination: Path, *, filter_superseded=Fa
                     "https://joint-research-centre.ec.europa.eu/language-technology-resources/"
                     "dgt-translation-memory_en"
                 )
-                provenance["source_latest_update"] = "DGT-TM release 2021"
+                provenance["source_latest_update"] = "DGT-TM release 2021; exact day/month not stated on JRC page"
                 row["text_origin"] = "eu_legislation"
             if family == "catalan_dpo_v2":
                 row_id = provenance.get("dataset_row_id")
