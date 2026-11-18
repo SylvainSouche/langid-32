@@ -212,28 +212,17 @@ Short quotation from the original Capybara README: “Most tokens contained in t
 **Decision:** the 30,790 rows from the old waiting-source artifact are quarantined and excluded from all Catalan totals. The acquisition workflow now deliberately skips DPO V2. Active source-dataset exclusion rules enforce this for both `chosen` and `messages`. A third active rule excludes all 4,930 Greynir rows from the main corpus because they are parser gold/development samples, not representative corpus text. The previous artifact's 613,860 rows therefore reduce to 578,140 non-DPO, non-Greynir technical candidates; this does not make the remaining rows release-cleared.
 
 
-## 10. Common Voice 22.0 — CC0 and the later MDC no-mirroring terms are separate
+## 10. Common Voice 22.0 — HF-hosted CC0 dataset
 
-Third-party conversion: https://huggingface.co/datasets/fsicoli/common_voice_22_0  
-Mozilla Common Voice terms (effective 31 October 2025): https://commonvoice.mozilla.org/en/terms  
-Common Voice 22.0 release announcement (25 June 2025): https://discourse.mozilla.org/t/common-voice-22-0-release/144358  
-Official CV dataset metadata repository: https://github.com/common-voice/cv-dataset  
+Hugging Face dataset: https://huggingface.co/datasets/fsicoli/common_voice_22_0
+Common Voice 22.0 release announcement (25 June 2025): https://discourse.mozilla.org/t/common-voice-22-0-release/144358
 Associated paper: Ardila et al. (2020), “Common Voice: A Massively-Multilingual Speech Corpus,” LREC 2020, pp. 4211–4215. https://aclanthology.org/2020.lrec-1.520/
 
-The third-party Hugging Face repository describes itself as “an unofficial version” downloaded and converted from the Common Voice website. It declares CC0-1.0. HF metadata records creation on 27 June 2025 and last update 11 August 2025. The Mozilla Common Voice 22.0 release announcement is dated 25 June 2025. Thus this conversion predates the new Common Voice terms effective 31 October 2025.
+The HF repository describes itself as an unofficial Common Voice Corpus 22.0 conversion and declares CC0-1.0 in its dataset card. The project uses this HF-hosted dataset as the source and fetches only the validated sentence TSVs. The acquisition manifest records the immutable dataset revision, locale, file SHA-256 and retrieval time. No audio, speaker identifiers or demographic metadata are acquired.
 
-The current Mozilla terms continue to make contributions available under CC0, but separately state that Common Voice datasets are made available “exclusively through MDC” and ask users not to “post, distribute, or mirror any Common Voice dataset, in whole or in part, on other platforms or services.” The legal distinction matters:
-- CC0 addresses copyright and related rights in contributions.
-- The Common Voice Terms of Use contain a separate access/stewardship restriction concerning distribution and mirroring.
-- The HF conversion was created before that change and is a third-party copy downloaded from the public Common Voice website, not an MDC download. The terms' retroactive application to this already-published copy, and their contractual effect on downstream users who did not accept them, are not established by the source card.
-- Publishing selected text-only excerpts in another dataset may still be characterised as redistributing part of a Common Voice dataset; do not assume that using text rather than audio avoids the wording.
+The 2026 pilot retained 259,352 text candidates across 33 target labels. Croatian is absent from this HF source and remains an explicit gap; it will be sourced independently. The Common Voice paper is cited as scholarly acknowledgement; it is not used as a substitute for the dataset card's CC0 declaration.
 
-The associated Ardila et al. paper describes Common Voice as a “massively-multilingual speech corpus” and notes its usefulness for “language identification”. That is task-relevance evidence, not a rights grant. The paper's citation should accompany the source attribution, but it does not replace the CC0 dedication or the current Mozilla terms.
-
-The 27.0 Romanian MDC terms acceptance previously recorded for this project is specific to Romanian and prohibits re-hosting/re-sharing; it must not be generalized to CV22 or other CV27 locales. The Croatian CV27 sample has no recorded locale-specific acceptance. CV22's current text-only sample retains locale, upstream sentence ID, exact HF conversion revision and per-locale TSV hashes, but this provenance does not resolve the contractual question.
-
-**Decision:** keep the 259,352 CV22 rows on hold and do not publish them while the pre-/post-31 October 2025 terms question is unresolved. Do not delete or conflate the CC0 claim; record it separately from the no-mirroring term and obtain a specific legal determination. Keep CV27 locale acceptances separate.
-
+**Decision:** retain the HF-hosted fsicoli/common_voice_22_0 CC0-1.0 dataset as the sole Common Voice source. Do not retain any Common Voice material acquired from a different repository or hosting route.
 
 ## 11. Målfrid 2026 — NLOD, database compatibility, personal data and document language
 

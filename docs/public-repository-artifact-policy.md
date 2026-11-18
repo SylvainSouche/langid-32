@@ -25,7 +25,7 @@ For future runs in this public repository:
 Workflow changes made to implement metadata-only artifacts include:
 
 - `acquire-waiting-sources.yml`
-- `common-voice-hf.yml`
+- `common-voice-cc0-hf.yml`
 - `dgt-tmx-ingest.yml`
 - `tatoeba-ingest.yml`
 - `fineweb-extract.yml`
@@ -44,15 +44,13 @@ Earlier workflow runs already uploaded text-bearing artifacts before this policy
 | Workflow run | Artifact | Contents |
 |---|---:|---|
 | [43950037392](https://github.com/SylvainSouche/langid-32/actions/runs/43950037392) | 14266897039 | Historical multisource candidate v5 records |
-| [44058539144](https://github.com/SylvainSouche/langid-32/actions/runs/44058539144) | 14319841407 | Common Voice 27 Croatian candidate subset |
 | [44121162591](https://github.com/SylvainSouche/langid-32/actions/runs/44121162591) | 14345216923 | Tatoeba CC0 staged rows |
 | [44291075180](https://github.com/SylvainSouche/langid-32/actions/runs/44291075180) | 14421763101 | DGT-TM 2021 staged translation units |
-| [44293665775](https://github.com/SylvainSouche/langid-32/actions/runs/44293665775) | 14423311681 | Common Voice mixed text pilot |
 | [44241908630](https://github.com/SylvainSouche/langid-32/actions/runs/44241908630) | 14403758073 | Historical waiting-source candidate rows |
 
 Run [44293866614](https://github.com/SylvainSouche/langid-32/actions/runs/44293866614) was still running when this note was written and was started before the metadata-only workflow change. Its original workflow definition may still upload candidate text. Its completion and artifact contents must be checked.
 
-These artifacts have not been deleted by this change. The connected GitHub actions available in this session do not expose artifact deletion. The repository owner should decide whether to delete the listed and any other text-bearing artifacts, or make the repository private while staging is in progress. Making the repository private is a separate owner decision; it has not been changed here.
+Three retired Common Voice artifacts are scheduled for deletion by the one-off cleanup workflow: 14319841407 (Croatian subset), 14332474956 (mixed pilot) and 14423311681 (mixed-source metadata). The workflow uses the repository's Actions API with explicit actions:write permission. The deletion result will be checked and recorded here; the other non-Common-Voice artifacts listed above are unchanged.
 
 ## Important distinction
 

@@ -53,13 +53,15 @@ Source totals in this candidate: FineWeb2 510,702; DGT-TM 91,539; Tatoeba CC0 31
 
 **The 50% source ceiling fails in all 32 languages in this candidate.** FineWeb2 supplies about 80% in most EU classes, 100% in several non-EU classes; English is 62.4% Tatoeba and Russian is 52.9% Tatoeba. French is 51.3% FineWeb2. The source mix must be rebuilt; do not train or publish from this artifact as-is.
 
-## Common Voice 22 / 27 text-only pilot
+## HF-hosted Common Voice 22.0 CC0 text-only pilot
 
-Counts below are selected rows after the pilot's own normalization, basic privacy-pattern exclusions, within-label deduplication and cross-label collision removal. The cap is 9,000. Croatian comes from the retained Common Voice 27 subset; other successful locales come from the HF Common Voice 22 conversion.
+The historical HF-only component contains **259,352** selected rows across 33 target labels. The Croatian (hr) slot is empty and will be filled only from an independent alternative source. The previous mixed-source report and its data artifacts are being withdrawn; no data from the retired direct-hosted route is retained in the active source pipeline.
+
+The HF dataset [fsicoli/common_voice_22_0](https://huggingface.co/datasets/fsicoli/common_voice_22_0) declares CC0-1.0. The project downloads only transcript/<locale>/validated_sentences.tsv, pins the resolved repository revision, and retains locale, sentence ID and per-locale TSV SHA-256. No audio, speaker identifiers or demographic metadata are fetched.
 
 | Language | Selected | Language | Selected |
 |---|---:|---|---:|
-| bg | 9,000 | hr | 1,724 |
+| bg | 9,000 | hr | 0 — source gap |
 | is | 4,991 | ca | 9,000 |
 | cs | 9,000 | da | 9,000 |
 | nl | 9,000 | en | 9,000 |
@@ -77,16 +79,16 @@ Counts below are selected rows after the pilot's own normalization, basic privac
 | zh | 9,000 | ko | 6,258 |
 | ar | 9,000 | tr | 9,000 |
 
-Total selected: 261,076. Icelandic and Catalan are present here but have no rows in the v5 multisource candidate. Ten classes are below the 9,000 pilot cap: hr, is, fi, el, ga, mt, sl, nb, nn and ko. Every class remains far below the 20,000 minimum. No pilot class reaches 20,000.
+Total: **259,352**. The cap is 9,000. Every populated class remains below the 20,000 minimum.
 
-Pilot limitations: no train/validation/test split; no global deduplication against v5 or the refreshed Tatoeba/DGT staging; automated privacy patterns are not complete PII clearance; no human language/content review; source terms and immutable upstream revisions still need final verification. The HF CV22 download manifest did not return a resolved commit for Catalan, so that locale is not immutably pinned.
+Pilot limitations: no train/validation/test split; no global deduplication against v5 or the refreshed Tatoeba/DGT staging; automated privacy patterns are not complete PII clearance; no human language/content review. The source's HF dataset card declares CC0-1.0; retain the exact dataset revision, file hashes and scholarly citation.
 
 ## Source rights and outstanding acquisition
 
 - **FineWeb2 / FineWeb:** candidate v5 manifests identify ODC-By for the dataset/compilation, while explicitly leaving underlying web-source rights separate. These rows are on legal hold and cannot count toward a public redistributable corpus until the underlying text rights are established.
 - **Tatoeba:** only `sentences_CC0.csv` rows are staged as CC0; the general export is not treated as CC0. The v5 candidate retained only 31,791 Tatoeba rows after merge. The fresh official export is being re-downloaded.
 - **DGT-TM 2021:** attribution and Commission ownership/source conditions apply. The v5 candidate retained 91,539 rows. Preserve source/date and ownership notices; verify the exact redistribution terms before final corpus licensing.
-- **Common Voice:** the pilot is text-only, with no audio or speaker identifiers. The source's CC0 claim does not by itself settle all contractual terms. Acceptance/terms must be tracked per locale; do not infer acceptance for every locale from another locale's acceptance.
+- **Common Voice:** use only the HF-hosted [CC0-1.0 fsicoli/common_voice_22_0](https://huggingface.co/datasets/fsicoli/common_voice_22_0) dataset. The current workflow downloads transcript text only. Croatian has no source in this dataset and remains unfilled.
 - **Catalan:** TeMU-BSC has CC0-labelled constituent datasets, including candidate components reported at 93,691 and 155,990 sentences, but constituent provenance/waivers need checking individually. They have not been downloaded and curated in this run.
 - **Icelandic:** 50,000 IGC2024 Filtered-1 candidates are staged from the CC BY 4.0 open-access portion (≈795M words); the 2026 paper distinguishes this from the ≈895M-word custom-licensed portion. Preserve tei_archive/tei_path/source/altered for attribution. Greynir's 4,930 historical parser gold/dev rows are excluded from the main candidate merge. IGC Filtered-2 is excluded because its custom terms prohibit raw-text republication.
 - **Norwegian Bokmål/Nynorsk:** Målfrid 2026 inventories 1.89B and 170.2M tokens respectively under NLOD 2.0. The archives have not been downloaded/curated here; preserve database-right and attribution distinctions. The randomized Nynorsk corpus (3.3M sentences) is lemmatized/tagged and is not clean raw text.
@@ -107,7 +109,7 @@ At present:
 - 0/34 languages have a verified, publication-ready count of 20,000.
 - 0/34 meet the 30,000 target.
 - 32/34 have a measured 20,000-row technical candidate, but every one violates the source-share ceiling and the dominant web-crawl rights remain unresolved.
-- 34/34 have a Common Voice text-only pilot, but each is below 20,000 and the pilot is not globally deduplicated or fully rights-cleared.
+- 33/34 have a Common Voice text-only pilot from the HF-hosted CC0 dataset; Croatian (hr) remains an explicit source gap. Each populated class is below 20,000.
 - Icelandic and Catalan need additional non-Common-Voice sources.
 - Norwegian needs the Målfrid extraction path; Korean needs a rights-cleared volume source.
 

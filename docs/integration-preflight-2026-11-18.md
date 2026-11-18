@@ -7,7 +7,7 @@ This note records a direct schema/provenance inspection of the completed GitHub 
 | Component | Run / artifact | Rows | Result |
 |---|---:|---:|---|
 | Historical multisource v5 | [43950037392](https://github.com/SylvainSouche/langid-32/actions/runs/43950037392) / 14266897039 | 640,000 | Required merge fields and private provenance are present. Its DGT-TM (91,539) and Tatoeba (31,791) rows are superseded by the refreshed artifacts below; retain only FineWeb/FineWeb2 rows from this artifact for a refreshed technical integration. |
-| Common Voice mixed text pilot | [44293665775](https://github.com/SylvainSouche/langid-32/actions/runs/44293665775) / 14423311681 | 261,076 | All 34 requested locale files resolve to immutable HF dataset revision `ae911de250fe9375d08e2daa2105b671d659d446`; CV22 rows now retain `source_locale`, upstream `sentence_id`, per-locale TSV SHA-256 and repo revision. Croatian CV27 rows carry verified archive/TSV hashes and an explicit locale-terms hold; no upstream sentence ID was retained for those rows. |
+| HF-hosted Common Voice 22.0 CC0 text pilot | Historical HF-only component: 259,352 | 259,352 | HF source revision `ae911de250fe9375d08e2daa2105b671d659d446`; CV22 rows retain `source_locale`, upstream `sentence_id`, per-locale TSV SHA-256 and repository revision. Croatian is excluded and remains an alternative-source gap. Earlier mixed-source artifacts are being deleted. |
 | Tatoeba CC0 refresh | [44121162591](https://github.com/SylvainSouche/langid-32/actions/runs/44121162591) / 14345216923 | 80,155 | Required merge fields and provenance are present. Manifest confirms only `sentences_CC0.csv` rows are emitted; base export is used only for translation grouping. |
 | DGT-TM 2021 refresh | [44291075180](https://github.com/SylvainSouche/langid-32/actions/runs/44291075180) / 14421763101 | 120,000 | Required merge fields and provenance are present. New run completed successfully, including tests, official archive download, staging and artifact upload. |
 | Waiting-source acquisition | [44241908630](https://github.com/SylvainSouche/langid-32/actions/runs/44241908630) / 14403758073 | 613,860 | **Not mergeable in its current form.** Every sampled row lacks `source_release`, `licence_id`, `text_origin` and `provenance`. The source-specific manifests contain archive/file hashes and aggregate counts, but those are not attached to the individual rows. |
@@ -29,9 +29,9 @@ Do not fix this by assigning a generic permissive licence or inventing source-do
 
 For file-based inputs, a line number or hash of the extracted sentence is not a substitute for the original article/document identity where article-level rights or attribution may apply. Records that cannot be tied to the necessary upstream work must remain held or be excluded from any release-eligible merge.
 
-### Common Voice revision and row provenance
+### HF-hosted Common Voice CC0 revision and row provenance
 
-The refreshed Common Voice run [44293665775](https://github.com/SylvainSouche/langid-32/actions/runs/44293665775) now resolves all 34 requested locale files to one immutable dataset revision: `ae911de250fe9375d08e2daa2105b671d659d446`. The candidate JSONL carries locale, sentence ID, file SHA-256 and revision in each CV22 row. The Croatian CV27 subset carries a verified source-archive SHA-256 and validated-sentences TSV SHA-256; its upstream sentence ID was not retained, so its group ID remains a candidate-record hash. Locale-specific terms and the no-rehosting restriction still require separate checks; the Romanian acceptance must not be generalized to Croatian or other locales.
+The retained Common Voice source is the HF-hosted [fsicoli/common_voice_22_0](https://huggingface.co/datasets/fsicoli/common_voice_22_0), whose card declares CC0-1.0. The workflow fetches only validated transcript TSVs. Each CV22 candidate retains locale, sentence ID, immutable dataset revision and per-locale TSV SHA-256. Croatian rows are not retained; an alternative independent source is required for hr. The old mixed-source workflow and its artifacts are being withdrawn.
 
 ### Refreshed DGT-TM
 
@@ -39,9 +39,9 @@ The refreshed DGT-TM 2021 artifact is now confirmed complete: 120,000 rows, 5,00
 
 ## Integration decision
 
-A refreshed global 34-label merge has **not** been run. The earlier gross planning baseline of 977,901 rows is simply the arithmetic combination of v5 FineWeb/FineWeb2 rows (after removing its superseded DGT/Tatoeba rows), the Common Voice pilot, refreshed Tatoeba and refreshed DGT-TM. It is not a unique-record count, not a source-quota result, and not a rights-cleared total.
+A refreshed global 34-label merge has **not** been run. The earlier gross planning baseline of 976,177 rows is simply the arithmetic combination of v5 FineWeb/FineWeb2 rows (after removing its superseded DGT/Tatoeba rows), the 259,352-row HF-hosted Common Voice CC0 pilot, refreshed Tatoeba and refreshed DGT-TM. It is not a unique-record count, not a source-quota result, and not a rights-cleared total.
 
-The waiting-source 613,860 rows are not included in that baseline because the refreshed artifact is still running and has not yet been validated. The Common Voice provenance/revision repair is complete.
+The waiting-source 613,860 rows are not included in that baseline because the refreshed artifact is still running and has not yet been validated. The HF-hosted Common Voice provenance/revision repair is complete; Croatian is not included.
 
 ### Multisource merge implementation
 
