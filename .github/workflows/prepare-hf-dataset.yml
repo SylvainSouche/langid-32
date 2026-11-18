@@ -1,60 +1,45 @@
-name: Prepare Hugging Face dataset package
+name: Prepare Hugging Face dataset metadata package
 
 on:
   push:
     branches: [main]
     paths:
-      - "scripts/package_hf_dataset.py"
       - "docs/huggingface-dataset-card.md"
       - "docs/huggingface-licensing.md"
+      - "docs/source-register.md"
+      - "docs/source-attribution-register.md"
+      - ".github/workflows/prepare-hf-dataset.yml"
   workflow_dispatch:
 
 permissions:
-  actions: read
   contents: read
 
 jobs:
   prepare:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download the validated mixed-source pilot artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: common-voice-mixed-curated-text
-          path: /tmp/langid32-input
-          run-id: 44293665775
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Build Parquet package
+      - name: Assemble metadata-only package
         run: |
-          python -m pip install --disable-pip-version-check pyarrow
-          python scripts/package_hf_dataset.py --input-dir /tmp/langid32-input --output-dir /tmp/langid32-hf-dataset
+          mkdir -p /tmp/langid32-hf-metadata
+          cp docs/huggingface-dataset-card.md /tmp/langid32-hf-metadata/README.md
+          cp docs/huggingface-licensing.md /tmp/langid32-hf-metadata/LICENSING.md
+          cp docs/source-register.md /tmp/langid32-hf-metadata/SOURCE_REGISTER.md
+          cp docs/source-attribution-register.md /tmp/langid32-hf-metadata/ATTRIBUTION_AND_CITATION.md
+          cat > /tmp/langid32-hf-metadata/STATUS.md <<'EOF'
+          Metadata-only preparation. No corpus text, Parquet, source archives or private provenance are included.
+          No Hugging Face publication is configured or authorised by this workflow.
+          EOF
 
-      - name: Add dataset card and licensing note
-        run: |
-          cp docs/huggingface-dataset-card.md /tmp/langid32-hf-dataset/README.md
-          cp docs/huggingface-licensing.md /tmp/langid32-hf-dataset/LICENSING.md
-
-      - name: Upload licensing and quality metadata only (public repository; no Parquet)
+      - name: Upload documentation metadata only (no dataset text)
         uses: actions/upload-artifact@v4
         with:
-          name: langid-32-hf-dataset-package
-          path: |
-            /tmp/langid32-hf-dataset/metadata/
-            /tmp/langid32-hf-dataset/README.md
-            /tmp/langid32-hf-dataset/LICENSING.md
-            /tmp/langid32-hf-dataset/LICENSING_STATUS.md
+          name: langid-32-hf-metadata-package
+          path: /tmp/langid32-hf-metadata/
           if-no-files-found: error
           retention-days: 14
 
-      - name: Explicitly confirm no Hugging Face publication
-        run: |
-          echo "Preparation only. No Hugging Face upload is configured."
-          echo "Public release is blocked until every language reaches 20,000-30,000 curated records from varied sources."
+      - name: Confirm no Hugging Face publication
+        run: echo "Documentation package only. No dataset upload has been performed."
