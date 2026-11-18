@@ -15,4 +15,4 @@ Example (inactive placeholder; do not activate without a documented case):
 {"scope":"url","source_url":"https://example.org/page","reason_code":"rights_notice","case_id":"CASE-0001","effective_at":"2026-11-18T00:00:00Z","status":"superseded"}
 ```
 
-The build cascades a match to all records sharing the matched document group or split group. URL and domain matching require the staged row's provenance to contain `source_url`, `url`, or `canonical_url`. Missing provenance cannot be treated as a successful match and must be handled as a separate release-quality failure.
+The build cascades a match to all records sharing the matched document group or split group. URL and domain matching read `source_url`, `url`, or `canonical_url` from either the staged row's `provenance` object or its top level. URL rules match the exact recorded URL or its SHA-256 digest; they do not perform URL canonicalization. Domain rules include subdomains. Missing provenance cannot be treated as a successful match and must be handled as a separate release-quality failure.
