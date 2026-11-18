@@ -17,7 +17,6 @@ on:
   push:
     paths:
       - "scripts/acquire_leipzig.py"
-      - ".github/workflows/acquire-leipzig-corpora.yml"
 permissions:
   contents: read
 jobs:
@@ -36,11 +35,11 @@ jobs:
           python scripts/acquire_leipzig.py --out out/leipzig \
             --max-archives-per-language "${{ inputs.max_archives_per_language || '3' }}" \
             --sample-per-archive "${{ inputs.sample_per_archive || '100000' }}"
-      - name: Upload complete audit, manifests, hashes and staged archives
+      - name: Upload metadata manifest only (public repository; no corpus text or archives)
         if: always() && hashFiles('out/**') != ''
         uses: actions/upload-artifact@v4
         with:
           name: leipzig-corpus-audit-${{ github.run_id }}
-          path: out/leipzig/
+          path: out/leipzig/manifest.json
           retention-days: 30
           if-no-files-found: warn
