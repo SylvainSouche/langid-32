@@ -31,6 +31,22 @@ def main() -> None:
         raise SystemExit("The v27 artifact contains no curated Croatian rows.")
     if any(row.get("source") != "common_voice_v27" for row in hr_rows):
         raise SystemExit("Croatian rows do not have the expected Common Voice v27 provenance.")
+    manifest = json.loads(v27_manifest_path.read_text(encoding="utf-8"))
+    hr_source = next((item for item in manifest.get("results", []) if item.get("locale") == "hr"), None)
+    if not hr_source or not hr_source.get("archive_checksum_verified"):
+        raise SystemExit("The v27 Croatian source manifest has no verified archive checksum.")
+    for row in hr_rows:
+        row["provenance"] = {
+            "source_dataset_id": hr_source.get("dataset_id"),
+            "locale": "hr",
+            "archive_sha256": hr_source.get("archive_sha256_actual"),
+            "validated_sentences_tsv_sha256": hr_source.get("extracted_sha256"),
+            "downloaded_at_utc": hr_source.get("downloaded_at_utc"),
+            "candidate_record_hash": row.get("group_id"),
+            "sentence_id_retained": False,
+            "rights_status": "hold_locale_specific_terms_acceptance_not_recorded",
+            "privacy_flags": [],
+        }
 
     # Replace the empty/missing v22 Croatian slot with the existing v27 curated rows.
     rows = [row for row in hf_rows if row.get("language") != "hr"] + hr_rows
@@ -40,11 +56,6 @@ def main() -> None:
 
     report = json.loads(hf_report_path.read_text(encoding="utf-8"))
     v27_report = json.loads(v27_report_path.read_text(encoding="utf-8"))
-    manifest = json.loads(v27_manifest_path.read_text(encoding="utf-8"))
-    hr_source = next((item for item in manifest.get("results", []) if item.get("locale") == "hr"), None)
-    if not hr_source or not hr_source.get("archive_checksum_verified"):
-        raise SystemExit("The v27 Croatian source manifest has no verified archive checksum.")
-
     report.setdefault("per_language", {})["hr"] = v27_report["per_language"]["hr"]
     report["per_language"]["hr"]["source"] = "common_voice_v27"
     report.setdefault("counts", {}).update({
