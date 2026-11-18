@@ -50,7 +50,7 @@ Earlier workflow runs already uploaded text-bearing artifacts before this policy
 | [44315031026](https://github.com/SylvainSouche/langid-32/actions/runs/44315031026) | 14431583044 | HF-hosted CC0 Common Voice source manifest and aggregate report only; no sentence text |
 | [44316263013](https://github.com/SylvainSouche/langid-32/actions/runs/44316263013) | 14432198714 | Dataset-card, licensing, source-register and attribution documentation only; no dataset text |
 
-Run [44293866614](https://github.com/SylvainSouche/langid-32/actions/runs/44293866614) was still running when this note was written and was started before the metadata-only workflow change. Its original workflow definition may still upload candidate text. Its completion and artifact contents must be checked.
+Run [44293866614](https://github.com/SylvainSouche/langid-32/actions/runs/44293866614) completed successfully; a follow-up artifact query returned no artifacts. It is not an outstanding text-bearing artifact.
 
 **Completed:** the one-off cleanup workflow [44315309698](https://github.com/SylvainSouche/langid-32/actions/runs/44315309698) deleted all three retired Common Voice artifacts: 14319841407 (Croatian subset), 14332474956 (mixed pilot) and 14423311681 (mixed-source metadata). Follow-up artifact-list queries for the three originating runs returned no remaining artifacts. The other non-Common-Voice artifacts listed above are unchanged.
 
