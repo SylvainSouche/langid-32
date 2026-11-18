@@ -20,7 +20,7 @@ from pathlib import Path
 
 LANGUAGES = (
     "bg hr cs da nl en et fi fr de el hu ga it lv lt mt pl pt ro sk sl es sv "
-    "nb nn ru ja zh ko ar tr"
+    "nb nn ru ja zh ko ar tr ca is"
 ).split()
 SPLITS = ("train", "validation", "test")
 EMAIL_RE = re.compile(r"(?i)(?<![\w.+-])[\w.+-]+@[\w.-]+\.[A-Z]{2,}(?![A-Za-z0-9_.-])")
@@ -259,6 +259,7 @@ def read_inputs(paths: list[Path], args):
 
 
 def merge(args):
+    exclusions_path = getattr(args, "exclusions", None)
     rows, rejected = read_inputs(args.inputs, args)
     rows.sort(key=lambda row: (row["language"], row["_priority"]))
     seen_text = set()
