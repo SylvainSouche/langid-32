@@ -1,7 +1,7 @@
 # Model routes
 
 All routes consume the same corpus splits and emit logits in the same fixed
-32-language class order (config/languages.txt). The model definitions are
+34-language class order (config/languages.txt). The model definitions are
 independent of any particular trainer so CPU, CUDA and Apple MPS runners can
 use the same architectures.
 
@@ -9,8 +9,8 @@ use the same architectures.
 
 - Unicode character n-grams of lengths 2–5, with ^ and $ boundaries.
 - Stable BLAKE2b hashing into 65,536 buckets.
-- Count features and a 32-way linear layer.
-- 2,097,184 trainable parameters (about 8.00 MiB in FP32).
+- Count features and a 34-way linear layer.
+- 2,228,258 trainable parameters (about 8.00 MiB in FP32).
 
 The PyTorch implementation accepts a coalesced sparse COO feature matrix.
 
@@ -18,8 +18,8 @@ The PyTorch implementation accepts a coalesced sparse COO feature matrix.
 
 - Same n-gram extraction, hashed into 32,768 buckets.
 - 32-dimensional mean-pooled EmbeddingBag.
-- Linear 32-to-32 classifier.
-- 1,049,632 trainable parameters (about 4.00 MiB in FP32).
+- Linear 32-to-34 classifier.
+- 1,049,698 trainable parameters (about 4.00 MiB in FP32).
 
 ## B — byte-level Transformer
 
@@ -28,8 +28,8 @@ The PyTorch implementation accepts a coalesced sparse COO feature matrix.
 - Learned position embeddings for 257 positions.
 - Four pre-LayerNorm bidirectional encoder blocks.
 - Hidden size 128, four attention heads, feed-forward size 384.
-- CLS representation followed by a 32-class linear head.
-- 731,936 trainable parameters in the current implementation (about 2.79 MiB in FP32).
+- CLS representation followed by a 34-class linear head.
+- 732,194 trainable parameters in the current implementation (about 2.79 MiB in FP32).
 
 The architecture parameter counts are asserted by unit tests. Checkpoint size
 will be measured from the saved file rather than inferred from parameter count.
