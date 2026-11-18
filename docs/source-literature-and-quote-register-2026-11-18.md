@@ -198,7 +198,7 @@ The upstream licence chain is not resolved by the DPO V2 Apache-2.0 card:
 
 Short quotation from the original Capybara README: “Most tokens contained in this dataset are newly synthesized and did not exist prior online.” This is the creator's description of its generation process, not a rights clearance. The associated Orca paper describes the model as learning from “rich signals from GPT-4 including explanation traces”; this is research context, not a licence grant.
 
-**Decision:** the 30,790 rows from the old waiting-source artifact are quarantined and excluded from all Catalan totals. The acquisition workflow now deliberately skips DPO V2 until a separate pipeline can identify Catalan rows, preserve source-component provenance and resolve the underlying content/model-output terms. The previous artifact's 613,860 rows therefore reduce to 583,070 non-DPO technical candidates; this does not make the remaining rows release-cleared.
+**Decision:** the 30,790 rows from the old waiting-source artifact are quarantined and excluded from all Catalan totals. The acquisition workflow now deliberately skips DPO V2. Active source-dataset exclusion rules enforce this for both `chosen` and `messages`. A third active rule excludes all 4,930 Greynir rows from the main corpus because they are parser gold/development samples, not representative corpus text. The previous artifact's 613,860 rows therefore reduce to 578,140 non-DPO, non-Greynir technical candidates; this does not make the remaining rows release-cleared.
 
 
 ## 10. Common Voice 22.0 — CC0 and the later MDC no-mirroring terms are separate

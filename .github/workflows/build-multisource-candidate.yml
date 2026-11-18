@@ -60,7 +60,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           repository: ${{ github.repository }}
-          run-id: 44293866614
+          run-id: 44241908630
           path: input/waiting
 
       - name: Build candidate and aggregate metadata

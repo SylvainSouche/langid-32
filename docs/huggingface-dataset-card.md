@@ -85,7 +85,7 @@ The eventual release will include source-level provenance, an attribution file, 
 
 ## Current development snapshot
 
-The historical waiting-source artifact contains 613,860 rows, but 30,790 Catalan-DPO rows are quarantined because English and Catalan text were all labelled `ca`; the non-DPO remainder is 583,070 technical candidates. Other separate artifacts include 261,076 Common Voice pilot rows, 80,155 Tatoeba CC0 rows and 120,000 DGT-TM rows. These figures are not additive, have not all been globally deduplicated against one another, and are not final usable-record counts. No public release or language-level legal clearance is claimed.
+The historical waiting-source artifact contains 613,860 rows, but 30,790 Catalan-DPO rows are quarantined because English and Catalan text were all labelled `ca`; the non-DPO, non-Greynir remainder is 578,140 technical candidates. Other separate artifacts include 261,076 Common Voice pilot rows, 80,155 Tatoeba CC0 rows and 120,000 DGT-TM rows. These figures are not additive, have not all been globally deduplicated against one another, and are not final usable-record counts. No public release or language-level legal clearance is claimed.
 
 Automated processing includes Unicode NFC and whitespace normalization, length filtering, basic identifier/PII-pattern filtering, within-label exact deduplication, cross-label exact-string collision removal, and deterministic per-language sampling. These are curation heuristics, not complete privacy clearance, human language validation, or quality assurance.
 

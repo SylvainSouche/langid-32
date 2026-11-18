@@ -230,3 +230,34 @@ def test_merge_keeps_reserve_separate_and_outside_core_groups(tmp_path):
     assert manifest["reserve_counts"]["fr"] == 10
     assert manifest["preparation"]["core_per_language"] == 20
     assert manifest["preparation"]["reserve_per_language"] == 10
+
+
+def test_source_dataset_exclusion_quarantines_dpo_components_and_greynir(tmp_path):
+    source = tmp_path / "source-datasets.jsonl"
+    rows = [
+        _row("English chosen response", "ca", "catalan_dpo_v2:chosen", "dpo:row1"),
+        _row("English assistant message", "ca", "catalan_dpo_v2:messages", "dpo:row2"),
+        _row("Parser gold development sentence", "is", "greynir", "greynir:dev1"),
+        _row("Independent Icelandic sentence", "is", "igc", "igc:doc1"),
+    ]
+    source.write_text("".join(json.dumps(row) + "\n" for row in rows))
+    registry = tmp_path / "exclusions.jsonl"
+    rules = [
+        {"scope": "source-dataset", "source": "catalan_dpo_v2:chosen",
+         "reason_code": "mixed_language_mislabelled", "effective_at": "2026-11-18"},
+        {"scope": "source-dataset", "source": "catalan_dpo_v2:messages",
+         "reason_code": "mixed_language_mislabelled", "effective_at": "2026-11-18"},
+        {"scope": "source-dataset", "source": "greynir",
+         "reason_code": "quality_hold_nonrepresentative_gold_dev_sample",
+         "effective_at": "2026-11-18"},
+    ]
+    registry.write_text("".join(json.dumps(rule) + "\n" for rule in rules))
+    args = _args(tmp_path, [source])
+    args.exclusions = registry
+    merge(args)
+    manifest = json.loads((args.output / "manifest.json").read_text())
+    internal = [json.loads(line) for line in (args.output / "records.jsonl").read_text().splitlines()]
+    assert len(internal) == 1
+    assert internal[0]["source"] == "igc"
+    assert manifest["rejected"]["source_exclusion_registry"] == 3
+    assert manifest["exclusion_registry"]["active_rules_loaded"] == 3

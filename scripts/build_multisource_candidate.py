@@ -273,7 +273,7 @@ def main():
             "common_voice_run": 44293665775,
             "tatoeba_run": 44121162591,
             "dgt_tm_2021_run": 44291075180,
-            "waiting_sources_run": 44293866614,
+            "waiting_sources_run": 44241908630,
         },
         "inputs": reports,
         "normalized_input_count": len(merge_inputs),
