@@ -123,4 +123,4 @@ def test_normalize_dgt_rows_adds_eurlex_celex_provenance(tmp_path):
     assert normalized["provenance"]["identifier_scheme"] == "EUR-Lex NumDoc (CELEX-compatible)"
     assert normalized["provenance"]["source_url_verification_status"] == "derived_from_numdoc_not_http_verified"
     assert normalized["provenance"]["source_url"].endswith("CELEX:22020D0933")
-    assert normalized["provenance"]["source_latest_update"] == "DGT-TM release 2021"
+    assert normalized["provenance"]["source_latest_update"] == "DGT-TM release 2021; exact day/month not stated on JRC page"
