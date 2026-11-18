@@ -219,7 +219,7 @@ def read_inputs(paths: list[Path], args):
                     elif source_name == "common_voice_v27":
                         provenance["rights_status"] = "hold_locale_terms_acceptance_not_recorded"
                     elif source_name == "dgt-tm-2021":
-                        provenance["rights_status"] = "attribution_notice_required"
+                        provenance["rights_status"] = "hold_underlying_document_rights_review_attribution_required"
                     elif source_name == "tatoeba-cc0":
                         provenance["rights_status"] = "cc0_export_rows_only"
                     else:
