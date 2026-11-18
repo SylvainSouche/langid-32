@@ -45,7 +45,7 @@ Filters include NFC/whitespace normalization, 25–400 character bounds, FineWeb
 
 The FineWeb source was staged into the common source-neutral schema and merged with FineWeb2, DGT-TM 2021 and Tatoeba CC0. The resulting 32-language candidate is documented in [candidate-audit-v5.md](candidate-audit-v5.md).
 
-FineWeb contributes 6,075 records to the final 640,000-record candidate (all English). The final English class is 30.4% FineWeb, 61.9% Tatoeba CC0 and 7.7% DGT-TM 2021. The merge uses the available source pools without fixed source quotas; the English candidate pools were 20,000 FineWeb, 41,230 Tatoeba and 5,000 DGT-TM records. This is a material improvement over the v4 English class, which contained no web-crawl source, but English remains more Tatoeba-heavy than most other classes.
+FineWeb contributes 5,968 records to the final 640,000-record v5 candidate (all English), as recorded in the final v5 audit. The final English class is 29.84% FineWeb, 62.43% Tatoeba CC0 and 7.73% DGT-TM 2021. This replaces the preliminary figures in the original extraction note. The merge uses the available source pools without fixed source quotas; the English candidate pools were 20,000 FineWeb, 41,230 Tatoeba and 5,000 DGT-TM records. This is a material improvement over the v4 English class, which contained no web-crawl source, but English remains more Tatoeba-heavy than most other classes.
 
 ## Rights and privacy
 
