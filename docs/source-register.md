@@ -14,7 +14,7 @@ No source in this register is automatically approved for public redistribution. 
 
 ## Voluntary source-selection decision
 
-The project voluntarily does not use the Mozilla Data Collective (MDC) repository or any data hosted there. We consider its contractual practices abusive. This is a project sourcing decision; it is not a legal finding about other datasets or their licences.
+The project voluntarily does not use the Mozilla Data Collective (MDC) repository or any data hosted there. We consider its contractual practices abusive. This is a project sourcing decision, not a legal conclusion.
 
 Croatian (`hr`) is still a target label, but no Common Voice source is retained for it. An independent alternative source must be identified.
 

@@ -20,7 +20,7 @@ For scholarly acknowledgement, cite Ardila et al. (2020), “Common Voice: A Mas
 
 ## Voluntary source-selection decision
 
-The project voluntarily does not use the Mozilla Data Collective repository or any data hosted there. We consider its contractual practices abusive. This is a project sourcing decision, not a legal finding about the validity of any other dataset's licence.
+The project voluntarily does not use the Mozilla Data Collective repository or any data hosted there. We consider its contractual practices abusive. This is a project sourcing decision, not a legal conclusion.
 
 ## Hugging Face public-repository terms are a further rights grant
 
