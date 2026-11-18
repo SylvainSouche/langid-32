@@ -65,9 +65,9 @@ Some source terms require specific notices. For example, DGT-TM and JRC-Acquis r
 
 For article-derived text, the internal provenance ledger must retain the original article/document title, author or issuing body, publication date, URL, source licence/notice and source record identifier whenever available. If a source requires that information and it cannot be recovered, the affected record will be held or excluded. We will not reproduce article passages merely to satisfy a citation requirement: citations and attribution notices are used unless an actual quotation is explicitly required and legally appropriate.
 
-Korea.kr/KOGL material is not approved for this release: article-specific conditions include AI-training restrictions and a restriction on resale of training datasets made from public works. FineWeb/FineWeb2 and HPLT extracted passages remain on legal hold because compilation/packaging licences do not clear the underlying web text.
+The Korea.kr/KOGL government-article portal was an exploratory route only; it was not pursued and no articles from it were acquired. FineWeb/FineWeb2 and HPLT extracted passages remain on legal hold because compilation/packaging licences do not clear the underlying web text.
 
-See `docs/huggingface-licensing.md` and `docs/source-attribution-register.md` in the GitHub repository for the source-by-source decisions. Source-level rights and contractual restrictions remain distinct.
+See `docs/source-register.md` for the canonical status of all acquired, investigated and retired sources; `docs/huggingface-licensing.md` and `docs/source-attribution-register.md` hold the source-by-source rights and attribution analysis. Source-level rights and contractual restrictions remain distinct.
 
 ## Intended data format
 
