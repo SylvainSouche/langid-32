@@ -200,8 +200,8 @@ def main():
                 (args.out / "terms-of-service.html").write_text(terms_html, encoding="utf-8")
                 parser = VisibleText()
                 parser.feed(terms_html)
-                terms_text = "\\n".join(parser.parts)
-                (args.out / "terms-of-service.txt").write_text(terms_text + "\\n", encoding="utf-8")
+                terms_text = "\n".join(parser.parts)
+                (args.out / "terms-of-service.txt").write_text(terms_text + "\n", encoding="utf-8")
                 report["terms_page"] = {
                     "status": terms_response.status_code,
                     "final_url": terms_response.url,
