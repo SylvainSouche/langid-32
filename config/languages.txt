@@ -30,3 +30,5 @@ zh
 ko
 ar
 tr
+ca
+is
