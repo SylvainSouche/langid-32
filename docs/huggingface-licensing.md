@@ -28,19 +28,18 @@ The third-party HF conversion was created on 27 June 2025 and updated on 11 Augu
 
 For reproducibility, retain the exact HF repository, requested revision, resolved commit where available, locale, retrieval date, file hash and conversion provenance in the internal source manifest. A mutable `main` reference alone is not sufficient provenance for a final release.
 
-## Common Voice contractual restriction and project compliance
+## Common Voice contractual restriction and project hold
 
-The applicable Common Voice ToS/dataset agreement contains a **no-mirroring clause**. The project abides by that restriction:
+The current Mozilla Common Voice terms prohibit posting, distributing or mirroring **any Common Voice dataset, in whole or in part**, on other platforms or services. A partial, curated text selection is not treated as an exception. The third-party CV22 HF conversion predates the 31 October 2025 terms, and the contractual effect on downstream users of that pre-existing copy has not been established. The source's CC0 declaration does not resolve that separate question.
 
-- It does not mirror or redistribute the complete Common Voice dataset.
-- It uses only a partial, curated text selection.
-- It excludes audio and direct speaker/contributor identifiers.
-- It does not attempt to identify contributors.
-- The curated representation is designed to prevent identification of individual contributors.
+Accordingly:
+- CV22 text remains on hold pending legal review of the pre-existing conversion and downstream excerpt use.
+- CV27 Croatian text remains on hold because locale-specific terms acceptance is not recorded.
+- The recorded CV27 Romanian acceptance is specific to Romanian and expressly prohibits re-hosting/re-sharing; it does not authorise other locales.
+- No Common Voice-derived text may be included in a public release until the relevant terms and acquisition route are resolved.
+- Excluding audio, speaker identifiers or contributor metadata does not resolve the no-mirroring clause.
 
 The last point describes the project's data-minimisation design and intent; it is not an absolute guarantee that arbitrary text can never contain personal or identifying information. Continue applying automated filtering and appropriate review.
-
-The Croatian Common Voice Scripted Speech 27.0 material is a technical subset from an acquisition whose locale-specific terms acceptance is not recorded. It remains on hold; no distribution is authorised. The Romanian Common Voice 27.0 acceptance is separate and applies only to Romanian, with an explicit no-rehosting/no-resharing restriction.
 
 ## Current candidate inventory
 
@@ -59,7 +58,7 @@ A public Hugging Face release remains blocked until all of the following are met
 1. The corpus reaches 20,000–30,000 curated records per language.
 2. Each language has meaningful diversity of sources; the target must not be met merely by scaling one source or duplicating similar material.
 3. Each source has recorded provenance, applicable data licence, ToS/dataset-agreement conditions, retrieval revision and integrity hashes.
-4. The no-mirroring restriction and any other source-specific contractual conditions are respected.
+4. No Common Voice-derived text is distributed while the no-mirroring question or locale-specific terms remain unresolved; partial selections are not treated as an exception.
 5. The released representation excludes audio, direct speaker/contributor identifiers, internal group IDs and private acquisition artefacts.
 6. Quality and privacy checks are run on the assembled release, with their limitations documented.
 7. A release version and dataset-level licence/notice decision are explicitly approved.
