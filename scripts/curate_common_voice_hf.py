@@ -142,11 +142,13 @@ def main() -> None:
                     "source_release": metadata["source_release"],
                     "group_id": metadata["group_id"],
                     "licence_id": "CC0-1.0",
-                    "text_origin": "Common Voice validated sentence text via fsicoli/common_voice_22_0 transcript-only conversion",
+                    "text_origin": "CC0-1.0 Common Voice 22.0 text via the Hugging Face dataset fsicoli/common_voice_22_0; transcript-only selection",
                     "provenance": metadata["provenance"],
                 }, ensure_ascii=False, separators=(",", ":")) + "\n")
     report = {
         "source": "fsicoli/common_voice_22_0 (Common Voice 22.0)",
+        "dataset_url": "https://huggingface.co/datasets/fsicoli/common_voice_22_0",
+        "source_license_claim": "CC0-1.0",
         "revision_resolved": download_manifest.get("revision_resolved"),
         "locale_revisions": {locale: row.get("repo_commit") for locale, row in sorted(locale_metadata.items())},
         "target_languages": list(LANGUAGES),
@@ -157,7 +159,7 @@ def main() -> None:
         "per_language": final_counts,
         "counts": dict(sorted(counts.items())),
         "candidate_file_sha256": hashlib.sha256(output_path.read_bytes()).hexdigest(),
-        "note": "Curated text-only candidate sample from an unofficial third-party Common Voice 22.0 conversion; retain source-specific licence and distribution-policy review.",
+        "note": "Text-only candidates selected from the HF-hosted dataset card-declared CC0-1.0 Common Voice 22.0 conversion. Croatian is intentionally absent pending an alternative source.",
     }
     (args.output / "common_voice_report.json").write_text(
         json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"

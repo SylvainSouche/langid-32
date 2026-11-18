@@ -20,8 +20,6 @@ train = ["torch>=2.2"]
 langid32-prepare = "langid32.corpus:main"
 langid32-merge = "langid32.merge:main"
 langid32-stage-dgt-tmx = "langid32.dgt_tmx_stage:main"
-langid32-cv-inventory = "langid32.common_voice_inventory:main"
-langid32-cv-extract = "langid32.common_voice_extract:main"
 langid32-tatoeba-inventory = "langid32.tatoeba_inventory:main"
 langid32-maalfrid-inventory = "langid32.maalfrid_inventory:main"
 langid32-dgt-inventory = "langid32.dgt_tmx_inventory:main"

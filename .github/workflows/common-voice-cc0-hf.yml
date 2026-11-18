@@ -1,0 +1,62 @@
+name: HF-hosted CC0 Common Voice text-only ingestion
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/download_common_voice_hf.py"
+      - "scripts/curate_common_voice_hf.py"
+      - ".github/workflows/common-voice-cc0-hf.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: common-voice-cc0-hf-text-ingestion
+  cancel-in-progress: false
+
+jobs:
+  common-voice-cc0-hf:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Fetch transcript TSVs from the HF-hosted CC0 dataset
+        id: download
+        run: |
+          python scripts/download_common_voice_hf.py --output-dir /tmp/common-voice-private
+
+      - name: Curate text-only candidates
+        run: |
+          python scripts/curate_common_voice_hf.py --input-root /tmp/common-voice-private --output /tmp/common-voice-curated --per-language-cap 9000
+
+      - name: Assemble metadata-only audit artifact
+        if: always()
+        run: |
+          mkdir -p /tmp/common-voice-artifact
+          cp /tmp/common-voice-private/hf-common-voice-download-manifest.json /tmp/common-voice-artifact/ 2>/dev/null || true
+          cp /tmp/common-voice-curated/common_voice_report.json /tmp/common-voice-artifact/ 2>/dev/null || true
+
+      - name: Upload metadata only (no sentence text)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: common-voice-hf-cc0-metadata
+          path: /tmp/common-voice-artifact/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Remove source TSVs and candidate text from runner
+        if: always()
+        run: |
+          rm -rf /tmp/common-voice-private /tmp/common-voice-curated /tmp/common-voice-artifact
+

@@ -12,7 +12,7 @@ REPO = "fsicoli/common_voice_22_0"
 BASE = f"https://huggingface.co/datasets/{REPO}/resolve"
 # One or more upstream locale directories per langid-32 class.
 LOCALES = {
-    "bg": ["bg"], "hr": ["hr"], "is": ["is"], "ca": ["ca"], "cs": ["cs"], "da": ["da"], "nl": ["nl"],
+    "bg": ["bg"], "is": ["is"], "ca": ["ca"], "cs": ["cs"], "da": ["da"], "nl": ["nl"],
     "en": ["en"], "et": ["et"], "fi": ["fi"], "fr": ["fr"], "de": ["de"],
     "el": ["el"], "hu": ["hu"], "ga": ["ga-IE"], "it": ["it"], "lv": ["lv"],
     "lt": ["lt"], "mt": ["mt"], "pl": ["pl"], "pt": ["pt"], "ro": ["ro"],
@@ -79,7 +79,7 @@ def main():
     if not resolved_revision or not re.fullmatch(r"[0-9a-f]{40}", resolved_revision):
         raise RuntimeError(f"Could not resolve immutable revision for {REPO}@{a.revision}")
     manifest_path=a.output_dir/"hf-common-voice-download-manifest.json"
-    manifest={"source":REPO,"release":"Common Voice Corpus 22.0 (unofficial HF conversion)",
+    manifest={"source":REPO,"dataset_url":f"https://huggingface.co/datasets/{REPO}","source_license_claim":"CC0-1.0","release":"Common Voice Corpus 22.0 (unofficial HF conversion)",
               "revision_requested":a.revision,"revision_resolved":resolved_revision,"method":"direct HTTP fetch of transcript/<locale>/validated_sentences.tsv only; no audio",
               "results":[],"failures":[],"started_at_utc":now()}
     for language in wanted:
