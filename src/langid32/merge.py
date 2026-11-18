@@ -260,6 +260,7 @@ def read_inputs(paths: list[Path], args):
 
 def merge(args):
     exclusions_path = getattr(args, "exclusions", None)
+    exclusions = load_exclusions(exclusions_path)
     rows, rejected = read_inputs(args.inputs, args)
     rows.sort(key=lambda row: (row["language"], row["_priority"]))
     seen_text = set()
