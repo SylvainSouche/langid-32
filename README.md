@@ -19,7 +19,7 @@ Source mix target: **30% preferred, 50% hard ceiling per source and language**. 
 
 ## Corpus status — 18 November 2026
 
-<badge>Preparation only — not release-ready</badge>
+**Preparation only — not release-ready.**
 
 No public corpus data has been uploaded to the Hugging Face dataset repository. No language is currently release-cleared.
 
