@@ -1,0 +1,202 @@
+#!/usr/bin/env python3
+"""Assemble the current source artifacts and build the 34-label core/reserve candidate."""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import subprocess
+import sys
+from collections import Counter
+from pathlib import Path
+
+FAMILY_PREFIXES = (
+    "temu_cc0",
+    "catalan_dpo_v2",
+    "bsc_legal",
+    "maalfrid2026",
+    "fineweb2",
+    "un_arabic_english_filtered",
+)
+SUPERSEDED_V5_SOURCES = {
+    "dgt-tm-2021",
+    "tatoeba-cc0",
+    "common_voice_v22",
+    "common_voice_v27",
+}
+
+
+def sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for block in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def find_one(root: Path, filename: str) -> Path:
+    matches = sorted(root.rglob(filename))
+    if len(matches) != 1:
+        raise RuntimeError(f"Expected exactly one {filename} under {root}, found {len(matches)}")
+    return matches[0]
+
+
+def source_family(raw_source: str) -> tuple[str, str | None]:
+    for prefix in FAMILY_PREFIXES:
+        marker = prefix + ":"
+        if raw_source.startswith(marker):
+            return prefix, raw_source[len(marker):]
+    if ":" in raw_source:
+        raise ValueError(f"Unmapped source component syntax: {raw_source}")
+    return raw_source, None
+
+
+def normalize_file(source_path: Path, destination: Path, *, filter_superseded=False):
+    rows_in = 0
+    rows_out = 0
+    filtered = Counter()
+    source_counts = Counter()
+    with source_path.open("r", encoding="utf-8") as source, destination.open(
+        "w", encoding="utf-8", newline="\n"
+    ) as output:
+        for line_number, line in enumerate(source, 1):
+            if not line.strip():
+                continue
+            rows_in += 1
+            try:
+                row = json.loads(line)
+            except json.JSONDecodeError as exc:
+                raise ValueError(f"{source_path}:{line_number}: invalid JSON: {exc}") from exc
+            raw_source = str(row.get("source") or "")
+            if filter_superseded and raw_source in SUPERSEDED_V5_SOURCES:
+                filtered[raw_source] += 1
+                continue
+            required = ("text", "language", "source", "source_release",
+                        "group_id", "licence_id", "text_origin")
+            missing = [key for key in required if not row.get(key)]
+            if missing:
+                raise ValueError(f"{source_path}:{line_number}: missing {', '.join(missing)}")
+            if not isinstance(row.get("provenance"), dict):
+                raise ValueError(f"{source_path}:{line_number}: provenance object is required")
+            family, component = source_family(raw_source)
+            provenance = row["provenance"]
+            provenance["source_original_name"] = raw_source
+            if component is not None:
+                provenance["source_component"] = component
+            if family == "catalan_dpo_v2":
+                row_id = provenance.get("dataset_row_id")
+                if not row_id:
+                    raise ValueError(f"{source_path}:{line_number}: DPO row lacks dataset_row_id")
+                row["group_id"] = f"{family}:{row_id}"
+                row["split_group_id"] = row["group_id"]
+            row["source"] = family
+            output.write(json.dumps(row, ensure_ascii=False, separators=(",", ":")) + "\n")
+            rows_out += 1
+            source_counts[family] += 1
+    return {
+        "input": str(source_path),
+        "input_sha256": sha256(source_path),
+        "rows_in": rows_in,
+        "rows_out": rows_out,
+        "filtered_superseded_sources": dict(filtered),
+        "source_counts": dict(sorted(source_counts.items())),
+        "normalized_path": str(destination),
+    }
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--v5-dir", type=Path, required=True)
+    parser.add_argument("--common-voice-dir", type=Path, required=True)
+    parser.add_argument("--tatoeba-dir", type=Path, required=True)
+    parser.add_argument("--dgt-dir", type=Path, required=True)
+    parser.add_argument("--waiting-dir", type=Path, required=True)
+    parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--exclusions", type=Path, default=Path("data/source-exclusions.jsonl"))
+    parser.add_argument("--max-per-language", type=int, default=30000)
+    parser.add_argument("--core-per-language", type=int, default=20000)
+    parser.add_argument("--preferred-source-share", type=float, default=0.30)
+    parser.add_argument("--max-source-share", type=float, default=0.50)
+    parser.add_argument("--seed", default="langid-32-v6-2026-11-18")
+    args = parser.parse_args()
+
+    v5_records = find_one(args.v5_dir, "records.jsonl")
+    cv_records = find_one(args.common_voice_dir, "common_voice_candidates.jsonl")
+    tatoeba_records = find_one(args.tatoeba_dir, "tatoeba-cc0-staged.jsonl")
+    dgt_records = find_one(args.dgt_dir, "dgt-tm-2021-staged.jsonl")
+    waiting_records = sorted(args.waiting_dir.rglob("candidates.jsonl"))
+    if not waiting_records:
+        raise RuntimeError(f"No waiting-source candidates.jsonl files found under {args.waiting_dir}")
+
+    args.output.mkdir(parents=True, exist_ok=True)
+    normalized_dir = args.output / "normalized-inputs"
+    normalized_dir.mkdir(parents=True, exist_ok=True)
+    sources = [
+        ("v5-current-families", v5_records, True),
+        ("common-voice-current", cv_records, False),
+        ("tatoeba-cc0-current", tatoeba_records, False),
+        ("dgt-tm-2021-current", dgt_records, False),
+    ] + [(f"waiting-{index:02d}", path, False)
+         for index, path in enumerate(waiting_records, 1)]
+
+    reports = []
+    merge_inputs = []
+    for label, path, filter_superseded in sources:
+        destination = normalized_dir / f"{label}.jsonl"
+        reports.append(normalize_file(path, destination, filter_superseded=filter_superseded))
+        if destination.stat().st_size:
+            merge_inputs.append(destination)
+
+    if not merge_inputs:
+        raise RuntimeError("No non-empty normalized inputs were prepared")
+
+    input_manifest = {
+        "status": "prepared_for_global_candidate_merge",
+        "source_artifacts": {
+            "historical_v5_run": 43950037392,
+            "common_voice_run": 44293665775,
+            "tatoeba_run": 44121162591,
+            "dgt_tm_2021_run": 44291075180,
+            "waiting_sources_run": 44293866614,
+        },
+        "inputs": reports,
+        "merge_inputs": [str(path) for path in merge_inputs],
+        "source_family_policy": "component/config/file suffixes are preserved in provenance but quota accounting uses the dataset/release family",
+        "v5_replacements": sorted(SUPERSEDED_V5_SOURCES),
+    }
+    (args.output / "input-manifest.json").write_text(
+        json.dumps(input_manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
+
+    command = [
+        sys.executable, "-m", "langid32.merge",
+        "--output", str(args.output / "candidate"),
+        "--exclusions", str(args.exclusions),
+        "--max-per-language", str(args.max_per_language),
+        "--core-per-language", str(args.core_per_language),
+        "--preferred-source-share", str(args.preferred_source_share),
+        "--max-source-share", str(args.max_source_share),
+        "--seed", args.seed,
+    ]
+    for path in merge_inputs:
+        command.extend(["--input", str(path)])
+    subprocess.run(command, check=True)
+
+    summary = {
+        "status": "candidate_built_not_rights_cleared",
+        "input_manifest": "input-manifest.json",
+        "candidate_manifest": "candidate/manifest.json",
+        "normalized_input_count": len(merge_inputs),
+        "normalized_rows_out": sum(item["rows_out"] for item in reports),
+        "normalized_rows_filtered_as_superseded": sum(
+            sum(item["filtered_superseded_sources"].values()) for item in reports
+        ),
+    }
+    (args.output / "build-summary.json").write_text(
+        json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
+    print(json.dumps(summary, ensure_ascii=False, indent=2))
+
+
+if __name__ == "__main__":
+    main()
