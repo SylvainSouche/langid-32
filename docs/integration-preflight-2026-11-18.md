@@ -41,6 +41,24 @@ The refreshed DGT-TM 2021 artifact is now confirmed complete: 120,000 rows, 5,00
 
 A refreshed global 34-label merge has **not** been run. The earlier gross planning baseline of 977,901 rows is simply the arithmetic combination of v5 FineWeb/FineWeb2 rows (after removing its superseded DGT/Tatoeba rows), the Common Voice pilot, refreshed Tatoeba and refreshed DGT-TM. It is not a unique-record count, not a source-quota result, and not a rights-cleared total.
 
-The waiting-source 613,860 rows are not included in that baseline because their row schema and provenance are incomplete. The Common Voice provenance/revision repair is complete. The next implementation step is to inspect the refreshed waiting-source acquisition artifact, verify that the new row-level metadata is genuinely preserved, then run global normalization, cross-source deduplication, cross-language collision removal, group-aware splitting and per-language source caps. Rights-held sources must remain explicitly marked as held; a technically mergeable record is not thereby release-eligible.
+The waiting-source 613,860 rows are not included in that baseline because the refreshed artifact is still running and has not yet been validated. The Common Voice provenance/revision repair is complete.
+
+### Multisource merge implementation
+
+The global merge now implements the current pool policy:
+
+- 34 target labels.
+- Global exact-text collision removal across languages; every occurrence of a cross-language collision is removed.
+- Exact deduplication within each language across all inputs.
+- Split assignment by `split_group_id`, preserving groups across languages.
+- Per-source preferred share 30% and hard maximum 50% in each language/split bucket.
+- 20,000-record core per language, split 80/10/10; a separate 10,000-record reserve per language, excluded from every group used in core and emitted without a train/validation/test split.
+- Internal provenance sidecar counts explicit rights statuses; missing source-specific statuses receive a conservative hold/review status.
+
+The builder `scripts/build_multisource_candidate.py` prepares current source artifacts, filters superseded DGT/Tatoeba rows from historical v5, normalizes component/config/file suffixes to dataset-level source families for quota accounting, and unifies Catalan-DPO `messages`/`chosen` records by their common dataset-row ID. Builder normalization tests and merge tests pass in CI. The candidate build itself has **not** yet been run.
+
+The repository is public. GitHub allows users with repository read access to download Actions artifacts; previous workflows uploaded text-bearing candidate artifacts. Workflows have now been changed to upload metadata manifests only. See [public repository artifact policy](public-repository-artifact-policy.md). Do not upload another text-bearing artifact from this repository.
+
+The next step is to inspect the refreshed waiting-source run [44293866614](https://github.com/SylvainSouche/langid-32/actions/runs/44293866614), verify all six source-group outputs and row-level provenance, then run the multisource builder on the runner while uploading **only** metadata manifests and summaries. That run was started before the metadata-only workflow change and may still upload candidate text; its artifact must be checked when it finishes.
 
 No Hugging Face upload or public release is authorised by this preflight.
