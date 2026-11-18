@@ -9,10 +9,12 @@ shared across languages within one source must remain identical.
 from __future__ import annotations
 
 import argparse
+import csv
 import hashlib
 import json
 import re
 import unicodedata
+from urllib.parse import urlparse
 from collections import Counter, defaultdict
 from pathlib import Path
 
@@ -71,9 +73,79 @@ def digest(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
 
 
+def load_exclusions(path: Path | None):
+    """Load active source/document exclusions from JSONL or CSV."""
+    if path is None:
+        return []
+    with path.open("r", encoding="utf-8", newline="") as stream:
+        if path.suffix.lower() == ".csv":
+            rows = list(csv.DictReader(stream))
+        else:
+            rows = [json.loads(line) for line in stream if line.strip()]
+    active = []
+    allowed_scopes = {"document", "url", "domain", "archive-batch", "source-dataset"}
+    for number, row in enumerate(rows, 1):
+        if str(row.get("status", "active")).lower() != "active":
+            continue
+        scope = str(row.get("scope", "")).lower()
+        if scope not in allowed_scopes:
+            raise ValueError(f"{path}:{number}: invalid exclusion scope {scope!r}")
+        if not row.get("reason_code") or not row.get("effective_at"):
+            raise ValueError(f"{path}:{number}: reason_code and effective_at are required")
+        active.append(row)
+    return active
+
+
+def _row_source_url(row):
+    provenance = row.get("provenance", {})
+    if not isinstance(provenance, dict):
+        return ""
+    return str(provenance.get("source_url") or provenance.get("url") or
+               provenance.get("canonical_url") or "")
+
+
+def _row_domain(url):
+    try:
+        return (urlparse(url).hostname or "").lower().rstrip(".")
+    except ValueError:
+        return ""
+
+
+def _matches_exclusion(row, rule):
+    provenance = row.get("provenance", {}) if isinstance(row.get("provenance"), dict) else {}
+    source = str(row.get("source", ""))
+    release = str(row.get("source_release", ""))
+    group = str(row.get("group_id", ""))
+    url = _row_source_url(row)
+    url_hash = digest(url) if url else ""
+    scope = str(rule["scope"]).lower()
+    if scope == "document":
+        key = str(rule.get("source_key") or "")
+        return bool(key and key in {group, f"{source}:{release}:{group}",
+                                    str(provenance.get("source_key") or "")})
+    if scope == "url":
+        expected = str(rule.get("url_sha256") or "")
+        exact_url = str(rule.get("source_url") or "")
+        return bool((expected and url_hash == expected) or
+                    (exact_url and url == exact_url))
+    if scope == "domain":
+        domain = str(rule.get("domain") or "").lower().rstrip(".")
+        actual = _row_domain(url)
+        return bool(domain and (actual == domain or actual.endswith("." + domain)))
+    if scope == "archive-batch":
+        batch = str(rule.get("archive_batch") or "")
+        return bool(batch and batch == str(provenance.get("archive_batch") or ""))
+    if scope == "source-dataset":
+        return source == str(rule.get("source") or "") and (
+            not rule.get("source_release") or release == str(rule["source_release"])
+        )
+    return False
+
+
 def read_inputs(paths: list[Path], args):
     rejected = Counter()
     rows = []
+    exclusions = load_exclusions(args.exclusions)
     for path in paths:
         with path.open("r", encoding="utf-8") as stream:
             for line_number, line in enumerate(stream, 1):
@@ -149,6 +221,25 @@ def read_inputs(paths: list[Path], args):
                     f"{args.seed}\0{language}\0{text}\0{source}\0{group}"
                 )
                 rows.append(normalized)
+    if exclusions:
+        matched_rules = Counter()
+        excluded_groups = set()
+        excluded_split_groups = set()
+        for row in rows:
+            for rule in exclusions:
+                if _matches_exclusion(row, rule):
+                    matched_rules[str(rule.get("case_id") or rule.get("reason_code"))] += 1
+                    excluded_groups.add(row["group_id"])
+                    excluded_split_groups.add(row["split_group_id"])
+                    break
+        kept = []
+        for row in rows:
+            if row["group_id"] in excluded_groups or row["split_group_id"] in excluded_split_groups:
+                rejected["source_exclusion_registry"] += 1
+            else:
+                kept.append(row)
+        rows = kept
+        rejected["exclusion_rules_matched"] = sum(matched_rules.values())
     return rows, rejected
 
 
@@ -269,6 +360,8 @@ def merge(args):
             "group_split": "deterministic hash of split_group_id (or group_id); shared groups stay in one split",
             "source_balancing": "none; source counts are reported, no hidden quotas",
             "privacy_filters": "exclude email, URL and IPv4 matches; retain phone-like and 9+ digit sequences with flags",
+            "source_exclusion_registry": str(args.exclusions) if args.exclusions else None,
+            "exclusion_matching": "document, exact URL/hash, domain, archive batch or source dataset; any matched group/split group is cascaded out",
         },
         "counts": dict(sorted(counts.items())),
         "source_counts": dict(sorted(source_counts.items())),
@@ -279,6 +372,9 @@ def merge(args):
         "candidate_group_count": len(group_splits),
         "group_counts_by_source": {source: len(groups) for source, groups in sorted(output_groups_by_source.items())},
         "output_sha256": output_hashes,
+        "exclusion_registry": {"path": str(args.exclusions) if args.exclusions else None,
+                              "active_rules_loaded": len(load_exclusions(args.exclusions)),
+                              "excluded_rows": rejected.get("source_exclusion_registry", 0)},
         "rights_note": (
             "Technical deduplication is not a rights clearance. Each source's licence, "
             "database rights, underlying-text rights, attribution and privacy conditions "
@@ -303,6 +399,8 @@ def main():
     parser.add_argument("--input", dest="inputs", action="append", required=True, type=Path,
                         help="Source-normalized JSONL; repeat for each source")
     parser.add_argument("--output", required=True, type=Path)
+    parser.add_argument("--exclusions", type=Path, default=None,
+                        help="Active source/document exclusion registry (JSONL or CSV)")
     parser.add_argument("--min-chars", type=int, default=12)
     parser.add_argument("--max-chars", type=int, default=500)
     parser.add_argument("--max-bytes", type=int, default=1500)

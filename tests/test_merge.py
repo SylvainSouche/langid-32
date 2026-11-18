@@ -96,3 +96,49 @@ def test_privacy_regexes_handle_unicode_email_and_attached_urls():
     assert URL_RE.search("COVID-19https://ec.europa.eu/info/file.pdf")
     assert not URL_RE.search("awww.")
     assert not WEB_FRAGMENT_RE.search("awww.")
+
+
+
+def test_source_exclusion_registry_removes_document_and_all_derived_split_group(tmp_path):
+    source = tmp_path / "source.jsonl"
+    rows = [
+        _row("First sentence from document", "fr", "web", "web:doc1"),
+        _row("Second sentence from same document", "fr", "web", "web:doc1"),
+        _row("Independent document sentence", "fr", "web", "web:doc2"),
+    ]
+    rows[0]["provenance"]["source_url"] = "https://example.org/a"
+    rows[1]["provenance"]["source_url"] = "https://example.org/a"
+    rows[2]["provenance"]["source_url"] = "https://example.org/b"
+    source.write_text("".join(json.dumps(row) + "\\n" for row in rows))
+    registry = tmp_path / "exclusions.jsonl"
+    registry.write_text(json.dumps({
+        "scope": "url", "source_url": "https://example.org/a",
+        "reason_code": "rights_notice", "case_id": "CASE-1",
+        "effective_at": "2026-11-18T00:00:00Z", "status": "active",
+    }) + "\\n")
+    args = _args(tmp_path, [source])
+    args.exclusions = registry
+    merge(args)
+    manifest = json.loads((args.output / "manifest.json").read_text())
+    internal = [json.loads(line) for line in (args.output / "records.jsonl").read_text().splitlines()]
+    assert len(internal) == 1
+    assert internal[0]["group_id"] == "web:doc2"
+    assert manifest["rejected"]["source_exclusion_registry"] == 2
+    assert manifest["exclusion_registry"]["active_rules_loaded"] == 1
+
+
+def test_source_exclusion_registry_domain_matches_subdomains(tmp_path):
+    source = tmp_path / "source.jsonl"
+    row = _row("Sentence from blocked host", "fr", "web", "web:doc1")
+    row["provenance"]["source_url"] = "https://news.example.org/article"
+    source.write_text(json.dumps(row) + "\\n")
+    registry = tmp_path / "exclusions.jsonl"
+    registry.write_text(json.dumps({
+        "scope": "domain", "domain": "example.org",
+        "reason_code": "provider_restriction", "effective_at": "2026-11-18",
+    }) + "\\n")
+    args = _args(tmp_path, [source])
+    args.exclusions = registry
+    merge(args)
+    manifest = json.loads((args.output / "manifest.json").read_text())
+    assert manifest["rejected"]["source_exclusion_registry"] == 1

@@ -3,7 +3,7 @@ name: Build global 32-language corpus candidate
 on:
   push:
     paths:
-      - "src/langid32/merge.py"
+      - "src/langid32/merge.py"\n      - "data/source-exclusions.jsonl"
       - "src/langid32/dgt_tmx_stage.py"
       - "scripts/stage_fineweb2.py"
       - "scripts/stage_tatoeba.py"
