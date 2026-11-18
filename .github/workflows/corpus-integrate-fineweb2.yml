@@ -1,20 +1,8 @@
-name: Build global 32-language corpus candidate
+name: LEGACY - 32-language FineWeb2 integration (manual only)
 
+# Historical v4 integration. It uses fixed artifact run IDs and the old
+# 32-language mapping. It is retained for reproducibility, not current builds.
 on:
-  push:
-    paths:
-      - "src/langid32/merge.py"\n      - "data/source-exclusions.jsonl"\n      - "data/source-exclusions.jsonl"
-      - "src/langid32/dgt_tmx_stage.py"
-      - "scripts/stage_fineweb2.py"
-      - "scripts/stage_tatoeba.py"
-      - "tests/test_merge.py"
-      - "tests/test_dgt_tmx_stage.py"
-      - "tests/test_tatoeba_stage.py"
-      - "pyproject.toml"
-      - ".github/workflows/corpus-integrate-fineweb2.yml"
-      - ".github/workflows/dgt-tmx-ingest.yml"
-      - ".github/workflows/tatoeba-ingest.yml"
-      - ".github/workflows/fineweb2-buffer.yml"
   workflow_dispatch:
 
 permissions:
