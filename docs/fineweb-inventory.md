@@ -1,3 +1,5 @@
+> **Technical source note; legal hold.** This document describes the bounded English FineWeb extraction and historical candidate-v5 integration. FineWeb remains on legal hold because ODC-By covers the compilation, not automatically the underlying crawled passages. Current status: [source register](source-register.md).
+
 # English FineWeb source inventory
 
 Extraction date: 2026-11-16. Source: [HuggingFaceFW/fineweb](https://huggingface.co/datasets/HuggingFaceFW/fineweb), the English Common Crawl corpus. The dataset card describes more than 18.5 trillion tokens of cleaned English web data, built from Common Crawl snapshots, with ODC-By 1.0 as the dataset/compilation licence. That licence does not resolve rights in each underlying crawled page. See the [official dataset card](https://huggingface.co/datasets/HuggingFaceFW/fineweb).
