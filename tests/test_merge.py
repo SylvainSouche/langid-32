@@ -9,7 +9,8 @@ def _args(tmp_path, inputs, cap=0):
     return argparse.Namespace(
         inputs=inputs, output=tmp_path / "out", min_chars=1, max_chars=500,
         max_bytes=1500, max_per_language=cap, validation_fraction=0.1,
-        test_fraction=0.1, seed="test-seed", require_exact_counts=False, exclusions=None,\n        preferred_source_share=0.30, max_source_share=0.50,
+        test_fraction=0.1, seed="test-seed", require_exact_counts=False, exclusions=None,
+        preferred_source_share=0.30, max_source_share=0.50,
     )
 
 
