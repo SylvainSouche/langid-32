@@ -153,7 +153,7 @@ def test_merge_removes_text_collisions_across_language_labels(tmp_path):
         _row("The same sentence appears in two language labels", "fr", "b", "b:fr1"),
         _row("A separate French sentence remains available", "fr", "b", "b:fr2"),
     ]
-    source.write_text("".join(json.dumps(row) + "\\n" for row in rows))
+    source.write_text("".join(json.dumps(row) + "\n" for row in rows))
     args = _args(tmp_path, [source])
     merge(args)
     manifest = json.loads((args.output / "manifest.json").read_text())
@@ -171,7 +171,7 @@ def test_merge_prefers_thirty_percent_source_share_and_never_exceeds_fifty(tmp_p
              source_name, f"{source_name}:doc{index}")
         for source_name in ("a", "b", "c") for index in range(30)
     ]
-    source.write_text("".join(json.dumps(row) + "\\n" for row in rows))
+    source.write_text("".join(json.dumps(row) + "\n" for row in rows))
     args = _args(tmp_path, [source], cap=20)
     args.validation_fraction = 0
     args.test_fraction = 0
@@ -188,7 +188,7 @@ def test_merge_underfills_instead_of_exceeding_hard_source_share(tmp_path):
     source = tmp_path / "single-source.jsonl"
     rows = [_row(f"Only source sentence number {index}", "fr", "sole",
                  f"sole:doc{index}") for index in range(40)]
-    source.write_text("".join(json.dumps(row) + "\\n" for row in rows))
+    source.write_text("".join(json.dumps(row) + "\n" for row in rows))
     args = _args(tmp_path, [source], cap=20)
     args.validation_fraction = 0
     args.test_fraction = 0
