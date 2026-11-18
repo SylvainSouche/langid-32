@@ -222,3 +222,25 @@ The associated Ardila et al. paper describes Common Voice as a “massively-mult
 The 27.0 Romanian MDC terms acceptance previously recorded for this project is specific to Romanian and prohibits re-hosting/re-sharing; it must not be generalized to CV22 or other CV27 locales. The Croatian CV27 sample has no recorded locale-specific acceptance. CV22's current text-only sample retains locale, upstream sentence ID, exact HF conversion revision and per-locale TSV hashes, but this provenance does not resolve the contractual question.
 
 **Decision:** keep the 259,352 CV22 rows on hold and do not publish them while the pre-/post-31 October 2025 terms question is unresolved. Do not delete or conflate the CC0 claim; record it separately from the no-mirroring term and obtain a specific legal determination. Keep CV27 locale acceptances separate.
+
+
+## 11. Målfrid 2026 — NLOD, database compatibility, personal data and document language
+
+Official technical PDF: https://www.nb.no/sbfil/tekst/maalfrid_2026/maalfrid_2026.pdf  
+Permanent resource record: https://hdl.handle.net/21.11146/107  
+NLOD 2.0 full text: https://data.norge.no/nlod/en/2.0
+
+The National Library of Norway's two-page technical document states that the corpus was collected from 720 state-institution domains during December 2025–January 2026, respecting robots.txt and politeness restrictions. It provides separate Bokmål and Nynorsk tarballs but also reports English and three Sami languages in the overall crawl. The published JSONL schema is strong for provenance: `doc_id`, `doc_hash`, `domain`, `url`, `date`, `mimetype`, `title` (HTML only), `lang`, and `fulltext` as paragraph strings.
+
+The technical document cautions that language identification “is never perfect”, especially for similar languages and noisy web data. This matters directly for Bokmål/Nynorsk: the current acquisition code assigns `nb` or `nn` from the tarball name and ignores the document-level `lang` field. It must retain and check that field before treating every paragraph in a tarball as the corresponding language. The code also currently drops `mimetype` and `lang` from the candidate provenance even though the publisher supplies them.
+
+NLOD 2.0 grants broad rights to copy, use, modify and distribute, with attribution and change notices. Its §5 says that, if the licensor has not supplied a custom attribution, the normal wording is: “Contains data under the Norwegian licence for Open Government data (NLOD) distributed by [name of licensor]”. The source documentation does not specify a custom attribution, so use National Library of Norway as licensor and include the NLOD 2.0 link and original document URL where practical.
+
+The database-rights nuance must be stated accurately:
+- Målfrid's publisher says the corpus is under NLOD 2.0.
+- NLOD §9 lists ODC-By 1.0 as a compatible licence for parts that constitute databases. It does not automatically relicense the source database as ODC-By; it identifies a compatible route for distributing an adapted/combined work involving database-protected material.
+- NLOD §3 excludes personal data unless there is a legitimate basis for disclosure/further processing, and excludes third-party material the licensor is not authorised to license. A government-domain crawl does not by itself prove that every embedded third-party work is covered.
+
+No scholarly paper specifically describing the 2026 release was identified. The official PDF and permanent resource record are the primary citation sources.
+
+**Decision:** preserve the existing NLOD/database-rights hold and extend it to per-document language validation and personal/third-party content review. The current 50K-per-language samples are technical candidates only until the `lang` field is retained and mismatches are filtered, and until a privacy/third-party screening process is applied.
