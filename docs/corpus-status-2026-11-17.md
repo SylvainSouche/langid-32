@@ -147,3 +147,8 @@ The 30,790 Catalan-DPO-V2 rows in artifact 14403758073 were incorrectly assigned
 ### 18 November 2026 — source-exclusion registry enforcement
 
 Three active source-dataset rules now quarantine the two Catalan-DPO-V2 components (20,772 chosen responses and 10,018 assistant messages) and the 4,930-row Greynir parser test/development sample. The multisource candidate builder applies this registry. The historical 613,860-row waiting-source artifact therefore yields 578,140 non-DPO, non-Greynir technical candidates before other quality, privacy and rights checks.
+
+
+### 18 November 2026 — corrected waiting-source language totals
+
+The 613,860-row historical artifact 14403758073 contains 50,000 FineWeb2 Catalan rows and 50,000 FineWeb2 Icelandic rows in a separate file. Correct historical language totals are Catalan 308,930 and Icelandic 104,930 (not 258,930 and 104,930 respectively), plus 50,000 each for Bokmål, Nynorsk, Korean and Arabic. After excluding 30,790 mixed-language DPO rows and 4,930 Greynir parser gold/development rows, 578,140 technical candidates remain: Catalan 278,140; Icelandic 100,000; and 50,000 each for Bokmål, Nynorsk, Korean and Arabic. This is an accounting correction to the old artifact, not a release-clearance decision.
