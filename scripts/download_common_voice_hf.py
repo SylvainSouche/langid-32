@@ -43,7 +43,7 @@ def fetch(locale, revision, destination, attempts=3):
                 raise RuntimeError(f"Unexpectedly small TSV ({size} bytes)")
             part.replace(destination)
             return {"locale":locale,"url":url,"resolved_url":resolved_url,
-                    "repo_commit":headers.get("X-Repo-Commit"),
+                    "repo_commit":headers.get("X-Repo-Commit") or revision,
                     "etag":headers.get("ETag"),"bytes":size,
                     "sha256":digest.hexdigest(),"downloaded_at_utc":now()}
         except urllib.error.HTTPError as exc:
@@ -101,12 +101,12 @@ def main():
                 for piece in pieces:
                     source=a.output_dir/language/f"{piece['locale']}.validated_sentences.tsv"
                     with source.open(encoding="utf-8-sig",newline="") as inp:
-                        reader=csv.DictReader(inp,delimiter="\\t")
+                        reader=csv.DictReader(inp,delimiter="\t")
                         if not reader.fieldnames or not {"sentence_id","sentence"}.issubset(reader.fieldnames):
                             raise RuntimeError(f"Unexpected Common Voice TSV schema: {source}")
                         if writer is None:
                             fields=list(reader.fieldnames)+["source_locale"]
-                            writer=csv.DictWriter(out,fieldnames=fields,delimiter="\\t",lineterminator="\\n")
+                            writer=csv.DictWriter(out,fieldnames=fields,delimiter="\t",lineterminator="\n")
                             writer.writeheader()
                         for record in reader:
                             writer.writerow({**record,"source_locale":piece["locale"]})
