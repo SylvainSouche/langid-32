@@ -1,82 +1,66 @@
-# Leipzig Corpora Collection REST API audit — 18 November 2026
+# Leipzig Corpora Collection — acquisition and rights audit — 18 November 2026
 
-This is a metadata-only technical and rights-provenance audit of the REST API reference supplied for langid-32. It supersedes the earlier assumption that Leipzig was only an HTML bulk-download route. It does **not** record a text acquisition or a rights clearance.
+**Project priority: first acquisition and integration priority.** The user supplied a practical access guide and the Hugging Face index `imvladikon/leipzig_corpora_collection`. These materially change the acquisition plan: do not use the bot-checked portal UI as an automation target, and do not rely on the REST API for bulk sentence extraction. Use the Hugging Face catalogue as the downloadable archive index and the Leipzig download host for corpus archives.
 
-## API route and reproducible evidence
+## 1. Preferred catalogue and bulk route
 
-- Swagger/OpenAPI UI: https://api.wortschatz-leipzig.de/ws/swagger-ui/index.html
-- OpenAPI JSON: https://api.wortschatz-leipzig.de/ws/v3/api-docs
-- Corpus catalogue: https://api.wortschatz-leipzig.de/ws/corpora/availableCorpora
-- Sentence service: `GET /sentences/{corpusName}/sentences/{word}`
-- Random-word service: `GET /words/{corpusName}/randomword/`
+Hugging Face index: https://huggingface.co/datasets/imvladikon/leipzig_corpora_collection
 
-The API is live and the documented endpoints work. GitHub Actions run [44294190059](https://github.com/SylvainSouche/langid-32/actions/runs/44294190059) produced the first metadata-only probe; run [44294431022](https://github.com/SylvainSouche/langid-32/actions/runs/44294431022) repeated it with region-qualified language prefixes and source-record capture. The second artifact is [14423405978](https://github.com/SylvainSouche/langid-32/actions/runs/44294431022/artifacts/14423405978).
+The HF repository contains:
+- `data/links.parquet`: one `links` config, 5,780 rows, 7 columns (`id`, `data_id`, `url`, `language`, `language_short`, `year`, `size`), approximately 154 KB.
+- `leipzig_loader.py`: a convenience downloader/extractor.
+- `README.md`: documents that the parquet file is an index only. The sentence corpora are **not hosted on HF**; the helper downloads the original `.tar.gz` archives from `downloads.wortschatz-leipzig.de`. The README explicitly says the HF repo does not mirror/re-host the archives.
 
-The second probe recorded:
+The index's Dataset Viewer shows a 5.78K-row train split and 268 distinct values for the language fields. Its visible sample includes Arabic news and regional Arabic news-crawl corpora. The HF tags list only a subset of languages and must not be treated as the catalogue's complete language coverage. The complete Parquet index should be parsed and mapped against all 34 langid-32 labels before deciding coverage or acquisition volume.
 
-- **104** corpus entries in the official catalogue.
-- **20 of the 34** langid-32 target labels have at least one matching corpus.
-- **30** corpus-level sentence-service probes across those 20 labels.
-- **29/30** probes returned sentence examples. The one failure was the random-word endpoint for `ces_wikipedia_2014_1M` (HTTP 500); the second Czech corpus, `ces_news_2013_1M`, worked.
-- **289** example sentences were examined transiently; only their aggregate count/hash and source metadata were retained. No sentence text was written to the artifact.
-- **269** source records in those responses included a source URL. This is a probe count, not a count of unique URLs.
+The user-supplied practical guide (verified 18 November 2026) reports:
+- `downloads.wortschatz-leipzig.de` accepts direct archive requests and byte-range/resumable downloads; directory autoindex is disabled (403), but direct archive URLs work.
+- Archive URL pattern: `https://downloads.wortschatz-leipzig.de/corpora/{data_id}.tar.gz`.
+- Archive members include `{data_id}-sentences.txt` (`id<TAB>sentence`), `{data_id}-sources.txt` (source URL and timestamp per sentence), and words/co-occurrence/index files.
+- The portal hosts (`wortschatz.uni-leipzig.de` / `corpora.wortschatz-leipzig.de`) trigger Anubis proof-of-work from the tested datacenter environment. Avoid automating the portal.
+- Prefer serialized, polite archive downloads with resume/backoff; do not hammer the academic service.
 
-### Target-language coverage
+The helper in the HF repo is useful as a format reference, not a dependency to execute blindly. Its `load_corpus` downloads an entire archive and extracts only the sentences file; langid-32 should additionally preserve and parse the paired sources file, pin the index revision, hash every archive, and retain the original archive and corpus IDs in provenance. Review its parser carefully; the source files are TSV and should be parsed with quote handling disabled (the helper already uses `csv.QUOTE_NONE` to avoid corrupting sentences containing quote characters).
 
-Available in the probed catalogue:
+## 2. What the catalogue establishes — and what it does not
 
-`ar bg cs da de el en es et fi fr hu it nl pl pt ro ru sv tr`
+The HF index is a catalogue of archive names, URLs, language codes, years and nominal sizes. It is not a copy of the corpora and it does not itself grant rights to the sentence content.
 
-No matching corpus was found for:
+The HF dataset card/README inspected on 18 November 2026 has **no declared dataset licence field**. Its descriptive text says corpora contain randomly selected sentences from newspaper or web sources and says they are automatically collected without detailed consideration of the content. It disclaims responsibility for the content and opinions. This is not a corpus-text licence grant.
 
-`ca ga hr is ja ko lt lv mt nb nn sk sl zh`
+The previously inspected Leipzig OpenAPI specification declares CC BY 4.0 for the API/documentation. That declaration must not be transposed to the underlying sentence corpora. The actual usage terms at https://wortschatz-leipzig.de/usage still need to be read. The source works remain the decisive issue: the `*-sources.txt` files provide URL and timestamp, which makes a source-level rights review feasible, but a URL and attribution alone do not grant redistribution rights.
 
-The catalogue contains multiple corpus types and vintages for some covered languages. For example, Arabic includes regional OSIAN news corpora; German, English, Spanish, French and several other languages have multiple news, newscrawl or Wikipedia corpora. The catalogue reports corpus names, descriptions, sentence/token/type counts and `thanksTo` metadata.
+**Working rights rule:** no blanket clearance for Leipzig sentences. Separate:
+1. Leipzig API/software/documentation terms;
+2. Leipzig's own corpus packaging/database and usage terms;
+3. rights in each underlying newspaper/web/Wikipedia/source work.
 
-## Per-sentence provenance — useful discovery
+Preserve provenance and hold/exclude sentences whose source-work reuse rights cannot be established. Wikipedia-derived corpora require their applicable licence and revision/attribution analysis; news/web corpora require source-publisher terms or another defensible permission/licence basis. Do not assume all 5,780 archives share one licence.
 
-The OpenAPI schema defines:
+## 3. Earlier REST API probe — useful but no longer the bulk route
 
-- `SentenceInformation`: `id`, `sentence`, `source`
-- `SourceInformation`: `id`, `url`, `date`
+The earlier API work remains useful for metadata and comparison, not bulk acquisition:
+- OpenAPI: https://api.wortschatz-leipzig.de/ws/v3/api-docs
+- Catalogue: `GET /corpora`
+- Sentence examples: `GET /sentences/{corpusName}/sentences/{word}`
+- Prior probe run [44294431022](https://github.com/SylvainSouche/langid-32/actions/runs/44294431022), artifact [14423405978](https://github.com/SylvainSouche/langid-32/actions/runs/44294431022/artifacts/14423405978): 104 API-service corpora; 20/34 target labels; 29/30 sentence-service probes returned examples. It examined 289 example sentences transiently and retained no sentence text.
+- That 104-corpus API-service subset is not the same as the 5,780-entry downloadable archive index.
 
-The live responses confirm that source objects expose those fields. This is materially better than the previous bulk-archive discovery attempt: it can link a returned excerpt to a source record and, often, an original page URL and date. It does **not** provide title, author or an explicit licence for each underlying article. Those must be recovered from the original page or held if they cannot be established.
+The earlier HTML catalogue scraper's failure (33 pages, zero archive links) was a failure of the portal-automation route, not evidence that the corpus or download host is inaccessible.
 
-The API's random-word endpoint describes its output as randomly selected medium-frequency words. The sentence endpoint returns example sentences for a word, with `offset` and `limit` pagination. This is a query/sample interface, not a documented bulk-corpus export endpoint. A larger sample would require many word and sentence requests and would need to be assessed for frequency bias, duplicate sentences, source concentration and service limits.
+## 4. Acquisition plan — first priority
 
-## Licence and underlying-text rights
+1. **Parse and pin the complete HF links index.** Save its revision, Parquet SHA-256, schema and all 5,780 rows as metadata only. Normalize ISO-639-3 and region-qualified codes to the project's 34 labels without losing original codes.
+2. **Produce a full inventory.** Group by target label, source family (`news`, `newscrawl`, `wikipedia`, `web`, `webpublic`, `community`, `mixed`, `doku`, `sub`, etc.), year and nominal size. Identify missing labels and the best candidates for each. Do not infer archive availability solely from API-service coverage.
+3. **Probe direct archive URLs politely.** HEAD/GET with bounded concurrency, capture status, content length, Last-Modified/ETag and byte-range support. A missing archive is a per-name 404, not a language-level failure. Download serially with resume/backoff.
+4. **Pilot a small, diverse set.** Prefer corpora whose source type and provenance can be assessed; avoid treating the largest nominal size as automatically best. Download and hash the archive, inspect tar members, parse sentence/source records together, validate row counts and source-ID joins.
+5. **Rights audit before candidate staging.** Resolve usage terms and representative underlying source works. Separate source families and licences; exclude or hold unclear records. No text should enter the training candidate merely because an archive downloads successfully.
+6. **Integrate with common langid-32 controls.** Preserve `data_id`, source ID, original URL, source timestamp, corpus language code, source type, year, archive URL, pinned index revision, archive hash and row ID. Apply privacy/PII, language verification, exact and near-duplicate checks, cross-language collision removal, document/source-group splits and per-source quotas.
+7. **Rebuild the 34-label candidate and recalculate gaps/source shares** only after the Leipzig sample is technically validated and rights-cleared.
 
-The OpenAPI `info` object declares:
+## 5. Earlier API rights notes and citation
 
-- API licence label: **CC BY 4.0**
-- Licence URL: http://creativecommons.org/licenses/by/4.0/
-- Terms-of-service URL: https://wortschatz-leipzig.de/usage\n\nA direct retrieval of the terms URL returned HTTP 200 but only an Anubis anti-bot challenge page; the actual terms text was not accessible to the automated probe. The challenge response was saved in artifact [14423486561](https://github.com/SylvainSouche/langid-32/actions/runs/44295012095/artifacts/14423486561), with SHA-256 `a4c6b8d9376ba31793b501941d4ff1308d1436eeb165217f72e8d96e09f9dc05`. Thus the CC BY 4.0 label is confirmed in OpenAPI metadata, but the linked usage terms themselves remain unreviewed.
+The OpenAPI `info` object previously inspected labels the API CC BY 4.0 and links the terms URL above. An earlier automated fetch of the terms page returned an Anubis challenge rather than the terms text. That access failure is superseded as a technical blocker for data acquisition by the direct archive route, but the legal terms still need to be obtained and reviewed.
 
-Do not interpret the API specification's CC BY 4.0 label as a blanket licence for every sentence or source article. The official Leipzig corpus-statistics portal describes its corpus types as follows:
-
-- News: “Used text material was taken from news websites (typically on a daily basis via RSS feeds).”
-- Web: “Used text material was taken from randomly chosen Web sites.”
-- Wikipedia: “Used text material was taken from Wikipedia dumps.”
-
-The portal also states that source material is collected from selected publicly available sources and that authors are responsible for the content and opinions. This means a Leipzig sentence can be accompanied by a useful source URL without the underlying publisher having granted redistribution rights. For Wikipedia-derived corpora, the applicable Wikipedia licence and revision attribution need to be established; for news/web-derived corpora, the original publisher's terms and any applicable licence must be checked per source work.
-
-**Current decision: technically viable API lead; rights HOLD; no Leipzig text acquired.** The linked usage terms remain unreviewed because the terms page returned an Anubis challenge. Before any sentence is staged, preserve the returned source ID, URL and date, resolve the original page's title/author/publisher and licence or permission, and apply the project's excerpt-level rights gate. Missing or contradictory source rights mean hold/exclude, not attribution-only release.
-
-## Scholarly citation
-
-The official corpus-statistics portal points users to:
-
-Thomas Eckart and Uwe Quasthoff (2013), “Statistical Corpus and Language Comparison on Comparable Corpora,” in *Building and Using Comparable Corpora*, pp. 151–165, Springer. DOI: https://doi.org/10.1007/978-3-642-20128-8_8.
-
-This is the scholarly citation for the Leipzig corpus collection/statistical comparability work. It is a recommended scholarly citation, not a substitute for legal attribution to source works.
-
-## Earlier bulk-archive attempt
-
-The earlier HTML catalogue scraper remains a separate route. It found 33 pages but zero target archive links and produced 34 errors. That failed archive-discovery run does not invalidate the REST API. Do not describe the Leipzig source as technically unusable on the basis of the HTML scraper failure.
-
-## Next work
-
-1. Review the API's actual usage terms at https://wortschatz-leipzig.de/usage; preserve the exact terms wording and distinguish API terms from underlying corpus-text rights.
-2. Build a source-URL inventory from a bounded set of sentence-service responses, without retaining text until the rights route is established.
-3. Fetch representative original pages and test whether title, author/publisher, date and licence/terms can be recovered reliably.
-4. Only after that assessment, decide whether a bounded, source-attributed Leipzig sample is viable. The REST API currently covers 20 target labels, so it cannot fill the 14 missing labels.
+Scholarly citation listed by the HF dataset card:
+Goldhahn, Dirk; Eckart, Thomas; Quasthoff, Uwe (2012), “Building Large Monolingual Dictionaries at the Leipzig Corpora Collection: From 100 to 200 Languages,” LREC 2012, pp. 759–765. Cite the Leipzig collection and the relevant corpus release in project documentation; scholarly citation does not replace legal attribution.
