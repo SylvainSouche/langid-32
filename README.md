@@ -9,7 +9,7 @@ The project compares two compact character-based classifiers with a byte-level T
 Build a balanced, reproducible text corpus for 34 language labels:
 
 - The 24 official EU languages, including Maltese.
-- Icelandic, Catalan, Korean, Turkish and Russian.
+- Arabic, Catalan, Icelandic, Japanese, Korean, Russian and Turkish.
 - Norwegian Bokmål (`nb`) and Nynorsk (`nn`) as separate labels.
 - Chinese (`zh`), combining the intended Simplified and Traditional source varieties.
 
