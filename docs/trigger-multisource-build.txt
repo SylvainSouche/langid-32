@@ -1,3 +1,1 @@
-2026-11-18: rebuild metadata using waiting-source artifact 442419 with active DPO and Greynir exclusions.
-
-2026-11-18: rebuild using same-run acquisition; metadata-only output; DPO and Greynir exclusions enforced.
+2026-11-18: rebuild the 34-label candidate using same-run HF-hosted CC0 Common Voice 22 text, same-run waiting-source acquisition, and active DPO/Greynir source exclusions. JSONL preselection record separators have been corrected; upload metadata only and remove all candidate/source text from runner.
