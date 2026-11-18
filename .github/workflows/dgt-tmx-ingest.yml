@@ -7,7 +7,6 @@ on:
       - "src/langid32/dgt_tmx_stage.py"
       - "src/langid32/merge.py"
       - "tests/test_dgt_tmx_stage.py"
-      - ".github/workflows/dgt-tmx-ingest.yml"
       - "pyproject.toml"
   workflow_dispatch:
 
@@ -52,8 +51,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: dgt-tm-2021-staged-5k
-          path: |
-            reports/dgt-tm-2021-staged.jsonl
-            reports/dgt-tm-2021-staged.manifest.json
+          path: reports/dgt-tm-2021-staged.manifest.json
           retention-days: 14
           if-no-files-found: error

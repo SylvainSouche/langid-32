@@ -80,6 +80,8 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: multisource-candidate-v5-fineweb-en
-          path: reports/multisource-candidate-v5-fineweb-en/
+          path: |
+            reports/multisource-candidate-v5-fineweb-en/manifest.json
+            reports/multisource-candidate-v5-fineweb-en/source-manifest-*.json
           retention-days: 14
           if-no-files-found: error

@@ -30,10 +30,10 @@ jobs:
           --row-groups 4
           --min-score 0.90
           --output-dir reports/fineweb-en
-      - name: Upload sample and provenance
+      - name: Upload metadata manifest only (public repository; no candidate text)
         uses: actions/upload-artifact@v4
         with:
           name: fineweb-en-20000-v1.4.0
-          path: reports/fineweb-en/
+          path: reports/fineweb-en/manifest.json
           retention-days: 14
           if-no-files-found: error

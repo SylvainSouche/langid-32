@@ -6,7 +6,6 @@ on:
     paths:
       - "scripts/stage_tatoeba.py"
       - "tests/test_tatoeba_stage.py"
-      - ".github/workflows/tatoeba-ingest.yml"
   workflow_dispatch:
 
 permissions:
@@ -45,8 +44,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: tatoeba-cc0-staged-weekly-2026-11-14
-          path: |
-            reports/tatoeba-cc0-staged.jsonl
-            reports/tatoeba-cc0-staged.manifest.json
+          path: reports/tatoeba-cc0-staged.manifest.json
           retention-days: 14
           if-no-files-found: error
