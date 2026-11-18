@@ -31,13 +31,10 @@ jobs:
           run-id: 43950037392
           path: input/v5
 
-      - name: Download refreshed Common Voice artifact
-        uses: actions/download-artifact@v4
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          repository: ${{ github.repository }}
-          run-id: 44293665775
-          path: input/common-voice
+      - name: Acquire HF-hosted CC0 Common Voice text in this runner
+        run: |
+          python scripts/download_common_voice_hf.py --output-dir input/common-voice/source
+          python scripts/curate_common_voice_hf.py --input-root input/common-voice/source --output input/common-voice --per-language-cap 9000
 
       - name: Download Tatoeba CC0 artifact
         uses: actions/download-artifact@v4

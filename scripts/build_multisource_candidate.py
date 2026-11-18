@@ -270,7 +270,9 @@ def main():
         "status": "prepared_for_global_candidate_merge",
         "source_artifacts": {
             "historical_v5_run": 43950037392,
-            "common_voice_run": 44293665775,
+            "common_voice_run": None,
+            "common_voice_dataset": "fsicoli/common_voice_22_0",
+            "common_voice_acquisition": "same-run ephemeral HF-hosted CC0 acquisition; candidate text removed before artifact upload",
             "tatoeba_run": 44121162591,
             "dgt_tm_2021_run": 44291075180,
             "waiting_sources_run": None,
