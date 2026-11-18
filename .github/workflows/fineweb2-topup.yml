@@ -4,7 +4,6 @@ on:
   push:
     paths:
       - "scripts/extract_fineweb2_sample.py"
-      - ".github/workflows/fineweb2-topup.yml"
   workflow_dispatch:
 
 permissions:
@@ -31,10 +30,10 @@ jobs:
           --shards-per-language 4
           --max-row-groups 3
           --output-dir reports/fineweb2-topup
-      - name: Upload top-ups and provenance
+      - name: Upload metadata manifest only (public repository; no candidate text)
         uses: actions/upload-artifact@v4
         with:
           name: fineweb2-hr-ga-mt-nn-topup-v2.1.0
-          path: reports/fineweb2-topup/
+          path: reports/fineweb2-topup/manifest.json
           retention-days: 7
           if-no-files-found: error

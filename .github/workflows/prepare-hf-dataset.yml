@@ -4,7 +4,6 @@ on:
   push:
     branches: [main]
     paths:
-      - ".github/workflows/prepare-hf-dataset.yml"
       - "scripts/package_hf_dataset.py"
       - "docs/huggingface-dataset-card.md"
       - "docs/huggingface-licensing.md"
@@ -43,11 +42,15 @@ jobs:
           cp docs/huggingface-dataset-card.md /tmp/langid32-hf-dataset/README.md
           cp docs/huggingface-licensing.md /tmp/langid32-hf-dataset/LICENSING.md
 
-      - name: Upload preparation package as a GitHub Actions artifact only
+      - name: Upload licensing and quality metadata only (public repository; no Parquet)
         uses: actions/upload-artifact@v4
         with:
           name: langid-32-hf-dataset-package
-          path: /tmp/langid32-hf-dataset/
+          path: |
+            /tmp/langid32-hf-dataset/metadata/
+            /tmp/langid32-hf-dataset/README.md
+            /tmp/langid32-hf-dataset/LICENSING.md
+            /tmp/langid32-hf-dataset/LICENSING_STATUS.md
           if-no-files-found: error
           retention-days: 14
 

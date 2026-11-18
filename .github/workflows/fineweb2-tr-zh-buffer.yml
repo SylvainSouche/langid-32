@@ -4,7 +4,6 @@ on:
   push:
     paths:
       - "scripts/extract_fineweb2_sample.py"
-      - ".github/workflows/fineweb2-tr-zh-buffer.yml"
   workflow_dispatch:
 
 permissions:
@@ -47,10 +46,10 @@ jobs:
               raise SystemExit(f"expected 2 languages, got {len(manifest['languages'])}")
           print("Both languages have the exact 20,100 candidate split.")
           PY
-      - name: Upload candidates and provenance
+      - name: Upload metadata manifest only (public repository; no candidate text)
         uses: actions/upload-artifact@v4
         with:
           name: fineweb2-tr-zh-20100-buffer-v2.1.0
-          path: reports/fineweb2-tr-zh-buffer/
+          path: reports/fineweb2-tr-zh-buffer/manifest.json
           retention-days: 14
           if-no-files-found: error
