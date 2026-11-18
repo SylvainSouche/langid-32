@@ -48,24 +48,35 @@ The practical issue is not simply article-level attribution: the current candida
 
 **Decision:** do not count the 4,930 rows as a broad Greynir corpus contribution. Exclude them from the main language corpus pending a separate, deliberate acquisition of the full copper/silver data, confirmation of Git-LFS retrieval, and a provenance/rights assessment. If the gold/dev set is ever used for a separate evaluation task, keep it isolated from training and preserve its exact parser-test/dev designation.
 
-## 3. IGC2024 Filtered-1 — updated rights and citation evidence
+## 3. IGC2024 Filtered-1 — the open CC BY portion, not the full IGC
 
 CLARIN-IS record: https://repository.clarin.is/repository/xmlui/handle/20.500.12537/381  
-Project portal: https://igc.arnastofnun.is/  
-2026 paper: https://lrec.elra.info/lrec2026-ws-cmlc-06  
-README: https://repository.clarin.is/repository/xmlui/bitstream/handle/20.500.12537/381/README.txt?isAllowed=y&sequence=3
+README: https://repository.clarin.is/repository/xmlui/bitstream/handle/20.500.12537/381/README.txt?isAllowed=y&sequence=3  
+2026 paper: Daðason & Steingrímsson, “Optimized for AI: Curating the Icelandic Gigaword Corpus for Stable LLM Training,” CMLC-12 (2026), pp. 49–56. https://doi.org/10.63317/3uatbht8mdrf
 
-The CLARIN record identifies authors Jón Friðrik Daðason, Steinþór Steingrímsson and Hinrik Hafsteinsson; issue date 30 March 2026; publisher The Árni Magnússon Institute for Icelandic Studies; and CC BY 4.0. The archive README calls it a JSONL version of the 2024 IGC “prepared for language model training” and describes the documents as “unannotated, CC-BY-licensed documents from the IGC.” It also explicitly requests citation of the 2018 IGC paper and the 2026 curation paper.
+The CLARIN item identifies the authors Jón Friðrik Daðason, Steinþór Steingrímsson and Hinrik Hafsteinsson; issue date 30 March 2026; publisher The Árni Magnússon Institute for Icelandic Studies; and CC BY 4.0. It reports 794,816,184 words. Its README describes the archive as a JSONL version prepared for language-model training and explicitly calls its contents “CC-BY-licensed documents from the IGC.” The README requests citation of the 2018 IGC paper and the 2026 curation paper.
 
-A further, important statement on the official IGC portal says that copyright clearance has been secured for the texts used to enable Language Technology projects. This is stronger and more specific than a generic crawl-dataset wrapper licence. It materially improves the rights evidence, but the exact scope of that clearance and whether it expressly covers redistribution of selected excerpts in a separately published corpus still need confirmation. The filtered JSONL's actual retained bibliographic fields must also be checked before asserting that every selected record can carry source-level attribution.
+The 2026 paper resolves the licensing split that was previously ambiguous. It says “Approximately 63% of the corpus is available under a permissive license, CC BY 4.0” and that “The remaining 37% falls under the IGC Custom License.” It then quantifies the filtered distribution: the CC BY 4.0 open-access portion is approximately 795M running words and is published in CLARIN-IS and Hugging Face; the custom-license portion is approximately 895M words and is not for raw-text republication. The paper says the custom licence permits research use and language-model training but “prohibits republication of raw texts.” The CLARIN Filtered-1 record's 794.8M-word size matches the paper's ≈795M open portion. Filtered-1 is therefore the CC BY 4.0 subset; Filtered-2 is the custom-licensed subset and remains excluded.
 
-The 2026 paper's abstract describes a filtering pipeline including “fuzzy deduplication to reduce the risk of data leakage”. This is scholarly context for the filtered release, not a licence grant.
+The paper also explains that books, journals and social-media material are distributed as shuffled paragraphs or sentences for licensing/copyright reasons and are unsuitable for the pre-training JSONL release. Do not mix those restricted fragments into the Filtered-1 open-text path.
+
+The JSONL schema example contains:
+- tei_archive: the source TEI archive;
+- tei_path: the path to the original TEI document;
+- source: the original source/site;
+- altered: whether the document was changed by processing;
+- text: the processed document text.
+
+The paper says “the inclusion of tei_path ensures full traceability to the original TEI-XML source.” This is precisely the provenance we need to retain. The previous acquisition parser did not preserve tei_archive, tei_path, source or altered; the current parser must be amended to retain all four. A 50,000-row sample from the historical artifact lacks those fields and is not sufficient for record-level attribution. The new same-run acquisition must preserve them before the source is used in a release build.
+
+The 2026 paper also describes a quality pipeline: rule-based document filtering, boilerplate removal, normalization, removal of documents under 50 words, stop-word ratio thresholding, internal-duplication checks, code/encoding/OCR/phrase filters, and MinHash/LSH fuzzy deduplication. These are corpus quality operations; they do not replace the CC BY attribution obligation.
 
 Required scholarly references:
 - Jón Friðrik Daðason and Steinþór Steingrímsson. 2026. “Optimized for AI: Curating the Icelandic Gigaword Corpus for Stable LLM Training.” Proceedings of the 12th Workshop on Challenges in the Management of Large Corpora, pp. 49–56. DOI: https://doi.org/10.63317/3uatbht8mdrf.
 - Starkaður Barkarson, Steinþór Steingrímsson and Hildur Hafsteinsdóttir. 2022. “Evolving Large Text Corpora: Four Versions of the Icelandic Gigaword Corpus.” LREC 2022, pp. 2371–2381.
+- Steinþór Steingrímsson, Sigrún Helgadóttir, Eiríkur Rögnvaldsson, Starkaður Barkarson and Jón Guðnason. 2018. “Risamálheild: A Very Large Icelandic Text Corpus.” LREC 2018, pp. 4361–4366.
 
-**Decision:** retain the current rights hold as a narrow verification hold, not as a conclusion that IGC lacks text rights. Confirm the filtered-release grant and inspect the acquired JSONL schema/record metadata. If the grant and attribution conditions cover redistribution, the CC BY 4.0 corpus can be considered for inclusion with required attribution and change notice.
+**Decision:** upgrade IGC2024 Filtered-1 from a narrow legal hold to **STAGED / CC BY 4.0 OPEN PORTION; ATTRIBUTION AND PROVENANCE REQUIRED**. Include only Filtered-1, preserve tei_archive/tei_path/source/altered for each record, and include the dataset and original IGC scholarly citations. Filtered-2 remains excluded because raw-text republication is prohibited under its custom licence.
 
 ## 4. Målfrid 2026 — authoritative technical metadata
 
