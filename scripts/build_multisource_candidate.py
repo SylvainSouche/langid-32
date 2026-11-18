@@ -95,6 +95,25 @@ def normalize_file(source_path: Path, destination: Path, *, filter_superseded=Fa
                         "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:"
                         + celex_id
                     )
+                    provenance["celex_sector"] = celex_id[:1]
+                    if len(celex_id) >= 5 and celex_id[1:5].isdigit():
+                        provenance["celex_year"] = int(celex_id[1:5])
+                    if len(celex_id) >= 6:
+                        provenance["celex_document_type"] = celex_id[5:6]
+                    origin_by_sector = {
+                        "2": "eu_international_agreement",
+                        "3": "eu_legal_act",
+                        "4": "eu_complementary_legislation",
+                        "5": "eu_preparatory_document",
+                        "0": "eu_consolidated_text",
+                        "C": "eu_official_journal_document",
+                        "E": "efta_document",
+                    }
+                    row["text_origin"] = origin_by_sector.get(
+                        celex_id[:1], "eu_official_document"
+                    )
+                else:
+                    row["text_origin"] = "eu_official_document"
                 provenance["source_dataset_url"] = (
                     "https://joint-research-centre.ec.europa.eu/language-technology-resources/"
                     "dgt-translation-memory_en"
