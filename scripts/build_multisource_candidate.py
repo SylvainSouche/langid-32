@@ -130,7 +130,7 @@ def preselect_files(paths, destination: Path, max_per_bucket: int | None, seed: 
     heaps = {}
     serial = itertools.count()
     if max_per_bucket is None:
-        with destination.open("w", encoding="utf-8", newline="\\n") as output:
+        with destination.open("w", encoding="utf-8", newline="\n") as output:
             for path in paths:
                 with path.open("r", encoding="utf-8") as source:
                     for line in source:
@@ -173,7 +173,7 @@ def preselect_files(paths, destination: Path, max_per_bucket: int | None, seed: 
             selected.append(row)
             selected_counts[f"{source}:{language}"] += 1
     selected.sort(key=lambda row: (row["language"], row["source"], row["group_id"], row["text"]))
-    with destination.open("w", encoding="utf-8", newline="\\n") as output:
+    with destination.open("w", encoding="utf-8", newline="\n") as output:
         for row in selected:
             output.write(json.dumps(row, ensure_ascii=False, separators=(",", ":")) + "\\n")
     return {
