@@ -148,3 +148,26 @@ Required notices/citations for any retained material from this derivative:
 4. Preserve the immutable HF revision, split name and row index. State explicitly that original UN document-level identifiers were not included in the derivative schema.
 
 **Decision:** the underlying UNPC and MultiUN text is supported by official public-domain statements; the derivative has a declared CC BY 4.0 licence and a mandatory UN acknowledgement. The remaining hold is attribution packaging, immutable revision capture and accurate provenance labelling—not an unverified assumption that UN documents are copyrighted. A future re-acquisition directly from UNPC/MultiUN could restore original document IDs and substantially improve traceability.
+
+
+## 8. Korean Wikipedia 2023-11-01 — the HF licence metadata is stale/incomplete
+
+Hugging Face dataset: https://huggingface.co/datasets/wikimedia/wikipedia  
+Korean config: `20231101.ko`  
+Wikimedia Foundation Terms of Use: https://foundation.wikimedia.org/wiki/Terms_of_Use  
+Wikimedia announcement of the 4.0 transition: https://diff.wikimedia.org/2023/06/29/stepping-into-the-future-wikimedia-projects-transition-to-creative-commons-4-0-license/  
+Creative Commons announcement: https://certificate.creativecommons.org/2023/06/29/wikipedia-moves-to-cc-4-0-licenses/
+
+The Hugging Face card declares CC BY-SA 3.0 and GFDL, but that statement is stale for a 2023-11-01 snapshot. Wikimedia's Terms of Use revision took effect on 29 June 2023: new text contributions are licensed under CC BY-SA 4.0 and GFDL (unversioned); earlier contributions remain under CC BY-SA 3.0 and GFDL. The Foundation's announcement explicitly says that older edits remain under BY-SA 3.0 while new edits use 4.0. Imported text can have its own compatible licence and additional attribution requirements; the Terms of Use say imported content cannot be GFDL-only and must be appropriately credited.
+
+The relevant official statement is that new text is licensed under “Creative Commons Attribution-ShareAlike 4.0 International License”. This is not a simple wholesale upgrade of all old article text: the snapshot contains revisions spanning both licence periods. The HF dataset card's CC BY-SA 3.0/GFDL labels do not capture the complete 2023-11-01 rights position. The current langid-32 acquisition metadata, which labels every row `CC-BY-SA-4.0;GFDL-1.3`, is also inaccurate/incomplete: it does not distinguish pre- and post-transition revisions and treats the GFDL version as fixed.
+
+The upstream `wikimedia/wikipedia` dataset description says each example is a cleaned full article. Its schema has four columns, and the acquisition code retains page ID, title and URL but not the revision ID or revision timestamp. This means:
+- Page ID identifies the article, not the precise revision included in the 2023-11-01 snapshot.
+- Article URL/title provide a useful attribution pointer, but the exact author/contributor history and any page-specific imported-content notices are not frozen in the candidate row.
+- The script iterates no more than the first 500,000 page rows, while the HF structure reports about 647.9K rows for `20231101.ko`; the 50,000-candidate sample is therefore not drawn from the entire config.
+- Paragraph splitting produces multiple candidate rows per article and correctly reuses the page ID as a grouping key, but it does not recover revision-level metadata.
+
+No separate scholarly paper is specified by the Wikimedia dump card; the publisher directs users to cite the Wikimedia Dumps resource. For licensing, the controlling evidence is the Wikimedia Foundation Terms of Use and the dump's own legal information, not a generic citation paper.
+
+**Decision:** keep the Korean Wikipedia candidates on hold. Before promotion, either rebuild from the original XML dump while preserving revision IDs/timestamps and page history, or establish that the exact HF conversion contains sufficient metadata to reconstruct each page revision. Then classify pre-/post-29 June 2023 content and imported material, implement article-level attribution, and choose a ShareAlike-compatible distribution licence. Do not rely on the current HF card's CC BY-SA 3.0/GFDL metadata or the sampler's single CC BY-SA 4.0 label.
