@@ -1,45 +1,38 @@
-name: Leipzig Corpora Collection inventory and bulk audit
+name: Leipzig Corpora Collection — Icelandic and Croatian pilot
 on:
   workflow_dispatch:
     inputs:
       max_archives_per_language:
-        description: Maximum archives to download per target language
+        description: Number of representative archives to fetch for each language
         required: true
         type: choice
         options: ["1","2","3","5"]
         default: "3"
-      sample_per_archive:
-        description: Candidate sentence cap used for audit metrics
-        required: true
-        type: choice
-        options: ["30000","100000","300000"]
-        default: "100000"
   push:
     paths:
       - "scripts/acquire_leipzig.py"
 permissions:
   contents: read
 jobs:
-  inventory-and-audit:
+  acquire-pilot:
     runs-on: ubuntu-latest
-    timeout-minutes: 360
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install parsers
-        run: python -m pip install --disable-pip-version-check requests beautifulsoup4
-      - name: Crawl Leipzig catalogue and acquire target-language archives
+      - name: Install Parquet reader and HTTP client
+        run: python -m pip install --disable-pip-version-check requests pyarrow
+      - name: Fetch and inspect Icelandic and Croatian Leipzig archives
         run: |
           python scripts/acquire_leipzig.py --out out/leipzig \
-            --max-archives-per-language "${{ inputs.max_archives_per_language || '3' }}" \
-            --sample-per-archive "${{ inputs.sample_per_archive || '100000' }}"
-      - name: Upload metadata manifest only (public repository; no corpus text or archives)
-        if: always() && hashFiles('out/**') != ''
+            --max-archives-per-language "${{ inputs.max_archives_per_language || '3' }}"
+      - name: Upload corpus pilot with CC BY attribution
+        if: always() && hashFiles('out/leipzig/**') != ''
         uses: actions/upload-artifact@v4
         with:
-          name: leipzig-corpus-audit-${{ github.run_id }}
-          path: out/leipzig/manifest.json
+          name: leipzig-ic-hr-pilot-${{ github.run_id }}
+          path: out/leipzig/
           retention-days: 30
-          if-no-files-found: warn
+          if-no-files-found: error
