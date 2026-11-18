@@ -1,9 +1,10 @@
 # Model routes
 
 All routes consume the same corpus splits and emit logits in the same fixed
-34-language class order (config/languages.txt). The model definitions are
+34-language class order (`config/languages.txt`). The model definitions are
 independent of any particular trainer so CPU, CUDA and Apple MPS runners can
-use the same architectures.
+use the same architectures. Training derives the output class count from the
+selected language file; the default model constructors also use 34 classes.
 
 ## A1 — sparse character n-gram logistic regression
 
