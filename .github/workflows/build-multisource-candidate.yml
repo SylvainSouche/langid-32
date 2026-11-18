@@ -1,0 +1,97 @@
+name: Build 34-label multisource candidate (metadata only)
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "docs/trigger-multisource-build.txt"
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - name: Check out source and merge code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Download historical v5 artifact
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: 43950037392
+          path: input/v5
+
+      - name: Download refreshed Common Voice artifact
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: 44293665775
+          path: input/common-voice
+
+      - name: Download Tatoeba CC0 artifact
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: 44121162591
+          path: input/tatoeba
+
+      - name: Download DGT-TM 2021 artifact
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: 44291075180
+          path: input/dgt
+
+      - name: Download refreshed waiting-source artifact
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: 44293866614
+          path: input/waiting
+
+      - name: Build candidate and aggregate metadata
+        env:
+          PYTHONPATH: src
+        run: |
+          python scripts/build_multisource_candidate.py \
+            --v5-dir input/v5 \
+            --common-voice-dir input/common-voice \
+            --tatoeba-dir input/tatoeba \
+            --dgt-dir input/dgt \
+            --waiting-dir input/waiting \
+            --output out
+
+      - name: Remove all candidate text and downloaded source data from runner workspace
+        if: always()
+        run: |
+          rm -rf input
+          rm -rf out/normalized-inputs out/preselected-input.jsonl
+          rm -f out/candidate/train.jsonl out/candidate/validation.jsonl \
+            out/candidate/test.jsonl out/candidate/reserve.jsonl \
+            out/candidate/records.jsonl
+
+      - name: Upload metadata only (no candidate text)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: multisource-candidate-v6-metadata
+          path: |
+            out/input-manifest.json
+            out/build-summary.json
+            out/candidate/manifest.json
+          if-no-files-found: warn
+          retention-days: 30
