@@ -14,7 +14,7 @@ A notice should include:
 4. A brief explanation of the request and the requester's authority to make it.
 5. A good-faith statement that the information is accurate and that the requester is the rights holder or authorised to act for them, where the request concerns copyright.
 
-**Contact channel:** not yet configured. A monitored rights-notice email address must be published here before any web-extracted corpus is released. Do not use a public GitHub issue to submit confidential contact details or personal data. Until the contact channel is operational, web-extracted corpus publication is blocked.
+**Rights-notice contact:** [abuse@souche.fr](mailto:abuse@souche.fr). Please use this address for copyright, database-rights, privacy, source-term, and other corpus inclusion/removal notices. Do not use a public GitHub issue to submit confidential contact details or personal data. The address is published; web-extracted corpus release remains blocked until the project has verified that the mailbox is monitored and the handling procedure below is operational.
 
 ## Handling procedure
 
