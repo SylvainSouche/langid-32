@@ -2,8 +2,9 @@ import argparse,csv,gzip,hashlib,json,re,shutil,subprocess,tarfile,tempfile,unic
 from pathlib import Path
 from urllib.request import Request,urlopen
 from collections import Counter,defaultdict
-import heapq
-E=re.compile(r"(?i)\b[\w.+-]+@[\w.-]+\.[A-Z]{2,}\b"); U=re.compile(r"(?i)(https?://|www\.)\S+"); N=re.compile(r"\d{9,}")
+import heapq,time
+E=re.compile(r"(?i)\b[\w.+-]+@[\w.-]+\.[A-Z]{2,}\b"); U=re.compile(r"(?i)(https?://|www\.)\S+"); N=re.compile(r"\d{9,}"); IP=re.compile(r"(?<![\w.])(?:\d{1,3}\.){3}\d{1,3}(?![\w.])")
+LID=None
 def clean(s,l):
  s=" ".join(unicodedata.normalize("NFC",str(s or "")).split()); a=sum(c.isalpha() for c in s)
  if len(s)<40 or len(s)>12000 or a<25 or a/len(s)<.45 or E.search(s) or U.search(s) or N.search(s) or IP.search(s):return None
@@ -15,17 +16,27 @@ def clean(s,l):
  if l=="ar" and sum("\u0600"<=c<="\u06ff" for c in s)<max(10,a*.35):return None
  return s
 def fetch(u,p):
- h=hashlib.sha256();n=0
- with urlopen(Request(u,headers={"User-Agent":"langid-32-source-audit/1"}),timeout=180) as r,p.open("wb") as f:
-  while True:
-   b=r.read(1048576)
-   if not b:break
-   f.write(b);h.update(b);n+=len(b)
- return {"url":u,"bytes":n,"sha256":h.hexdigest()}
+ last=None
+ for attempt in range(4):
+  h=hashlib.sha256();n=0
+  try:
+   with urlopen(Request(u,headers={"User-Agent":"langid-32-source-audit/1"}),timeout=240) as r,p.open("wb") as f:
+    expected=int(r.headers.get("Content-Length") or 0)
+    while True:
+     b=r.read(1048576)
+     if not b:break
+     f.write(b);h.update(b);n+=len(b)
+   if expected and n!=expected:raise IOError(f"incomplete download: {n}/{expected} bytes")
+   return {"url":u,"bytes":n,"sha256":h.hexdigest()}
+  except Exception as e:
+   last=e
+   try:p.unlink()
+   except FileNotFoundError:pass
+   if attempt<3:time.sleep(5*(attempt+1))
+ raise last
 def main():
  global LID
- import csv as _csv
- _csv.field_size_limit(10000000)
+ csv.field_size_limit(10000000)
  import fasttext
  model=Path(tempfile.gettempdir())/"lid.176.ftz"
  if not model.exists():fetch("https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.ftz",model)
