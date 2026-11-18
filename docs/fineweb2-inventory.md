@@ -1,3 +1,5 @@
+> **Technical metadata inventory only — FineWeb2 is on legal hold.** This document describes metadata and extraction mechanics; it is not a current acquisition priority or permission to redistribute underlying passages. See [the canonical source register](source-register.md) for current status.
+
 > **Technical inventory; legal hold.** This document describes FineWeb2 metadata and bounded extraction mechanics, not approval to redistribute its underlying web text. Current status: [source register](source-register.md). FineWeb2 is not an approved release source on the strength of its ODC-By compilation licence.
 
 # FineWeb2 metadata inventory
@@ -8,12 +10,13 @@ FineWeb2 is a high-value Common Crawl derivative for this project. Its publisher
 
 ## Target-language mapping
 
-FineWeb2 uses ISO 639-3 language codes and language-script subset names. The project maps its 32 classes to exact subsets:
+FineWeb2 uses ISO 639-3 language codes and language-script subset names. The current project has 34 labels. FineWeb2 uses exact language-script subsets for non-English labels; English is sourced separately from FineWeb. The pinned 2025 metadata snapshot below predates the Catalan and Icelandic additions, which were later used in the 18 November technical backfill.
 
 | Project | FineWeb2 subset | Notes |
 |---|---|---|
 | bg | `bul_Cyrl` | Bulgarian |
 | hr | `hrv_Latn` | Croatian |
+| ca | `cat_Latn` | Catalan; later technical backfill config |
 | cs | `ces_Latn` | Czech |
 | da | `dan_Latn` | Danish |
 | nl | `nld_Latn` | Dutch |
@@ -63,7 +66,7 @@ The report separates filtered train documents, test documents and removed train 
 
 ## Preliminary findings from the upstream distribution CSV
 
-The pinned distribution snapshot (upstream commit `d0defb24f193bb9a5a11b8b14524a03c4858e1b6`, 2025-10-27) confirms large filtered subsets for Korean (`kor_Hang`: 60,874,355 train documents), Irish (`gle_Latn`: 646,842), Maltese (`mlt_Latn`: 489,190), Nynorsk (`nno_Latn`: 1,214,870) and Bokmål (`nob_Latn`: 38,144,343). These are publisher-reported document counts, not sentence counts or usable samples. The 31 target subsets range from 489,190 filtered-train documents for Maltese to hundreds of millions for several high-resource languages. The table has exact subsets for 31 of the 32 target classes in the current mapping; English is separately distributed in original FineWeb. The mapping deliberately uses `ekk` and `lvs` for Standard Estonian and Standard Latvian. Summing the 31 filtered-train rows in the pinned CSV gives **4,498,336,994 documents** and **8,565,676,448,996 Parquet bytes (about 8.57 TB)**. This is the combined source inventory, not a download target: the project needs 20,000 samples per class, so acquisition must be bounded and selective.
+The pinned distribution snapshot (upstream commit `d0defb24f193bb9a5a11b8b14524a03c4858e1b6`, 2025-10-27) confirms large filtered subsets for Korean (`kor_Hang`: 60,874,355 train documents), Irish (`gle_Latn`: 646,842), Maltese (`mlt_Latn`: 489,190), Nynorsk (`nno_Latn`: 1,214,870) and Bokmål (`nob_Latn`: 38,144,343). These are publisher-reported document counts, not sentence counts or usable samples. The 31 subsets in this historical snapshot range from 489,190 filtered-train documents for Maltese to hundreds of millions for several high-resource languages. The table has exact subsets for 31 of the 32 classes represented in that historical mapping; English is separately distributed in original FineWeb. Catalan and Icelandic were added to the project after this snapshot and are not included in those 2025 totals. The mapping deliberately uses `ekk` and `lvs` for Standard Estonian and Standard Latvian. Summing the 31 filtered-train rows in the pinned CSV gives **4,498,336,994 documents** and **8,565,676,448,996 Parquet bytes (about 8.57 TB)**. This is the combined source inventory, not a download target: the project needs 20,000 samples per class, so acquisition must be bounded and selective.
 
 The filtered FineWeb2 corpus has already been globally deduplicated per language. The dataset retains `minhash_cluster_size`, source URL, crawl dump/date and language confidence metadata. For our evaluation, split by source document or domain before sentence extraction; do not randomly split extracted sentences. A FineWeb2-held-out evaluation is also not independent of other Common Crawl derivatives such as HPLT or MADLAD-400.
 
