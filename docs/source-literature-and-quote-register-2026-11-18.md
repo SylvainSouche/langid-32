@@ -244,3 +244,24 @@ The database-rights nuance must be stated accurately:
 No scholarly paper specifically describing the 2026 release was identified. The official PDF and permanent resource record are the primary citation sources.
 
 **Decision:** preserve the existing NLOD/database-rights hold and extend it to per-document language validation and personal/third-party content review. The current 50K-per-language samples are technical candidates only until the `lang` field is retained and mismatches are filtered, and until a privacy/third-party screening process is applied.
+
+
+## 12. DGT-TM 2021 — exact EC reuse conditions and the 2012 reference paper
+
+Official JRC resource and terms: https://joint-research-centre.ec.europa.eu/language-technology-resources/dgt-translation-memory_en  
+Reference paper: Steinberger et al. (2012), “DGT-TM: A freely available Translation Memory in 22 languages,” LREC 2012, pp. 454–459. https://aclanthology.org/L12-1481/  
+Later overview: Steinberger et al. (2014), “An overview of the European Union's highly multilingual parallel corpora,” Language Resources and Evaluation 48, pp. 679–707. DOI: https://doi.org/10.1007/s10579-014-9277-0
+
+The official JRC page distinguishes DGT-TM from full-text parallel corpora: DGT-TM is a translation memory of aligned translation units extracted from EURAMIS, the Directorate-General for Translation's shared translation memory. It contains most, but not all, Acquis documents and also some other documents. The 2021 release is distributed in five volumes labelled `Vol_2020_1` through `Vol_2020_5`; therefore “2021” is the release year, while the volume labels refer to 2020. The current JRC page describes 24 EU official languages. The 2012 reference paper's title and abstract describe the earlier 22-language state; it remains the required historical reference, not the source of current language-count metadata.
+
+The JRC conditions are explicit: the database is the “exclusive property of the European Commission”; the Commission grants non-exclusive worldwide reuse under Commission Decision 2011/833/EU. Re-users must identify the source website, the latest update date and the fact that the European Commission retains ownership. The JRC page does not state an exact day/month for the 2021 release; the correct update date to report is therefore the 2021 release year, not an invented calendar date.
+
+The 2012 paper repeats the conditions and notes that the underlying files are identified by the EUR-Lex Numdoc of the original legislative document, but preprocessing modifies documents and extracted sequence order does not necessarily match the original. This is important for excerpt-level provenance: preserve the Numdoc/CELEX ID and do not claim that a translation unit is a verbatim contiguous passage from the source legislation. The paper describes DGT-TM as “sentences and their professionally produced translations”; that is a corpus description, not a separate licence grant.
+
+Recommended attribution text for the final source notice:
+
+> Source: DGT-Translation Memory (DGT-TM), European Commission Directorate-General for Translation / Joint Research Centre, 2021 release (Vol_2020_1–Vol_2020_5). Latest update: 2021. The European Commission retains ownership of the DGT-TM database. Source page: https://joint-research-centre.ec.europa.eu/language-technology-resources/dgt-translation-memory_en. Accessed: [actual access date].
+
+Cite Steinberger et al. (2012) for the resource and Steinberger et al. (2014) for the broader EU multilingual corpus landscape. The 2012 paper is not a 24-language citation; the current JRC page supplies that current count.
+
+**Decision:** retain DGT-TM as a strong source under the Commission's reuse conditions, with explicit attribution and ownership notice. Preserve Numdoc IDs and release/version metadata. Do not label the source CC0 or CC BY unless the exact Commission reuse notice is separately mapped to a compatible licence; the project's final combined dataset may choose CC BY as a distribution policy while retaining the EC's original source notice.
