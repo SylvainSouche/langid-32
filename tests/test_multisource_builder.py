@@ -97,6 +97,9 @@ def test_preselect_files_is_deterministic_and_respects_source_language_cap(tmp_p
     assert report["rows_selected"] == 3
     assert report["bucket_counts"] == {"fineweb2:fr": 3}
     assert first.read_bytes() == second.read_bytes()
+    lines = first.read_text(encoding="utf-8").splitlines()
+    assert len(lines) == 3
+    assert all(json.loads(line)["source"] == "fineweb2" for line in lines)
 
 
 

@@ -160,7 +160,7 @@ def preselect_files(paths, destination: Path, max_per_bucket: int | None, seed: 
                         row = json.loads(line)
                         bucket_seen[f"{row['source']}:{row['language']}"] += 1
                         total_seen += 1
-                        output.write(json.dumps(row, ensure_ascii=False, separators=(",", ":")) + "\\n")
+                        output.write(json.dumps(row, ensure_ascii=False, separators=(",", ":")) + "\n")
         return {
             "rows_seen": total_seen,
             "rows_selected": total_seen,
@@ -176,7 +176,7 @@ def preselect_files(paths, destination: Path, max_per_bucket: int | None, seed: 
                 total_seen += 1
                 key = (row["language"], row["source"])
                 bucket_seen[f"{row['source']}:{row['language']}"] += 1
-                rank_material = "\\0".join((
+                rank_material = "\0".join((
                     seed, row["language"], row["source"],
                     str(row.get("group_id") or ""), row["text"],
                 ))
@@ -196,7 +196,7 @@ def preselect_files(paths, destination: Path, max_per_bucket: int | None, seed: 
     selected.sort(key=lambda row: (row["language"], row["source"], row["group_id"], row["text"]))
     with destination.open("w", encoding="utf-8", newline="\n") as output:
         for row in selected:
-            output.write(json.dumps(row, ensure_ascii=False, separators=(",", ":")) + "\\n")
+            output.write(json.dumps(row, ensure_ascii=False, separators=(",", ":")) + "\n")
     return {
         "rows_seen": total_seen,
         "rows_selected": len(selected),
