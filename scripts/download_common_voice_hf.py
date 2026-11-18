@@ -4,7 +4,7 @@
 No audio, clips, speaker IDs, demographic metadata, or full dataset archive is fetched.
 """
 from __future__ import annotations
-import argparse, hashlib, json, os, time, urllib.error, urllib.request
+import argparse, csv, hashlib, json, os, time, urllib.error, urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -71,9 +71,13 @@ def main():
     unknown=sorted(set(wanted)-set(LOCALES))
     if unknown: p.error("Unknown target language(s): "+", ".join(unknown))
     a.output_dir.mkdir(parents=True,exist_ok=True)
+    from huggingface_hub import HfApi
+    resolved_revision = HfApi().dataset_info(REPO, revision=a.revision).sha
+    if not resolved_revision:
+        raise RuntimeError(f"Could not resolve immutable revision for {REPO}@{a.revision}")
     manifest_path=a.output_dir/"hf-common-voice-download-manifest.json"
     manifest={"source":REPO,"release":"Common Voice Corpus 22.0 (unofficial HF conversion)",
-              "revision_requested":a.revision,"method":"direct HTTP fetch of transcript/<locale>/validated_sentences.tsv only; no audio",
+              "revision_requested":a.revision,"revision_resolved":resolved_revision,"method":"direct HTTP fetch of transcript/<locale>/validated_sentences.tsv only; no audio",
               "results":[],"failures":[],"started_at_utc":now()}
     for language in wanted:
         pieces=[]
@@ -81,7 +85,7 @@ def main():
             dest=a.output_dir/language/f"{locale}.validated_sentences.tsv"
             dest.parent.mkdir(parents=True,exist_ok=True)
             try:
-                row=fetch(locale,a.revision,dest)
+                row=fetch(locale,resolved_revision,dest)
                 row["language"]=language
                 pieces.append(row); manifest["results"].append(row)
                 print(f"Fetched {language}/{locale}: {row['bytes']:,} bytes sha256={row['sha256']} commit={row['repo_commit']}",flush=True)
@@ -91,15 +95,21 @@ def main():
                 print(f"FAILED {language}/{locale}: {exc}",flush=True)
         # Build the curator's canonical input, combining both Chinese locales.
         if pieces:
-            import csv, io
             combined=a.output_dir/language/"validated_sentences.tsv"
-            with combined.open("wb") as out:
-                for i,row in enumerate(pieces):
-                    with (a.output_dir/language/f"{row['locale']}.validated_sentences.tsv").open("rb") as src:
-                        header=src.readline()
-                        if i==0: out.write(header)
-                        for line in src:
-                            if line.strip(): out.write(line)
+            with combined.open("w",encoding="utf-8",newline="") as out:
+                writer=None
+                for piece in pieces:
+                    source=a.output_dir/language/f"{piece['locale']}.validated_sentences.tsv"
+                    with source.open(encoding="utf-8-sig",newline="") as inp:
+                        reader=csv.DictReader(inp,delimiter="\\t")
+                        if not reader.fieldnames or not {"sentence_id","sentence"}.issubset(reader.fieldnames):
+                            raise RuntimeError(f"Unexpected Common Voice TSV schema: {source}")
+                        if writer is None:
+                            fields=list(reader.fieldnames)+["source_locale"]
+                            writer=csv.DictWriter(out,fieldnames=fields,delimiter="\\t",lineterminator="\\n")
+                            writer.writeheader()
+                        for record in reader:
+                            writer.writerow({**record,"source_locale":piece["locale"]})
             manifest.setdefault("combined",{})[language]={"locales":[x["locale"] for x in pieces],
                 "bytes":combined.stat().st_size,"sha256":hashlib.sha256(combined.read_bytes()).hexdigest()}
     manifest["finished_at_utc"]=now()
