@@ -8,6 +8,16 @@ This is a corpus-maturity decision as well as a release-management rule: the tar
 
 The GitHub repository's root `LICENSE` is MIT and applies to project software. It does not apply to the third-party text records and must not be copied as the dataset licence.
 
+## Hugging Face public-repository terms are a further rights grant
+
+Hugging Face's Terms of Service make the uploader responsible for content and require the uploader to warrant that they own/control it or otherwise have the right to post it. For a public repository, the uploader grants each Hub user a **perpetual, irrevocable, worldwide, royalty-free, non-exclusive licence** to use, display, publish, reproduce, distribute and make derivative works of the content through Hugging Face services. The uploader also agrees to indemnify Hugging Face for claims arising from content or data posted or used.
+
+This is materially broader than merely storing a file on a website. Before a public dataset upload, the rights held by the project must cover the rights the Hub Terms grant to other users. A source's CC0/ODC-BY packaging tag does not supply those rights for underlying excerpts.
+
+The Hub's dataset-card documentation describes the YAML `license` field as metadata displayed on the dataset page and used for discovery/filtering. It does not describe a source-by-source rights verification process. The Content Policy prohibits content infringing third-party IP or privacy rights and provides reporting/DMCA channels; those are reactive moderation mechanisms, not pre-publication clearance.
+
+Accordingly, the current HF dataset repository remains empty and no text-bearing package is uploaded. The existing repository MIT tag applies to the software repository only; it must not be represented as the text dataset's licence.
+
 ## Distinguish data licence from contractual terms
 
 A data licence and a platform's Terms of Service (ToS) or dataset agreement are different instruments:
