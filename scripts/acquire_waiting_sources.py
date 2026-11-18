@@ -4,15 +4,9 @@ from urllib.request import Request,urlopen
 from collections import Counter,defaultdict
 import heapq,time
 E=re.compile(r"(?i)\b[\w.+-]+@[\w.-]+\.[A-Z]{2,}\b"); U=re.compile(r"(?i)(https?://|www\.)\S+"); N=re.compile(r"\d{9,}"); IP=re.compile(r"(?<![\w.])(?:\d{1,3}\.){3}\d{1,3}(?![\w.])")
-LID=None
 def clean(s,l):
  s=" ".join(unicodedata.normalize("NFC",str(s or "")).split()); a=sum(c.isalpha() for c in s)
  if len(s)<40 or len(s)>12000 or a<25 or a/len(s)<.45 or E.search(s) or U.search(s) or N.search(s) or IP.search(s):return None
- if LID is not None and l in {"ca","is","ar","ko"}:
-  try:
-   labels,probs=LID.predict(s.replace("\\n"," ")[:4000],k=1)
-   if labels[0] != "__label__"+l or probs[0] < .55:return None
-  except Exception:return None
  if l=="ar" and sum("\u0600"<=c<="\u06ff" for c in s)<max(10,a*.35):return None
  return s
 def fetch(u,p):
@@ -35,12 +29,7 @@ def fetch(u,p):
    if attempt<3:time.sleep(5*(attempt+1))
  raise last
 def main():
- global LID
  csv.field_size_limit(10000000)
- import fasttext
- model=Path(tempfile.gettempdir())/"lid.176.ftz"
- if not model.exists():fetch("https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.ftz",model)
- LID=fasttext.load_model(str(model))
  q=argparse.ArgumentParser();q.add_argument("--source",required=True);q.add_argument("--out",required=True);a=q.parse_args();t=Path(tempfile.mkdtemp());o=Path(a.out);o.mkdir(parents=True,exist_ok=True);R=defaultdict(list);S=defaultdict(set);D=[];notes=[];scanned=Counter()
  def add(l,s,x,g=""):
   x=clean(x,l)
@@ -65,7 +54,7 @@ def main():
        except:continue
        if isinstance(x,dict):
         vals=[]
-        for k in ("fulltext","text","content","sentence","body"):
+        for k in ("fulltext","text","content","sentence","body","ca","text_ar"):
          v=x.get(k)
          if isinstance(v,str):vals.append(v)
          elif isinstance(v,list):vals += [z for z in v if isinstance(z,str)]
