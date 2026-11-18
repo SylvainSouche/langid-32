@@ -98,7 +98,7 @@ Technical deduplication, successful CI and a complete manifest do not constitute
 1. Add the 94 cross-language exact-text collisions to a separate audit output and keep them out of supervised training pending resolution.
 2. Improve FineWeb2 sampling for Maltese, Nynorsk and Irish first; check other classes for non-target-language boilerplate and domain/genre concentration.
 3. Complete a reviewed privacy pass over the 1,619 flagged records, then sample the unflagged material as well.
-4. Integrate Common Voice v27 text (not audio) and Målfrid 2026. These can materially improve the English and Norwegian source mix and add a distinct speech-prompt / public-sector register.
+4. Integrate the HF-hosted CC0-1.0 Common Voice 22 text source where it adds useful coverage, and Målfrid 2026. Croatian requires a separate independent source.
 5. Resolve the DGT-TM 2025 catalogue/release discrepancy before replacing or supplementing the 2021 material.
 6. Recompute source/domain balance and rights status before freezing a training corpus.
 
