@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+from html.parser import HTMLParser
 import re
 import sys
 import time
@@ -130,6 +131,22 @@ def extract_sentences(value):
     return unique, sorted(source_keys), unique_sources
 
 
+class VisibleText(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.parts = []
+        self.hidden = 0
+    def handle_starttag(self, tag, attrs):
+        if tag.lower() in {"script", "style", "noscript"}:
+            self.hidden += 1
+    def handle_endtag(self, tag):
+        if tag.lower() in {"script", "style", "noscript"} and self.hidden:
+            self.hidden -= 1
+    def handle_data(self, data):
+        if not self.hidden and data.strip():
+            self.parts.append(" ".join(data.split()))
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", type=Path, required=True)
@@ -167,6 +184,34 @@ def main():
         corpora = find_corpora(corpus_payload)
         report["openapi_final_url"] = openapi_final_url
         report["corpora_final_url"] = corpora_final_url
+        info = openapi.get("info", {})
+        report["openapi_info"] = {
+            "title": info.get("title"),
+            "version": info.get("version"),
+            "termsOfService": info.get("termsOfService"),
+            "license": info.get("license"),
+        }
+        terms_url = info.get("termsOfService")
+        if terms_url:
+            try:
+                terms_response = session.get(terms_url, headers=HEADERS, timeout=(20, 60))
+                terms_response.raise_for_status()
+                terms_html = terms_response.text
+                (args.out / "terms-of-service.html").write_text(terms_html, encoding="utf-8")
+                parser = VisibleText()
+                parser.feed(terms_html)
+                terms_text = "\\n".join(parser.parts)
+                (args.out / "terms-of-service.txt").write_text(terms_text + "\\n", encoding="utf-8")
+                report["terms_page"] = {
+                    "status": terms_response.status_code,
+                    "final_url": terms_response.url,
+                    "content_type": terms_response.headers.get("Content-Type"),
+                    "sha256": hashlib.sha256(terms_response.content).hexdigest(),
+                    "text_excerpt": terms_text[:12000],
+                    "anti_bot_challenge": "Making sure you're not a bot" in terms_html or "Anubis" in terms_html[:8000],
+                }
+            except Exception as terms_exc:
+                report["terms_page"] = {"error": f"{type(terms_exc).__name__}: {terms_exc}"}
         report["corpus_count"] = len(corpora)
         report["schema_names"] = sorted(openapi.get("components", {}).get("schemas", {}).keys())
         report["corpus_information_schema"] = openapi.get("components", {}).get("schemas", {}).get("CorpusInformation", {})
