@@ -23,6 +23,19 @@ The text-only curation step applies NFC/whitespace normalization, length limits,
 - Keep training, validation, and test splits separate; split by source document/group before extracting or cropping samples to avoid leakage.
 - Do not commit credentials, access tokens, raw source downloads, or unnecessary personal data.
 
+
+## Web-extracted text: HPLT-style terms and takedown
+
+For corpora containing text extracted from Common Crawl or other web archives, langid-32 follows the **separation-of-rights approach used by HPLT**:
+
+- We do not claim ownership of, or grant a licence to, the underlying extracted text.
+- CC0, if applied to a release, covers only the original corpus packaging created by this project (selection, arrangement, schema, annotations and preparation metadata), to the extent those elements are eligible for such a dedication. It does not relicense source text.
+- Each upstream source's own licence and terms remain distinct and must be recorded in the internal provenance ledger. A source-specific licence is not replaced by this statement.
+- Users are responsible for ensuring that their acquisition, access, retention and use comply with applicable law and source terms, including copyright, database rights, text-and-data-mining rules and data-protection law.
+- We operate a notice-and-takedown process for rights holders and other affected persons. A substantiated request will trigger investigation, temporary restriction where appropriate, and removal of affected source material from the next corpus release (or sooner where required).
+
+This approach is **not a representation that every passage has been individually rights-cleared**, and it is not a legal safe harbour or a guarantee that every downstream use is lawful. The public release gate remains closed until a monitored contact channel, source-level traceability and removal procedure are operational. See [Terms of Use](docs/terms-of-use.md), [Notice and Takedown](docs/notice-and-takedown.md), and [release controls](docs/web-text-release-controls.md).
+
 ## Corpus preparation and global merge
 
 The original `langid32-prepare` command remains a single-source CSV/TSV helper. A separate merge-first pipeline now accepts source-normalized JSONL records, applies shared NFC/whitespace normalization, exact cross-source deduplication within each language, deterministic group-level splits, and the final per-language cap. It retains licence and source provenance in an internal `records.jsonl` sidecar while keeping group IDs and detailed provenance out of the text-only split files. The merge does not silently balance or prioritize sources; it reports source counts so quotas can be designed from measured coverage.
