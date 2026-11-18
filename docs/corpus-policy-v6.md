@@ -37,11 +37,17 @@ These exclusions are applied globally across all staged sources before quota sel
 6. Label records 1–20,000 per language as core and 20,001–30,000 as reserve. Keep reserve separate from train/validation/test until explicitly promoted.
 7. Produce per-language/source counts, exclusions, group counts, domain mix, licence/provenance manifest, hashes and a validation report.
 
-## Source priority
+## Source priority and acquisition status
 
-Actively acquire and evaluate alternatives before using FineWeb2. Common Voice 22 via the Hugging Face conversion `fsicoli/common_voice_22_0` is the current technical pilot, subject to source-conversion and rights verification; followed by eligible official/institutional and curated multilingual text sources (including DGT-TM, JRC-Acquis, Europarl where applicable, Målfrid for Bokmål/Nynorsk, Tatoeba CC0, and screened OPUS corpora). FineWeb2 is a backfill source, not the default majority source. FineWeb original is only relevant to English.
+The current source list and all acquisition decisions are maintained in the [canonical source register](source-register.md). That register distinguishes sources actually staged from desk-researched alternatives, failed downloads and routes explicitly not pursued. This policy does not authorise acquisition from every source mentioned in historical audit or discovery documents.
 
-The project has retired its Mozilla Data Collective acquisition workflow. The current technical pilot reads only `transcript/<locale>/validated_sentences.tsv` from `fsicoli/common_voice_22_0`; it must not fetch audio or speaker/demographic metadata. This is an unofficial third-party conversion, not an official Mozilla distribution. Verify the conversion's provenance, exact upstream release, licence and applicable distribution terms before treating its records as cleared for publication. If those checks fail, exclude this source rather than silently reverting to MDC or another mirror.
+Current technical candidates include the text-only Common Voice pilot, Tatoeba CC0, DGT-TM 2021, Målfrid 2026, IGC2024 Filtered-1, GreynirCorpus, TeMU-BSC, BSC Legal Catalan-Spanish, Catalan-DPO-V2, Korean Wikipedia, UN Arabic-English Filtered, FineWeb and FineWeb2. Each has a separate rights and attribution status; staged does not mean cleared. See the source register for exact counts, run links, conditions and decisions.
+
+JRC-Acquis, Europarl v7, HPLT 3.0 and OPUS were investigated but are not in the current staged candidate artifacts. Leipzig archive discovery failed to identify any target archive. The Korea.kr/Korean legal-portal route and Korean Law Open Data API were not pursued; they are not current acquisition priorities. Do not revive these routes implicitly.
+
+The Mozilla Data Collective acquisition workflow is retired. The retained Common Voice pilot reads text-only validated sentences from the unofficial third-party `fsicoli/common_voice_22_0` conversion plus a limited Croatian CV27 subset; it does not fetch audio or speaker/demographic metadata. Romanian terms acceptance is locale-specific and cannot be generalized to other locales. The CV22 conversion's immutable revision and locale-specific distribution terms remain release gates. If those checks fail, exclude affected records rather than silently reverting to MDC or another mirror.
+
+FineWeb2 is not a default backfill source for a public release: all FineWeb/FineWeb2 excerpts remain on legal hold pending defensible excerpt-level rights analysis. FineWeb original is English-only and subject to the same underlying-page rights issue.
 
 ## Reproducibility and release status
 
