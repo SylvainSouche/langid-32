@@ -97,3 +97,26 @@ def test_preselect_files_is_deterministic_and_respects_source_language_cap(tmp_p
     assert report["rows_selected"] == 3
     assert report["bucket_counts"] == {"fineweb2:fr": 3}
     assert first.read_bytes() == second.read_bytes()
+
+
+
+def test_normalize_dgt_rows_adds_eurlex_celex_provenance(tmp_path):
+    source = tmp_path / "dgt.jsonl"
+    output = tmp_path / "normalized.jsonl"
+    row = {
+        "text": "A sufficiently long EU legislative sentence for this provenance test.",
+        "language": "en",
+        "source": "dgt-tm-2021",
+        "source_release": "DGT-TM-release-2021",
+        "group_id": "dgt-tm-2021:Vol_2020_4.zip:22020D0933",
+        "licence_id": "EC-Reuse-Decision-2011-833-EU",
+        "text_origin": "unknown",
+        "provenance": {"tmx_member": "22020D0933.tmx"},
+    }
+    source.write_text(json.dumps(row) + "\n", encoding="utf-8")
+    normalize_file(source, output)
+    normalized = json.loads(output.read_text(encoding="utf-8").splitlines()[0])
+    assert normalized["text_origin"] == "eu_legislation"
+    assert normalized["provenance"]["source_document_id"] == "22020D0933"
+    assert normalized["provenance"]["source_url"].endswith("CELEX:22020D0933")
+    assert normalized["provenance"]["source_latest_update"] == "DGT-TM release 2021"
