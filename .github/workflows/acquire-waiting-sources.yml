@@ -17,7 +17,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install streaming dataset dependencies
-        run: python -m pip install datasets huggingface_hub pyarrow
+        run: python -m pip install datasets huggingface_hub pyarrow fasttext-wheel
       - name: Acquire and curate all identified source groups
         env:
           HF_HUB_DISABLE_TELEMETRY: "1"

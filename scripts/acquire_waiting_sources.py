@@ -6,7 +6,12 @@ import heapq
 E=re.compile(r"(?i)\b[\w.+-]+@[\w.-]+\.[A-Z]{2,}\b"); U=re.compile(r"(?i)(https?://|www\.)\S+"); N=re.compile(r"\d{9,}")
 def clean(s,l):
  s=" ".join(unicodedata.normalize("NFC",str(s or "")).split()); a=sum(c.isalpha() for c in s)
- if len(s)<40 or len(s)>12000 or a<25 or a/len(s)<.45 or E.search(s) or U.search(s) or N.search(s):return None
+ if len(s)<40 or len(s)>12000 or a<25 or a/len(s)<.45 or E.search(s) or U.search(s) or N.search(s) or IP.search(s):return None
+ if LID is not None and l in {"ca","is","ar","ko"}:
+  try:
+   labels,probs=LID.predict(s.replace("\\n"," ")[:4000],k=1)
+   if labels[0] != "__label__"+l or probs[0] < .55:return None
+  except Exception:return None
  if l=="ar" and sum("\u0600"<=c<="\u06ff" for c in s)<max(10,a*.35):return None
  return s
 def fetch(u,p):
@@ -18,6 +23,13 @@ def fetch(u,p):
    f.write(b);h.update(b);n+=len(b)
  return {"url":u,"bytes":n,"sha256":h.hexdigest()}
 def main():
+ global LID
+ import csv as _csv
+ _csv.field_size_limit(10000000)
+ import fasttext
+ model=Path(tempfile.gettempdir())/"lid.176.ftz"
+ if not model.exists():fetch("https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.ftz",model)
+ LID=fasttext.load_model(str(model))
  q=argparse.ArgumentParser();q.add_argument("--source",required=True);q.add_argument("--out",required=True);a=q.parse_args();t=Path(tempfile.mkdtemp());o=Path(a.out);o.mkdir(parents=True,exist_ok=True);R=defaultdict(list);S=defaultdict(set);D=[];notes=[];scanned=Counter()
  def add(l,s,x,g=""):
   x=clean(x,l)
