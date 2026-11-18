@@ -92,6 +92,17 @@ def load_exclusions(path: Path | None):
             raise ValueError(f"{path}:{number}: invalid exclusion scope {scope!r}")
         if not row.get("reason_code") or not row.get("effective_at"):
             raise ValueError(f"{path}:{number}: reason_code and effective_at are required")
+        required_key = {
+            "document": ("source_key",),
+            "url": ("url_sha256", "source_url"),
+            "domain": ("domain",),
+            "archive-batch": ("archive_batch",),
+            "source-dataset": ("source",),
+        }[scope]
+        if not any(row.get(key) for key in required_key):
+            raise ValueError(
+                f"{path}:{number}: scope {scope!r} requires one of {required_key}"
+            )
         active.append(row)
     return active
 
@@ -99,9 +110,12 @@ def load_exclusions(path: Path | None):
 def _row_source_url(row):
     provenance = row.get("provenance", {})
     if not isinstance(provenance, dict):
-        return ""
-    return str(provenance.get("source_url") or provenance.get("url") or
-               provenance.get("canonical_url") or "")
+        provenance = {}
+    return str(
+        provenance.get("source_url") or provenance.get("url") or
+        provenance.get("canonical_url") or row.get("source_url") or
+        row.get("url") or row.get("canonical_url") or ""
+    )
 
 
 def _row_domain(url):
