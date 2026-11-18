@@ -11,6 +11,7 @@ on:
   push:
     paths:
       - "scripts/acquire_leipzig.py"
+      - ".github/workflows/acquire-leipzig-corpora.yml"
 permissions:
   contents: read
 jobs:
