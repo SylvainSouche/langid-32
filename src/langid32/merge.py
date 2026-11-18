@@ -500,7 +500,11 @@ def main():
     parser.add_argument("--max-chars", type=int, default=500)
     parser.add_argument("--max-bytes", type=int, default=1500)
     parser.add_argument("--max-per-language", type=int, default=20000,
-                        help="Total cap per language; 0 disables the cap")
+                        help="Total cap per language; 0 disables all caps")
+    parser.add_argument("--preferred-source-share", type=float, default=0.30,
+                        help="Preferred maximum share for one source in a language/split bucket")
+    parser.add_argument("--max-source-share", type=float, default=0.50,
+                        help="Hard maximum share for one source in a language/split bucket")
     parser.add_argument("--validation-fraction", type=float, default=0.10)
     parser.add_argument("--test-fraction", type=float, default=0.10)
     parser.add_argument("--seed", default="langid-32-fineweb2-v1")
@@ -511,6 +515,8 @@ def main():
         parser.error("invalid text length limits")
     if args.max_per_language < 0:
         parser.error("--max-per-language must be >= 0")
+    if not 0 < args.preferred_source_share <= args.max_source_share <= 1:
+        parser.error("source shares must satisfy 0 < preferred <= maximum <= 1")
     if not 0 <= args.validation_fraction < 1 or not 0 <= args.test_fraction < 1:
         parser.error("split fractions must be in [0, 1)")
     if args.validation_fraction + args.test_fraction >= 1:
