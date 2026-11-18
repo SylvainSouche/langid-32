@@ -262,6 +262,8 @@ def _select_source_balanced(bucket, target, preferred_share, hard_share):
     """Select a split bucket with a preferred 30% source share and hard ceiling."""
     if target is None:
         return list(bucket), Counter()
+    if target <= 0:
+        return [], Counter()
     preferred_cap = max(1, int(target * preferred_share))
     hard_cap = max(1, int(target * hard_share))
     selected = []
