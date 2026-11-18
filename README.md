@@ -34,7 +34,7 @@ For corpora containing text extracted from Common Crawl or other web archives, l
 - Users are responsible for ensuring that their acquisition, access, retention and use comply with applicable law and source terms, including copyright, database rights, text-and-data-mining rules and data-protection law.
 - We operate a notice-and-takedown process for rights holders and other affected persons. A substantiated request will trigger investigation, temporary restriction where appropriate, and removal of affected source material from the next corpus release (or sooner where required).
 
-This approach is **not a representation that every passage has been individually rights-cleared**, and it is not a legal safe harbour or a guarantee that every downstream use is lawful. The public release gate remains closed until a monitored contact channel, source-level traceability and removal procedure are operational. See [Terms of Use](docs/terms-of-use.md), [Notice and Takedown](docs/notice-and-takedown.md), and [release controls](docs/web-text-release-controls.md).
+This approach is **not a representation that every passage has been individually rights-cleared**, and it is not a legal safe harbour or a guarantee that every downstream use is lawful. The public rights-notice contact is [abuse@souche.fr](mailto:abuse@souche.fr). The public release gate remains closed until mailbox monitoring, source-level traceability and the removal procedure are operational. See [Terms of Use](docs/terms-of-use.md), [Notice and Takedown](docs/notice-and-takedown.md), and [release controls](docs/web-text-release-controls.md).
 
 ## Corpus preparation and global merge
 
