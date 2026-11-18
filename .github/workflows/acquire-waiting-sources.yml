@@ -2,7 +2,6 @@ name: Acquire and curate waiting language sources
 on:
   push:
     paths:
-      - ".github/workflows/acquire-waiting-sources.yml"
       - "scripts/acquire_waiting_sources.py"
   workflow_dispatch:
 permissions:
@@ -30,12 +29,12 @@ jobs:
             if [ "$rc" -ne 0 ]; then failed=1; echo "::error::Source group $source failed with exit $rc"; fi
           done
           exit "$failed"
-      - name: Upload curated candidates and manifests
+      - name: Upload metadata manifests only (public repository; do not persist candidate text)
         if: always() && hashFiles('out/**') != ''
         uses: actions/upload-artifact@v4
         with:
           name: waiting-sources-curated-${{ github.run_id }}
-          path: out/
+          path: out/*/manifest.json
           retention-days: 14
           if-no-files-found: warn
 
