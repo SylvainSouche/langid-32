@@ -16,7 +16,7 @@ This is materially broader than merely storing a file on a website. Before a pub
 
 The Hub's dataset-card documentation describes the YAML `license` field as metadata displayed on the dataset page and used for discovery/filtering. It does not describe a source-by-source rights verification process. The Content Policy prohibits content infringing third-party IP or privacy rights and provides reporting/DMCA channels; those are reactive moderation mechanisms, not pre-publication clearance.
 
-Accordingly, the current HF dataset repository remains empty and no text-bearing package is uploaded. The existing repository MIT tag applies to the software repository only; it must not be represented as the text dataset's licence.
+Accordingly, the current HF dataset repository remains empty and no text-bearing package is uploaded. The GitHub repository's root LICENSE is MIT and applies to project software only. The HF dataset repository also currently displays an MIT tag from its initial setup, but it contains no dataset card or data files; that tag is not an established text-dataset licence and must be removed or replaced before any dataset publication.
 
 ## Distinguish data licence from contractual terms
 
