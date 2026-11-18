@@ -1,0 +1,34 @@
+name: Leipzig REST API inventory and sentence-service probe
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/probe_leipzig_api.py"
+      - ".github/workflows/leipzig-api-probe.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install HTTP client
+        run: python -m pip install --disable-pip-version-check requests
+      - name: Query official Leipzig OpenAPI and corpus catalogue
+        run: python scripts/probe_leipzig_api.py --out out/leipzig-api
+      - name: Upload API specification, catalogue and metadata-only probe report
+        if: always() && hashFiles('out/leipzig-api/**') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: leipzig-rest-api-probe-${{ github.run_id }}
+          path: out/leipzig-api/
+          retention-days: 30
+          if-no-files-found: warn
