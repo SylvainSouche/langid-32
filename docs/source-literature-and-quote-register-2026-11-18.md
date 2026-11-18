@@ -265,3 +265,53 @@ Recommended attribution text for the final source notice:
 Cite Steinberger et al. (2012) for the resource and Steinberger et al. (2014) for the broader EU multilingual corpus landscape. The 2012 paper is not a 24-language citation; the current JRC page supplies that current count.
 
 **Decision:** retain DGT-TM as a strong source under the Commission's reuse conditions, with explicit attribution and ownership notice. Preserve Numdoc IDs and release/version metadata. Do not label the source CC0 or CC BY unless the exact Commission reuse notice is separately mapped to a compatible licence; the project's final combined dataset may choose CC BY as a distribution policy while retaining the EC's original source notice.
+
+
+
+## 13. Common Crawl, FineWeb, HPLT and Hugging Face — who grants what, and who bears the risk
+
+### Common Crawl terms: the user assumes the downstream risk
+
+Official Common Crawl Terms of Use (last updated 7 March 2024): https://commoncrawl.org/terms-of-use
+
+The ToU says that using Crawled Content is binding acceptance of the terms; the content may be subject to separate terms from the origin website. It states that the content is the “sole responsibility” of the originator, tells users to respect third-party rights, and says users must evaluate and bear the risks of using it. The terms also say Common Crawl may remove content from its own service at its discretion; its §5 notice procedure applies to alleged infringement “on or through” Common Crawl's site/service, not to automatic removal from downstream corpora.
+
+The indemnity is unusually explicit. Section 9 requires users to indemnify, defend and hold Common Crawl harmless for third-party claims arising from access to or use of Crawled Content, including claims involving “artificial intelligence, machine learning”, “developing, training, or deploying AI Systems”, infringement of third-party copyright, and privacy/publicity rights. This is a contractual allocation of risk to the user; it is not a copyright licence or clearance of the crawled pages.
+
+### FineWeb and FineWeb2: ODC-BY is not an excerpt licence
+
+FineWeb dataset card: https://huggingface.co/datasets/HuggingFaceFW/fineweb  
+FineWeb paper: Penedo et al. (2024), “The FineWeb Datasets: Decanting the Web for the Finest Text Data at Scale.” https://arxiv.org/abs/2406.17557  
+FineWeb2 dataset card: https://huggingface.co/datasets/HuggingFaceFW/fineweb-2  
+FineWeb2 paper: Penedo et al. (2025), “FineWeb2: One Pipeline to Scale Them All — Adapting Pre-Training Data Processing to Every Language.” https://arxiv.org/abs/2506.20920  
+ODC-BY 1.0 full licence: https://opendatacommons.org/licenses/by/1-0/
+
+Both Hub cards use the ODC-BY 1.0 licence tag and make use subject to Common Crawl's Terms of Use. The legal text of ODC-BY is decisive: its preamble says it “only governs the rights over the Database, and not the contents of the Database individually”; §2.4 says it does not cover rights in individual contents, which may separately involve copyright, data protection, privacy or personality rights. ODC-BY therefore licenses the database/compilation and its database rights; it is not a licence from each website author to reuse the page text.
+
+The FineWeb paper's datasheet says the release anonymizes “email addresses and public IP addresses using regex patterns.” It does not describe a general PII review, per-page copyright clearance or a public takedown workflow. The FineWeb2 paper describes 96 Common Crawl snapshots and a multilingual filtering pipeline, but the reviewed paper and card do not discuss source-page copyright clearance, a per-excerpt licence registry or a takedown process. This is a statement about the public materials reviewed, not proof that no internal process exists.
+
+### HPLT 3.0: unusually candid rights disclaimer and takedown process
+
+HPLT 3.0 dataset card: https://huggingface.co/datasets/HPLT/HPLT3.0  
+HPLT 3.0 paper: Oepen et al. (2026), “HPLT 3.0: Very Large-Scale Multilingual Resources for LLMs and MT.” DOI: https://doi.org/10.63317/25xbdofco9od
+
+The card says: “We do not own any of the text from which these text data has been extracted.” It states that CC0 applies to the packaging/metadata, not the underlying text, and that users are responsible for compliance with applicable law. The paper explains that much of the web text is copyrighted or lacks reuse terms; HPLT claims no ownership and grants no rights in the text itself. It separately notes that Internet Archive expressly consented to redistribution of derived language resources, while Common Crawl and ArchiveBot data are treated as publicly accessible crawls rather than as content licensed by HPLT.
+
+HPLT documents a notice-and-takedown channel. It says legitimate requests result in affected sources being removed from the next release. This is useful transparency and a real operational process, but it does not retroactively remove text from prior releases and does not transfer legal responsibility from the user. Its data also includes URL/crawl provenance, document- and segment-level language metadata, quality annotations and PII-span annotations; the paper expects users to mask or exclude PII rather than treating annotations as a universal removal guarantee.
+
+### Hugging Face: license tags are publisher metadata, not rights verification
+
+Hugging Face dataset-card documentation: https://huggingface.co/docs/hub/en/datasets-cards  
+Hugging Face Terms of Service: https://huggingface.co/terms-of-service  
+Hugging Face Content Policy / DMCA process: https://huggingface.co/content-policy
+
+HF documentation says the repository README is the dataset card and that a publisher can add a license field in its YAML metadata; the Hub displays that tag and uses it for discovery. It does not describe a platform process that validates the rights in every source excerpt. The Terms of Service make the uploader solely responsible for posted content and require a representation that the uploader owns/controls it or has the right to post it. Public repositories grant other users a broad licence to use the posted content through HF services, and the uploader agrees to indemnify HF for claims arising from content/data posted or used. HF's DMCA process is reactive: after a valid notice, HF reviews it and may disable the content; the uploader can submit a counter-notice. This is not pre-publication excerpt-level clearance.
+
+### Practical conclusion for langid-32
+
+1. A CC0 or ODC-BY badge on a Common Crawl-derived dataset does not clear individual page text. Read the licence's scope and the source ToU separately.
+2. Common Crawl's current ToU places substantial contractual risk on users, including for AI/ML training and copyright/privacy claims. A downstream dataset publisher should not treat the Common Crawl licence/terms as a permission to redistribute every page.
+3. HPLT's approach is the most transparent of the reviewed publishers: it disclaims text rights, identifies source-specific consent where it exists, preserves provenance, annotates PII, and provides notice-and-takedown. Its policy is not a legal safe harbour and does not make the text rights-cleared.
+4. FineWeb/FineWeb2 public documentation does not disclose comparable per-page rights clearance or a public takedown mechanism. Their ODC-BY tag is a database licence; the Common Crawl ToU still applies.
+5. Hugging Face does not certify the uploader's source rights by displaying a licence tag. Its Terms place responsibility and indemnity on the uploader; DMCA is a reactive remedy.
+6. If langid-32 ever uses Common Crawl-derived text, each retained record needs source URL, crawl identifier/date, exact text fingerprint, source terms/licence evidence, provenance and PII results. Maintain an exclusion/takedown ledger that propagates to all derived records and future releases. Do not claim CC0 for the excerpts merely because the packaging or metadata is CC0.
