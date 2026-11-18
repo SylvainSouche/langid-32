@@ -53,7 +53,7 @@ The current Common Voice-based material is an initial component of that work, no
 
 ## Sources and terms
 
-The current development inventory includes several independent candidate families: Common Voice text, Tatoeba CC0, DGT-TM 2021, Målfrid 2026, Icelandic IGC2024 and GreynirCorpus, Catalan BSC/TeMU components, Korean Wikipedia, an UN-derived Arabic corpus, and FineWeb/FineWeb2 web-extracted candidates. These are not all approved for redistribution. The current source-specific rights status and required notices are maintained in the GitHub project documentation.
+The current staged source families are Common Voice text, Tatoeba CC0, DGT-TM 2021, Målfrid 2026, Icelandic IGC2024 and GreynirCorpus, Catalan BSC/TeMU and Catalan-DPO components, Korean Wikipedia, an UN-derived Arabic corpus, and FineWeb/FineWeb2 web-extracted candidates. Some remain on legal hold; others require attribution or constituent-level review. HPLT, JRC-Acquis, Europarl and OPUS were investigated but not acquired. Leipzig archive discovery failed. The Korean government legal portal/API route was not pursued. The canonical [source register](source-register.md) gives the exact status of every source and retired route.
 
 No single licence is declared for the combined dataset at this stage. The software repository's MIT licence does not apply to the text. A source wrapper or compilation licence is not treated as a blanket licence for underlying third-party passages.
 
