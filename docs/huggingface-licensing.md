@@ -16,7 +16,7 @@ A data licence and a platform's Terms of Service (ToS) or dataset agreement are 
 - Mozilla's **ToS and dataset agreement** impose separate conditions on access and use. They are not themselves the data licence.
 - Compliance with contractual conditions remains necessary even where the underlying data is CC0.
 
-The project treats CC0 Common Voice text as permissible source material, subject to the applicable ToS/dataset agreement and the project's curation and privacy controls.
+The project records the underlying Common Voice text as CC0, but this does not resolve separate contractual terms. No Common Voice-derived text is authorised for redistribution until the no-mirroring terms and their application to the specific acquisition route have been reviewed.
 
 ## Common Voice 22.0 — HF conversion
 
@@ -24,7 +24,7 @@ The current pilot uses text from the third-party Hugging Face conversion `fsicol
 
 The source chain is understood as: upstream Common Voice data → conversion/publication process → Hugging Face dataset. The conversion is an intermediary publication point, not the original source of the underlying text. The underlying Common Voice text is identified as CC0; the source's CC0 status should not be confused with Mozilla's separate contractual terms.
 
-Mozilla's ToS changed over time. The project's working hypothesis is that the public Common Voice publication sequence stopped at version 22 around the time of those changes. This is recorded as a hypothesis, not asserted as a proven explanation for the publication history.
+The third-party HF conversion was created on 27 June 2025 and updated on 11 August 2025, before the current Mozilla Common Voice terms effective 31 October 2025. The newer terms make Common Voice datasets available through MDC and prohibit posting, distributing or mirroring any Common Voice dataset, in whole or in part, on other platforms. The effect of those later terms on a pre-existing third-party conversion and downstream reuse of excerpts has not been established. The old HF conversion's CC0 declaration remains evidence about the source copyright status; it does not answer the separate contractual question.
 
 For reproducibility, retain the exact HF repository, requested revision, resolved commit where available, locale, retrieval date, file hash and conversion provenance in the internal source manifest. A mutable `main` reference alone is not sufficient provenance for a final release.
 
@@ -40,14 +40,14 @@ The applicable Common Voice ToS/dataset agreement contains a **no-mirroring clau
 
 The last point describes the project's data-minimisation design and intent; it is not an absolute guarantee that arbitrary text can never contain personal or identifying information. Continue applying automated filtering and appropriate review.
 
-The Croatian Common Voice Scripted Speech 27.0 material is a partial curated subset retained from an authorised acquisition. Its source archive checksum and validated-sentences TSV hash are recorded in the internal audit material. The same no-mirroring approach applies: no complete source dataset, audio, or speaker identifiers are mirrored.
+The Croatian Common Voice Scripted Speech 27.0 material is a technical subset from an acquisition whose locale-specific terms acceptance is not recorded. It remains on hold; no distribution is authorised. The Romanian Common Voice 27.0 acceptance is separate and applies only to Romanian, with an explicit no-rehosting/no-resharing restriction.
 
 ## Current candidate inventory
 
 | Component | Rows in current technical pilot | Treatment |
 |---|---:|---|
-| Common Voice 22.0 via HF conversion | 259,352 | Partial curated text selection; source chain and hashes recorded |
-| Common Voice Scripted Speech 27.0, Croatian | 1,724 | Retained partial curated text selection; source archive and TSV hashes recorded |
+| Common Voice 22.0 via HF conversion | 259,352 | Technical candidates only; no redistribution pending legal review of post-31 October 2025 terms and pre-existing third-party conversion |
+| Common Voice Scripted Speech 27.0, Croatian | 1,724 | Technical candidates only; locale-specific terms acceptance not recorded; no redistribution |
 | **Total** | **261,076** | Development-only, not a public release |
 
 These counts describe the current technical pilot and will change as additional sources are identified, reviewed and curated.

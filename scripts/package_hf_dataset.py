@@ -143,7 +143,7 @@ def main() -> None:
                 "repository": "https://huggingface.co/datasets/fsicoli/common_voice_22_0",
                 "release_claim": "Common Voice Corpus 22.0",
                 "source_claimed_license": "CC0-1.0",
-                "project_rights_status": "CC0 source data; applicable Common Voice ToS/dataset agreement also observed; partial curated selection only",
+                "project_rights_status": "CC0 claimed by pre-existing third-party conversion; current Mozilla no-mirroring terms cover whole or partial datasets; application to this pre-31-Oct-2025 copy and downstream excerpts unresolved; no redistribution pending legal review",
                 "locales": locale_sources,
             },
             {
@@ -155,8 +155,8 @@ def main() -> None:
                 "validated_sentences_tsv_sha256": hr.get("validated_sentences_tsv_sha256"),
                 "archive_checksum_verified": hr.get("archive_checksum_verified"),
                 "curated_rows": hr.get("selected_rows_in_combined_pilot"),
-                "terms_acceptance_status": "Common Voice ToS/dataset agreement includes a no-mirroring clause; project does not mirror the complete dataset",
-                "project_rights_status": "partial curated text selection only; no audio or direct contributor identifiers; no complete-dataset mirroring",
+                "terms_acceptance_status": "Croatian locale-specific acceptance not recorded; current Common Voice terms prohibit mirroring whole or partial datasets",
+                "project_rights_status": "technical candidates only; no redistribution pending Croatian-specific terms confirmation",
             },
         ],
     }
@@ -189,9 +189,11 @@ def main() -> None:
         "# Licensing status\n\n"
         "**Development-only; do not publish to Hugging Face yet.** The current corpus does not meet "
         "the project target of 20,000-30,000 curated records per language from varied sources. "
-        "The Common Voice source data is identified as CC0; the separate ToS/dataset agreement "
-        "includes a no-mirroring clause, which the project observes by using only partial curated "
-        "text selections and excluding audio and direct contributor identifiers. See LICENSING.md.\n",
+        "Common Voice-derived text is held and must not be published. The source is identified as CC0, "
+        "but current Mozilla terms prohibit mirroring whole or partial datasets; the effect on the pre-existing "
+        "third-party CV22 conversion and downstream excerpts remains unresolved. CV27 Croatian terms "
+        "acceptance is not recorded. Excluding audio or contributor identifiers does not resolve this issue. "
+        "See LICENSING.md.\n",
         encoding="utf-8",
     )
     print(json.dumps({

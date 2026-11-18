@@ -49,7 +49,7 @@ The project retains the name `langid-32` for historical continuity; the current 
 
 We will not publish a dataset snapshot to Hugging Face until the corpus has reached the project's target scale of **20,000–30,000 curated records per language**, with meaningful source diversity within each language.
 
-The current Common Voice-based material is an initial component of that work, not a release candidate. The refreshed technical pilot is recorded in GitHub Actions run [44293665775](https://github.com/SylvainSouche/langid-32/actions/runs/44293665775): 261,076 text-only rows across 34 labels, pinned to Common Voice conversion revision `ae911de250fe9375d08e2daa2105b671d659d446`, with per-row locale, upstream sentence ID, file hash and revision provenance for CV22. We are identifying and integrating additional sources. A raw or early-stage pilot is not representative of the intended final corpus.
+The current Common Voice-based material is an initial technical pilot, not a release candidate and not authorised for redistribution. The refreshed pilot is recorded in GitHub Actions run [44293665775](https://github.com/SylvainSouche/langid-32/actions/runs/44293665775): 261,076 text-only rows across 34 labels, pinned to Common Voice conversion revision `ae911de250fe9375d08e2daa2105b671d659d446`. CV22 is a pre-existing third-party HF conversion declaring CC0, but Mozilla's terms effective 31 October 2025 include a no-mirroring restriction covering whole or partial datasets; its application to this earlier conversion and downstream excerpts remains unresolved. CV27 Croatian terms acceptance is not recorded. No Common Voice-derived text will be published pending review. We are identifying and integrating additional sources.
 
 ## Sources and terms
 
