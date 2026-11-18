@@ -215,7 +215,7 @@ def read_inputs(paths: list[Path], args):
                     if source_name.startswith(("fineweb", "fineweb2")):
                         provenance["rights_status"] = "hold_underlying_web_text_rights_unresolved"
                     elif source_name == "common_voice_v22":
-                        provenance["rights_status"] = "hold_locale_terms_and_conversion_chain_review"
+                        provenance["rights_status"] = "cc0_hf_hosted_dataset_claim"
                     elif source_name == "common_voice_v27":
                         provenance["rights_status"] = "hold_locale_terms_acceptance_not_recorded"
                     elif source_name == "dgt-tm-2021":
