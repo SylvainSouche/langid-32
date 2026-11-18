@@ -90,9 +90,9 @@ The card states that the corpus combines three granularities and that the source
 
 The card's summary says the texts are “authentic parallel text” from public institutions. This is useful evidence of origin and authenticity, not a standalone rights grant for every constituent. In particular, the APDCAT agreement must be checked for downstream redistribution by third parties, and the acquisition pipeline must preserve source document identity for all three files.
 
-The 50,414 candidate count in the waiting-source manifest consists of 50,000 DOGC and 414 APDCAT rows. The paragraph-level file contributed no rows to that sample. Do not describe all three subcorpora as represented in the candidate sample.
+The 50,414 candidate count in the waiting-source manifest consists of 50,000 DOGC and 414 APDCAT segments. The paragraph-level file contributed no rows because the generic TSV scanner reads the first field (`dataset`) rather than the Catalan text field (`ca_text`). The first rows of that file show the schema `dataset`, `segment_id`, `ca_text`, `es_text`, `alignment_score`. The scanner also drops APDCAT's `url_ca` and `url_es` fields even though the README documents them. Do not describe all three subcorpora as represented in the candidate sample.
 
-**Decision:** keep BSC-LT on hold pending review of the exact Generalitat open-data notice and the APDCAT data-sharing agreement. The DOGC component has a stronger public CC0 route; do not let the APDCAT agreement's uncertainty unnecessarily obscure that separable constituent.
+**Decision:** keep all BSC-LT candidates on hold pending a PII screen; keep APDCAT additionally on hold pending review of the actual Data Sharing Agreement. DOGC and the paragraph corpus have stronger CC0/equivalent-to-CC0 upstream routes, but the BSC curated corpus itself declares CC BY 4.0. Fix the paragraph TSV parser and retain APDCAT URLs before any re-acquisition. The card's warning that personal and sensitive information may be present is a material privacy issue, not a generic caveat.
 
 ## 6. Verified scholarly references and short quotation evidence for other staged sources
 
