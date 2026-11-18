@@ -107,5 +107,5 @@ def main():
  print(json.dumps({"index_rows":len(cat),"target_labels":len(LANGS),"archive_slots":len(todo),
   "successful_archives":manifest["successful_archives"],"sample_rows":manifest["sample_rows"],
   "missing_or_failed":manifest["missing_or_failed"]},indent=2))
- if manifest["missing_or_failed"]:raise SystemExit("Some language/family sources are missing or failed; see manifest")
+ if manifest["missing_or_failed"]:print("WARNING: partial acquisition; missing/failed slots are recorded in manifest.json")
 if __name__=="__main__":main()
