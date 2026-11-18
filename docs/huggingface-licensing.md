@@ -4,62 +4,31 @@
 
 **Do not publish the current candidate corpus to Hugging Face.**
 
-This is a corpus-maturity decision as well as a release-management rule: the target is **20,000–30,000 curated records per language, with varied and independently identified sources**. The current Common Voice pilot is only one initial source component and does not meet that target. No public dataset release or dataset-level licence is being declared at this stage.
+The target remains **20,000–30,000 curated records per language**, with varied and independently identified sources. The current HF-hosted Common Voice text pilot is only one initial source component and does not meet that target. No public dataset release or dataset-level licence is being declared at this stage.
 
-The GitHub repository's root `LICENSE` is MIT and applies to project software. It does not apply to the third-party text records and must not be copied as the dataset licence.
+The GitHub repository's root `LICENSE` is MIT and applies to project software. It does not apply to third-party text records and must not be copied as the dataset licence.
+
+## HF-hosted Common Voice 22.0 CC0 source
+
+The current technical pilot uses the HF-hosted dataset [`fsicoli/common_voice_22_0`](https://huggingface.co/datasets/fsicoli/common_voice_22_0). Its Hugging Face dataset card declares **CC0-1.0** and describes it as an unofficial conversion of Common Voice Corpus 22.0.
+
+The project uses that Hugging Face repository as its acquisition source and downloads only `transcript/<locale>/validated_sentences.tsv`. No audio, speaker identifiers, contributor IDs or demographic metadata are acquired. The workflow pins the resolved repository revision and retains locale, sentence ID, TSV SHA-256 and retrieval metadata.
+
+The historical HF-only pilot contains 259,352 selected text rows across 33 target labels. Croatian (`hr`) is not supplied by this source and remains an explicit source gap; no substitute from another Common Voice distribution is used.
+
+For scholarly acknowledgement, cite Ardila et al. (2020), “Common Voice: A Massively-Multilingual Speech Corpus,” *Proceedings of LREC 2020*, pp. 4211–4215, https://aclanthology.org/2020.lrec-1.520/, together with the exact HF dataset and immutable revision.
+
+## Voluntary source-selection decision
+
+The project voluntarily does not use the Mozilla Data Collective repository or any data hosted there. We consider its contractual practices abusive. This is a project sourcing decision, not a legal finding about the validity of any other dataset's licence.
 
 ## Hugging Face public-repository terms are a further rights grant
 
 Hugging Face's Terms of Service make the uploader responsible for content and require the uploader to warrant that they own/control it or otherwise have the right to post it. For a public repository, the uploader grants each Hub user a **perpetual, irrevocable, worldwide, royalty-free, non-exclusive licence** to use, display, publish, reproduce, distribute and make derivative works of the content through Hugging Face services. The uploader also agrees to indemnify Hugging Face for claims arising from content or data posted or used.
 
-This is materially broader than merely storing a file on a website. Before a public dataset upload, the rights held by the project must cover the rights the Hub Terms grant to other users. A source's CC0/ODC-BY packaging tag does not supply those rights for underlying excerpts.
+Before a public dataset upload, the rights held by the project must cover the rights the Hub Terms grant to other users. A source's CC0/ODC-BY packaging tag does not supply those rights for underlying excerpts.
 
-The Hub's dataset-card documentation describes the YAML `license` field as metadata displayed on the dataset page and used for discovery/filtering. It does not describe a source-by-source rights verification process. The Content Policy prohibits content infringing third-party IP or privacy rights and provides reporting/DMCA channels; those are reactive moderation mechanisms, not pre-publication clearance.
-
-Accordingly, the current HF dataset repository remains empty and no text-bearing package is uploaded. The GitHub repository's root LICENSE is MIT and applies to project software only. The HF dataset repository also currently displays an MIT tag from its initial setup, but it contains no dataset card or data files; that tag is not an established text-dataset licence and must be removed or replaced before any dataset publication.
-
-## Distinguish data licence from contractual terms
-
-A data licence and a platform's Terms of Service (ToS) or dataset agreement are different instruments:
-
-- The **CC0 dedication/licence** concerns rights in the data.
-- Mozilla's **ToS and dataset agreement** impose separate conditions on access and use. They are not themselves the data licence.
-- Compliance with contractual conditions remains necessary even where the underlying data is CC0.
-
-The project records the underlying Common Voice text as CC0, but this does not resolve separate contractual terms. No Common Voice-derived text is authorised for redistribution until the no-mirroring terms and their application to the specific acquisition route have been reviewed.
-
-## Common Voice 22.0 — HF conversion
-
-The current pilot uses text from the third-party Hugging Face conversion `fsicoli/common_voice_22_0`, representing Common Voice Corpus 22.0.
-
-The source chain is understood as: upstream Common Voice data → conversion/publication process → Hugging Face dataset. The conversion is an intermediary publication point, not the original source of the underlying text. The underlying Common Voice text is identified as CC0; the source's CC0 status should not be confused with Mozilla's separate contractual terms.
-
-The third-party HF conversion was created on 27 June 2025 and updated on 11 August 2025, before the current Mozilla Common Voice terms effective 31 October 2025. The newer terms make Common Voice datasets available through MDC and prohibit posting, distributing or mirroring any Common Voice dataset, in whole or in part, on other platforms. The effect of those later terms on a pre-existing third-party conversion and downstream reuse of excerpts has not been established. The old HF conversion's CC0 declaration remains evidence about the source copyright status; it does not answer the separate contractual question.
-
-For reproducibility, retain the exact HF repository, requested revision, resolved commit where available, locale, retrieval date, file hash and conversion provenance in the internal source manifest. A mutable `main` reference alone is not sufficient provenance for a final release.
-
-## Common Voice contractual restriction and project hold
-
-The current Mozilla Common Voice terms prohibit posting, distributing or mirroring **any Common Voice dataset, in whole or in part**, on other platforms or services. A partial, curated text selection is not treated as an exception. The third-party CV22 HF conversion predates the 31 October 2025 terms, and the contractual effect on downstream users of that pre-existing copy has not been established. The source's CC0 declaration does not resolve that separate question.
-
-Accordingly:
-- CV22 text remains on hold pending legal review of the pre-existing conversion and downstream excerpt use.
-- CV27 Croatian text remains on hold because locale-specific terms acceptance is not recorded.
-- The recorded CV27 Romanian acceptance is specific to Romanian and expressly prohibits re-hosting/re-sharing; it does not authorise other locales.
-- No Common Voice-derived text may be included in a public release until the relevant terms and acquisition route are resolved.
-- Excluding audio, speaker identifiers or contributor metadata does not resolve the no-mirroring clause.
-
-The last point describes the project's data-minimisation design and intent; it is not an absolute guarantee that arbitrary text can never contain personal or identifying information. Continue applying automated filtering and appropriate review.
-
-## Current candidate inventory
-
-| Component | Rows in current technical pilot | Treatment |
-|---|---:|---|
-| Common Voice 22.0 via HF conversion | 259,352 | Technical candidates only; no redistribution pending legal review of post-31 October 2025 terms and pre-existing third-party conversion |
-| Common Voice Scripted Speech 27.0, Croatian | 1,724 | Technical candidates only; locale-specific terms acceptance not recorded; no redistribution |
-| **Total** | **261,076** | Development-only, not a public release |
-
-These counts describe the current technical pilot and will change as additional sources are identified, reviewed and curated.
+Accordingly, the current HF dataset repository remains empty and no text-bearing package is uploaded. The GitHub repository's MIT licence applies to software only. The HF dataset repository's initial MIT tag is not an established text-dataset licence and must be removed or replaced before any dataset publication.
 
 ## Dataset release gate
 
@@ -67,13 +36,13 @@ A public Hugging Face release remains blocked until all of the following are met
 
 1. The corpus reaches 20,000–30,000 curated records per language.
 2. Each language has meaningful diversity of sources; the target must not be met merely by scaling one source or duplicating similar material.
-3. Each source has recorded provenance, applicable data licence, ToS/dataset-agreement conditions, retrieval revision and integrity hashes.
-4. No Common Voice-derived text is distributed while the no-mirroring question or locale-specific terms remain unresolved; partial selections are not treated as an exception.
+3. Each source has recorded provenance, applicable data licence, retrieval revision and integrity hashes.
+4. Every included source has been checked for redistribution rights and any required source-specific notices.
 5. The released representation excludes audio, direct speaker/contributor identifiers, internal group IDs and private acquisition artefacts.
 6. Quality and privacy checks are run on the assembled release, with their limitations documented.
 7. A release version and dataset-level licence/notice decision are explicitly approved.
 
-Until then, keep development artefacts in controlled project storage and do not upload the candidate data to the Hugging Face dataset repository.
+Until then, keep development artefacts in controlled project storage and do not upload candidate data to the Hugging Face dataset repository.
 
 ## Publication metadata
 
@@ -84,18 +53,12 @@ Until then, keep development artefacts in controlled project storage and do not 
 
 ## Scope
 
-This document records the project's current understanding and operational policy. It is not a legal opinion. Where source terms or the relationship between licence and contractual conditions are ambiguous, preserve the uncertainty and obtain a source-specific review rather than silently broadening permissions.
-
+This document records the project's current understanding and operational policy. It is not a legal opinion. Where source rights or licence scope are ambiguous, preserve the uncertainty and obtain a source-specific review rather than silently broadening permissions.
 
 ## Source attribution and scholarly citations
 
-The project maintains a separate [source attribution and citation register](source-attribution-register.md). It distinguishes:
-1. mandatory legal attribution and notices under source licences or reuse terms;
-2. scholarly citations to source dataset papers, corpus descriptions or releases; and
-3. record-level provenance to the original source document/article.
+The project maintains a separate [source attribution and citation register](source-attribution-register.md). It distinguishes mandatory legal attribution, scholarly citations and record-level provenance. A dataset-paper citation does not replace article-level attribution where a source requires it.
 
-These are not interchangeable. In particular, a citation to a dataset paper does not satisfy a requirement to identify the underlying article, source and date, nor does it satisfy the European Commission source/ownership notice applicable to DGT-TM and JRC-Acquis.
+For article-derived material, retain title, author or issuing body, publication date, source URL, licence/notice and source record ID where available. If a licence or article-level term requires that information and it cannot be recovered, hold or exclude the affected record. Do not reproduce article text merely to satisfy an attribution requirement: use bibliographic references and exact prescribed notices unless a quotation is explicitly required and independently justified.
 
-For article-derived material, retain title, author or issuing body, publication date, source URL, licence/notice and source record ID where available. If a licence or article-level term requires this information and it cannot be recovered, hold or exclude the affected record. Do not reproduce article text merely to satisfy an attribution requirement: use bibliographic references and exact prescribed notices unless a quotation is explicitly required and independently justified.
-
-Before a source is enabled for a release, capture the exact attribution wording from its current official terms, determine whether attribution is per-record or may be consolidated, and verify that the source permits redistribution of the selected text. The release must contain an `ATTRIBUTION.md` generated from the sources actually retained. It must not contain boilerplate attribution for sources that were considered but not used.
+Before a source is enabled for a release, capture the exact attribution wording from its official source, determine whether attribution is per-record or may be consolidated, and verify that the source permits redistribution of the selected text. The release must contain an `ATTRIBUTION.md` generated from sources actually retained.

@@ -17,6 +17,10 @@ Target **30,000 usable records per language**: a 20,000-record core plus up to 1
 
 Source mix target: **30% preferred, 50% hard ceiling per source and language**. Any exception must be explicit, justified and reported; a single-source class is not considered balanced.
 
+## Voluntary source-selection decision
+
+The project voluntarily does not use the Mozilla Data Collective repository or any data hosted there. We consider its contractual practices abusive. This is a project sourcing decision, not a legal finding about any other dataset.
+
 ## Corpus status — 18 November 2026
 
 **Preparation only — not release-ready.**
@@ -28,7 +32,7 @@ Measured technical staging currently includes:
 | Staging set | Rows | Meaning |
 |---|---:|---|
 | Waiting-source acquisition | 613,860 | New source candidates across Catalan, Icelandic, Bokmål, Nynorsk, Korean and Arabic; includes 100,000 FineWeb2 backfill candidates |
-| Common Voice text-only pilot | 261,076 | Pilot rows across 34 labels; not a release corpus |
+| HF-hosted Common Voice 22 CC0 text pilot | 259,352 | Historical text-only pilot across 33 labels; Croatian has no source yet |
 | Tatoeba CC0 refresh | 80,155 | Fresh staged export; concentrated in a subset of languages |
 | DGT-TM 2021 refresh | 120,000 | 5,000 staged translation units per 24 EU languages |
 | Legacy v5 candidate | 640,000 | Historical 32-label technical candidate; source balance and rights gates fail |
