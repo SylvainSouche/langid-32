@@ -9,7 +9,7 @@ def _args(tmp_path, inputs, cap=0):
     return argparse.Namespace(
         inputs=inputs, output=tmp_path / "out", min_chars=1, max_chars=500,
         max_bytes=1500, max_per_language=cap, validation_fraction=0.1,
-        test_fraction=0.1, seed="test-seed", require_exact_counts=False, exclusions=None,
+        test_fraction=0.1, seed="test-seed", require_exact_counts=False, exclusions=None,\n        preferred_source_share=0.30, max_source_share=0.50,
     )
 
 
@@ -54,6 +54,8 @@ def test_merge_applies_cap_after_dedup(tmp_path):
     rows = [_row(f"Sentence number {i}", "fr", "a", f"a:doc{i}") for i in range(100)]
     source.write_text("".join(json.dumps(row) + "\n" for row in rows))
     args = _args(tmp_path, [source], cap=20)
+    args.preferred_source_share = 1.0
+    args.max_source_share = 1.0
     merge(args)
     manifest = json.loads((args.output / "manifest.json").read_text())
     assert sum(v for k, v in manifest["counts"].items() if k.startswith("fr:")) == 20
@@ -142,3 +144,57 @@ def test_source_exclusion_registry_domain_matches_subdomains(tmp_path):
     merge(args)
     manifest = json.loads((args.output / "manifest.json").read_text())
     assert manifest["rejected"]["source_exclusion_registry"] == 1
+
+
+def test_merge_removes_text_collisions_across_language_labels(tmp_path):
+    source = tmp_path / "cross-language.jsonl"
+    rows = [
+        _row("The same sentence appears in two language labels", "en", "a", "a:en1"),
+        _row("The same sentence appears in two language labels", "fr", "b", "b:fr1"),
+        _row("A separate French sentence remains available", "fr", "b", "b:fr2"),
+    ]
+    source.write_text("".join(json.dumps(row) + "\\n" for row in rows))
+    args = _args(tmp_path, [source])
+    merge(args)
+    manifest = json.loads((args.output / "manifest.json").read_text())
+    internal = [json.loads(line) for line in (args.output / "records.jsonl").read_text().splitlines()]
+    assert manifest["cross_language_collision_strings_removed"] == 1
+    assert manifest["rejected"]["cross_language_collision"] == 2
+    assert len(internal) == 1
+    assert internal[0]["text"] == "A separate French sentence remains available"
+
+
+def test_merge_prefers_thirty_percent_source_share_and_never_exceeds_fifty(tmp_path):
+    source = tmp_path / "balanced.jsonl"
+    rows = [
+        _row(f"Sentence from source {source_name} number {index}", "fr",
+             source_name, f"{source_name}:doc{index}")
+        for source_name in ("a", "b", "c") for index in range(30)
+    ]
+    source.write_text("".join(json.dumps(row) + "\\n" for row in rows))
+    args = _args(tmp_path, [source], cap=20)
+    args.validation_fraction = 0
+    args.test_fraction = 0
+    merge(args)
+    manifest = json.loads((args.output / "manifest.json").read_text())
+    counts = {key.split(":")[0]: value for key, value in manifest["source_counts"].items()}
+    assert sum(counts.values()) == 20
+    assert set(counts) == {"a", "b", "c"}
+    assert max(counts.values()) <= 10
+    assert min(counts.values()) >= 6
+
+
+def test_merge_underfills_instead_of_exceeding_hard_source_share(tmp_path):
+    source = tmp_path / "single-source.jsonl"
+    rows = [_row(f"Only source sentence number {index}", "fr", "sole",
+                 f"sole:doc{index}") for index in range(40)]
+    source.write_text("".join(json.dumps(row) + "\\n" for row in rows))
+    args = _args(tmp_path, [source], cap=20)
+    args.validation_fraction = 0
+    args.test_fraction = 0
+    merge(args)
+    manifest = json.loads((args.output / "manifest.json").read_text())
+    internal = [json.loads(line) for line in (args.output / "records.jsonl").read_text().splitlines()]
+    assert len(internal) == 10
+    assert manifest["source_quota_shortfalls"]["fr:train"]["expected"] == 20
+    assert manifest["source_quota_shortfalls"]["fr:train"]["actual"] == 10
