@@ -23,7 +23,7 @@ class SparseNgramLogReg(nn.Module):
 class CharEmbeddingBag(nn.Module):
     """A2: mean-pooled hashed character n-gram embeddings + linear head."""
     def __init__(self, buckets: int = 32768, dimension: int = 32,
-                 classes: int = 32):
+                 classes: int = 34):
         super().__init__()
         self.embedding = nn.EmbeddingBag(buckets, dimension, mode="mean")
         self.classifier = nn.Linear(dimension, classes)
@@ -63,7 +63,7 @@ class ByteTransformer(nn.Module):
     """B: compact bidirectional byte Transformer with a CLS classifier."""
     def __init__(self, max_bytes: int = 256, dimension: int = 128,
                  layers: int = 4, heads: int = 4, ff_dimension: int = 384,
-                 classes: int = 32, dropout: float = 0.1):
+                 classes: int = 34, dropout: float = 0.1):
         super().__init__()
         self.max_bytes = max_bytes
         self.byte_embedding = nn.Embedding(259, dimension, padding_idx=0)
