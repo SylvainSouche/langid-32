@@ -25,7 +25,6 @@ SUPERSEDED_V5_SOURCES = {
     "dgt-tm-2021",
     "tatoeba-cc0",
     "common_voice_v22",
-    "common_voice_v27",
 }
 
 
