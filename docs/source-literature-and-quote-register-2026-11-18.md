@@ -118,3 +118,33 @@ The 50,414 candidate count in the waiting-source manifest consists of 50,000 DOG
 6. Keep scholarly citations, exact legal notices and per-record source attribution as separate fields in the final source manifest.
 
 No source is made release-eligible by this audit alone.
+
+
+## 7. UN Arabic-English Filtered — upstream rights independently verified
+
+Derivative dataset card: https://huggingface.co/datasets/ymoslem/UN-Arabic-English-Filtered  
+Official UN Parallel Corpus terms: https://www.un.org/dgacm/en/content/uncorpus  
+Official UNPC paper: https://www.un.org/dgacm/sites/www.un.org.dgacm/files/files/UNCORPUS/un.pdf  
+MultiUN v1 paper: https://aclanthology.org/L10-1473/  
+MultiUN v2 paper: https://aclanthology.org/L12-1371/
+
+The derivative Hugging Face card explicitly says the dataset combines **MultiUN + UNPC**, applies rule-based and semantic filtering plus FastText language detection, and declares CC BY 4.0. Its current schema has only two fields, `text_en` and `text_ar`; the splits are 19,279,407 train rows and 8,752 each for test and dev. The 50,000 Arabic candidates in langid-32 were sampled from the train split.
+
+The upstream rights position is materially better than the previous card-only assessment:
+
+- The official UNPC v1.0 paper states that the corpus is composed of official UN records and other parliamentary documents “in the public domain.” Its integral disclaimer says no other restrictions apply, but users must acknowledge the UN as the source and cite the 2016 paper by Ziemski, Junczys-Dowmunt and Pouliquen.
+- The official UNPC terms repeat the mandatory acknowledgement and citation. This is a corpus-level acknowledgement, not a requirement to reproduce the text of each source document.
+- The MultiUN v2 paper states: “The documents we collected are in public domain” and ties this to UN Administrative Instruction ST/AI/189/Add.9/Rev.2. It describes ODS documents collected from 2000–2011 and says the XML corpus retains original file IDs, language, publication dates and document symbols.
+- The MultiUN v1 paper describes the source as official UN documents. OPUS's MultiUN page recommends citing both Eisele & Chen (2010) and Tiedemann (2012); the derivative card also includes the Chen & Eisele (2012) v2 paper and the Ziemski et al. (2016) UNPC paper.
+
+This confirms the public-domain status of the two named upstream corpus families at the corpus level. It does **not** restore source-document metadata removed by the derivative. The HF derivative schema does not expose the original UN symbol, translation job number, file ID, publication date or URL. The current acquisition code therefore falls back to the row index in the derivative split. That value must be recorded as `dataset_row_index`, never as an original `source_document_id` or article identifier.
+
+The official UNPC paper says the corpus is “composed of official records and other parliamentary documents of the United Nations that are in the public domain.” The MultiUN v2 paper says its collected documents “are in public domain”. These are source-rights statements from the associated papers, not independent guarantees for any additional content that a downstream derivative might have introduced. The derivative card names only MultiUN and UNPC; pin the exact HF revision and retain its CC BY 4.0 attribution.
+
+Required notices/citations for any retained material from this derivative:
+1. Credit the derivative dataset creator/repository `ymoslem/UN-Arabic-English-Filtered` under its declared CC BY 4.0 licence, with a licence link and changes noted.
+2. Acknowledge the United Nations as the source of the underlying corpus and include the UNPC reference: Ziemski, Michał; Marcin Junczys-Dowmunt; Bruno Pouliquen (2016), “The United Nations Parallel Corpus”, LREC 2016.
+3. Include the MultiUN references: Eisele & Chen (2010), “MultiUN: A Multilingual Corpus from United Nation Documents”; Chen & Eisele (2012), “MultiUN v2: UN Documents with Multilingual Alignments”. Include Tiedemann (2012), “Parallel Data, Tools and Interfaces in OPUS”, where the OPUS-distributed MultiUN copy is the acquisition route.
+4. Preserve the immutable HF revision, split name and row index. State explicitly that original UN document-level identifiers were not included in the derivative schema.
+
+**Decision:** the underlying UNPC and MultiUN text is supported by official public-domain statements; the derivative has a declared CC BY 4.0 licence and a mandatory UN acknowledgement. The remaining hold is attribution packaging, immutable revision capture and accurate provenance labelling—not an unverified assumption that UN documents are copyrighted. A future re-acquisition directly from UNPC/MultiUN could restore original document IDs and substantially improve traceability.
