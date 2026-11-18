@@ -45,10 +45,10 @@ def sample(archive,data_id,label,family,quota,seed):
    sid=p[0];text="\t".join(p[1:]).strip()
    if not text:continue
    if family=="news" and any(c.isdecimal() for c in text):digits+=1;continue
-   eligible+=1;rank=hashlib.sha256((seed+"\0"+label+"\0"+family+"\0"+sid+"\0"+text).encode()).hexdigest()
-   item=(rank,sid,text)
+   eligible+=1;rank=int(hashlib.sha256((seed+"\0"+label+"\0"+family+"\0"+sid+"\0"+text).encode()).hexdigest(),16)
+   item=(-rank,sid,text)
    if len(heap)<quota:heapq.heappush(heap,item)
-   elif rank<heap[0][0]:heapq.heapreplace(heap,item)
+   elif rank < -heap[0][0]:heapq.heapreplace(heap,item)
   rows=[]
   for _,sid,text in sorted(heap):
    so=invmap.get(sid);meta=sources.get(so,{})
