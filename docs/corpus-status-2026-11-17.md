@@ -1,3 +1,5 @@
+> **Historical report.** This report records the state on 17–18 November 2026. The canonical current source-by-source status is now [docs/source-register.md](source-register.md). In particular, the Korean government legal-portal/API route discussed in earlier drafts was not pursued and produced no acquired records. Do not use the old “Korean law API route” statements below as current acquisition plans.
+
 # Corpus status — 2026-11-17
 
 Status: **not publication-ready; no language currently release-cleared**.
@@ -88,7 +90,7 @@ Pilot limitations: no train/validation/test split; no global deduplication again
 - **Catalan:** TeMU-BSC has CC0-labelled constituent datasets, including candidate components reported at 93,691 and 155,990 sentences, but constituent provenance/waivers need checking individually. They have not been downloaded and curated in this run.
 - **Icelandic:** IGC2024 Filtered-1 is a CC BY 4.0 candidate; GreynirCorpus is another CC BY 4.0 candidate. Neither has been downloaded/curated here. IGC Filtered-2 is excluded because its custom terms do not permit republication.
 - **Norwegian Bokmål/Nynorsk:** Målfrid 2026 inventories 1.89B and 170.2M tokens respectively under NLOD 2.0. The archives have not been downloaded/curated here; preserve database-right and attribution distinctions. The randomized Nynorsk corpus (3.3M sentences) is lemmatized/tagged and is not clean raw text.
-- **Korean:** the law API route has no measured count yet; access/API terms need checking. NSMC rights are conflicting; NIKL terms are pending. Korean Wikipedia is a possible CC BY-SA/GFDL fallback, not a permissive default.
+- **Korean:** Korean Wikipedia was subsequently acquired as a 50,000-row technical candidate and remains on hold for CC BY-SA/GFDL obligations. NSMC has conflicting licence claims; NIKL remains unacquired because written redistribution approval is missing. The Korea.kr/Korean legal-portal route was not pursued.
 
 ## Actions launched 2026-11-17
 
