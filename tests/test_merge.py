@@ -197,5 +197,36 @@ def test_merge_underfills_instead_of_exceeding_hard_source_share(tmp_path):
     manifest = json.loads((args.output / "manifest.json").read_text())
     internal = [json.loads(line) for line in (args.output / "records.jsonl").read_text().splitlines()]
     assert len(internal) == 10
-    assert manifest["source_quota_shortfalls"]["fr:train"]["expected"] == 20
-    assert manifest["source_quota_shortfalls"]["fr:train"]["actual"] == 10
+    assert manifest["source_quota_shortfalls"]["fr:core:train"]["expected"] == 20
+    assert manifest["source_quota_shortfalls"]["fr:core:train"]["actual"] == 10
+
+
+
+def test_merge_keeps_reserve_separate_and_outside_core_groups(tmp_path):
+    source = tmp_path / "core-reserve.jsonl"
+    rows = [
+        _row(f"Sentence from {source_name} number {index}", "fr",
+             source_name, f"{source_name}:doc{index}")
+        for source_name in ("a", "b", "c") for index in range(40)
+    ]
+    source.write_text("".join(json.dumps(row) + "\n" for row in rows))
+    args = _args(tmp_path, [source], cap=30)
+    args.validation_fraction = 0
+    args.test_fraction = 0
+    args.core_per_language = 20
+    merge(args)
+    manifest = json.loads((args.output / "manifest.json").read_text())
+    internal = [json.loads(line) for line in (args.output / "records.jsonl").read_text().splitlines()]
+    core = [row for row in internal if row["pool_role"] == "core"]
+    reserve = [row for row in internal if row["pool_role"] == "reserve"]
+    reserve_public = [json.loads(line) for line in (args.output / "reserve.jsonl").read_text().splitlines()]
+    assert len(core) == 20
+    assert len(reserve) == 10
+    assert len(reserve_public) == 10
+    assert all("split" not in row for row in reserve_public)
+    assert {row["split_group_id"] for row in core}.isdisjoint(
+        {row["split_group_id"] for row in reserve}
+    )
+    assert manifest["reserve_counts"]["fr"] == 10
+    assert manifest["preparation"]["core_per_language"] == 20
+    assert manifest["preparation"]["reserve_per_language"] == 10
