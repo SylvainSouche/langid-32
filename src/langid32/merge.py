@@ -159,7 +159,8 @@ def _matches_exclusion(row, rule):
 def read_inputs(paths: list[Path], args):
     rejected = Counter()
     rows = []
-    exclusions = load_exclusions(args.exclusions)
+    exclusions_path = getattr(args, "exclusions", None)
+    exclusions = load_exclusions(exclusions_path)
     for path in paths:
         with path.open("r", encoding="utf-8") as stream:
             for line_number, line in enumerate(stream, 1):
@@ -374,7 +375,7 @@ def merge(args):
             "group_split": "deterministic hash of split_group_id (or group_id); shared groups stay in one split",
             "source_balancing": "none; source counts are reported, no hidden quotas",
             "privacy_filters": "exclude email, URL and IPv4 matches; retain phone-like and 9+ digit sequences with flags",
-            "source_exclusion_registry": str(args.exclusions) if args.exclusions else None,
+            "source_exclusion_registry": str(exclusions_path) if exclusions_path else None,
             "exclusion_matching": "document, exact URL/hash, domain, archive batch or source dataset; any matched group/split group is cascaded out",
         },
         "counts": dict(sorted(counts.items())),
@@ -386,8 +387,8 @@ def merge(args):
         "candidate_group_count": len(group_splits),
         "group_counts_by_source": {source: len(groups) for source, groups in sorted(output_groups_by_source.items())},
         "output_sha256": output_hashes,
-        "exclusion_registry": {"path": str(args.exclusions) if args.exclusions else None,
-                              "active_rules_loaded": len(load_exclusions(args.exclusions)),
+        "exclusion_registry": {"path": str(exclusions_path) if exclusions_path else None,
+                              "active_rules_loaded": len(exclusions),
                               "excluded_rows": rejected.get("source_exclusion_registry", 0)},
         "rights_note": (
             "Technical deduplication is not a rights clearance. Each source's licence, "
