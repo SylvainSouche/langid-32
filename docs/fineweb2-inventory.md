@@ -1,3 +1,5 @@
+> **Technical inventory; legal hold.** This document describes FineWeb2 metadata and bounded extraction mechanics, not approval to redistribute its underlying web text. Current status: [source register](source-register.md). FineWeb2 is not an approved release source on the strength of its ODC-By compilation licence.
+
 # FineWeb2 metadata inventory
 
 FineWeb2 is a high-value Common Crawl derivative for this project. Its publisher reports language/script-specific document counts and Parquet sizes in the upstream [language distribution CSV](https://github.com/huggingface/fineweb-2/blob/d0defb24f193bb9a5a11b8b14524a03c4858e1b6/fineweb2-language-distribution.csv). The dataset card describes 96 Common Crawl snapshots (2013–April 2024), global per-language deduplication, language-specific filtering, and PII anonymization. The published data is ODC-By 1.0; this dataset licence does not by itself settle rights in every crawled source document.
