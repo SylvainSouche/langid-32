@@ -128,3 +128,12 @@ Do not add these counts to the v5 or Common Voice totals. No cross-artifact glob
 The public rights-notice contact [abuse@souche.fr](mailto:abuse@souche.fr) has been published in the repository README and policy documents. A test message was sent and a short acknowledgement was received. The mailbox is configured in the maintainer's email client; formal monitoring and case-handling procedures remain a release gate.
 
 The source-exclusion registry is now wired into the merge workflow. Rule loading validates scope-specific keys, and URL extraction accepts both nested provenance and top-level URL fields. The integration workflow's malformed path-filter entry was corrected. These code changes still require a successful CI run before the registry implementation can be considered validated end to end.
+
+
+## Repository reconciliation — 18 November 2026
+
+The canonical [source register](source-register.md) now supersedes the older desk-inventory narrative. It records every acquired/staged source, investigated-but-not-acquired source, failed Leipzig acquisition, and route explicitly not pursued. In particular, the Korean government legal portal and Korean Law Open Data API are marked **not pursued**; no data from either route is in the candidate artifacts.
+
+The legacy `corpus-integrate-fineweb2.yml` workflow has been changed to manual-only and labelled as the historical 32-language v4 integration. It still references fixed old artifact IDs and must not be dispatched or mistaken for the current 34-language integration. No current global 34-language merge has yet been built.
+
+The target label list, model defaults, parameter-count documentation and tests have been updated from 32 to 34 classes (Catalan and Icelandic added). GitHub Actions CI run [44282209777](https://github.com/SylvainSouche/langid-32/actions/runs/44282209777) was still installing dependencies when this note was written; test completion is not yet verified.
