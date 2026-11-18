@@ -49,6 +49,6 @@ def test_sparse_rows_builds_dense_count_features():
 
 
 def test_default_model_parameter_counts_match_design():
-    assert parameter_count(SparseNgramLogReg()) == 2_097_184
-    assert parameter_count(CharEmbeddingBag()) == 1_049_632
-    assert parameter_count(ByteTransformer()) == 731_936
+    assert parameter_count(SparseNgramLogReg()) == 2_228_258
+    assert parameter_count(CharEmbeddingBag()) == 1_049_698
+    assert parameter_count(ByteTransformer()) == 732_194
