@@ -4,7 +4,6 @@ on:
   push:
     paths:
       - "scripts/assemble_fineweb2_sample.py"
-      - ".github/workflows/fineweb2-assemble.yml"
   workflow_dispatch:
 
 permissions:
@@ -39,6 +38,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: fineweb2-640k-v2.1.0
-          path: reports/fineweb2-640k/
+          path: reports/fineweb2-640k/manifest.json
           retention-days: 14
           if-no-files-found: error

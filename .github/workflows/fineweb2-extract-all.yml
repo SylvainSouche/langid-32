@@ -29,10 +29,10 @@ jobs:
           --target-per-language 20000
           --max-row-groups 8
           --output-dir reports/fineweb2-31-languages
-      - name: Upload samples and provenance
+      - name: Upload metadata manifest only (public repository; no candidate text)
         uses: actions/upload-artifact@v4
         with:
           name: fineweb2-31x20000-v2.1.0
-          path: reports/fineweb2-31-languages/
+          path: reports/fineweb2-31-languages/manifest.json
           retention-days: 7
           if-no-files-found: error

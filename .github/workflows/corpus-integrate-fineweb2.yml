@@ -65,6 +65,8 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: multisource-candidate-v4-unicode-pii-clean
-          path: reports/multisource-candidate-v4-unicode-pii-clean/
+          path: |
+            reports/multisource-candidate-v4-unicode-pii-clean/manifest.json
+            reports/multisource-candidate-v4-unicode-pii-clean/source-manifest-*.json
           retention-days: 14
           if-no-files-found: error
