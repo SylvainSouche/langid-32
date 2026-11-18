@@ -83,7 +83,7 @@ For Common Crawl and other web-archive material, the project follows an HPLT-sty
 - A source URL is provenance for investigation, not proof that the page owner licensed every passage it contains.
 - This approach is not a representation that every passage has been individually rights-cleared, nor a legal safe harbour or guarantee of downstream legality.
 
-Rights holders and affected persons can submit copyright, database-rights, privacy, source-terms and removal notices to **[abuse@souche.fr](mailto:abuse@souche.fr)**. The mailbox is configured in the project maintainer's email client and has successfully received and acknowledged a test message. Operational case handling, source-level traceability and removal controls still need to be validated before release. See [Terms of Use](docs/terms-of-use.md), [Notice and Takedown](docs/notice-and-takedown.md), and [web-text release controls](docs/web-text-release-controls.md).
+Rights holders and affected persons can submit copyright, database-rights, privacy, source-terms and removal notices to **[abuse@souche.fr](mailto:abuse@souche.fr)**. The mailbox is configured in the project maintainer's email client and has successfully received and acknowledged a test message. Operational case handling, source-level traceability and removal controls still need to be validated before release. See [Terms of Use](docs/terms-of-use.md), [Notice and Takedown](docs/notice-and-takedown.md), [web-text release controls](docs/web-text-release-controls.md), and the [source attribution and citation register](docs/source-attribution-register.md).
 
 ## Reproducible development
 
