@@ -4,7 +4,7 @@ This document translates the HPLT packaging-only licensing and notice-and-takedo
 
 ## Required before release
 
-- [ ] Publish a monitored rights-notice contact channel and assign an accountable maintainer.
+- [x] Publish a rights-notice contact channel: abuse@souche.fr. Mailbox monitoring and an accountable case-handling maintainer still need operational verification.
 - [ ] Include the packaging-only terms and takedown policy in the dataset card and every downloadable release.
 - [ ] Do not set Hugging Face's dataset licence metadata to plain `cc0-1.0` if the repository contains third-party web text. Use an accurately described custom/other licence field and explain that CC0 covers packaging only.
 - [ ] Retain source-level provenance sufficient to locate and remove affected material: source dataset, crawl/archive, URL or stable source identifier, source document ID, retrieval/release information, and derived record IDs.
@@ -32,4 +32,4 @@ The registry must not contain claimant contact details or unnecessary personal d
 
 ## Current implementation status
 
-Policy documentation is being established first. The public notice contact, automated registry enforcement, source-to-output traceability tests, and release-card metadata changes are not yet confirmed operational. Therefore this policy does not authorise publication of the current FineWeb/FineWeb2 candidates. They remain technical candidates on legal hold until these controls and the broader release review are complete.
+The public notice address is published. Mailbox monitoring, accountable case handling, automated registry enforcement, source-to-output traceability tests, and release-card metadata changes are not yet confirmed operational. Therefore this policy does not authorise publication of the current FineWeb/FineWeb2 candidates. They remain technical candidates on legal hold until these controls and the broader release review are complete.
