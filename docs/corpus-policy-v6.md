@@ -4,7 +4,7 @@ Status: approved project policy, 2026-11-16.
 
 ## Target and retention
 
-- Build a **30,000-record usable pool per language** (32 languages; maximum target pool 960,000).
+- Build a **30,000-record usable pool per language** (34 languages; maximum target pool 1,020,000).
 - Preserve the first **20,000 records per language as the core pool** for the first model comparison.
 - Keep any accepted records above 20,000, up to 30,000, as **reserve material**. Do not discard it or silently mix it into the first 20k core set.
 - If a language has fewer than 30,000 usable records after all available sources are exhausted, retain the shortfall explicitly; do not pad with low-quality or mislabeled records.
