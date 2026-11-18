@@ -76,3 +76,17 @@ Until then, keep development artefacts in controlled project storage and do not 
 ## Scope
 
 This document records the project's current understanding and operational policy. It is not a legal opinion. Where source terms or the relationship between licence and contractual conditions are ambiguous, preserve the uncertainty and obtain a source-specific review rather than silently broadening permissions.
+
+
+## Source attribution and scholarly citations
+
+The project maintains a separate [source attribution and citation register](source-attribution-register.md). It distinguishes:
+1. mandatory legal attribution and notices under source licences or reuse terms;
+2. scholarly citations to source dataset papers, corpus descriptions or releases; and
+3. record-level provenance to the original source document/article.
+
+These are not interchangeable. In particular, a citation to a dataset paper does not satisfy a requirement to identify the underlying article, source and date, nor does it satisfy the European Commission source/ownership notice applicable to DGT-TM and JRC-Acquis.
+
+For article-derived material, retain title, author or issuing body, publication date, source URL, licence/notice and source record ID where available. If a licence or article-level term requires this information and it cannot be recovered, hold or exclude the affected record. Do not reproduce article text merely to satisfy an attribution requirement: use bibliographic references and exact prescribed notices unless a quotation is explicitly required and independently justified.
+
+Before a source is enabled for a release, capture the exact attribution wording from its current official terms, determine whether attribution is per-record or may be consolidated, and verify that the source permits redistribution of the selected text. The release must contain an `ATTRIBUTION.md` generated from the sources actually retained. It must not contain boilerplate attribution for sources that were considered but not used.
