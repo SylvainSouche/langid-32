@@ -4,7 +4,10 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import heapq
+import itertools
 import json
+import math
 import subprocess
 import sys
 from collections import Counter
@@ -104,6 +107,69 @@ def normalize_file(source_path: Path, destination: Path, *, filter_superseded=Fa
     }
 
 
+
+def preselect_files(paths, destination: Path, max_per_bucket: int | None, seed: str):
+    """Keep only the deterministic maximum that could survive the hard source cap."""
+    total_seen = 0
+    bucket_seen = Counter()
+    heaps = {}
+    serial = itertools.count()
+    if max_per_bucket is None:
+        with destination.open("w", encoding="utf-8", newline="\\n") as output:
+            for path in paths:
+                with path.open("r", encoding="utf-8") as source:
+                    for line in source:
+                        if not line.strip():
+                            continue
+                        row = json.loads(line)
+                        bucket_seen[f"{row['source']}:{row['language']}"] += 1
+                        total_seen += 1
+                        output.write(json.dumps(row, ensure_ascii=False, separators=(",", ":")) + "\\n")
+        return {
+            "rows_seen": total_seen,
+            "rows_selected": total_seen,
+            "max_per_source_language": None,
+            "bucket_counts": dict(sorted(bucket_seen.items())),
+        }
+    for path in paths:
+        with path.open("r", encoding="utf-8") as source:
+            for line_number, line in enumerate(source, 1):
+                if not line.strip():
+                    continue
+                row = json.loads(line)
+                total_seen += 1
+                key = (row["language"], row["source"])
+                bucket_seen[f"{row['source']}:{row['language']}"] += 1
+                rank_material = "\\0".join((
+                    seed, row["language"], row["source"],
+                    str(row.get("group_id") or ""), row["text"],
+                ))
+                rank = int(hashlib.sha256(rank_material.encode("utf-8")).hexdigest(), 16)
+                heap = heaps.setdefault(key, [])
+                entry = (-rank, next(serial), row)
+                if len(heap) < max_per_bucket:
+                    heapq.heappush(heap, entry)
+                elif rank < -heap[0][0]:
+                    heapq.heapreplace(heap, entry)
+    selected = []
+    selected_counts = Counter()
+    for (language, source), heap in heaps.items():
+        for _, _, row in heap:
+            selected.append(row)
+            selected_counts[f"{source}:{language}"] += 1
+    selected.sort(key=lambda row: (row["language"], row["source"], row["group_id"], row["text"]))
+    with destination.open("w", encoding="utf-8", newline="\\n") as output:
+        for row in selected:
+            output.write(json.dumps(row, ensure_ascii=False, separators=(",", ":")) + "\\n")
+    return {
+        "rows_seen": total_seen,
+        "rows_selected": len(selected),
+        "max_per_source_language": max_per_bucket,
+        "bucket_counts": dict(sorted(selected_counts.items())),
+        "bucket_rows_seen": dict(sorted(bucket_seen.items())),
+    }
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--v5-dir", type=Path, required=True)
@@ -150,6 +216,20 @@ def main():
     if not merge_inputs:
         raise RuntimeError("No non-empty normalized inputs were prepared")
 
+    if args.max_per_language:
+        core_target = min(args.core_per_language, args.max_per_language)
+        reserve_target = args.max_per_language - core_target
+        max_per_source_language = (
+            math.ceil(core_target * args.max_source_share)
+            + math.ceil(reserve_target * args.max_source_share)
+        )
+    else:
+        max_per_source_language = None
+    preselected_path = args.output / "preselected-input.jsonl"
+    preselection = preselect_files(
+        merge_inputs, preselected_path, max_per_source_language, args.seed
+    )
+
     input_manifest = {
         "status": "prepared_for_global_candidate_merge",
         "source_artifacts": {
@@ -160,7 +240,10 @@ def main():
             "waiting_sources_run": 44293866614,
         },
         "inputs": reports,
-        "merge_inputs": [str(path) for path in merge_inputs],
+        "normalized_input_count": len(merge_inputs),
+        "normalized_inputs": [str(path) for path in merge_inputs],
+        "merge_input": str(preselected_path),
+        "preselection": preselection,
         "source_family_policy": "component/config/file suffixes are preserved in provenance but quota accounting uses the dataset/release family",
         "v5_replacements": sorted(SUPERSEDED_V5_SOURCES),
     }
@@ -178,8 +261,7 @@ def main():
         "--max-source-share", str(args.max_source_share),
         "--seed", args.seed,
     ]
-    for path in merge_inputs:
-        command.extend(["--input", str(path)])
+    command.extend(["--input", str(preselected_path)])
     subprocess.run(command, check=True)
 
     summary = {
@@ -188,6 +270,8 @@ def main():
         "candidate_manifest": "candidate/manifest.json",
         "normalized_input_count": len(merge_inputs),
         "normalized_rows_out": sum(item["rows_out"] for item in reports),
+        "preselected_rows": preselection["rows_selected"],
+        "max_per_source_language": max_per_source_language,
         "normalized_rows_filtered_as_superseded": sum(
             sum(item["filtered_superseded_sources"].values()) for item in reports
         ),
