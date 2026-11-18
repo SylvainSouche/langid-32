@@ -9,7 +9,7 @@ import pyarrow.parquet as pq
 
 INDEX_URL="https://huggingface.co/datasets/imvladikon/leipzig_corpora_collection/resolve/refs%2Fconvert%2Fparquet/links/train/0000.parquet"
 BASE="https://downloads.wortschatz-leipzig.de/corpora/"
-LANGS={"ar":["ara"],"bg":["bul"],"ca":["cat"],"hr":["hrv"],"cs":["ces","cze"],"da":["dan"],"nl":["nld","dut"],"en":["eng"],"et":["est"],"fi":["fin"],"fr":["fra","fre"],"de":["deu","ger"],"el":["ell","gre"],"hu":["hun"],"is":["isl"],"ga":["gle"],"it":["ita"],"ja":["jpn"],"ko":["kor"],"lv":["lav"],"lt":["lit"],"mt":["mlt"],"nb":["nob"],"nn":["nno"],"pl":["pol"],"pt":["por"],"ro":["ron","rum"],"ru":["rus"],"sk":["slk","slo"],"sl":["slv"],"es":["spa"],"sv":["swe"],"tr":["tur"],"uk":["ukr"],"zh":["zho","chi"]}
+LANGS={"ar":["ara"],"bg":["bul"],"ca":["cat"],"hr":["hrv"],"cs":["ces","cze"],"da":["dan"],"nl":["nld","dut"],"en":["eng"],"et":["est"],"fi":["fin"],"fr":["fra","fre"],"de":["deu","ger"],"el":["ell","gre"],"hu":["hun"],"is":["isl"],"ga":["gle"],"it":["ita"],"ja":["jpn"],"ko":["kor"],"lv":["lav"],"lt":["lit"],"mt":["mlt"],"nb":["nob"],"nn":["nno"],"pl":["pol"],"pt":["por"],"ro":["ron","rum"],"ru":["rus"],"sk":["slk","slo"],"sl":["slv"],"es":["spa"],"sv":["swe"],"tr":["tur"],"zh":["zho","chi"]}
 def sha(p):
  h=hashlib.sha256()
  with p.open("rb") as f:
@@ -39,7 +39,7 @@ def sample(archive,data_id,label,family,quota,seed):
   if not sent:raise RuntimeError("missing sentences member")
   invmap={p[0]:p[1] for p in tsv(tf,inv) if len(p)>1} if inv else {}
   sources={p[0]:{"url":p[1],"timestamp":p[2] if len(p)>2 else ""} for p in tsv(tf,src) if len(p)>1} if src else {}
-  heap=[];eligible=digits=0
+  archive_sha=sha(archive);heap=[];eligible=digits=0
   for p in tsv(tf,sent):
    if len(p)<2:continue
    sid=p[0];text="\t".join(p[1:]).strip()
@@ -57,7 +57,7 @@ def sample(archive,data_id,label,family,quota,seed):
     "text_origin":"news/web text" if family=="news" else "Wikipedia text",
     "provenance":{"collection":"Leipzig Corpora Collection","data_id":data_id,"sentence_id":sid,
      "source_id":so,"source_url":meta.get("url"),"source_timestamp":meta.get("timestamp"),
-     "archive_sha256":sha(archive),"archive_url":BASE+quote(data_id,safe="._-")+".tar.gz",
+     "archive_sha256":archive_sha,"archive_url":BASE+quote(data_id,safe="._-")+".tar.gz",
      "index_url":INDEX_URL,"selection_seed":seed,
      "digit_filter":"Unicode decimal digits excluded" if family=="news" else "not applied"}})
  return rows,{"eligible_sentences":eligible,"rejected_digit_sentences":digits,"selected":len(rows),
