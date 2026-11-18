@@ -9,8 +9,8 @@ This report distinguishes measured candidate counts from rights-cleared usable c
 ## Completed measured artifacts
 
 - Multisource candidate v5: GitHub Actions run [43950037392](https://github.com/SylvainSouche/langid-32/actions/runs/43950037392), artifact `multisource-candidate-v5-fineweb-en`, 640,000 rows across 32 labels, exactly 20,000 each. It is capped at 20k, not the current 30k target.
-- HF-hosted Common Voice 22.0 CC0 text-only pilot: 259,352 historical selected rows across 33 labels. Croatian has no source and is not included. The retired mixed-source artifacts have been deleted.
-- Both artifacts contain counts and provenance manifests. Neither is a final rights-cleared release.
+- HF-hosted Common Voice 22.0 CC0 text-only pilot: 259,352 historical selected rows across 33 labels. Croatian has no source and is not included. The retired mixed-source artifacts have been deleted; the replacement workflow now uploads metadata only.
+- The remaining multisource v5 artifact and the historical Common Voice count are not final rights-cleared release data.
 
 ### Multisource candidate v5: rows by source
 
