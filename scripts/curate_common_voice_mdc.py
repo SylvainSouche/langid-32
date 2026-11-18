@@ -48,6 +48,11 @@ def main() -> None:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--per-language-cap", type=int, default=9000)
     args = parser.parse_args()
+    download_manifest_path = args.input_root / "hf-common-voice-download-manifest.json"
+    if not download_manifest_path.is_file():
+        raise SystemExit("Common Voice download manifest is required for immutable provenance.")
+    download_manifest = json.loads(download_manifest_path.read_text(encoding="utf-8"))
+    locale_metadata = {row["locale"]: row for row in download_manifest.get("results", [])}
     candidates = defaultdict(dict)
     counts = Counter()
     for language in LANGUAGES:
@@ -84,8 +89,24 @@ def main() -> None:
                     counts[f"{language}:within_language_duplicate"] += 1
                     continue
                 sid = (row.get("sentence_id") or "").strip()
-                group = hashlib.sha256(f"common-voice-v22:{language}:{text}".encode()).hexdigest()
-                candidates[language][text] = group
+                locale = (row.get("source_locale") or "").strip()
+                if not sid or not locale:
+                    raise ValueError(f"{path}: row is missing sentence_id or source_locale")
+                source_meta = locale_metadata.get(locale)
+                if not source_meta or not source_meta.get("repo_commit"):
+                    raise ValueError(f"{path}: no immutable source revision recorded for locale {locale}")
+                group = f"common_voice_v22:{locale}:{sid}"
+                provenance = {
+                    "dataset_repo": download_manifest.get("source"),
+                    "source_locale": locale,
+                    "sentence_id": sid,
+                    "repo_commit": source_meta["repo_commit"],
+                    "source_tsv_sha256": source_meta["sha256"],
+                    "source_tsv_bytes": source_meta["bytes"],
+                    "privacy_flags": [],
+                }
+                candidates[language][text] = {"group_id": group, "provenance": provenance,
+                                              "source_release": f"Common Voice Corpus 22.0@{source_meta['repo_commit']}"}
 
     # Remove every occurrence of any normalized string shared by language labels.
     owners = defaultdict(set)
@@ -113,18 +134,21 @@ def main() -> None:
                 "selected": len(items),
                 "cap": args.per_language_cap,
             }
-            for text, group in items:
+            for text, metadata in items:
                 out.write(json.dumps({
                     "text": text,
                     "language": language,
                     "source": "common_voice_v22",
-                    "source_release": "Common Voice Corpus 22.0",
-                    "group_id": group,
+                    "source_release": metadata["source_release"],
+                    "group_id": metadata["group_id"],
                     "licence_id": "CC0-1.0",
-                    "text_origin": "Hugging Face fsicoli/common_voice_22_0 transcript-only conversion",
+                    "text_origin": "Common Voice validated sentence text via fsicoli/common_voice_22_0 transcript-only conversion",
+                    "provenance": metadata["provenance"],
                 }, ensure_ascii=False, separators=(",", ":")) + "\n")
     report = {
         "source": "fsicoli/common_voice_22_0 (Common Voice 22.0)",
+        "revision_resolved": download_manifest.get("revision_resolved"),
+        "locale_revisions": {locale: row.get("repo_commit") for locale, row in sorted(locale_metadata.items())},
         "target_languages": list(LANGUAGES),
         "raw_tsvs_uploaded": False,
         "audio_saved": False,
