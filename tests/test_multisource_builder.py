@@ -118,7 +118,9 @@ def test_normalize_dgt_rows_adds_eurlex_celex_provenance(tmp_path):
     normalized = json.loads(output.read_text(encoding="utf-8").splitlines()[0])
     assert normalized["text_origin"] == "eu_international_agreement"
     assert normalized["provenance"]["source_document_id"] == "22020D0933"
-    assert normalized["provenance"]["celex_sector"] == "2"
-    assert normalized["provenance"]["celex_year"] == 2020
+    assert normalized["provenance"]["numdoc_sector"] == "2"
+    assert normalized["provenance"]["numdoc_year"] == 2020
+    assert normalized["provenance"]["identifier_scheme"] == "EUR-Lex NumDoc (CELEX-compatible)"
+    assert normalized["provenance"]["source_url_verification_status"] == "derived_from_numdoc_not_http_verified"
     assert normalized["provenance"]["source_url"].endswith("CELEX:22020D0933")
     assert normalized["provenance"]["source_latest_update"] == "DGT-TM release 2021"
