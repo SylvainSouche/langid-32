@@ -50,7 +50,7 @@ Earlier workflow runs already uploaded text-bearing artifacts before this policy
 
 Run [44293866614](https://github.com/SylvainSouche/langid-32/actions/runs/44293866614) was still running when this note was written and was started before the metadata-only workflow change. Its original workflow definition may still upload candidate text. Its completion and artifact contents must be checked.
 
-Three retired Common Voice artifacts are scheduled for deletion by the one-off cleanup workflow: 14319841407 (Croatian subset), 14332474956 (mixed pilot) and 14423311681 (mixed-source metadata). The workflow uses the repository's Actions API with explicit actions:write permission. The deletion result will be checked and recorded here; the other non-Common-Voice artifacts listed above are unchanged.
+**Completed:** the one-off cleanup workflow [44315309698](https://github.com/SylvainSouche/langid-32/actions/runs/44315309698) deleted all three retired Common Voice artifacts: 14319841407 (Croatian subset), 14332474956 (mixed pilot) and 14423311681 (mixed-source metadata). Follow-up artifact-list queries for the three originating runs returned no remaining artifacts. The other non-Common-Voice artifacts listed above are unchanged.
 
 ## Important distinction
 
