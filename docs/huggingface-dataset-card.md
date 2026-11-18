@@ -49,7 +49,7 @@ The project retains the name `langid-32` for historical continuity; the current 
 
 We will not publish a dataset snapshot to Hugging Face until the corpus has reached the project's target scale of **20,000–30,000 curated records per language**, with meaningful source diversity within each language.
 
-The current Common Voice-based material is an initial component of that work, not a release candidate. We are identifying and integrating additional sources. A raw or early-stage pilot is not representative of the intended final corpus.
+The current Common Voice-based material is an initial component of that work, not a release candidate. The refreshed technical pilot is recorded in GitHub Actions run [44293665775](https://github.com/SylvainSouche/langid-32/actions/runs/44293665775): 261,076 text-only rows across 34 labels, pinned to Common Voice conversion revision `ae911de250fe9375d08e2daa2105b671d659d446`, with per-row locale, upstream sentence ID, file hash and revision provenance for CV22. We are identifying and integrating additional sources. A raw or early-stage pilot is not representative of the intended final corpus.
 
 ## Sources and terms
 
