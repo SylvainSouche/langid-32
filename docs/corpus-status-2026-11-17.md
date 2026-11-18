@@ -110,3 +110,19 @@ At present:
 - Norwegian needs the Målfrid extraction path; Korean needs a rights-cleared volume source.
 
 No public HF dataset was uploaded.
+
+
+## Follow-up staging — 18 November 2026
+
+The following source-acquisition work completed after this report was first written. These are independent candidate artifacts, not a merged corpus:
+
+- Waiting-source acquisition: [GitHub Actions run 44241908630](https://github.com/SylvainSouche/langid-32/actions/runs/44241908630), artifact 14403758073. It contains 613,860 candidate rows: Catalan 258,930; Icelandic 54,930; Bokmål 50,000; Nynorsk 50,000; Korean 50,000; Arabic 50,000; plus 50,000 FineWeb2 Catalan and 50,000 FineWeb2 Icelandic candidates included in the stated language totals. Treat the source-specific components and licence caveats in the acquisition manifest as controlling; these counts are not globally deduplicated against other staging artifacts.
+- The waiting-source composition still exposes concentration risks: TeMU is a large share of the non-FineWeb2 Catalan candidates; IGC2024 dominates non-FineWeb2 Icelandic; Målfrid is the sole source in each current Norwegian batch; Korean Wikipedia is the sole Korean source; and the UN-derived source is the sole Arabic source. FineWeb2 rows remain on legal hold pending excerpt-level rights analysis.
+- Tatoeba fresh CC0 staging: [run 44121162591](https://github.com/SylvainSouche/langid-32/actions/runs/44121162591), artifact 14345216923, 80,155 rows.
+- DGT-TM 2021 staging: [run 44121170635](https://github.com/SylvainSouche/langid-32/actions/runs/44121170635), 120,000 rows (5,000 per 24 EU official languages).
+
+Do not add these counts to the v5 or Common Voice totals. No cross-artifact global merge has yet established unique usable records, source quotas, final splits or release rights.
+
+The public rights-notice contact [abuse@souche.fr](mailto:abuse@souche.fr) has been published in the repository README and policy documents. A test message was sent and a short acknowledgement was received. The mailbox is configured in the maintainer's email client; formal monitoring and case-handling procedures remain a release gate.
+
+The source-exclusion registry is now wired into the merge workflow. Rule loading validates scope-specific keys, and URL extraction accepts both nested provenance and top-level URL fields. The integration workflow's malformed path-filter entry was corrected. These code changes still require a successful CI run before the registry implementation can be considered validated end to end.
