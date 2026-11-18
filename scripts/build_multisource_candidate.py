@@ -89,17 +89,19 @@ def normalize_file(source_path: Path, destination: Path, *, filter_superseded=Fa
             if family == "dgt-tm-2021":
                 member = provenance.get("tmx_member")
                 if member:
-                    celex_id = Path(str(member)).stem
-                    provenance["source_document_id"] = celex_id
+                    numdoc_id = Path(str(member)).stem
+                    provenance["source_document_id"] = numdoc_id
+                    provenance["numdoc_id"] = numdoc_id
+                    provenance["identifier_scheme"] = "EUR-Lex NumDoc (CELEX-compatible)"
                     provenance["source_url"] = (
                         "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:"
-                        + celex_id
+                        + numdoc_id
                     )
-                    provenance["celex_sector"] = celex_id[:1]
-                    if len(celex_id) >= 5 and celex_id[1:5].isdigit():
-                        provenance["celex_year"] = int(celex_id[1:5])
-                    if len(celex_id) >= 6:
-                        provenance["celex_document_type"] = celex_id[5:6]
+                    provenance["numdoc_sector"] = numdoc_id[:1]
+                    if len(numdoc_id) >= 5 and numdoc_id[1:5].isdigit():
+                        provenance["numdoc_year"] = int(numdoc_id[1:5])
+                    if len(numdoc_id) >= 6:
+                        provenance["numdoc_document_type"] = numdoc_id[5:6]
                     origin_by_sector = {
                         "2": "eu_international_agreement",
                         "3": "eu_legal_act",
@@ -110,10 +112,11 @@ def normalize_file(source_path: Path, destination: Path, *, filter_superseded=Fa
                         "E": "efta_document",
                     }
                     row["text_origin"] = origin_by_sector.get(
-                        celex_id[:1], "eu_official_document"
+                        numdoc_id[:1], "eu_official_document"
                     )
                 else:
                     row["text_origin"] = "eu_official_document"
+                provenance["source_url_verification_status"] = "derived_from_numdoc_not_http_verified"
                 provenance["source_dataset_url"] = (
                     "https://joint-research-centre.ec.europa.eu/language-technology-resources/"
                     "dgt-translation-memory_en"
