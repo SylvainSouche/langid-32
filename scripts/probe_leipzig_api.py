@@ -60,7 +60,7 @@ def find_corpora(value):
 
 
 def language_for_corpus(name):
-    prefix = str(name).split("_", 1)[0].lower()
+    prefix = str(name).split("_", 1)[0].lower().split("-", 1)[0]
     return ISO3_TO_LANG.get(prefix)
 
 
@@ -97,33 +97,44 @@ def extract_words(value):
 def extract_sentences(value):
     sentences = []
     source_keys = set()
+    source_records = []
     def walk(item):
         if isinstance(item, dict):
+            source = item.get("source")
+            if isinstance(source, dict):
+                source_keys.update(str(key) for key in source.keys())
+                source_records.append({key: source.get(key) for key in ("id", "url", "date")
+                                       if source.get(key) not in (None, "")})
+            elif isinstance(source, list):
+                for entry in source:
+                    if isinstance(entry, dict):
+                        source_keys.update(str(key) for key in entry.keys())
+                        source_records.append({key: entry.get(key) for key in ("id", "url", "date")
+                                                if entry.get(key) not in (None, "")})
             for key, child in item.items():
-                lower = str(key).lower()
-                if lower in {"sentence", "text", "sentencetext"} and isinstance(child, str):
+                if str(key).lower() in {"sentence", "text", "sentencetext"} and isinstance(child, str):
                     sentences.append(child)
-                if "source" in lower and isinstance(child, dict):
-                    source_keys.update(str(k) for k in child.keys())
-                elif "source" in lower and isinstance(child, list):
-                    for entry in child:
-                        if isinstance(entry, dict):
-                            source_keys.update(str(k) for k in entry.keys())
                 walk(child)
         elif isinstance(item, list):
             for child in item:
                 walk(child)
     walk(value)
-    # Preserve response order while removing duplicate fields surfaced by recursion.
     unique = list(dict.fromkeys(text for text in sentences if text.strip()))
-    return unique, sorted(source_keys)
+    unique_sources = []
+    seen_sources = set()
+    for source in source_records:
+        key = (source.get("id"), source.get("url"), source.get("date"))
+        if key not in seen_sources:
+            seen_sources.add(key)
+            unique_sources.append(source)
+    return unique, sorted(source_keys), unique_sources
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--probe-languages", default="bg,hr,cs,da,nl,en,et,fi,fr,de,el,hu,ga,it,lv,lt,mt,pl,pt,ro,sk,sl,es,sv,nb,nn,ru,ja,zh,ko,ar,tr,ca,is")
-    parser.add_argument("--max-corpora-per-language", type=int, default=1)
+    parser.add_argument("--max-corpora-per-language", type=int, default=2)
     args = parser.parse_args()
     args.out.mkdir(parents=True, exist_ok=True)
     languages = {item.strip() for item in args.probe_languages.split(",") if item.strip()}
@@ -223,7 +234,7 @@ def main():
                         sentence_payload, sentence_final_url, _ = get_json(
                             session, sentence_url, query_parameters(sentences_op, 10)
                         )
-                        sentences, source_keys = extract_sentences(sentence_payload)
+                        sentences, source_keys, source_records = extract_sentences(sentence_payload)
                         digest = hashlib.sha256("\n".join(sentences).encode("utf-8")).hexdigest()
                         result.update({
                             "sentence_status": "success" if sentences else "no_sentence_text_found",
@@ -231,6 +242,8 @@ def main():
                             "sample_sentence_sha256": digest,
                             "sentence_response_keys": sorted(sentence_payload.keys()) if isinstance(sentence_payload, dict) else [],
                             "source_information_keys": source_keys,
+                            "source_records": source_records[:10],
+                            "source_records_with_url": sum(bool(item.get("url")) for item in source_records),
                             "randomword_final_url": random_final_url,
                             "sentence_final_url": sentence_final_url,
                         })
