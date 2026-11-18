@@ -257,25 +257,11 @@ def main():
             for filename in files:
                 if (temu_root / filename).exists():
                     scan(temu_root / filename, "ca", f"temu_cc0:{filename}")
-            try:
-                revisions["dpo"] = resolve_hf_revision("catallama/Catalan-DPO-V2")
-                from datasets import load_dataset
-                dataset = load_dataset("catallama/Catalan-DPO-V2", split="train",
-                                        streaming=True, revision=revisions["dpo"])
-                for index, item in enumerate(dataset):
-                    row_id = str(item.get("id") or index)
-                    base_provenance = {"dataset_repo": "catallama/Catalan-DPO-V2",
-                                       "repo_commit": revisions["dpo"], "dataset_row_id": row_id}
-                    for message in item.get("messages", []) or []:
-                        if isinstance(message, dict) and message.get("role") == "assistant":
-                            add("ca", "catalan_dpo_v2:messages", message.get("content"),
-                                row_id, {**base_provenance, "field": "messages"})
-                    add("ca", "catalan_dpo_v2:chosen", item.get("chosen"),
-                        row_id, {**base_provenance, "field": "chosen"})
-                    if index >= 23499:
-                        break
-            except Exception as exc:
-                notes.append("DPO: " + repr(exc))
+            notes.append(
+                "Catalan-DPO-V2 deliberately skipped: its card reports 40% Catalan / 60% English, "
+                "but the schema has no per-row language field and this sampler has no language-ID filter. "
+                "The 30,790 rows from the previous run were all mislabeled ca and are quarantined."
+            )
             base = "https://huggingface.co/datasets/BSC-LT/Legal_Catalan_Spanish_Parallel_Corpus/resolve/main/"
             for filename in ("dogc_ca-es.tsv", "legal_ca-es_dataset_clean.tsv", "apdcat_ca-es.docs.jsonl"):
                 path = temp_root / filename

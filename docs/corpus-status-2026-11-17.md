@@ -137,3 +137,8 @@ The canonical [source register](source-register.md) now supersedes the older des
 The legacy `corpus-integrate-fineweb2.yml` workflow has been changed to manual-only and labelled as the historical 32-language v4 integration. It still references fixed old artifact IDs and must not be dispatched or mistaken for the current 34-language integration. No current global 34-language merge has yet been built.
 
 The target label list, model defaults, parameter-count documentation and tests have been updated from 32 to 34 classes (Catalan and Icelandic added). GitHub Actions CI run [44282209777](https://github.com/SylvainSouche/langid-32/actions/runs/44282209777) was still installing dependencies when this note was written; test completion is not yet verified.
+
+
+### 18 November 2026 — Catalan-DPO correction
+
+The 30,790 Catalan-DPO-V2 rows in artifact 14403758073 were incorrectly assigned the Catalan label. The source card states a 40% Catalan / 60% English mix, the source schema has no row-level language field, and the acquisition code had no language-identification step. Sample inspection confirmed English text among the rows. All 30,790 rows are quarantined and excluded from Catalan totals and any merge. The acquisition workflow now skips DPO V2 until a separate language-filtered and provenance-preserving route exists. The historical waiting-source total of 613,860 therefore has 583,070 non-DPO technical candidates remaining; these are still not release-cleared.
