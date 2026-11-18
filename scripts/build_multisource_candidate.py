@@ -86,6 +86,21 @@ def normalize_file(source_path: Path, destination: Path, *, filter_superseded=Fa
             provenance["source_original_name"] = raw_source
             if component is not None:
                 provenance["source_component"] = component
+            if family == "dgt-tm-2021":
+                member = provenance.get("tmx_member")
+                if member:
+                    celex_id = Path(str(member)).stem
+                    provenance["source_document_id"] = celex_id
+                    provenance["source_url"] = (
+                        "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:"
+                        + celex_id
+                    )
+                provenance["source_dataset_url"] = (
+                    "https://joint-research-centre.ec.europa.eu/language-technology-resources/"
+                    "dgt-translation-memory_en"
+                )
+                provenance["source_latest_update"] = "DGT-TM release 2021"
+                row["text_origin"] = "eu_legislation"
             if family == "catalan_dpo_v2":
                 row_id = provenance.get("dataset_row_id")
                 if not row_id:
