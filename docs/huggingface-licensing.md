@@ -14,7 +14,7 @@ The current technical pilot uses the HF-hosted dataset [`fsicoli/common_voice_22
 
 The project uses that Hugging Face repository as its acquisition source and downloads only `transcript/<locale>/validated_sentences.tsv`. No audio, speaker identifiers, contributor IDs or demographic metadata are acquired. The workflow pins the resolved repository revision and retains locale, sentence ID, TSV SHA-256 and retrieval metadata.
 
-The historical HF-only pilot contains 259,352 selected text rows across 33 target labels. Croatian (`hr`) is not supplied by this source and remains an explicit source gap; no substitute from another Common Voice distribution is used.
+The latest HF-only pilot run [44315031026](https://github.com/SylvainSouche/langid-32/actions/runs/44315031026) selected 259,352 text rows across 33 target labels. Its artifact [14431583044](https://github.com/SylvainSouche/langid-32/actions/runs/44315031026) contains metadata only, not sentence text. Croatian (`hr`) is not supplied by this source and remains an explicit source gap; no substitute from another Common Voice distribution is used.
 
 For scholarly acknowledgement, cite Ardila et al. (2020), “Common Voice: A Massively-Multilingual Speech Corpus,” *Proceedings of LREC 2020*, pp. 4211–4215, https://aclanthology.org/2020.lrec-1.520/, together with the exact HF dataset and immutable revision.
 

@@ -31,7 +31,7 @@ For file-based inputs, a line number or hash of the extracted sentence is not a 
 
 ### HF-hosted Common Voice CC0 revision and row provenance
 
-The retained Common Voice source is the HF-hosted [fsicoli/common_voice_22_0](https://huggingface.co/datasets/fsicoli/common_voice_22_0), whose card declares CC0-1.0. The workflow fetches only validated transcript TSVs. Each CV22 candidate retains locale, sentence ID, immutable dataset revision and per-locale TSV SHA-256. Croatian rows are not retained; an alternative independent source is required for hr. The old mixed-source workflow and its artifacts are being withdrawn.
+The retained Common Voice source is the HF-hosted [fsicoli/common_voice_22_0](https://huggingface.co/datasets/fsicoli/common_voice_22_0), whose card declares CC0-1.0. The workflow fetches only validated transcript TSVs. Each CV22 candidate retains locale, sentence ID, immutable dataset revision and per-locale TSV SHA-256. Croatian rows are not retained; an alternative independent source is required for hr. The old mixed-source workflow has been removed and its artifacts have been deleted.
 
 ### Refreshed DGT-TM
 

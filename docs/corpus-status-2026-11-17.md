@@ -9,7 +9,7 @@ This report distinguishes measured candidate counts from rights-cleared usable c
 ## Completed measured artifacts
 
 - Multisource candidate v5: GitHub Actions run [43950037392](https://github.com/SylvainSouche/langid-32/actions/runs/43950037392), artifact `multisource-candidate-v5-fineweb-en`, 640,000 rows across 32 labels, exactly 20,000 each. It is capped at 20k, not the current 30k target.
-- HF-hosted Common Voice 22.0 CC0 text-only pilot: 259,352 historical selected rows across 33 labels. Croatian has no source and is not included. The retired mixed-source artifacts have been deleted; the replacement workflow now uploads metadata only.
+- HF-hosted Common Voice 22.0 CC0 text-only pilot: latest run [44315031026](https://github.com/SylvainSouche/langid-32/actions/runs/44315031026), metadata artifact 14431583044, 259,352 selected rows across 33 labels. Croatian has no source and is not included. The retired mixed-source artifacts have been deleted; the replacement workflow uploads metadata only.
 - The remaining multisource v5 artifact and the historical Common Voice count are not final rights-cleared release data.
 
 ### Multisource candidate v5: rows by source
@@ -55,7 +55,7 @@ Source totals in this candidate: FineWeb2 510,702; DGT-TM 91,539; Tatoeba CC0 31
 
 ## HF-hosted Common Voice 22.0 CC0 text-only pilot
 
-The historical HF-only component contains **259,352** selected rows across 33 target labels. The Croatian (hr) slot is empty and will be filled only from an independent alternative source. The previous mixed-source report and its data artifacts are being withdrawn; no data from the retired direct-hosted route is retained in the active source pipeline.
+The latest HF-only run [44315031026](https://github.com/SylvainSouche/langid-32/actions/runs/44315031026) contains **259,352** selected rows across 33 target labels. Its metadata-only artifact is [14431583044](https://github.com/SylvainSouche/langid-32/actions/runs/44315031026). The Croatian (hr) slot is empty and will be filled only from an independent alternative source. The previous mixed-source report and its data artifacts have been deleted; no data from the retired direct-hosted route is retained in the active source pipeline.
 
 The HF dataset [fsicoli/common_voice_22_0](https://huggingface.co/datasets/fsicoli/common_voice_22_0) declares CC0-1.0. The project downloads only transcript/<locale>/validated_sentences.tsv, pins the resolved repository revision, and retains locale, sentence ID and per-locale TSV SHA-256. No audio, speaker identifiers or demographic metadata are fetched.
 
