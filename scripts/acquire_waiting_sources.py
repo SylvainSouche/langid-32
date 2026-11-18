@@ -131,7 +131,7 @@ def main():
                     "text extracted from Målfrid 2026 corpus", "hold_database_and_third_party_content_review")
         if source == "korean_wikipedia_20231101":
             return (f"wikipedia-20231101.ko@{revisions.get('wikipedia', 'unresolved')}",
-                    "CC-BY-SA-4.0;GFDL-1.3", "paragraph extracted from a Korean Wikipedia article",
+                    "MIXED: CC-BY-SA-3.0 / CC-BY-SA-4.0; GFDL (unversioned; imported-content exceptions possible)", "paragraph extracted from a Korean Wikipedia article",
                     "hold_share_alike_and_attribution_review")
         if source.startswith("fineweb2:"):
             return (f"FineWeb-2-{source.split(':', 1)[1]}@{revisions.get('fineweb2', 'unresolved')}",
@@ -197,7 +197,7 @@ def main():
                                 continue
                             if isinstance(item, dict):
                                 values = []
-                                for key in ("fulltext", "text", "content", "sentence", "body", "ca", "text_ar"):
+                                for key in ("fulltext", "text", "content", "sentence", "body", "ca", "ca_text", "text_ar"):
                                     value = item.get(key)
                                     if isinstance(value, str):
                                         values.append(value)
@@ -214,11 +214,17 @@ def main():
                                     "source_record_index": index,
                                     "source_document_id": str(document_id),
                                 }
-                                for key in ("url", "source_url", "canonical_url", "title",
-                                            "author", "date", "published", "publisher", "domain"):
+                                for key in ("url", "source_url", "canonical_url", "url_ca", "url_es",
+                                            "title", "author", "date", "published", "publisher",
+                                            "domain", "doc_hash", "mimetype", "lang", "dataset",
+                                            "segment_id", "alignment_score"):
                                     value = item.get(key)
                                     if isinstance(value, (str, int, float)) and value != "":
                                         provenance[key] = value
+                                source_url = (item.get("source_url") or item.get("url")
+                                              or item.get("canonical_url") or item.get("url_ca"))
+                                if source_url:
+                                    provenance["source_url"] = source_url
                                 for value in values:
                                     add(language, source, value, str(document_id), provenance)
                             elif isinstance(item, str):
@@ -228,11 +234,39 @@ def main():
                     delimiter = "\t" if path.suffix.lower() == ".tsv" else ","
                     with path.open(encoding="utf-8", errors="replace", newline="") as stream:
                         reader = csv.reader(stream, delimiter=delimiter)
-                        for index, row in enumerate(reader, 1):
-                            if row:
-                                add(language, source, row[0], f"{relative}:row:{index}",
-                                    {"source_file": relative, "source_record_index": index,
+                        first = next(reader, None)
+                        if first and "ca_text" in first:
+                            text_index = first.index("ca_text")
+                            dataset_index = first.index("dataset") if "dataset" in first else None
+                            segment_index = first.index("segment_id") if "segment_id" in first else None
+                            alignment_index = first.index("alignment_score") if "alignment_score" in first else None
+                            for index, row in enumerate(reader, 2):
+                                if len(row) <= text_index:
+                                    continue
+                                value = row[text_index]
+                                dataset = row[dataset_index] if dataset_index is not None and len(row) > dataset_index else ""
+                                segment = row[segment_index] if segment_index is not None and len(row) > segment_index else str(index)
+                                group = f"{dataset}:{segment}" if dataset else f"{relative}:row:{index}"
+                                provenance = {
+                                    "source_file": relative,
+                                    "source_record_index": index,
+                                    "source_document_id": segment,
+                                    "dataset": dataset,
+                                    "segment_id": segment,
+                                }
+                                if alignment_index is not None and len(row) > alignment_index:
+                                    provenance["alignment_score"] = row[alignment_index]
+                                add(language, source, value, group, provenance)
+                        else:
+                            if first and first[0].strip().lower() not in {"text"}:
+                                add(language, source, first[0], f"{relative}:row:1",
+                                    {"source_file": relative, "source_record_index": 1,
                                      "source_document_id": None})
+                            for index, row in enumerate(reader, 2):
+                                if row:
+                                    add(language, source, row[0], f"{relative}:row:{index}",
+                                        {"source_file": relative, "source_record_index": index,
+                                         "source_document_id": None})
             except Exception as exc:
                 notes.append(f"{path}: {type(exc).__name__}: {exc}")
 

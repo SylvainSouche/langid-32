@@ -13,7 +13,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 180
+    timeout-minutes: 360
     steps:
       - name: Check out source and merge code
         uses: actions/checkout@v4
@@ -55,13 +55,21 @@ jobs:
           run-id: 44291075180
           path: input/dgt
 
-      - name: Download refreshed waiting-source artifact
-        uses: actions/download-artifact@v4
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          repository: ${{ github.repository }}
-          run-id: 44241908630
-          path: input/waiting
+      - name: Install waiting-source acquisition dependencies
+        run: python -m pip install datasets huggingface_hub pyarrow fasttext-wheel
+
+      - name: Acquire waiting sources in the same ephemeral runner
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+        run: |
+          set +e
+          failed=0
+          for source in catalan icelandic norwegian korean fineweb2 arabic; do
+            python scripts/acquire_waiting_sources.py --source "$source" --out "input/waiting/$source"
+            rc=$?
+            if [ "$rc" -ne 0 ]; then failed=1; echo "::error::Source group $source failed with exit $rc"; fi
+          done
+          exit "$failed"
 
       - name: Build candidate and aggregate metadata
         env:

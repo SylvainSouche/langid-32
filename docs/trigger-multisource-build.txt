@@ -1,1 +1,3 @@
 2026-11-18: rebuild metadata using waiting-source artifact 442419 with active DPO and Greynir exclusions.
+
+2026-11-18: rebuild using same-run acquisition; metadata-only output; DPO and Greynir exclusions enforced.
