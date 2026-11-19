@@ -31,6 +31,14 @@ jobs:
           run-id: 43950037392
           path: input/v5
 
+      - name: Download balanced Leipzig news and Wikipedia sample
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: 44361364340
+          path: input/leipzig
+
       - name: Acquire HF-hosted CC0 Common Voice text in this runner
         run: |
           python scripts/download_common_voice_hf.py --output-dir input/common-voice/source
