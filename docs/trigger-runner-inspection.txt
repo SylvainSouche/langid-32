@@ -1,0 +1,1 @@
+Trigger read-only inspection of a fresh GitHub Actions runner filesystem. No source artifacts are downloaded or modified.
