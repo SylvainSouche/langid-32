@@ -1,3 +1,4 @@
 2026-11-19: rebuild 34-label candidate including the 201k balanced Leipzig news/Wikipedia acquisition, then export exactly 1,000 source-balanced sentences per language for JQL assessment. Remove all other candidate/source text from runner after artifact creation.
 
 Retry after fixing the Parquet CLI invocation and artifact upload paths (2026-11-19T15:00Z).
+artifact-upload-fix-2026-11-19
