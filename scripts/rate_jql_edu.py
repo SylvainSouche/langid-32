@@ -46,6 +46,7 @@ def main():
     ap.add_argument("--batch-size", type=int, default=128)
     ap.add_argument("--max-rows", type=int, default=0, help="0 means no row cap")
     ap.add_argument("--max-length", type=int, default=512)
+    ap.add_argument("--device", choices=("auto", "cpu", "mps", "cuda"), default="auto")
     a = ap.parse_args()
 
     src, dst = Path(a.input), Path(a.output)
@@ -60,8 +61,16 @@ def main():
                 try: completed.add(row_key(json.loads(line)))
                 except Exception: continue
 
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    dtype = torch.bfloat16 if device == "cuda" and torch.cuda.is_bf16_supported() else (torch.float16 if device == "cuda" else torch.float32)
+    if a.device == "auto":
+        device = "cuda" if torch.cuda.is_available() else ("mps" if getattr(torch.backends, "mps", None) and torch.backends.mps.is_available() else "cpu")
+    else:
+        device = a.device
+    if device == "cuda" and not torch.cuda.is_available():
+        raise SystemExit("--device cuda requested but CUDA is unavailable")
+    if device == "mps" and not (getattr(torch.backends, "mps", None) and torch.backends.mps.is_available()):
+        raise SystemExit("--device mps requested but MPS is unavailable")
+    dtype = (torch.bfloat16 if device == "cuda" and torch.cuda.is_bf16_supported()
+             else (torch.float16 if device == "cuda" else torch.float32))
     print(json.dumps({"event":"initializing","device":device,"dtype":str(dtype),"batch_size":a.batch_size}), flush=True)
 
     api = HfApi()
