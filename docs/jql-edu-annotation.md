@@ -6,7 +6,7 @@ JQL-Edu-Heads is an optional QA annotation, not a corpus-selection signal. The s
 
 The score estimates educational value. It is not a measure of language correctness, grammaticality, factuality, safety, privacy or copyright status. Do not use it as a language-label validator.
 
-The model card lists training/evaluation language coverage for many, but not all, project labels. Arabic, Japanese, Korean and Chinese are not in its published language list. Treat those scores as exploratory and potentially out-of-domain; do not compare them as if calibrated equivalently to supported languages.
+The model card lists training/evaluation language coverage for many, but not all, project labels. Arabic, Japanese, Korean and Chinese are not in its published language list. Norwegian is listed as a single language (`no`), not separate Bokmål and Nynorsk labels. Treat scores for `ar`, `ja`, `ko`, `zh`, `nb` and `nn` as exploratory and potentially out-of-domain; do not compare them as if calibrated equivalently to the supported language labels.
 
 ## Model provenance
 
