@@ -67,7 +67,9 @@ def main():
  ap.add_argument("--seed",default="langid-32-leipzig-2026-11-18");ap.add_argument("--pause",type=float,default=1);ap.add_argument("--labels",default="",help="Comma-separated target labels; default is all 34")
  a=ap.parse_args();out=Path(a.out);ar=out/"archives";sm=out/"samples";ar.mkdir(parents=True,exist_ok=True);sm.mkdir(parents=True,exist_ok=True)
  s=requests.Session();idx=out/"links.parquet";fetch(s,INDEX_URL,idx);idxsha=sha(idx);cat=pq.read_table(idx).to_pylist()
- selected_labels={x.strip() for x in a.labels.split(",") if x.strip()}\n unknown=selected_labels-set(LANGS)\n if unknown:raise SystemExit("Unknown labels: "+", ".join(sorted(unknown)))
+ selected_labels={x.strip() for x in a.labels.split(",") if x.strip()}
+ unknown=selected_labels-set(LANGS)
+ if unknown:raise SystemExit("Unknown labels: "+", ".join(sorted(unknown)))
  manifest={"collection":"Leipzig Corpora Collection","licence":"CC BY 4.0","licence_url":"https://wortschatz.uni-leipzig.de/en/usage",
   "index_url":INDEX_URL,"index_sha256":idxsha,"index_rows":len(cat),"quota_per_family":a.quota,
   "policy":"3,000 news + 3,000 Wikipedia per language; Unicode decimal digits excluded from news only","archives":[]}
