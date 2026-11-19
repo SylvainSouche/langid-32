@@ -40,9 +40,9 @@ make rate DEVICE=cuda MAX_SECONDS=3600 BATCH_SIZE=64  # Windows/NVIDIA
 
 The full dependency chain is:
 
-`download -> filter -> anonymize -> count -> assess -> rate`
+`download -> filter -> anonymize -> count -> assess -> rate -> score-report`
 
-Each stage is an individual Make target. See the repository Makefile and `make help`. `make rate` runs one batch (3,600 seconds by default); invoke it again to continue rating. Set `MAX_SECONDS` for a shorter test or a different batch duration.
+Each stage is an individual Make target. See the repository Makefile and `make help`. `make rate` runs one batch (3,600 seconds by default); invoke it again to continue rating. `make score-report` runs a batch and then refreshes score distributions by language and source. Set `MAX_SECONDS` for a shorter test or a different batch duration.
 
 ## Filtering and redaction policy
 
