@@ -55,7 +55,7 @@ def cmd_filter(a):
             lengths.append(len(text))
     report = {"operation":"filter","input":str(src),"output":str(dst),
               "policy":{"min_chars":a.min_chars,"max_chars":a.max_chars or None,
-                        "news_decimal_digit_filter":True,"deduplicate_within_language":True},
+                        "news_decimal_digit_filter":True,"deduplicate_within_language":False,"duplicate_rows_are_reported_not_removed":True},
               "counts":dict(counts),
               "text_length":{"min":min(lengths) if lengths else None,
                              "median":statistics.median(lengths) if lengths else None,
@@ -111,7 +111,7 @@ def cmd_count(a):
 def cmd_assess(a):
     counts=collections.Counter();per=collections.defaultdict(collections.Counter)
     groups=collections.Counter();missing_prov=collections.Counter()
-    exact=collections.Counter();lengths=collections.defaultdict(list)
+    exact=collections.Counter();text_languages=collections.defaultdict(set);lengths=collections.defaultdict(list)
     digit_news=0;redaction_residuals=collections.Counter()
     for _,row in read_rows(Path(a.input)):
         counts["rows"]+=1
@@ -119,6 +119,7 @@ def cmd_assess(a):
         per[lang]["rows"]+=1;per[lang][source]+=1
         txt=str(row.get("text",""));lengths[lang].append(len(txt))
         exact[(lang,text_key(txt))]+=1
+        text_languages[text_key(txt)].add(lang)
         if "news" in source and any(c.isdecimal() for c in txt):digit_news+=1
         prov=row.get("provenance") or {}
         for field in ("data_id","sentence_id","archive_sha256"):
@@ -135,7 +136,7 @@ def cmd_assess(a):
                                "below_target":c["rows"]<a.target_per_language}
     result={"operation":"assessment","input":a.input,"total_rows":counts["rows"],
             "language_count":len(per),"languages":language_report,
-            "duplicate_rows_within_language":dup,"news_rows_still_containing_decimal_digits":digit_news,
+            "duplicate_rows_within_language":dup,"duplicate_texts_shared_across_language_labels":sum(1 for langs in text_languages.values() if len(langs)>1),"news_rows_still_containing_decimal_digits":digit_news,
             "missing_provenance_fields":dict(missing_prov),
             "remaining_pattern_matches_after_redaction":dict(redaction_residuals),
             "source_group_count":len(groups),
