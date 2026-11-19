@@ -91,10 +91,10 @@ jobs:
 
       - name: Build 1,000-per-language JQL assessment Parquet
         run: |
-          python scripts/sample_jql_assessment.py \\
-            --input out/candidate/records.jsonl \\
-            --output out/jql-assessment-34k.parquet \\
-            --summary out/jql-assessment-34k-summary.json \\
+          python scripts/sample_jql_assessment.py \
+            --input out/candidate/records.jsonl \
+            --output out/jql-assessment-34k.parquet \
+            --summary out/jql-assessment-34k-summary.json \
             --per-language 1000
 
       - name: Remove all candidate text and downloaded source data from runner workspace
