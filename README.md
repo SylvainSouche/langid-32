@@ -116,7 +116,7 @@ For project questions and rights notices: [abuse@souche.fr](mailto:abuse@souche.
 
 The Makefile orchestrates the Leipzig corpus stages as independent targets with explicit dependencies:
 
-`download -> filter -> anonymize -> count -> assess -> rate`
+`download -> filter -> anonymize -> count -> assess -> rate -> score-report`
 
 ```sh
 make help
@@ -127,6 +127,6 @@ make all DEVICE=mps       # Apple Silicon; one-hour JQL batch
 make rate DEVICE=cuda    # Windows/NVIDIA; resumes the same rating output
 ```
 
-Targets can be run individually (`make download`, `make filter`, `make anonymize`, `make count`, `make assess`, `make rate`). Use `LABELS=hr,is` to acquire selected labels, `MAX_SECONDS=3600` to set the scoring window, and `BATCH_SIZE=64` to tune inference. Re-run `make rate` to continue; completed annotations are skipped. JQL inference is local-only and is not run on GitHub Actions.
+Targets can be run individually (`make download`, `make filter`, `make anonymize`, `make count`, `make assess`, `make rate`, `make score-report`). Use `LABELS=hr,is` to acquire selected labels, `MAX_SECONDS=3600` to set the scoring window, and `BATCH_SIZE=64` to tune inference. Re-run `make rate` to continue; completed annotations are skipped. JQL inference is local-only and is not run on GitHub Actions.
 
 The anonymization stage currently performs pattern-based redaction of email addresses, URLs, IPv4 addresses and phone-like strings in sentence text. It is **not complete anonymization**: names, postal addresses and indirect identifiers require additional detection and review. Source provenance is retained in the local corpus for traceability. The filtering stage applies the agreed news-only Unicode decimal-digit rule, removes empty text and reports duplicates without silently dropping them. See [the JQL annotation and pipeline notes](docs/jql-edu-annotation.md).
