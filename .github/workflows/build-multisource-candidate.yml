@@ -114,6 +114,8 @@ jobs:
           path: |
             out/input-manifest.json
             out/build-summary.json
-            out/candidate/manifest.json\n            out/jql-assessment-34k.parquet\n            out/jql-assessment-34k-summary.json
+            out/candidate/manifest.json
+            out/jql-assessment-34k.parquet
+            out/jql-assessment-34k-summary.json
           if-no-files-found: warn
           retention-days: 30
