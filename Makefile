@@ -69,7 +69,7 @@ $(COUNTS): $(ANONYMIZED) scripts/corpus_ops.py
 
 count: $(COUNTS)
 
-$(ASSESSMENT): $(ANONYMIZED) scripts/corpus_ops.py
+$(ASSESSMENT): $(COUNTS) scripts/corpus_ops.py
 	$(PYTHON) scripts/corpus_ops.py assess --input $(ANONYMIZED) --output $@ --minimum-per-language $(MINIMUM_PER_LANGUAGE) --target-per-language $(TARGET_PER_LANGUAGE)
 
 assess: $(ASSESSMENT)
