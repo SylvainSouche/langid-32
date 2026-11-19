@@ -47,7 +47,7 @@ def cmd_filter(a):
             lang = str(row.get("language", ""))
             key = (lang, text_key(text))
             if key in seen:
-                counts["duplicate_within_language"] += 1; continue
+                counts["duplicate_within_language_kept"] += 1
             seen.add(key)
             row["text"] = text
             write_row(out, row)
