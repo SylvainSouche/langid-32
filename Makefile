@@ -25,15 +25,16 @@ COUNTS := $(REPORT_DIR)/counts.json
 ASSESSMENT := $(REPORT_DIR)/assessment.json
 RATINGS := $(JQL_DIR)/jql-annotated.jsonl
 JQL_SUMMARY := $(JQL_DIR)/jql_run_summary.json
+JQL_REPORT := $(REPORT_DIR)/jql-score-distribution.json
 
-.PHONY: all help install-corpus install-jql check-torch download filter anonymize count assess report rate rate-batch clean-derived
+.PHONY: all help install-corpus install-jql check-torch download filter anonymize count assess report rate rate-batch clean-derived score-report
 
 # Full pipeline, including one resumable one-hour JQL scoring batch.
-all: rate
+all: score-report
 
 help:
 	@echo "Pipeline: download -> filter -> anonymize -> count -> assess -> rate"
-	@echo "Targets: all download filter anonymize count assess report rate rate-batch"
+	@echo "Targets: all download filter anonymize count assess report rate rate-batch score-report"
 	@echo "Options: LABELS=hr,is QUOTA=3000 DEVICE=auto|mps|cuda|cpu MAX_SECONDS=3600"
 	@echo "Examples: make all; make rate; make rate DEVICE=mps; make download LABELS=hr,is"
 
@@ -82,6 +83,9 @@ rate: assess check-torch
 	$(PYTHON) scripts/rate_jql_edu.py --input $(ANONYMIZED) --output $(RATINGS) --max-seconds $(MAX_SECONDS) --batch-size $(BATCH_SIZE) --max-length $(MAX_LENGTH) --device $(DEVICE)
 
 rate-batch: rate
+
+score-report: rate scripts/summarize_jql.py
+	$(PYTHON) scripts/summarize_jql.py --input $(ANONYMIZED) --ratings $(RATINGS) --output $(JQL_REPORT)
 
 # Removes only reproducible derivatives and reports; downloaded archives remain.
 clean-derived:
