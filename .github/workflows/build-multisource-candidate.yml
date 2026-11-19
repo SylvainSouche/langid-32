@@ -1,4 +1,4 @@
-name: Build 34-label multisource candidate (metadata only)
+name: Build 34-label multisource candidate and 34k JQL assessment sample
 
 on:
   workflow_dispatch:
@@ -80,6 +80,14 @@ jobs:
             --waiting-dir input/waiting \
             --output out
 
+      - name: Build 1,000-per-language JQL assessment Parquet
+        run: |
+          python scripts/sample_jql_assessment.py \\
+            --input out/candidate/records.jsonl \\
+            --output out/jql-assessment-34k.parquet \\
+            --summary out/jql-assessment-34k-summary.json \\
+            --per-language 1000
+
       - name: Remove all candidate text and downloaded source data from runner workspace
         if: always()
         run: |
@@ -89,14 +97,14 @@ jobs:
             out/candidate/test.jsonl out/candidate/reserve.jsonl \
             out/candidate/records.jsonl
 
-      - name: Upload metadata only (no candidate text)
+      - name: Upload metadata and the dedicated JQL assessment sample
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: multisource-candidate-v6-metadata
+          name: langid-32-jql-assessment-34k
           path: |
             out/input-manifest.json
             out/build-summary.json
-            out/candidate/manifest.json
+            out/candidate/manifest.json\n            out/jql-assessment-34k.parquet\n            out/jql-assessment-34k-summary.json
           if-no-files-found: warn
           retention-days: 30
