@@ -11,7 +11,7 @@ MINIMUM_PER_LANGUAGE ?= 20000
 DEVICE ?= auto
 MAX_SECONDS ?= 3600
 BATCH_SIZE ?= 64
-MAX_LENGTH ?= 512
+MAX_LENGTH ?= 8192
 
 LEIPZIG_DIR := $(OUT)/leipzig$(if $(LABELS),-$(LABELS),)
 RAW := $(LEIPZIG_DIR)/leipzig-candidates.jsonl
