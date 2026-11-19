@@ -45,7 +45,7 @@ def main():
     ap.add_argument("--max-seconds", type=int, default=3600)
     ap.add_argument("--batch-size", type=int, default=128)
     ap.add_argument("--max-rows", type=int, default=0, help="0 means no row cap")
-    ap.add_argument("--max-length", type=int, default=512)
+    ap.add_argument("--max-length", type=int, default=8192)
     ap.add_argument("--device", choices=("auto", "cpu", "mps", "cuda"), default="auto")
     a = ap.parse_args()
 
@@ -79,7 +79,7 @@ def main():
     tokenizer = AutoTokenizer.from_pretrained(EMBEDDER_ID, revision=embedder_revision)
     embedder = AutoModel.from_pretrained(
         EMBEDDER_ID, revision=embedder_revision, trust_remote_code=True,
-        torch_dtype=dtype
+        torch_dtype=dtype, add_pooling_layer=False
     ).to(device).eval()
 
     models = {}
