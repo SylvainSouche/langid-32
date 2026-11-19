@@ -123,7 +123,8 @@ make help
 make install-corpus
 # Install the matching PyTorch build separately (Apple MPS or Windows CUDA).
 make install-jql
-make all DEVICE=mps       # Apple Silicon; one-hour JQL batch
+make all LABELS=hr,is DEVICE=mps  # Apple Silicon; 6k-sentence pilot, one-hour JQL batch
+make all DEVICE=mps                 # Full Leipzig corpus, one-hour JQL batch
 make rate DEVICE=cuda    # Windows/NVIDIA; resumes the same rating output
 ```
 
