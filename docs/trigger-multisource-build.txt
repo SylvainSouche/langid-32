@@ -1,1 +1,1 @@
-2026-11-18: rebuild the 34-label candidate using same-run HF-hosted CC0 Common Voice 22 text, same-run waiting-source acquisition, and active DPO/Greynir source exclusions. JSONL preselection record separators have been corrected; upload metadata only and remove all candidate/source text from runner.
+2026-11-19: rebuild the current 34-label multisource candidate and export a deterministic 1,000-sentence-per-language internal JQL assessment sample as Parquet. Remove all other candidate/source text from runner after artifact creation.
