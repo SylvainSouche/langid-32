@@ -84,7 +84,8 @@ rate: assess check-torch
 
 rate-batch: rate
 
-score-report: rate summarize
+score-report: rate
+	$(PYTHON) scripts/summarize_jql.py --input $(ANONYMIZED) --ratings $(RATINGS) --output $(JQL_REPORT)
 
 summarize: $(RATINGS) scripts/summarize_jql.py
 	$(PYTHON) scripts/summarize_jql.py --input $(ANONYMIZED) --ratings $(RATINGS) --output $(JQL_REPORT)
