@@ -1,1 +1,1 @@
-2026-11-19: rebuild the current 34-label multisource candidate and export a deterministic 1,000-sentence-per-language internal JQL assessment sample as Parquet. Remove all other candidate/source text from runner after artifact creation.
+2026-11-19: rebuild 34-label candidate including the 201k balanced Leipzig news/Wikipedia acquisition, then export exactly 1,000 source-balanced sentences per language for JQL assessment. Remove all other candidate/source text from runner after artifact creation.
