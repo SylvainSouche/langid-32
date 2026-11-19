@@ -209,6 +209,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--v5-dir", type=Path, required=True)
     parser.add_argument("--common-voice-dir", type=Path, required=True)
+    parser.add_argument("--leipzig-dir", type=Path, required=True)
     parser.add_argument("--tatoeba-dir", type=Path, required=True)
     parser.add_argument("--dgt-dir", type=Path, required=True)
     parser.add_argument("--waiting-dir", type=Path, required=True)
@@ -223,6 +224,7 @@ def main():
 
     v5_records = find_one(args.v5_dir, "records.jsonl")
     cv_records = find_one(args.common_voice_dir, "common_voice_candidates.jsonl")
+    leipzig_records = find_one(args.leipzig_dir, "leipzig-candidates.jsonl")
     tatoeba_records = find_one(args.tatoeba_dir, "tatoeba-cc0-staged.jsonl")
     dgt_records = find_one(args.dgt_dir, "dgt-tm-2021-staged.jsonl")
     waiting_records = sorted(args.waiting_dir.rglob("candidates.jsonl"))
@@ -235,6 +237,7 @@ def main():
     sources = [
         ("v5-current-families", v5_records, True),
         ("common-voice-current", cv_records, False),
+        ("leipzig-balanced-2026-11-18", leipzig_records, False),
         ("tatoeba-cc0-current", tatoeba_records, False),
         ("dgt-tm-2021-current", dgt_records, False),
     ] + [(f"waiting-{index:02d}", path, False)
@@ -270,6 +273,7 @@ def main():
         "source_artifacts": {
             "historical_v5_run": 43950037392,
             "common_voice_run": None,
+            "leipzig_balanced_run": 44361364340,
             "common_voice_dataset": "fsicoli/common_voice_22_0",
             "common_voice_acquisition": "same-run ephemeral HF-hosted CC0 acquisition; candidate text removed before artifact upload",
             "tatoeba_run": 44121162591,
