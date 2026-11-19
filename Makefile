@@ -15,12 +15,16 @@ MAX_LENGTH ?= 512
 
 LEIPZIG_DIR := $(OUT)/leipzig$(if $(LABELS),-$(LABELS),)
 RAW := $(LEIPZIG_DIR)/leipzig-candidates.jsonl
-FILTERED := $(OUT)/curated/filtered.jsonl
-ANONYMIZED := $(OUT)/curated/anonymized.jsonl
-COUNTS := $(OUT)/reports/counts.json
-ASSESSMENT := $(OUT)/reports/assessment.json
-RATINGS := $(OUT)/jql/jql-annotated.jsonl
-JQL_SUMMARY := $(OUT)/jql/jql_run_summary.json
+DERIVED_SUFFIX := $(if $(LABELS),-$(LABELS),)
+CURATED_DIR := $(OUT)/curated$(DERIVED_SUFFIX)
+REPORT_DIR := $(OUT)/reports$(DERIVED_SUFFIX)
+JQL_DIR := $(OUT)/jql$(DERIVED_SUFFIX)
+FILTERED := $(CURATED_DIR)/filtered.jsonl
+ANONYMIZED := $(CURATED_DIR)/anonymized.jsonl
+COUNTS := $(REPORT_DIR)/counts.json
+ASSESSMENT := $(REPORT_DIR)/assessment.json
+RATINGS := $(JQL_DIR)/jql-annotated.jsonl
+JQL_SUMMARY := $(JQL_DIR)/jql_run_summary.json
 
 .PHONY: all help install-corpus install-jql check-torch download filter anonymize count assess report rate rate-batch clean-derived
 
@@ -51,12 +55,12 @@ $(RAW): scripts/acquire_leipzig_balanced.py
 download: $(RAW)
 
 $(FILTERED): $(RAW) scripts/corpus_ops.py
-	$(PYTHON) scripts/corpus_ops.py filter --input $(RAW) --output $@ --report $(OUT)/reports/filter.json --min-chars $(MIN_CHARS) --max-chars $(MAX_CHARS)
+	$(PYTHON) scripts/corpus_ops.py filter --input $(RAW) --output $@ --report $(REPORT_DIR)/filter.json --min-chars $(MIN_CHARS) --max-chars $(MAX_CHARS)
 
 filter: $(FILTERED)
 
 $(ANONYMIZED): $(FILTERED) scripts/corpus_ops.py
-	$(PYTHON) scripts/corpus_ops.py anonymize --input $(FILTERED) --output $@ --report $(OUT)/reports/anonymize.json
+	$(PYTHON) scripts/corpus_ops.py anonymize --input $(FILTERED) --output $@ --report $(REPORT_DIR)/anonymize.json
 
 anonymize: $(ANONYMIZED)
 
@@ -81,4 +85,4 @@ rate-batch: rate
 
 # Removes only reproducible derivatives and reports; downloaded archives remain.
 clean-derived:
-	$(PYTHON) -c "import shutil; [shutil.rmtree(p,ignore_errors=True) for p in ['$(OUT)/curated','$(OUT)/reports','$(OUT)/jql']]"
+	$(PYTHON) -c "import shutil; [shutil.rmtree(p,ignore_errors=True) for p in ['$(CURATED_DIR)','$(REPORT_DIR)','$(JQL_DIR)']]"
