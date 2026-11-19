@@ -66,12 +66,14 @@ def main():
  ap=argparse.ArgumentParser();ap.add_argument("--out",required=True);ap.add_argument("--quota",type=int,default=3000)
  ap.add_argument("--seed",default="langid-32-leipzig-2026-11-18");ap.add_argument("--pause",type=float,default=1);ap.add_argument("--labels",default="",help="Comma-separated target labels; default is all 34")
  a=ap.parse_args();out=Path(a.out);ar=out/"archives";sm=out/"samples";ar.mkdir(parents=True,exist_ok=True);sm.mkdir(parents=True,exist_ok=True)
- s=requests.Session();idx=out/"links.parquet";fetch(s,INDEX_URL,idx);idxsha=sha(idx);cat=pq.read_table(idx).to_pylist()\n selected_labels={x.strip() for x in a.labels.split(",") if x.strip()}\n unknown=selected_labels-set(LANGS)\n if unknown:raise SystemExit("Unknown labels: "+", ".join(sorted(unknown)))
+ s=requests.Session();idx=out/"links.parquet";fetch(s,INDEX_URL,idx);idxsha=sha(idx);cat=pq.read_table(idx).to_pylist()
+ selected_labels={x.strip() for x in a.labels.split(",") if x.strip()}\n unknown=selected_labels-set(LANGS)\n if unknown:raise SystemExit("Unknown labels: "+", ".join(sorted(unknown)))
  manifest={"collection":"Leipzig Corpora Collection","licence":"CC BY 4.0","licence_url":"https://wortschatz.uni-leipzig.de/en/usage",
   "index_url":INDEX_URL,"index_sha256":idxsha,"index_rows":len(cat),"quota_per_family":a.quota,
   "policy":"3,000 news + 3,000 Wikipedia per language; Unicode decimal digits excluded from news only","archives":[]}
  todo=[]
- for label,codes in LANGS.items():\n  if selected_labels and label not in selected_labels:continue
+ for label,codes in LANGS.items():
+  if selected_labels and label not in selected_labels:continue
   rows=[r for r in cat if str(r.get("language_short","")).lower() in codes]
   for fam,pat in [("news",re.compile("news|newscrawl",re.I)),("wikipedia",re.compile("wikipedia",re.I))]:
    choices=[r for r in rows if pat.search(str(r.get("data_id","")))]
