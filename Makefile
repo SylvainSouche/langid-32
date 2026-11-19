@@ -33,10 +33,10 @@ JQL_REPORT := $(REPORT_DIR)/jql-score-distribution.json
 all: score-report
 
 help:
-	@echo "Pipeline: download -> filter -> anonymize -> count -> assess -> rate"
+	@echo "Pipeline: download -> filter -> anonymize -> count -> assess -> rate -> score-report"
 	@echo "Targets: all download filter anonymize count assess report rate rate-batch score-report"
 	@echo "Options: LABELS=hr,is QUOTA=3000 DEVICE=auto|mps|cuda|cpu MAX_SECONDS=3600"
-	@echo "Examples: make all; make rate; make rate DEVICE=mps; make download LABELS=hr,is"
+	@echo "Examples: make all LABELS=hr,is DEVICE=mps; make rate DEVICE=cuda; make download LABELS=hr,is"
 
 install-corpus:
 	$(PYTHON) -m pip install -r requirements-corpus.txt
