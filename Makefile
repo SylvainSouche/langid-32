@@ -13,7 +13,8 @@ MAX_SECONDS ?= 3600
 BATCH_SIZE ?= 64
 MAX_LENGTH ?= 512
 
-RAW := $(OUT)/leipzig/leipzig-candidates.jsonl
+LEIPZIG_DIR := $(OUT)/leipzig$(if $(LABELS),-$(LABELS),)
+RAW := $(LEIPZIG_DIR)/leipzig-candidates.jsonl
 FILTERED := $(OUT)/curated/filtered.jsonl
 ANONYMIZED := $(OUT)/curated/anonymized.jsonl
 COUNTS := $(OUT)/reports/counts.json
@@ -45,7 +46,7 @@ check-torch:
 	$(PYTHON) -c "import torch; print('torch',torch.__version__,'CUDA',torch.cuda.is_available(),'MPS',bool(getattr(torch.backends,'mps',None) and torch.backends.mps.is_available()))"
 
 $(RAW): scripts/acquire_leipzig_balanced.py
-	$(PYTHON) scripts/acquire_leipzig_balanced.py --out $(OUT)/leipzig --quota $(QUOTA) $(if $(LABELS),--labels $(LABELS),)
+	$(PYTHON) scripts/acquire_leipzig_balanced.py --out $(LEIPZIG_DIR) --quota $(QUOTA) $(if $(LABELS),--labels $(LABELS),)
 
 download: $(RAW)
 
