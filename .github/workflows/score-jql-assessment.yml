@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       source_run_id:
-        description: "Run ID containing the private JQL assessment Parquet artifact"
+        description: "Run ID containing the JQL assessment Parquet artifact"
         required: true
         type: string
         default: "44563498916"
