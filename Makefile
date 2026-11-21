@@ -128,6 +128,6 @@ $(JQL_QUALITY): $(JQL_SHARD_DIR)/manifest.json scripts/check_sentence_boundaries
 	$(PYTHON) scripts/check_sentence_boundaries.py --input $(JQL_ASSESSMENT) --output $@
 
 jql-merge: jql-score-shards jql-quality
-	$(PYTHON) scripts/merge_jql_ratings.py --input $(JQL_ASSESSMENT) --ratings-dir $(JQL_RATINGS_DIR) --quality $(JQL_QUALITY) --output-csv $(JQL_FINAL_CSV) --output-parquet $(JQL_FINAL_PARQUET) --summary $(JQL_FINAL_SUMMARY)
+	$(PYTHON) scripts/merge_jql_ratings.py --input $(JQL_ASSESSMENT) --ratings-dir $(JQL_RATINGS_DIR) --quality $(JQL_QUALITY) --output-csv $(JQL_FINAL_CSV) --output-parquet $(JQL_FINAL_PARQUET) --summary $(JQL_FINAL_SUMMARY) --include-text
 
 jql-pipeline: jql-merge
