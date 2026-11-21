@@ -15,7 +15,7 @@ import pandas as pd
 import torch
 import torch.nn as nn
 from huggingface_hub import hf_hub_download
-from transformers import AutoModel, AutoTokenizer
+from transformers import AutoConfig, AutoModel, AutoTokenizer
 
 EMBEDDER_ID = "Snowflake/snowflake-arctic-embed-m-v2.0"
 HEAD_REPO = "JQL-AI/JQL-Edu-Heads"
@@ -55,11 +55,15 @@ def main():
     ap.add_argument("--max-length", type=int, default=8192)
     ap.add_argument("--device", choices=("auto", "cpu", "mps", "cuda"), default="auto")
     ap.add_argument("--max-rows", type=int, default=0, help="Optional smoke-test row limit")
+    ap.add_argument("--torch-threads", type=int, default=2, help="CPU intra-op threads")
     ap.add_argument("--head-repo", default=HEAD_REPO)
     args = ap.parse_args()
 
     if args.batch_size < 1:
         raise SystemExit("--batch-size must be positive")
+    if args.torch_threads < 1:
+        raise SystemExit("--torch-threads must be positive")
+    torch.set_num_threads(args.torch_threads)
     if not args.input.is_file():
         raise SystemExit(f"Input not found: {args.input}")
 
@@ -91,11 +95,18 @@ def main():
     # embedding recipe is CLS pooling followed by L2 normalization.
     dtype = torch.float32
     tokenizer = AutoTokenizer.from_pretrained(EMBEDDER_ID)
+    # The Arctic Embed remote implementation otherwise selects an xformers-only
+    # memory-efficient attention path. Native PyTorch SDPA works on CPU and MPS.
+    config = AutoConfig.from_pretrained(EMBEDDER_ID, trust_remote_code=True)
+    config.use_memory_efficient_attention = False
+    config.unpad_inputs = False
     embedder = AutoModel.from_pretrained(
         EMBEDDER_ID,
+        config=config,
         trust_remote_code=True,
         torch_dtype=dtype,
         add_pooling_layer=False,
+        attn_implementation="sdpa",
     ).to(device).eval()
 
     heads = {}
