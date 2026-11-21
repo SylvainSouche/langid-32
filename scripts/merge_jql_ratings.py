@@ -11,8 +11,6 @@ import statistics
 from pathlib import Path
 from statistics import NormalDist
 
-import pandas as pd
-
 JUDGES = ("gemma", "mistral", "llama")
 PENALTY = 0.5
 
@@ -82,6 +80,10 @@ def main() -> None:
 
     if not args.input.is_file() or not args.quality.is_file():
         raise SystemExit("Input Parquet and quality CSV must both exist")
+    try:
+        import pandas as pd
+    except ImportError as exc:
+        raise SystemExit("Install pandas and pyarrow: python -m pip install pandas pyarrow") from exc
     frame = pd.read_parquet(args.input, columns=["id", "lang", "sentence", "source", "source-variant"])
     if frame["id"].isna().any() or frame["id"].astype(str).duplicated().any():
         raise SystemExit("Input IDs must be non-null and unique")
