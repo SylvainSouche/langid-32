@@ -1,4 +1,4 @@
-name: Build 34-label multisource candidate and 34k JQL assessment sample
+name: Build full multisource candidate corpus and JQL assessment
 
 on:
   workflow_dispatch:
@@ -93,8 +93,8 @@ jobs:
         run: |
           python scripts/sample_jql_assessment.py \
             --input out/candidate/records.jsonl \
-            --output out/jql-assessment-34k.parquet \
-            --summary out/jql-assessment-34k-summary.json \
+            --output out/jql-assessment-full.parquet \
+            --summary out/jql-assessment-full-summary.json \
             --per-language 1000
 
       - name: Remove all candidate text and downloaded source data from runner workspace
@@ -110,7 +110,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: langid-32-jql-assessment-34k
+          name: langid-32-jql-assessment-full
           path: |
             out/input-manifest.json
             out/build-summary.json
