@@ -90,6 +90,7 @@ def main():
     ap.add_argument("--output", type=Path, required=True, help="Output Parquet file")
     ap.add_argument("--summary", type=Path, help="Optional JSON summary")
     ap.add_argument("--per-language", type=int, default=1000)
+    ap.add_argument("--all", action="store_true", help="Include every eligible candidate row; no sampling")
     ap.add_argument("--seed", default="langid-32-jql-assessment-2026-11-19")
     args = ap.parse_args()
 
@@ -101,6 +102,55 @@ def main():
 
     if not args.input.is_file():
         raise SystemExit(f"Input not found: {args.input}")
+
+    if args.all:
+        output_rows = []
+        seen = set()
+        source_counts = Counter()
+        with args.input.open("r", encoding="utf-8") as stream:
+            for line_no, line in enumerate(stream, 1):
+                if not line.strip():
+                    continue
+                row = json.loads(line)
+                lang = str(row.get("language", "")).lower()
+                if lang not in LANGUAGES:
+                    continue
+                sentence = " ".join(str(row.get("text") or "").split())
+                source = str(row.get("source") or "").strip()
+                if not sentence or not source:
+                    continue
+                variant = variant_of(row)
+                identity = "\\0".join((lang, source, variant,
+                                         str(row.get("group_id") or ""), sentence))
+                row_id = hashlib.sha256(identity.encode("utf-8")).hexdigest()[:24]
+                if row_id in seen:
+                    continue
+                seen.add(row_id)
+                output_rows.append({"id": row_id, "lang": lang, "sentence": sentence,
+                                    "source": source, "source-variant": variant})
+                source_counts[f"{lang}:{source}"] += 1
+        output_rows.sort(key=lambda x: (x["lang"], x["source"], x["source-variant"], x["id"]))
+        table = pa.Table.from_pylist(output_rows, schema=pa.schema([
+            ("id", pa.string()), ("lang", pa.string()), ("sentence", pa.string()),
+            ("source", pa.string()), ("source-variant", pa.string()),
+        ]))
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        pq.write_table(table, args.output, compression="zstd", use_dictionary=True)
+        summary = {
+            "status": "full_candidate_assessment",
+            "input": str(args.input), "output": str(args.output),
+            "rows": len(output_rows), "sampling": "none; all eligible candidate records",
+            "languages": LANGUAGES,
+            "language_counts": dict(sorted(Counter(x["lang"] for x in output_rows).items())),
+            "source_counts": dict(sorted(source_counts.items())),
+            "duplicate_ids_skipped": 0,
+        }
+        if args.summary:
+            args.summary.parent.mkdir(parents=True, exist_ok=True)
+            args.summary.write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\\n",
+                                    encoding="utf-8")
+        print(json.dumps(summary, ensure_ascii=False, indent=2))
+        return
 
     counts = Counter()
     with args.input.open("r", encoding="utf-8") as stream:
