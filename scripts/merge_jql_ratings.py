@@ -38,10 +38,10 @@ def read_rating_files(directory: Path) -> dict[str, dict]:
                     raise SystemExit(f"Duplicate rating ID {row_id} (including {path.name})")
                 try:
                     scores = json.loads(row["ratings"])
-                    merged[row_id] = {
-                        "language": row["language"],
-                        **{judge: float(scores[judge]) for judge in JUDGES},
-                    }
+                    score_values = {judge: float(scores[judge]) for judge in JUDGES}
+                    if not all(math.isfinite(value) for value in score_values.values()):
+                        raise ValueError("non-finite score")
+                    merged[row_id] = {"language": row["language"], **score_values}
                 except (KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
                     raise SystemExit(f"Invalid rating row for {row_id} in {path}: {exc}") from exc
     return merged
@@ -87,9 +87,16 @@ def main() -> None:
     frame["id"] = frame["id"].astype(str)
     ratings = read_rating_files(args.ratings_dir)
     expected, actual = set(frame["id"]), set(ratings)
+    language_by_id = dict(zip(frame["id"], frame["lang"].astype(str)))
     missing, extra = expected - actual, actual - expected
     if missing or extra:
         raise SystemExit(f"Rating coverage mismatch: missing={len(missing)}, extra={len(extra)}")
+    for row_id, rating in ratings.items():
+        if language_by_id[row_id] != str(rating["language"]):
+            raise SystemExit(
+                f"Language mismatch for {row_id}: "
+                f"Parquet={language_by_id[row_id]}, ratings={rating['language']}"
+            )
 
     quality: dict[str, dict] = {}
     with args.quality.open(encoding="utf-8", newline="") as stream:
@@ -113,10 +120,6 @@ def main() -> None:
     frame["jql_disagreement"] = frame[z_columns].std(axis=1, ddof=0)
     frame["jql_consensus"] = frame["jql_mean"] - PENALTY * frame["jql_disagreement"]
 
-    for row_id, rating in ratings.items():
-        expected_lang = frame.loc[frame["id"] == row_id, "lang"].iloc[0]
-        if str(expected_lang) != str(rating["language"]):
-            raise SystemExit(f"Language mismatch for {row_id}: Parquet={expected_lang}, ratings={rating['language']}")
 
     frame["initial_capitalization"] = frame["id"].map(
         lambda key: quality[key]["initial_capitalization"]
