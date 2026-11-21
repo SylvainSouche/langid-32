@@ -34,9 +34,9 @@ all: score-report
 
 help:
 	@echo "Pipeline: download -> filter -> anonymize -> count -> assess -> rate -> score-report"
-	@echo "Targets: all download filter anonymize count assess report rate rate-batch score-report summarize"
+	@echo "Targets: all download filter anonymize count assess report rate rate-batch score-report summarize jql-pipeline"
 	@echo "Options: LABELS=hr,is QUOTA=3000 DEVICE=auto|mps|cuda|cpu MAX_SECONDS=3600"
-	@echo "Examples: make all LABELS=hr,is DEVICE=mps; make rate DEVICE=cuda; make download LABELS=hr,is"
+	@echo "Examples: make all LABELS=hr,is DEVICE=mps; make rate DEVICE=cuda; make download LABELS=hr,is; make -j4 jql-pipeline DEVICE=mps"
 
 install-corpus:
 	$(PYTHON) -m pip install -r requirements-corpus.txt
@@ -93,3 +93,41 @@ summarize: $(RATINGS) scripts/summarize_jql.py
 # Removes only reproducible derivatives and reports; downloaded archives remain.
 clean-derived:
 	$(PYTHON) -c "import shutil; [shutil.rmtree(p,ignore_errors=True) for p in ['$(CURATED_DIR)','$(REPORT_DIR)','$(JQL_DIR)']]"
+
+
+# Parallel, resumable JQL assessment workflow (local GNU Make).
+# Run with -j4 or -j8 to score independent shards concurrently.
+JQL_ASSESSMENT ?= $(OUT)/jql-assessment-34k.parquet
+JQL_SHARD_DIR ?= $(OUT)/jql-assessment-shards
+JQL_RATINGS_DIR ?= $(OUT)/jql-ratings
+JQL_QUALITY ?= $(OUT)/jql-quality/sentence-boundary-flags.csv
+JQL_FINAL_CSV ?= $(OUT)/jql-consensus-34k.csv
+JQL_FINAL_PARQUET ?= $(OUT)/jql-consensus-34k.parquet
+JQL_SUMMARY ?= $(OUT)/jql-consensus-34k-summary.json
+JQL_SHARD_IDS := 00 01 02 03 04 05 06 07
+JQL_SHARD_FILES := $(foreach n,$(JQL_SHARD_IDS),$(JQL_SHARD_DIR)/shard-$(n).parquet)
+JQL_RATING_FILES := $(foreach n,$(JQL_SHARD_IDS),$(JQL_RATINGS_DIR)/shard-$(n).csv)
+
+.PHONY: jql-split jql-score-shards jql-quality jql-merge jql-pipeline
+
+jql-split: $(JQL_SHARD_DIR)/manifest.json
+
+$(JQL_SHARD_DIR)/manifest.json: $(JQL_ASSESSMENT) scripts/split_jql_parquet.py
+	$(PYTHON) scripts/split_jql_parquet.py --input $(JQL_ASSESSMENT) --output-dir $(JQL_SHARD_DIR) --shards 8
+
+jql-score-shards: $(JQL_RATING_FILES)
+
+$(JQL_RATINGS_DIR)/shard-%.csv: $(JQL_SHARD_DIR)/manifest.json scripts/score_jql_parquet.py
+	@mkdir -p $(JQL_RATINGS_DIR)
+	$(PYTHON) scripts/score_jql_parquet.py --input $(JQL_SHARD_DIR)/shard-$*.parquet --output $@ --device $(DEVICE) --batch-size $(BATCH_SIZE) --max-length $(MAX_LENGTH)
+
+jql-quality: $(JQL_QUALITY)
+
+$(JQL_QUALITY): $(JQL_SHARD_DIR)/manifest.json scripts/check_sentence_boundaries.py
+	@mkdir -p $(dir $@)
+	$(PYTHON) scripts/check_sentence_boundaries.py --input $(JQL_ASSESSMENT) --output $@
+
+jql-merge: jql-score-shards jql-quality
+	$(PYTHON) scripts/merge_jql_ratings.py --input $(JQL_ASSESSMENT) --ratings-dir $(JQL_RATINGS_DIR) --quality $(JQL_QUALITY) --output-csv $(JQL_FINAL_CSV) --output-parquet $(JQL_FINAL_PARQUET) --summary $(JQL_SUMMARY)
+
+jql-pipeline: jql-merge
