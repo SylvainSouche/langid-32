@@ -6,8 +6,6 @@ import argparse
 import csv
 from pathlib import Path
 
-import pyarrow.parquet as pq
-
 # Scripts without upper/lower case: capitalization is not a meaningful test.
 CASELESS_LANGUAGES = {"ar", "zh", "ja", "ko"}
 # Sentence-final marks used across the project's scripts/languages.
@@ -38,6 +36,10 @@ def main() -> None:
     args = ap.parse_args()
     if not args.input.is_file():
         ap.error(f"Input not found: {args.input}")
+    try:
+        import pyarrow.parquet as pq
+    except ImportError as exc:
+        raise SystemExit("Install pyarrow: python -m pip install pyarrow") from exc
     table = pq.read_table(args.input, columns=["id", "lang", "sentence"])
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with args.output.open("w", encoding="utf-8", newline="") as stream:
