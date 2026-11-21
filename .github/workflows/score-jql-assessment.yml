@@ -156,8 +156,8 @@ jobs:
       - name: Download source assessment for ID and language validation
         env:
           GH_TOKEN: ${{ github.token }}
-          SOURCE_RUN_ID: ${{ inputs.source_run_id }}
-          ARTIFACT_NAME: ${{ inputs.artifact_name }}
+          SOURCE_RUN_ID: ${{ github.event.workflow_run.id || inputs.source_run_id }}
+          ARTIFACT_NAME: ${{ inputs.artifact_name || 'langid-32-jql-assessment-full' }}
         run: |
           mkdir -p input
           gh run download "$SOURCE_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "$ARTIFACT_NAME" --dir input
