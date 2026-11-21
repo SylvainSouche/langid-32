@@ -104,6 +104,7 @@ JQL_QUALITY ?= $(OUT)/jql-quality/sentence-boundary-flags.csv
 JQL_FINAL_CSV ?= $(OUT)/jql-consensus-34k.csv
 JQL_FINAL_PARQUET ?= $(OUT)/jql-consensus-34k.parquet
 JQL_FINAL_SUMMARY ?= $(OUT)/jql-consensus-34k-summary.json
+JQL_BATCH_SIZE ?= 32
 JQL_SHARD_IDS := 00 01 02 03 04 05 06 07
 JQL_SHARD_FILES := $(foreach n,$(JQL_SHARD_IDS),$(JQL_SHARD_DIR)/shard-$(n).parquet)
 JQL_RATING_FILES := $(foreach n,$(JQL_SHARD_IDS),$(JQL_RATINGS_DIR)/shard-$(n).csv)
@@ -119,7 +120,7 @@ jql-score-shards: $(JQL_RATING_FILES)
 
 $(JQL_RATINGS_DIR)/shard-%.csv: $(JQL_SHARD_DIR)/manifest.json scripts/score_jql_parquet.py
 	@mkdir -p $(JQL_RATINGS_DIR)
-	$(PYTHON) scripts/score_jql_parquet.py --input $(JQL_SHARD_DIR)/shard-$*.parquet --output $@ --device $(DEVICE) --batch-size $(BATCH_SIZE) --max-length $(MAX_LENGTH)
+	$(PYTHON) scripts/score_jql_parquet.py --input $(JQL_SHARD_DIR)/shard-$*.parquet --output $@ --device $(DEVICE) --batch-size $(JQL_BATCH_SIZE) --max-length $(MAX_LENGTH)
 
 jql-quality: $(JQL_QUALITY)
 
