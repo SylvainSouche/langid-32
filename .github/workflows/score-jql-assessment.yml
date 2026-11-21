@@ -23,54 +23,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  prepare:
-    name: Fetch and split assessment
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-          cache: pip
-      - name: Install preparation dependencies
-        run: python -m pip install --upgrade pip pyarrow
-      - name: Download assessment artifact from source run
-        env:
-          GH_TOKEN: ${{ github.token }}
-          SOURCE_RUN_ID: ${{ inputs.source_run_id }}
-          ARTIFACT_NAME: ${{ inputs.artifact_name }}
-        run: |
-          mkdir -p input
-          gh run download "$SOURCE_RUN_ID" \
-            --repo "$GITHUB_REPOSITORY" \
-            --name "$ARTIFACT_NAME" \
-            --dir input
-          mapfile -t parquet_files < <(find input -type f -name '*.parquet' -print)
-          if [ "${#parquet_files[@]}" -ne 1 ]; then
-            echo "Expected exactly one Parquet file in the artifact; found ${#parquet_files[@]}"
-            find input -maxdepth 4 -type f -print
-            exit 1
-          fi
-          cp "${parquet_files[0]}" assessment.parquet
-      - name: Split into eight balanced shards
-        run: |
-          python scripts/split_jql_parquet.py \
-            --input assessment.parquet \
-            --output-dir workflow-input \
-            --shards 8
-          cp assessment.parquet workflow-input/assessment.parquet
-      - name: Publish intermediate inputs
-        uses: actions/upload-artifact@v4
-        with:
-          name: jql-workflow-input
-          path: workflow-input/
-          if-no-files-found: error
-          retention-days: 2
-
   score:
     name: Score shard ${{ matrix.index }}
-    needs: prepare
     runs-on: ubuntu-latest
     timeout-minutes: 300
     strategy:
@@ -105,16 +59,27 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
           python -m pip install -r requirements-jql.txt pyarrow pandas
-      - name: Download prepared shards
-        uses: actions/download-artifact@v4
-        with:
-          name: jql-workflow-input
-          path: workflow-input
+      - name: Download and locally split source assessment
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+          ARTIFACT_NAME: ${{ inputs.artifact_name }}
+        run: |
+          mkdir -p input shards
+          gh run download "$SOURCE_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "$ARTIFACT_NAME" --dir input
+          mapfile -t parquet_files < <(find input -type f -name '*.parquet' -print)
+          if [ "${#parquet_files[@]}" -ne 1 ]; then
+            echo "Expected exactly one Parquet file; found ${#parquet_files[@]}"
+            find input -maxdepth 4 -type f -print
+            exit 1
+          fi
+          cp "${parquet_files[0]}" assessment.parquet
+          python scripts/split_jql_parquet.py --input assessment.parquet --output-dir shards --shards 8
       - name: Score all three JQL heads for this shard
         run: |
           mkdir -p ratings
           python scripts/score_jql_parquet.py \
-            --input "workflow-input/${{ matrix.file }}" \
+            --input "shards/${{ matrix.file }}" \
             --output "ratings/shard-${{ matrix.index }}.csv" \
             --device cpu \
             --batch-size 8 \
@@ -130,7 +95,6 @@ jobs:
 
   boundary:
     name: Sentence-boundary checks
-    needs: prepare
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -141,16 +105,26 @@ jobs:
           cache: pip
       - name: Install boundary-check dependency
         run: python -m pip install --upgrade pip pyarrow
-      - name: Download assessment input
-        uses: actions/download-artifact@v4
-        with:
-          name: jql-workflow-input
-          path: workflow-input
+      - name: Download source assessment
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+          ARTIFACT_NAME: ${{ inputs.artifact_name }}
+        run: |
+          mkdir -p input
+          gh run download "$SOURCE_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "$ARTIFACT_NAME" --dir input
+          mapfile -t parquet_files < <(find input -type f -name '*.parquet' -print)
+          if [ "${#parquet_files[@]}" -ne 1 ]; then
+            echo "Expected exactly one Parquet file; found ${#parquet_files[@]}"
+            find input -maxdepth 4 -type f -print
+            exit 1
+          fi
+          cp "${parquet_files[0]}" assessment.parquet
       - name: Check capitalization and terminal punctuation
         run: |
           mkdir -p quality
           python scripts/check_sentence_boundaries.py \
-            --input workflow-input/assessment.parquet \
+            --input assessment.parquet \
             --output quality/sentence-boundary-flags.csv
       - name: Upload sentence-quality flags
         uses: actions/upload-artifact@v4
@@ -173,11 +147,21 @@ jobs:
           cache: pip
       - name: Install merge dependencies
         run: python -m pip install --upgrade pip pyarrow pandas
-      - name: Download original assessment
-        uses: actions/download-artifact@v4
-        with:
-          name: jql-workflow-input
-          path: workflow-input
+      - name: Download source assessment for ID and language validation
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+          ARTIFACT_NAME: ${{ inputs.artifact_name }}
+        run: |
+          mkdir -p input
+          gh run download "$SOURCE_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "$ARTIFACT_NAME" --dir input
+          mapfile -t parquet_files < <(find input -type f -name '*.parquet' -print)
+          if [ "${#parquet_files[@]}" -ne 1 ]; then
+            echo "Expected exactly one Parquet file; found ${#parquet_files[@]}"
+            find input -maxdepth 4 -type f -print
+            exit 1
+          fi
+          cp "${parquet_files[0]}" assessment.parquet
       - name: Download all sharded ratings
         uses: actions/download-artifact@v4
         with:
@@ -193,7 +177,7 @@ jobs:
         run: |
           mkdir -p out
           python scripts/merge_jql_ratings.py \
-            --input workflow-input/assessment.parquet \
+            --input assessment.parquet \
             --ratings-dir ratings \
             --quality quality/sentence-boundary-flags.csv \
             --output-csv out/jql-consensus-34k.csv \
