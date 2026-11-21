@@ -63,3 +63,53 @@ The Parquet is an **internal assessment sample, not a rights-cleared or publicat
 - Heads: https://huggingface.co/JQL-AI/JQL-Edu-Heads
 - Inference implementation: https://github.com/JQL-AI/JQL-Annotation-Pipeline
 - Paper: https://arxiv.org/abs/2505.22232
+
+## Parallel scoring, boundary checks and consensus ranking
+
+For the full 34,000-row sample, use the sharded workflow rather than a single long hosted-runner job. The GitHub Actions workflow is manually dispatched from **Actions → Parallel JQL assessment and sentence-quality workflow**. Supply the run ID and artifact name of the run that produced the Parquet artifact. The defaults point to the existing assessment artifact.
+
+The workflow:
+
+1. Downloads the private assessment artifact; it does not commit or publish the Parquet.
+2. Splits it deterministically into eight balanced Parquet shards and records an input hash and row counts.
+3. Runs the three JQL heads on each shard in a matrix. Four jobs run concurrently; each uses a CPU-only PyTorch build, batch size 8, two CPU threads and a five-hour job timeout. This keeps each inference task below the standard six-hour hosted-job ceiling while avoiding GPU assumptions.
+4. Runs capitalization and sentence-final punctuation checks in a separate job at the same time as JQL scoring.
+5. Merges all outputs only after both branches finish. The merge fails on missing, extra or duplicate IDs, language mismatches, or incomplete boundary-check coverage.
+6. Publishes CSV, Parquet and JSON summary as a 30-day workflow artifact. Intermediate artifacts expire after two days.
+
+The Hugging Face model cache is enabled per runner. The first run may download the embedder and three heads on each runner; later runs can restore the cache. Matrix concurrency is capped at four to avoid launching eight model downloads and inference processes simultaneously.
+
+### Consensus score
+
+The merge normalizes each judge independently over the **entire assessment corpus, all languages combined**. It converts average ranks to standard-normal quantiles using the inverse normal CDF; tied raw scores receive the same normalized score. This makes each judge's distribution comparable without assuming that the original regression heads share the same calibration.
+
+For each sentence, the merge stores the three raw scores, the three normalized scores, their mean, their population standard deviation (inter-judge disagreement), and:
+
+\[
+JQL_{\mathrm{consensus}} =
+\operatorname{mean}(z_G,z_M,z_L)
+- 0.5 \times \operatorname{std}_{\mathrm{population}}(z_G,z_M,z_L)
+\]
+
+The result is a corpus-relative ranking signal, not an absolute quality score. Recompute it whenever the reference assessment corpus changes. Raw ratings are retained and never overwritten.
+
+### Sentence-boundary flags
+
+The separate quality job records:
+
+- `initial_capitalization`: `pass`, `fail` or `not_applicable` (Arabic, Chinese, Japanese and Korean are treated as caseless for this test).
+- `terminal_punctuation`: `pass` or `fail`, allowing common Unicode sentence-final marks followed by closing quotation marks or brackets.
+
+These are **flags, not automatic exclusions**. They are intended to identify fragments and likely sentence chunks for review. Punctuation conventions, abbreviations and source-specific formatting still require inspection.
+
+### Run locally
+
+With the assessment Parquet at `out/jql-assessment-34k.parquet`, install `requirements-jql.txt` (plus a platform-appropriate PyTorch build), then run:
+
+```sh
+make -j4 jql-pipeline DEVICE=auto
+```
+
+Use `DEVICE=mps` on Apple Silicon or `DEVICE=cuda` where CUDA is available. `-j4` runs up to four shard scorers concurrently; reduce it if memory is constrained. The outputs are written under `out/` and can be redirected with the `JQL_*` Make variables.
+
+The original single-file scorer remains available for smoke tests and manual runs. It uses native PyTorch SDPA rather than the embedder's xformers-only attention path.
