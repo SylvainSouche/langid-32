@@ -2,3 +2,4 @@
 
 Retry after fixing the Parquet CLI invocation and artifact upload paths (2026-11-19T15:00Z).
 artifact-upload-fix-2026-11-19
+2026-11-21: trigger full-corpus candidate export and all-row JQL scoring; three-head ratings plus sentence-boundary flags, global quantile normalization, consensus.
