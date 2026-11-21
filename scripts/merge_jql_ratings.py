@@ -77,6 +77,7 @@ def main() -> None:
     ap.add_argument("--output-csv", required=True, type=Path)
     ap.add_argument("--output-parquet", type=Path)
     ap.add_argument("--summary", type=Path)
+    ap.add_argument("--include-text", action="store_true", help="Include sentence text in output (avoid for public Actions artifacts)")
     args = ap.parse_args()
 
     if not args.input.is_file() or not args.quality.is_file():
@@ -128,12 +129,14 @@ def main() -> None:
         lambda key: quality[key]["terminal_punctuation"]
     )
     columns = [
-        "id", "lang", "sentence", "source", "source-variant",
+        "id", "lang", "source", "source-variant",
         "gemma_raw", "mistral_raw", "llama_raw",
         "gemma_z", "mistral_z", "llama_z",
         "jql_mean", "jql_disagreement", "jql_consensus",
         "initial_capitalization", "terminal_punctuation",
     ]
+    if args.include_text:
+        columns.insert(2, "sentence")
     frame = frame[columns].sort_values(["lang", "jql_consensus", "id"],
                                        ascending=[True, False, True])
     args.output_csv.parent.mkdir(parents=True, exist_ok=True)
@@ -152,6 +155,7 @@ def main() -> None:
         "consensus_formula": "mean(gemma_z,mistral_z,llama_z) - 0.5 * population_std(gemma_z,mistral_z,llama_z)",
         "consensus_penalty": PENALTY,
         "quality_flags_are_non_filtering": True,
+        "sentence_text_included": bool(args.include_text),
         "capitalization": frame["initial_capitalization"].value_counts().to_dict(),
         "terminal_punctuation": frame["terminal_punctuation"].value_counts().to_dict(),
         "score_summary": {
