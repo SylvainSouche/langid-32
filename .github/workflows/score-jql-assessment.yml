@@ -1,6 +1,9 @@
 name: Parallel JQL assessment and sentence-quality workflow
 
 on:
+  workflow_run:
+    workflows: ["Build full multisource candidate corpus and JQL assessment"]
+    types: [completed]
   workflow_dispatch:
     inputs:
       source_run_id:
@@ -18,8 +21,10 @@ permissions:
   actions: read
   contents: read
 
+if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+
 concurrency:
-  group: jql-assessment-${{ github.ref }}
+  group: jql-full-assessment-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -62,8 +67,8 @@ jobs:
       - name: Download and locally split source assessment
         env:
           GH_TOKEN: ${{ github.token }}
-          SOURCE_RUN_ID: ${{ inputs.source_run_id }}
-          ARTIFACT_NAME: ${{ inputs.artifact_name }}
+          SOURCE_RUN_ID: ${{ github.event.workflow_run.id || inputs.source_run_id }}
+          ARTIFACT_NAME: ${{ inputs.artifact_name || 'langid-32-jql-assessment-full' }}
         run: |
           mkdir -p input shards
           gh run download "$SOURCE_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "$ARTIFACT_NAME" --dir input
