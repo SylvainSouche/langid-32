@@ -103,7 +103,7 @@ JQL_RATINGS_DIR ?= $(OUT)/jql-ratings
 JQL_QUALITY ?= $(OUT)/jql-quality/sentence-boundary-flags.csv
 JQL_FINAL_CSV ?= $(OUT)/jql-consensus-34k.csv
 JQL_FINAL_PARQUET ?= $(OUT)/jql-consensus-34k.parquet
-JQL_SUMMARY ?= $(OUT)/jql-consensus-34k-summary.json
+JQL_FINAL_SUMMARY ?= $(OUT)/jql-consensus-34k-summary.json
 JQL_SHARD_IDS := 00 01 02 03 04 05 06 07
 JQL_SHARD_FILES := $(foreach n,$(JQL_SHARD_IDS),$(JQL_SHARD_DIR)/shard-$(n).parquet)
 JQL_RATING_FILES := $(foreach n,$(JQL_SHARD_IDS),$(JQL_RATINGS_DIR)/shard-$(n).csv)
@@ -128,6 +128,6 @@ $(JQL_QUALITY): $(JQL_SHARD_DIR)/manifest.json scripts/check_sentence_boundaries
 	$(PYTHON) scripts/check_sentence_boundaries.py --input $(JQL_ASSESSMENT) --output $@
 
 jql-merge: jql-score-shards jql-quality
-	$(PYTHON) scripts/merge_jql_ratings.py --input $(JQL_ASSESSMENT) --ratings-dir $(JQL_RATINGS_DIR) --quality $(JQL_QUALITY) --output-csv $(JQL_FINAL_CSV) --output-parquet $(JQL_FINAL_PARQUET) --summary $(JQL_SUMMARY)
+	$(PYTHON) scripts/merge_jql_ratings.py --input $(JQL_ASSESSMENT) --ratings-dir $(JQL_RATINGS_DIR) --quality $(JQL_QUALITY) --output-csv $(JQL_FINAL_CSV) --output-parquet $(JQL_FINAL_PARQUET) --summary $(JQL_FINAL_SUMMARY)
 
 jql-pipeline: jql-merge
