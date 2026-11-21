@@ -15,13 +15,11 @@ on:
         description: "Assessment artifact name"
         required: true
         type: string
-        default: "langid-32-jql-assessment-34k"
+        default: "langid-32-jql-assessment-full"
 
 permissions:
   actions: read
   contents: read
-
-if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
 
 concurrency:
   group: jql-full-assessment-${{ github.ref }}
@@ -29,6 +27,7 @@ concurrency:
 
 jobs:
   score:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     name: Score shard ${{ matrix.index }}
     runs-on: ubuntu-latest
     timeout-minutes: 300
@@ -99,6 +98,7 @@ jobs:
           retention-days: 2
 
   boundary:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     name: Sentence-boundary checks
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -113,8 +113,8 @@ jobs:
       - name: Download source assessment
         env:
           GH_TOKEN: ${{ github.token }}
-          SOURCE_RUN_ID: ${{ inputs.source_run_id }}
-          ARTIFACT_NAME: ${{ inputs.artifact_name }}
+          SOURCE_RUN_ID: ${{ github.event.workflow_run.id || inputs.source_run_id }}
+          ARTIFACT_NAME: ${{ inputs.artifact_name || 'langid-32-jql-assessment-full' }}
         run: |
           mkdir -p input
           gh run download "$SOURCE_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "$ARTIFACT_NAME" --dir input
@@ -140,6 +140,7 @@ jobs:
           retention-days: 2
 
   merge:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     name: Normalize, calculate consensus and publish results
     needs: [score, boundary]
     runs-on: ubuntu-latest
