@@ -87,9 +87,10 @@ jobs:
             --tatoeba-dir input/tatoeba \
             --dgt-dir input/dgt \
             --waiting-dir input/waiting \
-            --output out \\
+            --output out \
             --max-per-language 35000 \\
-            --core-per-language 35000
+            --core-per-language 35000 \
+            --require-exact-counts
 
       - name: Build full-corpus JQL assessment Parquet
         run: |
