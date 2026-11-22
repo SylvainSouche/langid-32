@@ -302,7 +302,6 @@ def main():
         "--preferred-source-share", str(args.preferred_source_share),
         "--max-source-share", str(args.max_source_share),
         "--seed", args.seed,
-        "--require-exact-counts",
     ]
     command.extend(["--input", str(preselected_path)])
     subprocess.run(command, check=True)
