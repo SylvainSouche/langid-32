@@ -220,6 +220,8 @@ def main():
     parser.add_argument("--preferred-source-share", type=float, default=0.30)
     parser.add_argument("--max-source-share", type=float, default=0.50)
     parser.add_argument("--seed", default="langid-32-v6-2026-11-18")
+    parser.add_argument("--require-exact-counts", action="store_true",
+                        help="Fail unless every language reaches every core split target")
     args = parser.parse_args()
 
     v5_records = find_one(args.v5_dir, "records.jsonl")
@@ -303,6 +305,8 @@ def main():
         "--max-source-share", str(args.max_source_share),
         "--seed", args.seed,
     ]
+    if args.require_exact_counts:
+        command.append("--require-exact-counts")
     command.extend(["--input", str(preselected_path)])
     subprocess.run(command, check=True)
 

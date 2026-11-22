@@ -48,7 +48,7 @@ def main() -> None:
     ap.add_argument("--consensus", type=Path, required=True)
     ap.add_argument("--baseline-manifest", type=Path, required=True)
     ap.add_argument("--output-dir", type=Path, required=True)
-    ap.add_argument("--target-per-language", type=int, default=22000)
+    ap.add_argument("--target-per-language", type=int, default=25000)
     ap.add_argument("--minimum-candidate-per-language", type=int, default=35000)
     ap.add_argument("--global-quantile", type=float, default=0.25)
     args = ap.parse_args()
