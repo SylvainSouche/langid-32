@@ -308,7 +308,6 @@ def main():
         elif args.source == "icelandic":
             for name, url, is_zip in [
                 ("igc", "https://repository.clarin.is/repository/xmlui/bitstream/handle/20.500.12537/381/igc2024-1-filtered.zip?sequence=1&isAllowed=y", True),
-                ("greynir", "https://repository.clarin.is/repository/xmlui/bitstream/handle/20.500.12537/119/GreynirCorpus-1.1.tar.gz?sequence=1&isAllowed=y", False),
             ]:
                 archive = temp_root / (name + (".zip" if is_zip else ".tgz"))
                 try:

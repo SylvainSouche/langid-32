@@ -202,7 +202,7 @@ jobs:
             --consensus out/jql-consensus-34k.parquet \
             --baseline-manifest baseline/candidate/manifest.json \
             --output-dir out/selected \
-            --target-per-language 22000 \
+            --target-per-language 25000 \
             --minimum-candidate-per-language 35000 \
             --global-quantile 0.25
       - name: Upload final assessment outputs

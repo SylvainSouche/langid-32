@@ -5,3 +5,6 @@ artifact-upload-fix-2026-11-19
 2026-11-21: trigger full-corpus candidate export and all-row JQL scoring; three-head ratings plus sentence-boundary flags, global quantile normalization, consensus.
 
 2026-11-22: rebuild 35,000 candidate sentences per language; globally retain candidates above the 25th-percentile JQL consensus floor and select 25,000 per language using the existing core source proportions.
+
+
+2026-11-22 correction: the 35k candidate-stage build does not impose source-share caps. Source proportions are enforced only at final selection against the existing 30k core baseline. Arabic UN-derived acquisition is skipped while upstream reuse terms remain unverified. Icelandic Greynir acquisition is skipped while its source-dataset exclusion remains active. Final selection target is 25,000 per language.

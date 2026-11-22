@@ -69,14 +69,14 @@ jobs:
         run: |
           set +e
           failed=0
-          for source in catalan icelandic norwegian korean fineweb2 arabic; do
+          for source in catalan icelandic norwegian korean fineweb2; do
             python scripts/acquire_waiting_sources.py --source "$source" --out "input/waiting/$source"
             rc=$?
             if [ "$rc" -ne 0 ]; then failed=1; echo "::error::Source group $source failed with exit $rc"; fi
           done
           exit "$failed"
 
-      - name: Build 35k-per-language candidate pool and aggregate metadata
+      - name: Build 35k-per-language candidate pool without premature source caps
         env:
           PYTHONPATH: src
         run: |
