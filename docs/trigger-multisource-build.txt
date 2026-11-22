@@ -3,3 +3,5 @@
 Retry after fixing the Parquet CLI invocation and artifact upload paths (2026-11-19T15:00Z).
 artifact-upload-fix-2026-11-19
 2026-11-21: trigger full-corpus candidate export and all-row JQL scoring; three-head ratings plus sentence-boundary flags, global quantile normalization, consensus.
+
+2026-11-22: rebuild 35,000 candidate sentences per language; globally retain candidates above the 25th-percentile JQL consensus floor and select 22,000 per language using the existing core source proportions.

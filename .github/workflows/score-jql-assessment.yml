@@ -153,6 +153,13 @@ jobs:
           cache: pip
       - name: Install merge dependencies
         run: python -m pip install --upgrade pip pyarrow pandas
+      - name: Download baseline core source proportions
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p baseline
+          gh run download 44942553391 --repo "$GITHUB_REPOSITORY" --name langid-32-jql-assessment-full --dir baseline
+          test -s baseline/candidate/manifest.json
       - name: Download source assessment for ID and language validation
         env:
           GH_TOKEN: ${{ github.token }}
@@ -189,6 +196,15 @@ jobs:
             --output-csv out/jql-consensus-34k.csv \
             --output-parquet out/jql-consensus-34k.parquet \
             --summary out/jql-consensus-34k-summary.json
+      - name: Apply global 25th-percentile quality floor and restore baseline source proportions
+        run: |
+          python scripts/select_jql_consensus.py \\
+            --consensus out/jql-consensus-34k.parquet \\
+            --baseline-manifest baseline/candidate/manifest.json \\
+            --output-dir out/selected \\
+            --target-per-language 22000 \\
+            --minimum-candidate-per-language 35000 \\
+            --global-quantile 0.25
       - name: Upload final assessment outputs
         uses: actions/upload-artifact@v4
         with:
