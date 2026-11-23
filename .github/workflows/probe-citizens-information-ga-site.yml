@@ -1,0 +1,26 @@
+name: Probe Citizens Information Irish site access
+on:
+  push:
+    paths:
+      - "scripts/probe_citizens_information_ga_site.py"
+      - ".github/workflows/probe-citizens-information-ga-site.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Probe production and UAT Irish site routes
+        run: python scripts/probe_citizens_information_ga_site.py
+      - name: Upload metadata-only probe
+        uses: actions/upload-artifact@v4
+        with:
+          name: citizens-information-ga-site-probe-${{ github.run_id }}
+          path: citizens-information-ga-site-probe.json
+          retention-days: 90
