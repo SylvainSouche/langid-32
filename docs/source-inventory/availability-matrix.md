@@ -1,4 +1,4 @@
-# Upstream availability matrix
+| is | 4,993 || ca | 1,302,361 || tr | 410,398 || ar | 59,434 || ko | 7,322 || zh | 78,686 || ja | 37,288 || ru | 47,819 || nn | 5,318 || nb | 4,372 || sv | 26,202 || es | 1,081,921 || sl | 4,206 || sk | 17,876 || ro | 13,753 || pt | 43,526 || pl | 229,899 || mt | 5,273 || lt | 129,304 || lv | 34,333 || it | 924,883 || ga | 1,675 || hu | 326,221 || el | 6,856 || de | 2,057,917 || fr | 1,648,822 || fi | 5,848 || et | 10,910 || en | 1,680,014 || nl | 259,729 || da | 20,779 || cs | 451,100 || hr | — || bg | 39,572 |# Upstream availability matrix
 
 **Purpose:** count material actually available from each upstream source for each of the 34 target languages, independently of what langid-32 previously downloaded, sampled, capped, staged or selected.
 
@@ -16,7 +16,7 @@ This source-capacity matrix is separate from the historical acquisition matrix i
 
 ## Matrix
 
-Counts shown below are native upstream units until sentence-level candidate counts have been computed. Common Voice has provider-reported validated-sentence counts for Czech, English, French and Irish transcribed so far; DGT and FineWeb-2 have provider-reported per-language counts; FineWeb English has a dataset-viewer row count; TeMU-BSC has a conservative, file-level minimum for Catalan. FineWeb-2 counts are filtered document counts, not sentence counts; English is distributed separately in FineWeb. Other cells remain explicitly unmeasured rather than repeating old project caps.
+Counts shown below are native upstream units until sentence-level candidate counts have been computed. Common Voice has provider-reported validated-sentence counts transcribed for all 34 target languages; Croatian is absent from this release; DGT and FineWeb-2 have provider-reported per-language counts; FineWeb English has a dataset-viewer row count; TeMU-BSC has a conservative, file-level minimum for Catalan. FineWeb-2 counts are filtered document counts, not sentence counts; English is distributed separately in FineWeb. Other cells remain explicitly unmeasured rather than repeating old project caps.
 
 | Language | Common Voice 22 | DGT-TM 2021 (TUs) | FineWeb-2 (documents) | Leipzig News | Leipzig Wikipedia | Tatoeba CC0 | FineWeb English (records) | Målfrid 2026 (tokens) | Icelandic Gigaword 2024 (words) | GreynirCorpus (sentences) | Korean Wikipedia (articles) | BSC Legal (sentence pairs) | TeMU-BSC CC0 | MultiUN | UNPC | UN Arabic-English Filtered* |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
@@ -65,7 +65,7 @@ The official per-language Leipzig catalogue confirms fixed-size sentence package
 
 ### Common Voice 22.0
 
-The pinned Hugging Face conversion exposes the release's `release_stats.py`, whose per-locale `validatedSentences` field is a provider-reported sentence count. Values transcribed and mapped here so far: Czech (`cs`) 451,100; English (`en`) 1,680,014; French (`fr`) 1,648,822; Irish (`ga-IE`, mapped to `ga`) 1,675. This is not the project acquisition cap or a count of audio clips. Remaining target locales still require extraction from the same file. Source: https://huggingface.co/datasets/fsicoli/common_voice_22_0/blob/0ca7c0e9cf2c25897c13aa73c54003d8d6d1cf28/release_stats.py
+The pinned Hugging Face conversion exposes the release's `release_stats.py`, whose per-locale `validatedSentences` field is a provider-reported sentence count. The complete target-language mapping is now transcribed from the pinned file: `bg` 39,572; `cs` 451,100; `da` 20,779; `nl` 259,729; `en` 1,680,014; `et` 10,910; `fi` 5,848; `fr` 1,648,822; `de` 2,057,917; `el` 6,856; `hu` 326,221; `ga-IE` 1,675; `it` 924,883; `lv` 34,333; `lt` 129,304; `mt` 5,273; `pl` 229,899; `pt` 43,526; `ro` 13,753; `sk` 17,876; `sl` 4,206; `es` 1,081,921; `sv-SE` 26,202; `nb-NO` 4,372; `nn-NO` 5,318; `ru` 47,819; `ja` 37,288; `zh-CN` 59,060 plus `zh-TW` 19,626 (combined as `zh`: 78,686); `ko` 7,322; `ar` 59,434; `tr` 410,398; `ca` 1,302,361; `is` 4,993. Croatian (`hr`) has no locale entry in this release and is marked `—`, not zero. These are provider-reported validated sentence counts, not audio-clip counts or project-selected records. Source: https://huggingface.co/datasets/fsicoli/common_voice_22_0/blob/0ca7c0e9cf2c25897c13aa73c54003d8d6d1cf28/release_stats.py
 
 ### DGT-TM 2021
 
