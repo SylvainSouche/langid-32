@@ -105,7 +105,7 @@ The Hugging Face dataset page exposes 25.9 billion rows for the default FineWeb 
 
 ### TeMU-BSC Catalan CC0
 
-The repository README explicitly reports 93,691 sentences in the filtered Catalan Government crawl file and 155,990 sentences in `datasets_sentences.tsv` from Projecte Aina. These two named files give a conservative identified minimum of 249,681 sentences. This is not a complete repository total: the repository contains further individual files, aggregate files overlap their constituents, and some contributions have separate permission/waiver terms. Do not add `new_catalan_cc0_corpus.txt` or `xitxat_toponyms.txt` on top of their constituent files. The number is a file-level identified minimum, not the final deduplicated unique count. Source: https://github.com/TeMU-BSC/catalan_CC0_sentences
+The repository README reports ~649,915 raw CC0 sentence rows across the identified non-overlapping files/groups documented in [sources/temu-catalan-cc0.md](sources/temu-catalan-cc0.md). This is a raw source-reported subtotal, not a globally deduplicated unique count. The seven-file and xitxat aggregates are counted as groups, never added on top of their constituent files. Files under separate author permissions and files with unresolved rights are excluded from this CC0 subtotal. Cross-file exact/near-deduplication remains to be measured. Source: https://github.com/TeMU-BSC/catalan_CC0_sentences
 
 ### Målfrid 2026
 
