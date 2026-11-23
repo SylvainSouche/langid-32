@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Audit upstream BSC Legal Catalan–Spanish files without retaining source text."""
+"""Audit pinned BSC Legal Catalan–Spanish files without retaining source text."""
 from __future__ import annotations
-import csv, hashlib, json, os, sqlite3, tempfile, sys
+import csv, hashlib, json, os, sqlite3, sys, tempfile
 from pathlib import Path
 import requests
 
@@ -14,6 +14,7 @@ FILES = {
     "apdcat_ca-es.docs.jsonl": "document_segment_pair",
 }
 OUT = Path("reports/bsc-legal-catalan-spanish-audit.json")
+BATCH = 10000
 
 def count_file(name: str, unit: str) -> dict:
     url = BASE + name
@@ -36,11 +37,28 @@ def count_file(name: str, unit: str) -> dict:
     dbfile = tempfile.NamedTemporaryFile(prefix="bsc-audit-", suffix=".sqlite", delete=False)
     dbfile.close()
     db = sqlite3.connect(dbfile.name)
-    db.execute("CREATE TABLE ca (text TEXT PRIMARY KEY)")
-    db.execute("CREATE TABLE es (text TEXT PRIMARY KEY)")
+    db.execute("PRAGMA journal_mode=OFF")
+    db.execute("PRAGMA synchronous=OFF")
+    db.execute("PRAGMA temp_store=MEMORY")
+    db.execute("PRAGMA cache_size=-200000")
+    db.execute("CREATE TABLE ca (h BLOB PRIMARY KEY) WITHOUT ROWID")
+    db.execute("CREATE TABLE es (h BLOB PRIMARY KEY) WITHOUT ROWID")
     rows = malformed = empty_ca = empty_es = 0
-    def add(side: str, value: str) -> None:
-        db.execute(f"INSERT OR IGNORE INTO {side} VALUES (?)", (value,))
+    ca_batch: list[tuple[bytes]] = []
+    es_batch: list[tuple[bytes]] = []
+    insert_ca = "INSERT OR IGNORE INTO ca VALUES (?)"
+    insert_es = "INSERT OR IGNORE INTO es VALUES (?)"
+    def flush() -> None:
+        if ca_batch:
+            db.executemany(insert_ca, ca_batch)
+            db.executemany(insert_es, es_batch)
+            ca_batch.clear()
+            es_batch.clear()
+    def add(ca: str, es: str) -> None:
+        ca_batch.append((hashlib.sha256(ca.encode("utf-8")).digest(),))
+        es_batch.append((hashlib.sha256(es.encode("utf-8")).digest(),))
+        if len(ca_batch) >= BATCH:
+            flush()
     try:
         if name.endswith(".jsonl"):
             with source_path.open("r", encoding="utf-8") as stream:
@@ -58,11 +76,9 @@ def count_file(name: str, unit: str) -> dict:
                         continue
                     empty_ca += not bool(ca.strip())
                     empty_es += not bool(es.strip())
-                    add("ca", ca)
-                    add("es", es)
-                    if rows % 10000 == 0:
-                        db.commit()
+                    add(ca, es)
         else:
+            csv.field_size_limit(sys.maxsize)
             with source_path.open("r", encoding="utf-8", newline="") as stream:
                 reader = csv.reader(stream, delimiter="\t")
                 for fields in reader:
@@ -75,19 +91,21 @@ def count_file(name: str, unit: str) -> dict:
                     ca, es = fields
                     empty_ca += not bool(ca.strip())
                     empty_es += not bool(es.strip())
-                    add("ca", ca)
-                    add("es", es)
-                    if rows % 100000 == 0:
+                    add(ca, es)
+                    if rows % 500000 == 0:
+                        flush()
                         db.commit()
                         print(f"{name}: {rows:,} rows", flush=True)
+        flush()
         db.commit()
         return {
-            "file": name, "unit": unit, "revision": REVISION, "url": url,
-            "etag": None, "content_length": byte_count, "bytes_downloaded": byte_count,
+            "file": name, "unit": unit, "revision": REVISION,
+            "url": url, "content_length": byte_count, "bytes_downloaded": byte_count,
             "sha256": digest.hexdigest(), "rows": rows, "malformed_rows": malformed,
             "empty_ca": empty_ca, "empty_es": empty_es,
-            "distinct_exact_ca": db.execute("SELECT COUNT(*) FROM ca").fetchone()[0],
-            "distinct_exact_es": db.execute("SELECT COUNT(*) FROM es").fetchone()[0],
+            "distinct_sha256_ca": db.execute("SELECT COUNT(*) FROM ca").fetchone()[0],
+            "distinct_sha256_es": db.execute("SELECT COUNT(*) FROM es").fetchone()[0],
+            "distinct_method": "SHA-256 of exact UTF-8 text; collision probability negligible",
         }
     finally:
         db.close()
@@ -95,7 +113,6 @@ def count_file(name: str, unit: str) -> dict:
         os.unlink(source_path)
 
 def main() -> None:
-    csv.field_size_limit(sys.maxsize)
     results = [count_file(name, unit) for name, unit in FILES.items()]
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps({"repository": REPO, "revision": REVISION,
