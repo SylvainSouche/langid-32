@@ -10,7 +10,7 @@ from urllib3.util.retry import Retry
 
 SOURCES = {
  "is": {"name":"ParlaMint-IS","url":"https://www.clarin.si/repository/xmlui/bitstream/handle/11356/1859/ParlaMint-IS.tgz?isAllowed=y&sequence=16","md5":"59e4889f7f81b23cbdc96b827bea4a40"},
- "sl": {"name":"ParlaMint-SI","url":"https://www.clarin.si/repository/xmlui/bitstream/handle/11356/1859/ParlaMint-SI.tgz?isAllowed=y&sequence=24","md5":"a710c3869b2aaa89da3b9eaa3c7eb83f"},
+ "sl": {"name":"ParlaMint-SI","file_code":"SI","url":"https://www.clarin.si/repository/xmlui/bitstream/handle/11356/1859/ParlaMint-SI.tgz?isAllowed=y&sequence=24","md5":"a710c3869b2aaa89da3b9eaa3c7eb83f"},
  "tr": {"name":"ParlaMint-TR","url":"https://www.clarin.si/repository/xmlui/bitstream/handle/11356/1859/ParlaMint-TR.tgz?isAllowed=y&sequence=25","md5":"82569712b7194216a18012af5bac992c"},
 }
 OUT=Path("reports/parlamint-4-selected-audit.json")
@@ -76,7 +76,7 @@ def main():
                     member_count+=1; uncompressed+=member.size
                     lower=member.name.lower()
                     basename=Path(member.name).name
-                    if (lower.endswith(".xml") and basename.startswith(f"ParlaMint-{lang.upper()}_")
+                    if (lower.endswith(".xml") and basename.startswith(f"ParlaMint-{meta.get('file_code', lang.upper())}_")
                         and "listperson" not in lower and "listorg" not in lower
                         and "taxonomy" not in lower and "/schema/" not in lower
                         and "/samples/" not in lower and not lower.endswith(".ana.xml")):
