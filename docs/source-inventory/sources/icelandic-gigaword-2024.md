@@ -23,7 +23,9 @@ Repository describes CC-BY documents; project hold pending underlying-source and
 
 Icelandic filtered 2024 corpus; CLARIN record reports 794,816,184 words. Filtered-1 handle 381, not Filtered-2 handle 382.
 
-## Current langid-32 acquisition snapshot
+## Verified upstream availability (independent of project acquisition)
+
+The CLARIN-IS record for this exact Filtered-1 artifact (handle 381) reports **794,816,184 words** in filtered, deduplicated and normalized Icelandic documents. This is a native word count, not a document count or sentence count. A separate Filtered-2 artifact exists at handle 382 and reports 894,874,269 words; it is a different subcorpus with a different licence description and must not be added to Filtered-1 without a deliberate overlap and rights audit. Source: https://repository.clarin.is/repository/xmlui/handle/20.500.12537/381
 
 50,000 current records, sampler ceiling; documents, not sentences; held.
 
