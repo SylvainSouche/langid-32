@@ -61,6 +61,36 @@ The UN ODS FAQ describes the system's scope and language access: https://documen
 
 It is a strong candidate for source-level acquisition and language coverage analysis. The current project inventory previously recorded zero selected records for the separate ymoslem/UN-Arabic-English-Filtered dataset; that is not evidence of zero MultiUN availability. Do not count the Hugging Face derivative's 19.3 million aligned Arabic-English rows as MultiUN's exact upstream count, because that derivative combines MultiUN and UNPC and applies additional filtering.
 
+## Hugging Face mirror: exact pair-config example counts
+
+The Helsinki-NLP Hugging Face dataset card separately reports `num_examples` for each of its 21 train configurations. The following counts are source-reported sentence-pair examples in that mirror, not unique monolingual sentence counts. Their sum is 159,488,597 pair rows; it must **not** be compared as if it were the same measure as OPUS's 81.41 million sentence fragments, nor added to it. Pair configurations share language sides and likely repeat the same source-side sentences across several alignments. This table is useful for locating the larger and smaller pair packages, but does not close the per-language unique-sentence inventory gap.
+
+| Bitext | Pair examples |
+|---|---:|
+| ar–de | 165,090 |
+| ar–en | 9,759,125 |
+| ar–es | 10,119,379 |
+| ar–fr | 9,929,567 |
+| ar–ru | 10,206,243 |
+| ar–zh | 9,832,293 |
+| de–en | 162,981 |
+| de–es | 162,078 |
+| de–fr | 164,025 |
+| de–ru | 164,792 |
+| de–zh | 176,933 |
+| en–es | 11,350,967 |
+| en–fr | 13,172,019 |
+| en–ru | 11,654,416 |
+| en–zh | 9,564,315 |
+| es–fr | 11,441,889 |
+| es–ru | 10,605,056 |
+| es–zh | 9,847,770 |
+| fr–ru | 11,761,738 |
+| fr–zh | 9,690,914 |
+| ru–zh | 9,557,007 |
+
+Source: https://huggingface.co/datasets/Helsinki-NLP/multiun (dataset card's per-configuration `num_examples`; mirror metadata is not a substitute for OPUS's original package manifest).
+
 ## Verified upstream availability (independent of project acquisition)
 
 OPUS's current MultiUN v1 catalogue reports **489,334 files, 1.99 billion tokens and 81.41 million sentence fragments** across seven languages and 21 bitexts. These are corpus-wide aggregate figures, not per-language unique sentence counts. Pairwise configurations overlap, so summing rows across bitexts would multiply shared monolingual material. Exact per-language sentence counts require extracting language sides from the downloadable OPUS packages and deduplicating by sentence/document identity. Source: https://opus.nlpl.eu/datasets/MultiUN
