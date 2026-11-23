@@ -42,7 +42,7 @@ Counts shown below are native upstream units until sentence-level candidate coun
 | ro | TBD | 4,520,726 | 58,303,671 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — |
 | sk | TBD | 6,505,108 | 29,991,521 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — |
 | sl | TBD | 6,472,554 | 12,059,130 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — |
-| es | TBD | 5,965,669 | 441,287,261 | TBD | TBD | TBD | — | — | — | — | — | — | TBD | TBD | — |
+| es | TBD | 5,965,669 | 441,287,261 | TBD | TBD | TBD | — | — | — | — | ~5,400,000 sentence pairs | — | TBD | TBD | — |
 | sv | TBD | 6,025,986 | 59,485,306 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — |
 | nb | TBD | — | 38,144,343 | TBD | TBD | TBD | — | 1,890,232,881 | — | — | — | — | — | — | — |
 | nn | TBD | — | TBD | TBD | TBD | TBD | — | 170,231,965 | — | — | — | — | — | — | — |
@@ -52,8 +52,8 @@ Counts shown below are native upstream units until sentence-level candidate coun
 | ko | TBD | — | 60,874,355 | TBD | TBD | TBD | — | — | — | TBD | — | — | — | — | — |
 | ar | TBD | — | 61,977,525 | TBD | TBD | TBD | — | — | — | — | — | — | TBD | TBD | TBD |
 | tr | TBD | — | 95,129,129 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — |
-| ca | TBD | — | 17,136,414 | TBD | TBD | TBD | — | — | — | — | TBD | ≥249,681 identified CC0 sentences (partial) | — | — | — |
-| is | TBD | — | 3,014,429 | TBD | TBD | TBD | — | — | TBD | — | — | — | — | — | — |
+| ca | TBD | — | 17,136,414 | TBD | TBD | TBD | — | — | — | — | ~5,400,000 sentence pairs | ≥249,681 identified CC0 sentences (partial) | — | — | — |
+| is | TBD | — | 3,014,429 | TBD | TBD | TBD | — | — | 794,816,184 | — | — | — | — | — | — |
 
 * The Arabic-English filtered derivative combines MultiUN and UNPC. Its pair count must not be added to either upstream source, nor counted as independent unique material.
 
@@ -70,6 +70,14 @@ The JRC's official statistics file reports cumulative TUs through DGT-TM 2020 (t
 ### FineWeb-2
 
 The provider's language/script distribution table reports filtered document counts. Counts in this matrix map the project's target languages to the relevant ISO 639-3 subset (for example, Greek ell_Grek, Catalan cat_Latn, Icelandic isl_Latn). They are **documents**, not sentences. FineWeb-2 also distributes removed subsets separately; the filtered counts below are not the full post-deduplication language pool. The README says filtered plus removed together represent the entire data for each language following global deduplication. Source: https://huggingface.co/datasets/HuggingFaceFW/fineweb-2
+
+### BSC Legal Catalan–Spanish
+
+The BSC dataset card reports about 5.4 million parallel sentence pairs in `dogc_ca-es.tsv`, plus about 13,000 paragraph pairs and 450 parallel APDCAT documents (about 170,000 words per language). The matrix records the sentence-pair count on both language rows; it is a pair count, not two independent corpora to add together. Paragraphs and documents are separate native units and are not added to the sentence-pair count. The provider describes the content as authentic, non-synthetic, and deduplicated. Source: https://huggingface.co/datasets/BSC-LT/Legal_Catalan_Spanish_Parallel_Corpus
+
+### Icelandic Gigaword 2024 — Filtered-1
+
+The CLARIN-IS record for the exact Filtered-1 artifact used by the project (handle 381) reports 794,816,184 words across filtered, deduplicated, normalized Icelandic documents. This is a word count, not a sentence or document count. A separate Filtered-2 artifact exists under handle 382 and must not be merged into Filtered-1 without checking overlap and licence scope. Source: https://repository.clarin.is/repository/xmlui/handle/20.500.12537/381
 
 ### FineWeb English
 
@@ -89,8 +97,8 @@ The National Library of Norway reports provider token counts: Bokmål 1,890,232,
 2. FineWeb-2: filtered document counts have been transcribed for 30 target languages. Complete the missing Gaelic, Nynorsk and Maltese mapping; record removed-subset counts and word counts too. FineWeb English has 25.9B provider rows recorded separately.
 3. Leipzig News and Wikipedia: enumerate downloadable package manifests for every target language and count sentence rows in the actual archives.
 4. Tatoeba: count the CC0 export by language code; distinguish CC0-only from the larger CC-BY export.
-5. Målfrid, Icelandic Gigaword, Korean Wikipedia: count documents/records and segment their complete text into candidate sentences; provider token/word/article totals are not sentence totals.
-6. BSC Legal and TeMU-BSC: TeMU-BSC now has a conservative identified minimum of 249,681 Catalan CC0 sentences from two explicitly counted files; enumerate the remaining files, rights and overlaps. BSC Legal still needs language-side sentence counts.
+5. Målfrid, Icelandic Gigaword, Korean Wikipedia: IGC2024 Filtered-1 provider word count (794,816,184) is recorded; count its documents and segment complete text into candidate sentences. For Målfrid and Korean Wikipedia, continue counting documents/records and segment complete text; provider token/word/article totals are not sentence totals.
+6. BSC Legal and TeMU-BSC: BSC Legal reports ~5.4M Catalan–Spanish sentence pairs plus separate paragraph/document units; verify exact row counts and rights. TeMU-BSC has a conservative identified minimum of 249,681 Catalan CC0 sentences from two explicitly counted files; enumerate the remaining files, rights and overlaps.
 7. MultiUN and UNPC: count monolingual language sides, not pair-configuration row sums; deduplicate within each corpus and compare document identifiers between corpora.
 8. GreynirCorpus: currently excluded pending explicit rights approval; inventorying its upstream capacity does not imply permission to use it.
 
