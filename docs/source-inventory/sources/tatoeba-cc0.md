@@ -31,6 +31,10 @@ The official downloads page confirms a separate `sentences_CC0` weekly export (u
 
 The following target languages are not listed in the current CC0 locale catalogue: `bg`, `hr`, `et`, `el`, `ga`, `lv`, `lt`, `mt`, `ro`, `sk`, `sl`, `nn`, `ko`, `tr`, `is`. These are out of scope for this CC0-only source, not zero counts in Tatoeba generally. Exact sentence counts for the supported target languages remain unmeasured until the weekly CC0 archive is parsed; do not substitute project staged counts. Source: https://tatoeba.org/en/downloads
 
+## Verified export-selection semantics
+
+Tatoeba's own weekly export SQL creates the CC0 file from the sentence table using `correctness > -1 AND license = 'CC0 1.0'`, exporting `id`, `lang`, `text` and `modified`. This confirms the official file is not the complete sentence table and that rows marked incorrect (`correctness = -1`) are excluded. For a future count, count rows and distinct sentence IDs by language code from this exact export; do not count translation links or infer CC0 availability from the general CC-BY sentence export. Official implementation: https://github.com/Tatoeba/tatoeba2/blob/f2c80b81032630648f7896182174a9f5784ccde2/docs/database/scripts/weekly_exports.sql
+
 ## Current langid-32 acquisition snapshot
 
 80,155 staged CC0 records; larger samples in English, French and Russian. Current export sample, not full CC0 availability.
