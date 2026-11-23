@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Audit upstream BSC Legal Catalan–Spanish files without retaining source text."""
 from __future__ import annotations
-import csv, hashlib, json, os, sqlite3, tempfile
+import csv, hashlib, json, os, sqlite3, tempfile, sys
 from pathlib import Path
 import requests
 
@@ -95,6 +95,7 @@ def count_file(name: str, unit: str) -> dict:
         os.unlink(source_path)
 
 def main() -> None:
+    csv.field_size_limit(sys.maxsize)
     results = [count_file(name, unit) for name, unit in FILES.items()]
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps({"repository": REPO, "revision": REVISION,
