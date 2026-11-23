@@ -37,12 +37,25 @@ The pinned upstream README (`30f19bbfaca7b8abdd195c4687c1a992bde4f63f`) reports 
 | frases_toponimia_valenciana_balear.txt | 15,451 | Template-generated; TeMU-BSC CC0 waiver |
 | literatura.txt | 366 | Counted non-empty lines in the file at the pinned repository revision; source README reports 366; CC0 |
 | new_sentences_from_catalan_newswire.txt | 58,310 | Provider README; owner agrees to CC0 publication |
-| xitxat_toponyms.txt | 37,428 | Provider-reported aggregate; do not add its constituent files separately |
+| `aggregated_files/xitxat_and_toponyms.txt` (called `xitxat_toponyms.txt` in the README) | 37,428 | Provider-reported aggregate; do not add its constituent files separately |
 | **Reported raw CC0 rows across these disjoint files/groups** | **649,915** | Sum before cross-file exact/near-duplicate audit; not a unique-sentence count |
 
 The seven-file group consists of `edited_generated_selected_chatbot.txt` (2,166), `edited_selected_chatbot.txt` (873), `frases_spl.txt` (1,711), `generades_spl_seleccionades.txt` (4,469), `more_intents.txt` (74,772), `plantilles_intents.txt` (2,664), and `selected_club.txt` (21,237). The xitxat aggregate includes `sentences_from_xitxat_corpus.txt` and `wikidata_sentences.txt`, so these are not added a second time. The README also lists files under individual permission arrangements (including Marius Serra and Joan Pujolar contributions); they are not included in this CC0 subtotal. The translated Spanish-Wikipedia file is also excluded until its rights basis is documented.
 
 This subtotal replaces the former 249,681 two-file minimum, but remains a pre-dedup raw count. It is not the same as the project's 174,157 staged records. Source: https://github.com/TeMU-BSC/catalan_CC0_sentences/tree/30f19bbfaca7b8abdd195c4687c1a992bde4f63f
+
+## Repository-tree audit at the pinned revision
+
+The Git tree at `30f19bbfaca7b8abdd195c4687c1a992bde4f63f` exposes additional files and duplicate paths that must not be silently counted as new material:
+
+- `new_catalan_cc0_corpus.txt` and `aggregated_files/new_catalan_cc0_corpus.txt` have the same Git blob SHA (`d596068e2fd8bb50dda673ae0eecacd195717c26`): one aggregate, not two.
+- `marius_serra_sentences.txt` and `marius_serra_sentences_1.txt` have the same Git blob SHA (`30c0eec627084b4f775459975b89fe71f44c17eb`): one file, and it remains in the separate author-permission category rather than the CC0 subtotal.
+- The README's XitXat aggregate is physically stored as `aggregated_files/xitxat_and_toponyms.txt`; the source inventory now uses the actual path.
+- `catalan_government_crawling_frases_seleccionades_filtrades_sorted.txt` is a second sorted variant of the government-crawl file. It is excluded from the subtotal pending a content-level duplicate check.
+- Additional `gencat_*.txt` files occur in the Git tree but are not described in the README's source/rights inventory; they remain excluded pending provenance and licence evidence.
+- `translated_wiki.es-ca.txt`, Marius Serra and Joan Pujolar contributions remain outside the CC0 subtotal because their rights basis is distinct or not sufficiently documented as CC0.
+
+This tree inspection does not change the 649,915 raw-row subtotal. It identifies duplicate paths and unresolved files that the next content-level audit must handle explicitly.
 
 ## Current langid-32 acquisition snapshot
 
