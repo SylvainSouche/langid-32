@@ -17,7 +17,7 @@ TSV sentence-level, TSV paragraph-level, JSONL document-level parallel data.
 
 ## Distribution conditions and rights
 
-Dataset card declares CC BY 4.0 for the corpus. However, its source section describes distinct underlying bases: DOGC material as CC0; public-administration documents under the Catalan open-data licence (described by the provider as equivalent to CC0); and APDCAT documents collected under a data-sharing agreement. The card also warns that personal and sensitive information may be present and prohibits re-identification. Do not flatten this provenance into one assumed source licence: retain subcorpus/source identifiers and review the APDCAT agreement and privacy risk before reuse or redistribution.
+Dataset card declares **CC BY 4.0 for the corpus as a whole**. Its source section explains the rights chain: DOGC material is CC0; public-administration documents use the Catalan open-data licence (described by BSC as equivalent to CC0); APDCAT material was obtained under a data-sharing agreement. I see no published licence conflict or additional redistribution restriction that would justify a hold. The APDCAT agreement is provenance for BSC's acquisition, not a separately stated downstream licence in the dataset card. Preserve the source/subcorpus provenance and CC BY attribution.
 
 ## Content and language coverage
 
@@ -48,4 +48,4 @@ The audit targets Hugging Face revision `5f7eda4` (the README update dated 2026-
 - Record exact audit results and retrieval date after the GitHub Actions run completes.
 - Count full upstream records by language in the source's native unit, independently of project sampling.
 - Record raw, eligible-after-source-filters and project-selected counts separately.
-- Verify file-level rights and redistribution conditions before public release.
+- Preserve BSC/Machine Translation Group attribution, CC BY 4.0 URI, source revision and per-subcorpus provenance; apply the project's own anonymisation/privacy checks.
