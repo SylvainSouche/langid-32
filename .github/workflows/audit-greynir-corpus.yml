@@ -21,13 +21,11 @@ jobs:
         with:
           path: langid-32
       - name: Audit hydrated Git LFS corpus files
-        run: |
-          cp langid-32/scripts/audit_greynir_corpus.py .
-          python audit_greynir_corpus.py
-        working-directory: .
+        run: python ../langid-32/scripts/audit_greynir_corpus.py
+        working-directory: greynir-corpus
       - name: Upload aggregate audit report
         uses: actions/upload-artifact@v4
         with:
           name: greynir-corpus-audit-${{ github.run_id }}
-          path: reports/greynir-corpus-audit.json
+          path: greynir-corpus/reports/greynir-corpus-audit.json
           retention-days: 90
