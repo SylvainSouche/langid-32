@@ -23,6 +23,10 @@ Check dataset card and underlying notices file by file. Project holds pending so
 
 Authentic bilingual legal text: ~5.4M sentence pairs, ~13k paragraphs, 450 APDCAT documents (~170k words/language).
 
+## Verified upstream availability (independent of project acquisition)
+
+The dataset card reports approximately 5.4 million sentence pairs in `dogc_ca-es.tsv`, approximately 13,000 paragraph pairs in `legal_ca-es_dataset_clean.tsv`, and 450 parallel APDCAT documents in `apdcat_ca-es.docs.jsonl` (about 170,000 words per language). These are three distinct granularities and must not be summed as if they were all sentences. The 5.4M value is one pair count, represented on both Catalan and Spanish sides; do not add the two sides together when reporting corpus size. The provider describes the texts as authentic and non-synthetic and says the sentence/paragraph datasets were deduplicated. Source: https://huggingface.co/datasets/BSC-LT/Legal_Catalan_Spanish_Parallel_Corpus
+
 ## Current langid-32 acquisition snapshot
 
 62,518 current Catalan records; sample, not full corpus; Spanish side not staged as a target-language source.
