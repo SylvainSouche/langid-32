@@ -20,40 +20,40 @@ Counts shown below are native upstream units until sentence-level candidate coun
 
 | Language | Common Voice 22 | DGT-TM 2021 (TUs) | FineWeb-2 (documents) | Leipzig News | Leipzig Wikipedia | Tatoeba CC0 | FineWeb English (records) | Målfrid 2026 (tokens) | Icelandic Gigaword 2024 (words) | GreynirCorpus (sentences) | Korean Wikipedia (articles) | BSC Legal (sentence pairs) | TeMU-BSC CC0 | MultiUN | UNPC | UN Arabic-English Filtered* |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| bg | TBD | 4,602,085 | 25,994,731 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
-| hr | TBD | 2,554,319 | 6,195,824 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
+| bg | TBD | 4,602,085 | 25,994,731 | TBD | TBD | — | — | — | — | — | — | — | — | — | — | — |
+| hr | TBD | 2,554,319 | 6,195,824 | TBD | TBD | — | — | — | — | — | — | — | — | — | — | — |
 | cs | 451,100 | 6,410,466 | 66,067,904 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
 | da | TBD | 5,935,254 | 45,391,655 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
 | nl | TBD | 5,873,514 | 147,301,270 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
 | en | 1,680,014 | 8,624,934 | TBD | TBD | TBD | TBD | 25,900,000,000 | 570,099,658 | — | — | — | — | — | TBD | TBD | TBD |
-| et | TBD | 6,450,667 | 10,218,587 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
+| et | TBD | 6,450,667 | 10,218,587 | TBD | TBD | — | — | — | — | — | — | — | — | — | — | — |
 | fi | TBD | 5,933,745 | 36,710,816 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
 | fr | 1,648,822 | 6,397,822 | 360,058,973 | TBD | TBD | TBD | — | — | — | — | — | — | — | TBD | TBD | — |
 | de | TBD | 5,958,872 | 495,964,485 | TBD | TBD | TBD | — | — | — | — | — | — | — | TBD (small) | — | — |
-| el | TBD | 5,782,498 | 47,421,073 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
+| el | TBD | 5,782,498 | 47,421,073 | TBD | TBD | — | — | — | — | — | — | — | — | — | — | — |
 | hu | TBD | 6,559,000 | 49,935,986 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
-| ga | 1,675 | 235,384 | TBD | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
+| ga | 1,675 | 235,384 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — | — |
 | it | TBD | 5,967,350 | 238,984,437 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
-| lv | TBD | 6,504,918 | 8,030,316 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
-| lt | TBD | 6,501,706 | 13,471,965 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
-| mt | TBD | 4,830,614 | TBD | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
+| lv | TBD | 6,504,918 | 8,030,316 | TBD | TBD | — | — | — | — | — | — | — | — | — | — | — |
+| lt | TBD | 6,501,706 | 13,471,965 | TBD | TBD | — | — | — | — | — | — | — | — | — | — | — |
+| mt | TBD | 4,830,614 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — | — |
 | pl | TBD | 6,463,748 | 151,966,724 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
 | pt | TBD | 6,390,501 | 199,737,979 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
-| ro | TBD | 4,520,726 | 58,303,671 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
-| sk | TBD | 6,505,108 | 29,991,521 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
-| sl | TBD | 6,472,554 | 12,059,130 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
+| ro | TBD | 4,520,726 | 58,303,671 | TBD | TBD | — | — | — | — | — | — | — | — | — | — | — |
+| sk | TBD | 6,505,108 | 29,991,521 | TBD | TBD | — | — | — | — | — | — | — | — | — | — | — |
+| sl | TBD | 6,472,554 | 12,059,130 | TBD | TBD | — | — | — | — | — | — | — | — | — | — | — |
 | es | TBD | 5,965,669 | 441,287,261 | TBD | TBD | TBD | — | — | — | — | — | ~5,400,000 sentence pairs | — | TBD | TBD | — |
 | sv | TBD | 6,025,986 | 59,485,306 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
 | nb | TBD | — | 38,144,343 | TBD | TBD | TBD | — | 1,890,232,881 | — | — | — | — | — | — | — | — |
-| nn | TBD | — | TBD | TBD | TBD | TBD | — | 170,231,965 | — | — | — | — | — | — | — | — |
+| nn | TBD | — | TBD | TBD | TBD | — | — | 170,231,965 | — | — | — | — | — | — | — | — |
 | ru | TBD | — | 699,083,579 | TBD | TBD | TBD | — | — | — | — | — | — | — | TBD | TBD | — |
 | ja | TBD | — | 400,138,563 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
 | zh | TBD | — | 636,058,984 | TBD | TBD | TBD | — | — | — | — | — | — | — | TBD | TBD | — |
-| ko | TBD | — | 60,874,355 | TBD | TBD | TBD | — | — | — | — | TBD | — | — | — | — | — |
+| ko | TBD | — | 60,874,355 | TBD | TBD | — | — | — | — | — | TBD | — | — | — | — | — |
 | ar | TBD | — | 61,977,525 | TBD | TBD | TBD | — | — | — | — | — | — | — | TBD | TBD | TBD |
-| tr | TBD | — | 95,129,129 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
+| tr | TBD | — | 95,129,129 | TBD | TBD | — | — | — | — | — | — | — | — | — | — | — |
 | ca | TBD | — | 17,136,414 | TBD | TBD | TBD | — | — | — | — | — | ~5,400,000 sentence pairs | ≥249,681 identified CC0 sentences (partial) | — | — | — |
-| is | TBD | — | 3,014,429 | TBD | TBD | TBD | — | — | 794,816,184 | 10,000,000 | — | — | — | — | — | — |
+| is | TBD | — | 3,014,429 | TBD | TBD | — | — | — | 794,816,184 | 10,000,000 | — | — | — | — | — | — |
 
 * The Arabic-English filtered derivative combines MultiUN and UNPC. Its pair count must not be added to either upstream source, nor counted as independent unique material.
 
