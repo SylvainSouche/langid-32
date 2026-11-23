@@ -52,9 +52,11 @@ def main() -> None:
                 "column_1_distinct_normalized": len(set(col1)),
                 "rows_not_two_columns": sum(1 for row in parsed if len(row) != 2),
             }
-            # Keep TSV separate until column semantics are verified.
-            keys = []
-            unit = "TSV_records; per-column counts reported separately"
+            # Column 0 is the sentence text; column 1 is source metadata
+            # (four distinct labels in this pinned snapshot).
+            keys = col0
+            text_sets[path + "[column_0]"] = set(col0)
+            unit = "TSV_records; column 0 sentence text, column 1 source label"
         else:
             keys = [norm(line) for line in lines]
             text_sets[path] = set(keys)
@@ -64,8 +66,8 @@ def main() -> None:
             "path": path, "licence_basis_from_README": licence_basis,
             "unit": unit, "bytes": len(raw), "sha256": hashlib.sha256(raw).hexdigest(),
             "physical_lines": len(physical), "nonempty_records": len(lines),
-            "distinct_NFC_whitespace_casefold_records": len(unique) if keys else None,
-            "within_file_normalized_duplicates": len(keys) - len(unique) if keys else None,
+            "distinct_NFC_whitespace_casefold_records": len(unique),
+            "within_file_normalized_duplicates": len(keys) - len(unique),
             **extra,
         })
     # Report exact normalized text overlap among the eight line-based files.
