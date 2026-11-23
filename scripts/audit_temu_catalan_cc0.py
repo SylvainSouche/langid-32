@@ -83,10 +83,12 @@ def main() -> None:
     report = {
         "repository": REPO, "revision": REV, "archive_sha256": archive_sha,
         "archive_bytes": len(archive), "results": results,
-        "line_file_union": {
-            "files": len(text_sets),
-            "nonempty_rows_sum_before_dedup": sum(x["nonempty_records"] for x in results if x["path"] in text_sets),
-            "distinct_normalized_texts_across_all_line_files": len(union),
+        "normalized_text_union": {
+            "line_based_files": 8,
+            "line_based_nonempty_rows": sum(x["nonempty_records"] for x in results if not x["path"].endswith(".tsv")),
+            "tsv_nonempty_sentence_cells": next(x["column_0_nonempty"] for x in results if x["path"].endswith(".tsv")),
+            "candidate_rows_or_cells_before_dedup": sum(x["nonempty_records"] for x in results if not x["path"].endswith(".tsv")) + next(x["column_0_nonempty"] for x in results if x["path"].endswith(".tsv")),
+            "distinct_normalized_text_strings": len(union),
         },
         "cross_file_overlap_pairs": cross,
         "warning": "TSV column semantics are not inferred. No total combines TSV with line files. Counts are structural and exact-text normalized, not semantic deduplication or rights verification."
