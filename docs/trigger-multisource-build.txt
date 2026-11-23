@@ -12,3 +12,5 @@ artifact-upload-fix-2026-11-19
 2026-11-23: rebuild candidate pool with Gaois Irish legislation TMX source; CC BY 4.0 derivative-only terms, 50k deterministic Irish candidate sample, per-TU provenance and 30% preferred/50% hard source-share policy retained.
 
 2026-11-23 retry: resumable Range download for multi-GB Målfrid archives; disable HF Xet/transfer extensions to avoid Python 3.12 streaming shutdown crash in Korean Wikipedia and FineWeb-2 acquisition.
+
+Retry Korean Wikipedia with pinned Parquet and synchronous PyArrow acquisition; 2026-11-23.
