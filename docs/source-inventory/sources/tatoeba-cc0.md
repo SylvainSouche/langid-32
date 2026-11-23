@@ -31,6 +31,49 @@ The official downloads page confirms a separate `sentences_CC0` weekly export (u
 
 The following target languages are not listed in the current CC0 locale catalogue: `bg`, `hr`, `et`, `el`, `ga`, `lv`, `lt`, `mt`, `ro`, `sk`, `sl`, `nn`, `ko`, `tr`, `is`. These are out of scope for this CC0-only source, not zero counts in Tatoeba generally. Exact sentence counts for the supported target languages remain unmeasured until the weekly CC0 archive is parsed; do not substitute project staged counts. Source: https://tatoeba.org/en/downloads
 
+## Live general-catalogue sentence totals (all licences; not the CC0 export)
+
+On 2026-11-23, the public Tatoeba statistics page reported **13,685,619 sentences** across all languages. The table below records the current total sentence count for each of the 34 langid-32 target languages. These are live catalogue counts across licence types, not counts from the separate `sentences_CC0` export. They are useful as an upper bound on the Tatoeba pool, but they do not establish CC0 availability or permission to use the sentences under the project's CC0-only source decision.
+
+| Target language | Tatoeba code | All-licence sentences |
+|---|---|---:|
+| Arabic | ara | 68,968 |
+| Bulgarian | bul | 25,725 |
+| Catalan | cat | 11,016 |
+| Czech | ces | 90,266 |
+| Danish | dan | 66,569 |
+| German | deu | 787,848 |
+| Greek | ell | 43,301 |
+| English | eng | 2,050,243 |
+| Spanish | spa | 446,423 |
+| Estonian | est | 6,556 |
+| Finnish | fin | 155,051 |
+| French | fra | 738,333 |
+| Irish | gle | 3,103 |
+| Croatian | hrv | 6,587 |
+| Hungarian | hun | 445,782 |
+| Icelandic | isl | 13,396 |
+| Italian | ita | 995,850 |
+| Japanese | jpn | 249,285 |
+| Korean | kor | 16,027 |
+| Lithuanian | lit | 159,902 |
+| Latvian | lvs | 20,730 |
+| Maltese | mlt | 699 |
+| Norwegian Bokmål | nob | 18,904 |
+| Dutch | nld | 201,710 |
+| Norwegian Nynorsk | nno | 12,495 |
+| Polish | pol | 137,255 |
+| Portuguese | por | 446,190 |
+| Romanian | ron | 42,136 |
+| Russian | rus | 1,240,726 |
+| Slovak | slk | 33,392 |
+| Slovenian | slv | 3,614 |
+| Swedish | swe | 57,517 |
+| Turkish | tur | 750,704 |
+| Mandarin Chinese | cmn | 89,428 |
+
+The statistics page is a snapshot and will change as community members add, remove or relabel sentences. It reports all sentence records by language, not necessarily only correct sentences, and not distinct sentence texts. It must not be substituted for a count of the CC0 weekly export. Source: https://tatoeba.org/en/stats/sentences_by_language
+
 ## Verified export-selection semantics
 
 Tatoeba's own weekly export SQL creates the CC0 file from the sentence table using `correctness > -1 AND license = 'CC0 1.0'`, exporting `id`, `lang`, `text` and `modified`. This confirms the official file is not the complete sentence table and that rows marked incorrect (`correctness = -1`) are excluded. For a future count, count rows and distinct sentence IDs by language code from this exact export; do not count translation links or infer CC0 availability from the general CC-BY sentence export. Official implementation: https://github.com/Tatoeba/tatoeba2/blob/f2c80b81032630648f7896182174a9f5784ccde2/docs/database/scripts/weekly_exports.sql
