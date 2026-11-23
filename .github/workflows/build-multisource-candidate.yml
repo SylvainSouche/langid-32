@@ -66,6 +66,8 @@ jobs:
       - name: Acquire waiting sources in the same ephemeral runner
         env:
           HF_HUB_DISABLE_TELEMETRY: "1"
+          HF_HUB_DISABLE_XET: "1"
+          HF_HUB_ENABLE_HF_TRANSFER: "0"
         run: |
           set +e
           failed=0
