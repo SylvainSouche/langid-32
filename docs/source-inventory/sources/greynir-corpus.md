@@ -25,12 +25,26 @@ No privacy/anonymisation restriction is identified in the licence metadata revie
 
 ## Pinned upstream snapshot and audit
 
-The GitHub repository tree was inspected at commit `deb60c4b2775a4e0c709a6890c28678b913f44aa`. Large corpus files are stored using Git LFS; the ten copper files, silver file and two extra files appear as LFS pointers in the Git tree, so ordinary Git blob sizes are not the corpus sizes. The audit workflow hydrates the LFS objects and counts actual `((META` tree-record openers in each decompressed gzip file, with SHA-256 checksums and decompressed byte counts.
+The GitHub repository tree was inspected at commit `deb60c4b2775a4e0c709a6890c28678b913f44aa`. Large corpus files are stored using Git LFS; the ten copper files, silver file and two extra files appear as LFS pointers in the Git tree, so ordinary Git blob sizes are not the corpus sizes. The audit workflow hydrates the LFS objects and counts the unique `(ID-CORPUS` metadata field in every decompressed gzip/plain treebank file, with SHA-256 checksums and decompressed byte counts.
 
 - Audit script: `scripts/audit_greynir_corpus.py`
 - Workflow: `.github/workflows/audit-greynir-corpus.yml`
 - Target revision: `deb60c4b2775a4e0c709a6890c28678b913f44aa`
-- Audit result: pending
+- Successful audit: [GitHub Actions run 45222071098](https://github.com/SylvainSouche/langid-32/actions/runs/45222071098)
+- Audit artifact contains per-file compressed SHA-256 values.
+
+Actual content-level record counts at the pinned revision:
+
+| Partition | Files | Counted records | Provider README | Difference |
+|---|---:|---:|---:|---:|
+| Copper | 10 | 10,000,000 | 10,000,000 | 0 |
+| Silver | 1 | 603,659 | ~600,000 | +3,659 |
+| Extra headings | 1 | 531,853 | 531,855 | -2 |
+| Extra short | 1 | 1,652,932 | 1,652,938 | -6 |
+| Gold development | 450 | 4,500 | 4,500 | 0 |
+| Gold test | 50 | 500 | 500 | 0 |
+
+The record counter is the `(ID-CORPUS` field, which occurs once per treebank record. The copper files each contain exactly 1,000,000 records. Compressed corpus files total 2,306,435,162 bytes; their decompressed content totals 15,880,133,543 bytes. The eight-record difference in the extra corpora is tiny but retained rather than silently rounded away. Silver and extra are separate partitions; no cross-partition text deduplication has been performed, so these figures must not be summed into a unique-sentence total.
 
 The copper/silver/extra partitions are reported separately. Do not add their counts to claim unique sentences until cross-partition text-level deduplication is performed.
 
