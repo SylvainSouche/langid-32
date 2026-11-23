@@ -17,7 +17,7 @@ TSV sentence-level, TSV paragraph-level, JSONL document-level parallel data.
 
 ## Distribution conditions and rights
 
-Check dataset card and underlying notices file by file. Project holds pending source/article rights confirmation.
+Dataset card declares CC BY 4.0 for the corpus. However, its source section describes distinct underlying bases: DOGC material as CC0; public-administration documents under the Catalan open-data licence (described by the provider as equivalent to CC0); and APDCAT documents collected under a data-sharing agreement. The card also warns that personal and sensitive information may be present and prohibits re-identification. Do not flatten this provenance into one assumed source licence: retain subcorpus/source identifiers and review the APDCAT agreement and privacy risk before reuse or redistribution.
 
 ## Content and language coverage
 
@@ -25,7 +25,7 @@ Authentic bilingual legal text: ~5.4M sentence pairs, ~13k paragraphs, 450 APDCA
 
 ## Verified upstream availability (independent of project acquisition)
 
-The dataset card reports approximately 5.4 million sentence pairs in `dogc_ca-es.tsv`, approximately 13,000 paragraph pairs in `legal_ca-es_dataset_clean.tsv`, and 450 parallel APDCAT documents in `apdcat_ca-es.docs.jsonl` (about 170,000 words per language). These are three distinct granularities and must not be summed as if they were all sentences. The 5.4M value is one pair count, represented on both Catalan and Spanish sides; do not add the two sides together when reporting corpus size. The provider describes the texts as authentic and non-synthetic and says the sentence/paragraph datasets were deduplicated. Source: https://huggingface.co/datasets/BSC-LT/Legal_Catalan_Spanish_Parallel_Corpus
+The dataset card (Hub revision not yet pinned) declares CC BY 4.0 and reports approximately 5.4 million sentence pairs in `dogc_ca-es.tsv`, approximately 13,000 paragraph pairs in `legal_ca-es_dataset_clean.tsv`, and 450 parallel APDCAT documents in `apdcat_ca-es.docs.jsonl` (about 170,000 words per language). These are three distinct granularities and must not be summed as if they were all sentences. The 5.4M value is one pair count, represented on both Catalan and Spanish sides; do not add the two sides together when reporting corpus size. The provider describes the texts as authentic and non-synthetic and says the sentence/paragraph datasets were deduplicated. Source: https://huggingface.co/datasets/BSC-LT/Legal_Catalan_Spanish_Parallel_Corpus
 
 ## Current langid-32 acquisition snapshot
 
