@@ -21,7 +21,7 @@ Source mix target: **30% preferred, 50% hard ceiling per source and language**. 
 
 The project voluntarily does not use the Mozilla Data Collective repository or any data hosted there. We consider its contractual practices abusive. This is a project sourcing decision, not a legal finding about any other dataset.
 
-## Corpus status — 18 November 2026
+## Corpus status — 23 November 2026
 
 **Preparation only — not release-ready.**
 
@@ -38,6 +38,22 @@ Measured technical staging currently includes:
 | Legacy v5 candidate | 640,000 | Historical 32-label technical candidate; source balance and rights gates fail |
 
 These are **separate staging artifacts and must not be summed**. They have not all been globally deduplicated against one another. They are not final usable-record counts.
+
+The table above is the **18 November candidate-staging snapshot**. The upstream source audits below were run after that snapshot; their measured source volume is not yet integrated into the waiting-source artifact or the global candidate build.
+
+### Upstream source audits completed or underway on 23 November
+
+- **Catalan:** full TeMU-BSC inventory now measures 605,468 distinct normalized strings across 17 README-identified CC0/CC0-waived constituents, after excluding aggregate copies and permission-only/unresolved files. The BSC legal corpus audit separately measured 5,220,918 DOGC sentence pairs plus smaller paragraph/document collections. The APDCAT data-sharing agreement remains the one specific BSC document to inspect for downstream scope.
+- **Icelandic:** IGC2024 Filtered-1 full scan: 1,848,767 documents and 795.7M local whitespace tokens under CC BY 4.0. Greynir copper/silver/extra were also fully counted; keep gold test/dev material separate.
+- **Norwegian:** Målfrid 2026 full scan: 1,550,489 distinct document IDs across Bokmål and Nynorsk, with 2.06B local whitespace tokens combined. NLOD 2.0 attribution and document-level third-party/personal-data exclusions remain.
+- **Croatian:** MaCoCu-hr 2.0 full structural audit: 8,106,239 documents and 62,797,162 paragraphs; CLARIN.SI declares CC0. Paragraph quality, fluency and sensitive-information flags must be retained.
+- **Slovenian:** MaCoCu-sl 2.0 audit is retrying after a CLARIN connection timeout. ParlaMint 4.0 is being audited for Icelandic, Slovenian and Turkish.
+- **Irish:** Gaois legislation TMX audit: 984,006 Irish segments, 478,948 distinct normalized segments across six files, CC BY 4.0 for the DCU derivative translation memories. This is a legal/administrative register, not general contemporary Irish.
+- **Japanese:** Soranoha v0.2 full plaintext audit: 17,308 works, 232.7M characters and 5.42M punctuation/line-break sentence segments. Works are stated to be public domain in Japan; bibliographic metadata needs CC BY 4.0 attribution.
+- **Korean:** cleaned 2026-07-01 Wikipedia release: 593,006 articles and 17.77M heuristic sentence segments. Its CC BY-SA 4.0/GFDL terms remain a compatibility decision, not a CC BY/CC0 source.
+- **Arabic:** the official UN download route currently redirects to the landing page rather than returning the archive. The HF derivative remains staged with UN acknowledgement/provenance limitations.
+
+These are **upstream audit measures**, not final usable-record counts. They must still pass the global normalization, privacy, language/content, cross-source deduplication, source quota and rights gates before they can affect the 20k core or 10k reserve.
 
 The waiting-source artifact contains useful independent candidates, but some classes remain concentrated in one source and several licences or underlying-text rights remain under review. In particular:
 
