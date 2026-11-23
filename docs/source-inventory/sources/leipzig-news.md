@@ -23,6 +23,48 @@ Underlying news rights and package terms are corpus/release dependent. Download 
 
 News texts in many languages; project stages 3,000 for 33 target languages, no Nynorsk news sample.
 
+## Verified upstream catalogue availability (independent of project acquisition)
+
+The Leipzig Corpora Collection catalogue has been checked at the per-language corpus pages, not inferred from the project's 3,000-row downloads. It exposes downloadable sentence packages at 10K, 30K, 100K, 300K and (where offered) 1M tiers, plus an `All` package. The latest catalogue includes News releases through 2024 for some languages; older historical releases remain available for others. Examples verified directly from the provider catalogue:
+
+| Language | News catalogue evidence |
+|---|---|
+| bg | 2020: 1M and All; 2019: 1M and All |
+| hr | 2020: 1M and All |
+| cs | 2022: 1M and All; 2024: 30K and 300K |
+| da | 2021: 1M; 2022: 30K and 100K; earlier All releases |
+| nl | 2024: up to 1M; All on 2023 |
+| en | 2020: 1M and All; 2021: 1M; 2023–2024: 30K |
+| et | 2022: up to 300K; earlier All releases |
+| fi | 2022: 1M and All |
+| fr | 2022: 1M and All; 2023–2024 packages also listed |
+| el | 2024: 1M and All |
+| hu | 2024: 1M and All |
+| ga | No News section in the current Irish catalogue; Wikipedia is listed separately |
+| it | 2023: 1M and All; 2024: 30K and 300K |
+| lv | 2020: up to 300K; older All releases |
+| lt | 2020: 1M and All |
+| mt | 2020: 30K and All |
+| pl | 2024: 1M and All |
+| pt | 2024: 1M and All |
+| ro | 2024: 1M and All |
+| sk | 2020: up to 100K |
+| sl | 2020: 1M and All |
+| es | 2024: 1M and All |
+| sv | 2023: 1M and All |
+| nb | Historical News packages include 1M; latest page also lists web corpora separately |
+| nn | No News section; Web and Wikipedia corpora are listed |
+| ru | 2024: 1M and All |
+| ja | Historical News packages include 1M |
+| zh | No News section in the Mandarin Chinese catalogue; Wikipedia is listed separately |
+| ko | 2022: 1M and All |
+| ar | Multiple historical News releases include 1M and All |
+| tr | 2024: 1M and All |
+| ca | Recent News releases include All packages; 2022 includes up to 300K |
+| is | 2020: up to 30K; Web corpora separately reach 1M |
+
+These are catalogue package tiers, not counts of the complete `All` corpora and not a sum across releases. The fixed-size tiers are samples, so they must not be summed together. The `All` package is the full corpus for that release. The exact row counts for `All` archives still need to be obtained from the archive manifests or `*_sentences.txt` files. The provider's file-format note confirms that `*_sentences.txt` contains all sentences in the downloaded corpus. Sources: https://cls.wortschatz-leipzig.de/en and https://wortschatz.informatik.uni-leipzig.de/public/documents/Format_Download_File-eng.pdf
+
 ## Current langid-32 acquisition snapshot
 
 3,000/language is our sample, not the complete Leipzig corpus.
@@ -69,7 +111,7 @@ News texts in many languages; project stages 3,000 for 33 target languages, no N
 
 ## Remaining checks
 
-- Pin exact upstream release/version, retrieval date and immutable identifier.
-- Count full upstream records by language in the source's native unit, independently of project sampling.
-- Record raw, eligible-after-source-filters and project-selected counts separately.
-- Verify file-level rights and redistribution conditions before public release.
+- Select and pin one consistent release strategy per language (prefer the newest usable News release; retain older `All` corpora when they are the only full-size option).
+- Download each `All` archive and count lines in its `*_sentences.txt`; fixed-size 10K–1M packages are not full capacity.
+- Record archive checksums, release dates and exact line counts; never add overlapping releases or size tiers.
+- Verify package-specific terms and underlying news rights.
