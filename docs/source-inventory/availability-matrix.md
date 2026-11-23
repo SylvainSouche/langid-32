@@ -16,7 +16,7 @@ This source-capacity matrix is separate from the historical acquisition matrix i
 
 ## Matrix
 
-Counts shown below are native upstream units until sentence-level candidate counts have been computed. Common Voice has provider-reported validated-sentence counts transcribed for all 34 target languages; Croatian is absent from this release; DGT and FineWeb-2 have provider-reported per-language counts; FineWeb English has a dataset-viewer row count; TeMU-BSC has ~649,915 reported raw CC0 sentence rows for Catalan across identified files/groups, before cross-file deduplication. FineWeb-2 counts now sum provider filtered train, filtered test and removed train documents after global deduplication; they are documents, not sentences. English is distributed separately in FineWeb. Other cells remain explicitly unmeasured rather than repeating old project caps.
+Counts shown below are native upstream units until sentence-level candidate counts have been computed. Common Voice coverage has been checked for all 34 target languages: 33 locale counts are available, while Croatian is absent from this release; DGT and FineWeb-2 have provider-reported per-language counts; FineWeb English has an approximate dataset-viewer row count; TeMU-BSC has ~649,915 reported raw CC0 sentence rows for Catalan across identified files/groups, before cross-file deduplication. FineWeb-2 counts now sum provider filtered train, filtered test and removed train documents after global deduplication; they are documents, not sentences. English is distributed separately in FineWeb. Other cells remain explicitly unmeasured rather than repeating old project caps.
 
 | Language | Common Voice 22 | DGT-TM 2021 (TUs) | FineWeb-2 (all deduped documents) | Leipzig News | Leipzig Wikipedia | Tatoeba CC0 | FineWeb English (records) | Målfrid 2026 (tokens) | Icelandic Gigaword 2024 (words) | GreynirCorpus (sentences) | Korean Wikipedia (articles) | BSC Legal (sentence pairs) | TeMU-BSC CC0 | MultiUN | UNPC | UN Arabic-English Filtered* |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
@@ -25,7 +25,7 @@ Counts shown below are native upstream units until sentence-level candidate coun
 | cs | 451,100 | 6,410,466 | 239,100,701 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
 | da | 20,779 | 5,935,254 | 148,211,420 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
 | nl | 259,729 | 5,873,514 | 456,247,913 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
-| en | 1,680,014 | 8,624,934 | — | TBD | TBD | TBD | 25,900,000,000 | 570,099,658 | — | — | — | — | — | TBD | TBD | TBD |
+| en | 1,680,014 | 8,624,934 | — | TBD | TBD | TBD | ~25,900,000,000 | 570,099,658 | — | — | — | — | — | TBD | TBD | TBD |
 | et | 10,910 | 6,450,667 | 39,552,577 | TBD | TBD | — | — | — | — | — | — | — | — | — | — | — |
 | fi | 5,848 | 5,933,745 | 115,719,855 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
 | fr | 1,648,822 | 6,397,822 | 956,947,801 | TBD | TBD | TBD | — | — | — | — | — | — | — | TBD | TBD | — |
@@ -49,11 +49,11 @@ Counts shown below are native upstream units until sentence-level candidate coun
 | ru | 47,819 | — | 2,018,681,664 | TBD | TBD | TBD | — | — | — | — | — | — | — | TBD | TBD | — |
 | ja | 37,288 | — | 1,274,369,743 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
 | zh | 78,686 | — | 1,485,809,411 | TBD | TBD | TBD | — | — | — | — | — | — | — | TBD | TBD | — |
-| ko | 7,322 | — | 197,842,127 | TBD | TBD | — | — | — | — | — | 647.9K | — | — | — | — | — |
+| ko | 7,322 | — | 197,842,127 | TBD | TBD | — | — | — | — | — | 647,897 | — | — | — | — | — |
 | ar | 59,434 | — | 154,130,106 | TBD | TBD | TBD | — | — | — | — | — | — | — | TBD | TBD | TBD |
 | tr | 410,398 | — | 260,547,567 | TBD | TBD | — | — | — | — | — | — | — | — | — | — | — |
 | ca | 1,302,361 | — | 45,018,757 | TBD | TBD | TBD | — | — | — | — | — | ~5,400,000 sentence pairs | ~649,915 reported CC0 sentence rows (pre-dedup) | — | — | — |
-| is | 4,993 | — | 8,349,376 | TBD | TBD | — | — | — | 794,816,184 | 10,000,000 | — | — | — | — | — | — |
+| is | 4,993 | — | 8,349,376 | TBD | TBD | — | — | — | 794,816,184 | ~10,000,000 | — | — | — | — | — | — |
 
 * The Arabic-English filtered derivative combines MultiUN and UNPC. Its pair count must not be added to either upstream source, nor counted as independent unique material.
 
@@ -101,7 +101,7 @@ The current official download page confirms that the CC0 export is a distinct su
 
 ### FineWeb English
 
-The Hugging Face dataset page exposes 25.9 billion rows for the default FineWeb dataset and describes more than 18.5 trillion tokens. The row figure is retained as the provider's native record count; it is not a sentence count. Source: https://huggingface.co/datasets/HuggingFaceFW/fineweb
+The Hugging Face dataset page displays approximately 25.9 billion rows for the default FineWeb dataset and describes more than 18.5 trillion tokens. The row figure is retained as the provider's native record count; it is not a sentence count. Source: https://huggingface.co/datasets/HuggingFaceFW/fineweb
 
 ### TeMU-BSC Catalan CC0
 
