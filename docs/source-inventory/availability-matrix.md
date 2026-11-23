@@ -53,7 +53,7 @@ Counts shown below are native upstream units until sentence-level candidate coun
 | ar | 59,434 | — | 154,130,106 | TBD | TBD | TBD | 68,968 | — | — | — | — | — | — | TBD | TBD | TBD |
 | tr | 410,398 | — | 260,547,567 | TBD | TBD | — | 750,704 | — | — | — | — | — | — | — | — | — | — |
 | ca | 1,302,361 | — | 45,018,757 | TBD | TBD | TBD | 11,016 | — | — | — | — | — | ~5,400,000 sentence pairs | 585,370 normalized text strings (audited; mixed natural/template) | — | — | — |
-| is | 4,993 | — | 8,349,376 | TBD | TBD | — | 13,396 | — | — | 794,816,184 | ~10,000,000 | — | — | — | — | — | — |
+| is | 4,993 | — | 8,349,376 | TBD | TBD | — | 13,396 | — | — | 794,816,184 | 10,000,000 copper | — | — | — | — | — | — |
 
 * The Arabic-English filtered derivative combines MultiUN and UNPC. Its pair count must not be added to either upstream source, nor counted as independent unique material.
 
