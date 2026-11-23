@@ -51,9 +51,9 @@ The Git tree at `30f19bbfaca7b8abdd195c4687c1a992bde4f63f` exposes additional fi
 - `new_catalan_cc0_corpus.txt` and `aggregated_files/new_catalan_cc0_corpus.txt` have the same Git blob SHA (`d596068e2fd8bb50dda673ae0eecacd195717c26`): one aggregate, not two.
 - `marius_serra_sentences.txt` and `marius_serra_sentences_1.txt` have the same Git blob SHA (`30c0eec627084b4f775459975b89fe71f44c17eb`): one file, and it remains in the separate author-permission category rather than the CC0 subtotal.
 - The README's XitXat aggregate is physically stored as `aggregated_files/xitxat_and_toponyms.txt`; the source inventory now uses the actual path.
-- `catalan_government_crawling_frases_seleccionades_filtrades_sorted.txt` is a second sorted variant of the government-crawl file. It is excluded from the subtotal pending a content-level duplicate check.
-- Additional `gencat_*.txt` files occur in the Git tree but are not described in the README's source/rights inventory; they remain excluded pending provenance and licence evidence.
-- `translated_wiki.es-ca.txt`, Marius Serra and Joan Pujolar contributions remain outside the CC0 subtotal because their rights basis is distinct or not sufficiently documented as CC0.
+- `catalan_government_crawling_frases_seleccionades_filtrades_sorted.txt` is a sorted variant of the government-crawl file. The file-level audit found the same 93,612 normalized distinct lines as the original, with zero sorted-only or original-only lines; it adds no new text.
+- Six additional `gencat_*.txt` files occur in the Git tree but are not described in the README's source/rights inventory. The audit counted 11,680 non-empty rows and 11,655 normalized distinct lines across them; they remain excluded pending provenance and licence evidence.
+- `translated_wiki.es-ca.txt` contains 49,990 non-empty rows and 49,973 normalized distinct lines; it remains outside the CC0 subtotal because it is a translated Wikipedia derivative with a separate rights chain. Marius Serra and Joan Pujolar contributions also remain outside the CC0 subtotal because their rights basis is distinct or not sufficiently documented as CC0.
 
 This tree inspection does not change the 649,915 raw-row subtotal. It identifies duplicate paths and unresolved files that the next content-level audit must handle explicitly.
 
