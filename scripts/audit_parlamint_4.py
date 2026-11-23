@@ -68,7 +68,7 @@ def main():
                     if not member.isfile(): continue
                     member_count+=1; uncompressed+=member.size
                     lower=member.name.lower()
-                    if lower.endswith(".xml") and "listperson" not in lower and "listorg" not in lower and "taxonomy" not in lower:
+                    if lower.endswith(".xml") and "listperson" not in lower and "listorg" not in lower and "taxonomy" not in lower and not lower.endswith(".ana.xml"):
                         f=tf.extractfile(member)
                         if f is None: continue
                         before=st["utterances"]
