@@ -40,20 +40,28 @@ def main():
                         out.write(b); h.update(b)
             x.close()
             tags=Counter(); lang_tags=Counter(); speech=Counter(); speech_chars=Counter(); speech_tokens=Counter()
-            stack=[]
+            stack=[]; speech_stack=[]
             for event,el in ET.iterparse(path,events=("start","end")):
+                tag=el.tag.rsplit("}",1)[-1]
                 if event=="start":
                     lang=el.attrib.get(XML_LANG,stack[-1] if stack else "")
                     stack.append(lang)
                     if lang: lang_tags[lang]+=1
-                    tags[el.tag.rsplit("}",1)[-1]]+=1
-                else:
-                    lang=stack[-1] if stack else ""
-                    tag=el.tag.rsplit("}",1)[-1]
+                    tags[tag]+=1
                     if tag.lower()=="speech":
+                        speech_stack.append({"lang":lang,"parts":[]})
+                else:
+                    if speech_stack:
+                        if el.text and el.text.strip():
+                            speech_stack[-1]["parts"].append(el.text)
+                        if tag.lower()!="speech" and el.tail and el.tail.strip():
+                            speech_stack[-1]["parts"].append(el.tail)
+                    if tag.lower()=="speech" and speech_stack:
+                        frame=speech_stack.pop()
+                        lang=frame["lang"]
                         speech[lang]+=1
                         if lang=="ga":
-                            text=" ".join(t for t in el.itertext() if t and t.strip())
+                            text=" ".join(frame["parts"])
                             speech_chars["ga"]+=len(text)
                             speech_tokens["ga"]+=len(text.split())
                     if stack: stack.pop()
