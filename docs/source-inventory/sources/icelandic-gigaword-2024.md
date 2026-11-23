@@ -42,4 +42,8 @@ The CLARIN-IS record for this exact Filtered-1 artifact (handle 381) reports **7
 - Pin exact upstream release/version, retrieval date and immutable identifier.
 - Count full upstream records by language in the source's native unit, independently of project sampling.
 - Record raw, eligible-after-source-filters and project-selected counts separately.
-- Verify file-level rights and redistribution conditions before public release.
+- Verify file-level rights and redistribution conditions before public release.## Provider-reported archive metadata
+
+The CLARIN-IS record identifies the exact artifact as a 2.01 GB ZIP (MD5 `ca61ea2bfdd5c3555d7fd7f039610255`), issued 2026-03-30 and licensed CC BY 4.0. Its contents include `igc2024-1-filtered-train.jsonl` (listed as 5 GB uncompressed) and `igc2024-1-filtered-val.jsonl` (54 MB). The repository reports the combined corpus size as 794,816,184 words but does not report JSONL line/document totals. A reproducible full-document count still requires streaming both JSONL files and counting records; archive byte sizes are not a substitute. Source: https://repository.clarin.is/repository/xmlui/handle/20.500.12537/381
+
+
