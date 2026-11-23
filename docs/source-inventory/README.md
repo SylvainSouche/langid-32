@@ -87,6 +87,7 @@ Full upstream availability remains unknown for most sources. Words, tokens or do
 - [BSC Legal Catalan–Spanish Parallel Corpus](sources/bsc-legal-catalan-spanish.md)
 - [TeMU-BSC — Catalan CC0 collection](sources/temu-catalan-cc0.md)
 - [MultiUN — multilingual UN documents](sources/multiun.md)
+- [United Nations Parallel Corpus (UNPC)](sources/unpc.md)
 - [UN Arabic-English Filtered — combined derivative](sources/un-arabic-english-filtered.md)
 - [GreynirCorpus 1.1 — excluded](sources/greynir-corpus.md)
 
@@ -143,7 +144,7 @@ Counts are reconstructed from candidate manifest field preselection.bucket_rows_
 - TeMU-BSC: verify each file's waiver and source terms; repository name does not establish blanket CC0 status.
 - MultiUN: separate multilingual source entry; published corpus-scale statistics indicate substantial availability in six official UN languages plus a smaller German component. The paper documents its public-domain rationale under ST/AI/189/Add.9/Rev.2; retain UN attribution and verify exceptions. Current direct project acquisition: zero.
 - UN Arabic-English Filtered: combined MultiUN + UNPC derivative; 19,296,911 aligned pairs reported by the HF dataset viewer, but this is not an upstream count for either source. Keep the derivative separate and avoid double-counting.
-- GreynirCorpus: excluded by current project rule; zero staged records.
+- GreynirCorpus: upstream corpus contains 10 million Icelandic sentences and is publicly available under CC BY 4.0; project use/approval remains a separate decision.
 
 ## Remaining work in this inventory stage
 
