@@ -23,6 +23,19 @@ HF card declares CC0-1.0 for this conversion. Do not conflate with other release
 
 Crowd-contributed read prompts/transcripts; project locale map supports target languages except Croatian; zh-CN and zh-TW combined.
 
+## Verified upstream availability (independent of project acquisition)
+
+The pinned Hugging Face conversion includes `release_stats.py`, with provider-reported per-locale `validatedSentences` counts. The following have been transcribed and mapped to project language labels so far:
+
+| Language | Locale | Validated sentences |
+|---|---|---:|
+| cs | cs | 451,100 |
+| en | en | 1,680,014 |
+| fr | fr | 1,648,822 |
+| ga | ga-IE | 1,675 |
+
+These are sentence counts, not audio-clip counts or project-selected records. The complete per-locale table is not yet transcribed; all other target-language cells remain unmeasured, not zero. Source file at pinned revision: https://huggingface.co/datasets/fsicoli/common_voice_22_0/blob/0ca7c0e9cf2c25897c13aa73c54003d8d6d1cf28/release_stats.py
+
 ## Current langid-32 acquisition snapshot
 
 9,000/language hard curator cap, followed by text/privacy filtering and deduplication. These are our sample counts, not upstream totals.
@@ -69,7 +82,7 @@ Crowd-contributed read prompts/transcripts; project locale map supports target l
 
 ## Remaining checks
 
-- Pin exact upstream release/version, retrieval date and immutable identifier.
-- Count full upstream records by language in the source's native unit, independently of project sampling.
-- Record raw, eligible-after-source-filters and project-selected counts separately.
-- Verify file-level rights and redistribution conditions before public release.
+- Extract all remaining target locales from the pinned `release_stats.py` and verify locale-to-language mapping, including zh-CN/zh-TW and nb/nn variants.
+- Reconcile provider `validatedSentences` counts with actual sentence TSVs at the same immutable revision.
+- Keep provider counts, downloaded rows, project-filtered candidates and globally deduplicated sentences separate.
+- Reconfirm the CC0 declaration applies to this text-only conversion and retain its revision/hash.
