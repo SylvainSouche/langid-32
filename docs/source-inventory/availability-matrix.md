@@ -16,23 +16,23 @@ This source-capacity matrix is separate from the historical acquisition matrix i
 
 ## Matrix
 
-Counts shown below are native upstream units until sentence-level candidate counts have been computed. DGT and FineWeb-2 have provider-reported per-language counts; FineWeb English has a dataset-viewer row count; TeMU-BSC has a conservative, file-level minimum for Catalan. FineWeb-2 counts are filtered document counts, not sentence counts; English is distributed separately in FineWeb. Other cells remain explicitly unmeasured rather than repeating old project caps.
+Counts shown below are native upstream units until sentence-level candidate counts have been computed. Common Voice has provider-reported validated-sentence counts for Czech, English, French and Irish transcribed so far; DGT and FineWeb-2 have provider-reported per-language counts; FineWeb English has a dataset-viewer row count; TeMU-BSC has a conservative, file-level minimum for Catalan. FineWeb-2 counts are filtered document counts, not sentence counts; English is distributed separately in FineWeb. Other cells remain explicitly unmeasured rather than repeating old project caps.
 
 | Language | Common Voice 22 | DGT-TM 2021 (TUs) | FineWeb-2 (documents) | Leipzig News | Leipzig Wikipedia | Tatoeba CC0 | FineWeb English (records) | Målfrid 2026 (tokens) | Icelandic Gigaword 2024 (words) | Korean Wikipedia (articles) | BSC Legal (sentence pairs) | TeMU-BSC CC0 | MultiUN | UNPC | UN Arabic-English Filtered* |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | bg | TBD | 4,602,085 | 25,994,731 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — |
 | hr | TBD | 2,554,319 | 6,195,824 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — |
-| cs | TBD | 6,410,466 | 66,067,904 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — |
+| cs | 451,100 | 6,410,466 | 66,067,904 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — |
 | da | TBD | 5,935,254 | 45,391,655 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — |
 | nl | TBD | 5,873,514 | 147,301,270 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — |
-| en | TBD | 8,624,934 | TBD | TBD | TBD | TBD | 25,900,000,000 | 570,099,658 | — | — | — | — | TBD | TBD | TBD |
+| en | 1,680,014 | 8,624,934 | TBD | TBD | TBD | TBD | 25,900,000,000 | 570,099,658 | — | — | — | — | TBD | TBD | TBD |
 | et | TBD | 6,450,667 | 10,218,587 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — |
 | fi | TBD | 5,933,745 | 36,710,816 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — |
-| fr | TBD | 6,397,822 | 360,058,973 | TBD | TBD | TBD | — | — | — | — | — | — | TBD | TBD | — |
+| fr | 1,648,822 | 6,397,822 | 360,058,973 | TBD | TBD | TBD | — | — | — | — | — | — | TBD | TBD | — |
 | de | TBD | 5,958,872 | 495,964,485 | TBD | TBD | TBD | — | — | — | — | — | — | TBD (small) | — | — |
 | el | TBD | 5,782,498 | 47,421,073 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — |
 | hu | TBD | 6,559,000 | 49,935,986 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — |
-| ga | TBD | 235,384 | TBD | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — |
+| ga | 1,675 | 235,384 | TBD | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — |
 | it | TBD | 5,967,350 | 238,984,437 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — |
 | lv | TBD | 6,504,918 | 8,030,316 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — |
 | lt | TBD | 6,501,706 | 13,471,965 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — |
@@ -59,6 +59,10 @@ Counts shown below are native upstream units until sentence-level candidate coun
 
 ## First verified provider counts
 
+### Common Voice 22.0
+
+The pinned Hugging Face conversion exposes the release's `release_stats.py`, whose per-locale `validatedSentences` field is a provider-reported sentence count. Values transcribed and mapped here so far: Czech (`cs`) 451,100; English (`en`) 1,680,014; French (`fr`) 1,648,822; Irish (`ga-IE`, mapped to `ga`) 1,675. This is not the project acquisition cap or a count of audio clips. Remaining target locales still require extraction from the same file. Source: https://huggingface.co/datasets/fsicoli/common_voice_22_0/blob/0ca7c0e9cf2c25897c13aa73c54003d8d6d1cf28/release_stats.py
+
 ### DGT-TM 2021
 
 The JRC's official statistics file reports cumulative TUs through DGT-TM 2020 (the release distributed as DGT-TM 2021), including the DGT-TM 2007 baseline. The language-level values are reproduced in [sources/dgt-tm-2021.md](sources/dgt-tm-2021.md). The source's TU definition explicitly permits sentence fragments; the figures are not sentence counts.
@@ -81,7 +85,7 @@ The National Library of Norway reports provider token counts: Bokmål 1,890,232,
 
 ## Next source-counting passes
 
-1. Common Voice 22: read the release's per-locale validatedSentences statistics; do not use the project's 9,000 cap.
+1. Common Voice 22: provider `validatedSentences` figures have now been transcribed for cs, en, fr and ga; extract and verify all remaining target locales. Do not use the project's 9,000 cap.
 2. FineWeb-2: filtered document counts have been transcribed for 30 target languages. Complete the missing Gaelic, Nynorsk and Maltese mapping; record removed-subset counts and word counts too. FineWeb English has 25.9B provider rows recorded separately.
 3. Leipzig News and Wikipedia: enumerate downloadable package manifests for every target language and count sentence rows in the actual archives.
 4. Tatoeba: count the CC0 export by language code; distinguish CC0-only from the larger CC-BY export.
