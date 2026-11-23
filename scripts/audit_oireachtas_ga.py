@@ -39,7 +39,7 @@ def main():
                         if size>100*1024*1024: raise RuntimeError("XML exceeds 100 MiB pilot limit")
                         out.write(b); h.update(b)
             x.close()
-            tags=Counter(); lang_tags=Counter(); speech=Counter(); speech_chars=Counter(); speech_tokens=Counter(); attribute_names=Counter(); language_attr_values=Counter()
+            tags=Counter(); lang_tags=Counter(); speech=Counter(); speech_chars=Counter(); speech_tokens=Counter(); attribute_names=Counter(); language_attr_values=Counter(); frbr_languages=[]
             stack=[]; speech_stack=[]
             for event,el in ET.iterparse(path,events=("start","end")):
                 tag=el.tag.rsplit("}",1)[-1]
@@ -54,6 +54,8 @@ def main():
                             language_attr_values[value]+=1
                     if tag.lower()=="speech":
                         speech_stack.append({"lang":lang,"parts":[]})
+                    if tag=="FRBRlanguage":
+                        frbr_languages.append({"text":el.text or "", "attributes":dict(el.attrib)})
                 else:
                     if speech_stack:
                         if el.text and el.text.strip():
@@ -72,7 +74,7 @@ def main():
                     el.clear()
             report["xml_documents"].append({"uri":uri,"bytes":size,"sha256":h.hexdigest(),
                 "element_tags":dict(tags.most_common(30)),"attribute_names":dict(attribute_names),
-                "language_attribute_values":dict(language_attr_values),
+                "language_attribute_values":dict(language_attr_values),"frbr_language_metadata":frbr_languages,
                 "xml_lang_inherited_element_counts":dict(lang_tags),
                 "speech_elements_by_language":dict(speech),"ga_speech_characters":speech_chars.get("ga",0),
                 "ga_speech_whitespace_tokens":speech_tokens.get("ga",0)})
