@@ -67,9 +67,9 @@ def main():
                             language_attr_values[value]+=1
                     if tag.lower()=="speech":
                         speech_stack.append({"lang":lang,"parts":[]})
+                else:
                     if tag=="FRBRlanguage":
                         frbr_languages.append({"text":el.text or "", "attributes":dict(el.attrib)})
-                else:
                     if speech_stack:
                         if el.text and el.text.strip():
                             speech_stack[-1]["parts"].append(el.text)
