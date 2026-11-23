@@ -27,45 +27,47 @@ Multilingual web crawl; card describes 96 snapshots, ~20 TB, 5B documents, >3T w
 
 The provider publishes per-language/script counts for its filtered subsets. The target-language document counts transcribed from that table are maintained in [the upstream availability matrix](../availability-matrix.md). They are provider document counts, **not sentence counts**. The dataset also publishes removed subsets separately; the filtered and removed subsets together represent the full globally deduplicated data for each language. English is intentionally distributed in the separate FineWeb dataset.
 
-## Provider-reported filtered-subset counts
+## Full per-language upstream document counts
 
-The current dataset card's **Languages and available subsets** table reports both word-tokenizer counts and document counts for the largest language-script subsets. The following target-language rows were transcribed from that table. These are the provider's *filtered* subset figures only; the card says the corresponding _removed subset must be added to recover the full globally deduplicated pool. The word counts are not model-tokenizer counts and are not sentence counts.
+The provider's complete fineweb2-language-distribution.csv (GitHub blob SHA 24e400385ad45ebf477bb2dc49e502d9af8a4fd5) has one row per language-script subset and split. This table aggregates all scripts mapped to each target language. **Total available documents** = filtered train + filtered test + removed train. The provider states that filtered plus removed reconstructs the full globally deduplicated language pool. The removed rows do not report word counts; therefore the word column below covers only filtered train + test. These remain document/word measures, never sentence counts.
 
-| Target language | Provider subset | Words | Documents |
-|---|---|---:|---:|
-| bg | bul_Cyrl | 16,074,326,712 | 25,994,731 |
-| hr | hrv_Latn | 6,609,299,440 | 6,195,824 |
-| cs | ces_Latn | 35,479,428,809 | 66,067,904 |
-| da | dan_Latn | 28,055,948,840 | 45,391,655 |
-| nl | nld_Latn | 74,634,633,118 | 147,301,270 |
-| et | ekk_Latn | 6,564,292,000 | 10,218,587 |
-| fi | fin_Latn | 20,343,096,672 | 36,710,816 |
-| fr | fra_Latn | 220,662,584,640 | 360,058,973 |
-| de | deu_Latn | 262,271,052,199 | 495,964,485 |
-| el | ell_Grek | 22,827,957,288 | 47,421,073 |
-| hu | hun_Latn | 30,919,839,164 | 49,935,986 |
-| it | ita_Latn | 139,116,026,491 | 238,984,437 |
-| lv | lvs_Latn | 5,371,151,279 | 8,030,316 |
-| lt | lit_Latn | 9,132,828,961 | 13,471,965 |
-| pl | pol_Latn | 73,119,437,217 | 151,966,724 |
-| pt | por_Latn | 109,536,087,117 | 199,737,979 |
-| ro | ron_Latn | 35,017,893,659 | 58,303,671 |
-| sk | slk_Latn | 14,808,010,769 | 29,991,521 |
-| sl | slv_Latn | 7,688,373,264 | 12,059,130 |
-| es | spa_Latn | 261,523,749,595 | 441,287,261 |
-| sv | swe_Latn | 35,745,969,364 | 59,485,306 |
-| nb | nob_Latn | 32,008,904,934 | 38,144,343 |
-| nn | nno_Latn | 522,740,774 | 1,214,870 |
-| ru | rus_Cyrl | 588,579,493,780 | 699,083,579 |
-| ja | jpn_Jpan | 331,144,301,801 | 400,138,563 |
-| zh | cmn_Hani | 543,543,038,750 | 636,058,984 |
-| ko | kor_Hang | 48,613,120,582 | 60,874,355 |
-| ar | arb_Arab | 32,812,858,120 | 61,977,525 |
-| tr | tur_Latn | 41,933,799,420 | 95,129,129 |
-| ca | cat_Latn | 8,348,091,726 | 17,136,414 |
-| is | isl_Latn | 1,696,354,360 | 3,014,429 |
+| Language | Filtered train documents | Filtered test documents | Removed train documents | Total available documents | Filtered words (train + test) |
+|---|---:|---:|---:|---:|---:|
+| bg | 25,994,731 | 36,933 | 41,123,060 | 67,154,724 | 16,097,217,729 |
+| hr | 6,195,824 | 9,248 | 54,157,365 | 60,362,437 | 6,619,122,430 |
+| cs | 66,067,904 | 28,051 | 173,004,746 | 239,100,701 | 35,494,489,638 |
+| da | 45,391,655 | 27,945 | 102,791,820 | 148,211,420 | 28,073,298,751 |
+| nl | 147,301,270 | 33,283 | 308,913,360 | 456,247,913 | 74,651,199,348 |
+| et | 10,218,587 | 25,786 | 29,308,204 | 39,552,577 | 6,580,544,367 |
+| fi | 36,710,816 | 30,398 | 78,978,641 | 115,719,855 | 20,359,774,956 |
+| fr | 360,058,973 | 44,245 | 596,844,583 | 956,947,801 | 220,689,378,295 |
+| de | 495,964,485 | 65,176 | 558,814,393 | 1,054,844,054 | 262,305,627,266 |
+| el | 47,421,073 | 32,936 | 97,358,213 | 144,812,222 | 22,844,004,778 |
+| hu | 49,935,986 | 34,779 | 92,953,013 | 142,923,778 | 30,941,313,384 |
+| ga | 646,842 | 6,881 | 2,058,553 | 2,712,276 | 419,596,485 |
+| it | 238,984,437 | 41,029 | 301,144,649 | 540,170,115 | 139,140,142,697 |
+| lv | 8,030,316 | 22,185 | 26,626,345 | 34,678,846 | 5,386,290,626 |
+| lt | 13,471,965 | 27,694 | 32,411,196 | 45,910,855 | 9,151,439,320 |
+| mt | 489,190 | 5,193 | 9,634,147 | 10,128,530 | 289,642,511 |
+| pl | 151,966,724 | 36,574 | 300,919,585 | 452,922,883 | 73,137,196,876 |
+| pt | 199,737,979 | 33,846 | 417,908,539 | 617,680,364 | 109,554,931,079 |
+| ro | 58,305,577 | 45,800 | 80,246,038 | 138,597,415 | 35,048,022,260 |
+| sk | 29,991,521 | 32,557 | 61,993,626 | 92,017,704 | 14,824,219,235 |
+| sl | 12,059,130 | 32,447 | 24,025,208 | 36,116,785 | 7,709,635,936 |
+| es | 441,287,261 | 40,970 | 638,414,763 | 1,079,742,994 | 261,547,491,469 |
+| sv | 59,485,306 | 24,692 | 152,608,135 | 212,118,133 | 35,760,957,009 |
+| nb | 38,144,343 | 43,396 | 50,578,775 | 88,766,514 | 32,045,225,370 |
+| nn | 1,214,870 | 12,227 | 9,502,099 | 10,729,196 | 528,126,159 |
+| ru | 699,083,579 | 34,714 | 1,319,563,371 | 2,018,681,664 | 588,610,006,686 |
+| ja | 400,138,563 | 25,889 | 874,205,291 | 1,274,369,743 | 331,166,236,817 |
+| zh | 636,058,984 | 33,296 | 849,717,131 | 1,485,809,411 | 543,571,389,611 |
+| ko | 60,874,355 | 30,074 | 136,937,698 | 197,842,127 | 48,637,229,978 |
+| ar | 61,979,490 | 42,095 | 92,108,521 | 154,130,106 | 32,837,139,175 |
+| tr | 95,129,129 | 36,146 | 165,382,292 | 260,547,567 | 41,949,670,257 |
+| ca | 17,136,414 | 37,517 | 27,844,826 | 45,018,757 | 8,366,625,285 |
+| is | 3,014,429 | 32,586 | 5,302,361 | 8,349,376 | 1,714,501,973 |
 
-The card's top-80 table does not contain a target row for Irish (gle) or Maltese (mlt); absence from this truncated table is not proof of zero or lack of a configuration. Their filtered and removed counts still require inspection of the complete provider distribution CSV and repository files. The card also states that English is distributed separately in FineWeb, not FineWeb-2. Source: https://huggingface.co/datasets/HuggingFaceFW/fineweb-2
+English is absent from FineWeb-2 by design and is supplied separately by FineWeb. The Romanian total combines ron_Latn and ron_Cyrl; the Arabic total combines arb_Arab and arb_Latn. The CSV also resolves the formerly unmeasured Irish and Maltese counts. Source: https://github.com/huggingface/fineweb-2/blob/main/fineweb2-language-distribution.csv and https://huggingface.co/datasets/HuggingFaceFW/fineweb-2
 
 ## Current langid-32 acquisition snapshot
 
