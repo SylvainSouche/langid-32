@@ -10,3 +10,5 @@ artifact-upload-fix-2026-11-19
 2026-11-22 correction: the 35k candidate-stage build does not impose source-share caps. Source proportions are enforced only at final selection against the existing 30k core baseline. Arabic UN-derived acquisition is skipped while upstream reuse terms remain unverified. Icelandic Greynir acquisition is skipped while its source-dataset exclusion remains active. Final selection target is 25,000 per language.
 
 2026-11-23: rebuild candidate pool with Gaois Irish legislation TMX source; CC BY 4.0 derivative-only terms, 50k deterministic Irish candidate sample, per-TU provenance and 30% preferred/50% hard source-share policy retained.
+
+2026-11-23 retry: resumable Range download for multi-GB Målfrid archives; disable HF Xet/transfer extensions to avoid Python 3.12 streaming shutdown crash in Korean Wikipedia and FineWeb-2 acquisition.
