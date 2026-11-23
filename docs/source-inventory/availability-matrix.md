@@ -52,7 +52,7 @@ Counts shown below are native upstream units until sentence-level candidate coun
 | ko | 7,322 | — | 197,842,127 | TBD | TBD | — | — | — | — | — | 647.9K | — | — | — | — | — |
 | ar | 59,434 | — | 154,130,106 | TBD | TBD | TBD | — | — | — | — | — | — | — | TBD | TBD | TBD |
 | tr | 410,398 | — | 260,547,567 | TBD | TBD | — | — | — | — | — | — | — | — | — | — | — |
-| ca | 1,302,361 | — | 45,018,757 | TBD | TBD | TBD | — | — | — | — | — | ~5,400,000 sentence pairs | ≥249,681 identified CC0 sentences (partial) | — | — | — |
+| ca | 1,302,361 | — | 45,018,757 | TBD | TBD | TBD | — | — | — | — | — | ~5,400,000 sentence pairs | ~649,915 reported CC0 sentence rows (pre-dedup) | — | — | — |
 | is | 4,993 | — | 8,349,376 | TBD | TBD | — | — | — | 794,816,184 | 10,000,000 | — | — | — | — | — | — |
 
 * The Arabic-English filtered derivative combines MultiUN and UNPC. Its pair count must not be added to either upstream source, nor counted as independent unique material.
