@@ -6,6 +6,8 @@
 
 ## Scope and interpretation
 
+**Important:** the source-capacity inventory is maintained separately in [availability-matrix.md](availability-matrix.md). It counts what providers make available per language, regardless of our historical downloads or sampling caps. The staged-count tables below are historical pipeline diagnostics only and must never be read as upstream availability.
+
 This directory separates source discovery from acquisition and quality selection. Each source has an individual Markdown file documenting creator, origin, access, distribution format, licence/conditions, language coverage and current project counts.
 
 **1,713,852 is the sum of records currently staged by our pipeline, not the number of unique sentences available upstream.** Several values are our own caps: Common Voice 9,000/language; DGT-TM 5,000/language; Leipzig 3,000/language; Målfrid 50,000/language; IGC and Korean Wikipedia 50,000. Other values are partial acquisitions. Sources have mixed units: sentences, translation segments, paragraphs, examples and documents. Duplicates can exist between sources. Do not describe this total as 1,713,852 unique sentences or as full upstream availability.
@@ -144,6 +146,9 @@ Counts are reconstructed from candidate manifest field preselection.bucket_rows_
 - GreynirCorpus: excluded by current project rule; zero staged records.
 
 ## Remaining work in this inventory stage
+
+The independent source-capacity matrix is maintained in [availability-matrix.md](availability-matrix.md). It is being populated source by source from provider manifests and statistics; `TBD` is unknown/not yet measured, never zero. Do not substitute the historical staged counts above.
+
 
 1. Retrieve authoritative upstream catalogues/manifests for every source and record exact release, version, date and stable identifier.
 2. Count full upstream records by language in each source's native unit: sentences, translation units, paragraphs, documents, words or tokens.
