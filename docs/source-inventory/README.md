@@ -84,7 +84,8 @@ Full upstream availability remains unknown for most sources. Words, tokens or do
 - [Korean Wikipedia 2023-11-01](sources/korean-wikipedia.md)
 - [BSC Legal Catalan–Spanish Parallel Corpus](sources/bsc-legal-catalan-spanish.md)
 - [TeMU-BSC — Catalan CC0 collection](sources/temu-catalan-cc0.md)
-- [UN Arabic-English Filtered — evaluated/held](sources/un-arabic-english-filtered.md)
+- [MultiUN — multilingual UN documents](sources/multiun.md)
+- [UN Arabic-English Filtered — combined derivative](sources/un-arabic-english-filtered.md)
 - [GreynirCorpus 1.1 — excluded](sources/greynir-corpus.md)
 
 ## Full language/source matrix — current staged inventory
@@ -138,7 +139,8 @@ Counts are reconstructed from candidate manifest field preselection.bucket_rows_
 - FineWeb English: ODC-By 1.0 plus Common Crawl terms; underlying page rights need review.
 - Tatoeba: only explicit CC0 export counted; general sentences are CC BY 2.0 FR.
 - TeMU-BSC: verify each file's waiver and source terms; repository name does not establish blanket CC0 status.
-- UN Arabic-English: zero selected; held pending upstream UN terms verification.
+- MultiUN: separate multilingual source entry; published corpus-scale statistics indicate substantial availability in six official UN languages plus a smaller German component. The paper documents its public-domain rationale under ST/AI/189/Add.9/Rev.2; retain UN attribution and verify exceptions. Current direct project acquisition: zero.
+- UN Arabic-English Filtered: combined MultiUN + UNPC derivative; 19,296,911 aligned pairs reported by the HF dataset viewer, but this is not an upstream count for either source. Keep the derivative separate and avoid double-counting.
 - GreynirCorpus: excluded by current project rule; zero staged records.
 
 ## Remaining work in this inventory stage
