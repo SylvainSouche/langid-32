@@ -40,29 +40,50 @@ def clean(value, language):
 
 
 def fetch(url, destination):
+    """Download with resumable byte ranges; verify the complete payload hash."""
     last_error = None
-    for attempt in range(4):
-        digest = hashlib.sha256()
-        size = 0
+    expected = 0
+    for attempt in range(12):
         try:
-            request = Request(url, headers={"User-Agent": "langid-32-source-audit/1"})
-            with urlopen(request, timeout=240) as response, destination.open("wb") as output:
-                expected = int(response.headers.get("Content-Length") or 0)
-                while True:
-                    block = response.read(1024 * 1024)
-                    if not block:
-                        break
-                    output.write(block)
-                    digest.update(block)
-                    size += len(block)
+            if not expected:
+                head = Request(url, method="HEAD", headers={"User-Agent": "langid-32-source-audit/1"})
+                try:
+                    with urlopen(head, timeout=60) as response:
+                        expected = int(response.headers.get("Content-Length") or 0)
+                except Exception:
+                    expected = 0
+            offset = destination.stat().st_size if destination.exists() else 0
+            headers = {"User-Agent": "langid-32-source-audit/1"}
+            if offset:
+                headers["Range"] = f"bytes={offset}-"
+            request = Request(url, headers=headers)
+            with urlopen(request, timeout=300) as response:
+                if offset and response.status != 206:
+                    raise IOError(f"server did not honour Range at byte {offset}: HTTP {response.status}")
+                if offset:
+                    content_range = response.headers.get("Content-Range", "")
+                    if not content_range.startswith(f"bytes {offset}-"):
+                        raise IOError(f"unexpected Content-Range {content_range!r} at offset {offset}")
+                elif response.status != 200:
+                    raise IOError(f"unexpected HTTP {response.status}")
+                with destination.open("ab" if offset else "wb") as output:
+                    while True:
+                        block = response.read(1024 * 1024)
+                        if not block:
+                            break
+                        output.write(block)
+            size = destination.stat().st_size
             if expected and size != expected:
                 raise IOError(f"incomplete download: {size}/{expected} bytes")
+            digest = hashlib.sha256()
+            with destination.open("rb") as source:
+                for block in iter(lambda: source.read(8 * 1024 * 1024), b""):
+                    digest.update(block)
             return {"url": url, "bytes": size, "sha256": digest.hexdigest()}
         except Exception as exc:
             last_error = exc
-            destination.unlink(missing_ok=True)
-            if attempt < 3:
-                time.sleep(5 * (attempt + 1))
+            if attempt < 11:
+                time.sleep(min(60, 3 * (attempt + 1)))
     raise last_error
 
 
