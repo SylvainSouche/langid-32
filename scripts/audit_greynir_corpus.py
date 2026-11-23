@@ -58,6 +58,13 @@ def main() -> None:
     for directory in ("devset/psd", "testset/psd"):
         for path in sorted((ROOT / directory).glob("*.gld")):
             gold.append(count_plain(path, directory))
+    expected = {"copper": 10, "silver": 1, "extra": 2}
+    for kind, expected_count in expected.items():
+        actual = sum(1 for x in files if x["kind"] == kind)
+        if actual != expected_count:
+            raise RuntimeError(f"Expected {expected_count} {kind} files after LFS checkout; found {actual}")
+    if not gold:
+        raise RuntimeError("No gold-standard files found; checkout path is probably wrong")
     totals = {}
     for kind in ("copper", "silver", "extra"):
         subset = [x for x in files if x["kind"] == kind]
@@ -83,7 +90,7 @@ def main() -> None:
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(report, ensure_ascii=False, indent=2))
-    if any(x["tree_records_marker_count"] == 0 for x in files):
+    if any(x["tree_records_marker_count"] == 0 for x in files + gold):
         raise SystemExit("A corpus file contained zero tree markers")
 
 if __name__ == "__main__":
