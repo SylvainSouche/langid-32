@@ -52,6 +52,8 @@ def download_resumable(session, url, path):
             current=path.stat().st_size
             if expected and current!=expected:
                 raise IOError(f"Short download: {current}/{expected} bytes")
+            if not expected:
+                break
         except (requests.exceptions.RequestException, IOError) as exc:
             current=path.stat().st_size if path.exists() else 0
             print(f"Transient download error {attempts}/12 for {path.name}: {exc}; retained {current} bytes",flush=True)
