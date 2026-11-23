@@ -1,0 +1,33 @@
+name: Audit GreynirCorpus treebank
+on:
+  push:
+    paths:
+      - "scripts/audit_greynir_corpus.py"
+      - ".github/workflows/audit-greynir-corpus.yml"
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: mideind/GreynirCorpus
+          ref: deb60c4b2775a4e0c709a6890c28678b913f44aa
+          lfs: true
+          path: greynir-corpus
+      - uses: actions/checkout@v4
+        with:
+          path: langid-32
+      - name: Audit hydrated Git LFS corpus files
+        run: |
+          cp langid-32/scripts/audit_greynir_corpus.py .
+          python audit_greynir_corpus.py
+        working-directory: .
+      - name: Upload aggregate audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: greynir-corpus-audit-${{ github.run_id }}
+          path: reports/greynir-corpus-audit.json
+          retention-days: 90
