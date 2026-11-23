@@ -5,6 +5,8 @@ import collections, hashlib, json, os, sqlite3, tempfile, zipfile
 from pathlib import Path
 import xml.etree.ElementTree as ET
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 URL = "https://www.clarin.si/repository/xmlui/bitstream/handle/11356/1795/MaCoCu-sl-2.0.xml.zip?isAllowed=y&sequence=9"
 OUT = Path("reports/macocu-sl-2.0-audit.json")
@@ -25,7 +27,13 @@ def main() -> None:
     try:
         h = hashlib.sha256()
         size = 0
-        with requests.get(URL, stream=True, timeout=(60, 300), headers={"User-Agent": "langid-32-source-audit/1"}) as response:
+        session = requests.Session()
+        retry = Retry(total=8, connect=8, read=8, backoff_factor=3,
+                      status_forcelist=(429, 500, 502, 503, 504),
+                      allowed_methods=frozenset(["GET"]))
+        session.mount("https://", HTTPAdapter(max_retries=retry))
+        with session.get(URL, stream=True, timeout=(120, 600),
+                         headers={"User-Agent": "langid-32-source-audit/1"}) as response:
             response.raise_for_status()
             with path.open("wb") as f:
                 for chunk in response.iter_content(CHUNK):
