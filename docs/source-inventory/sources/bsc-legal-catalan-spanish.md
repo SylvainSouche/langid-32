@@ -17,7 +17,7 @@ TSV sentence-level, TSV paragraph-level, JSONL document-level parallel data.
 
 ## Distribution conditions and rights
 
-Dataset card declares **CC BY 4.0 for the corpus as a whole**. Its source section explains the rights chain: DOGC material is CC0; public-administration documents use the Catalan open-data licence (described by BSC as equivalent to CC0); APDCAT material was obtained under a data-sharing agreement. I see no published licence conflict or additional redistribution restriction that would justify a hold. The APDCAT agreement is provenance for BSC's acquisition, not a separately stated downstream licence in the dataset card. Preserve the source/subcorpus provenance and CC BY attribution.
+Dataset card declares **CC BY 4.0 for the corpus as a whole**. Its source section explains the rights chain: DOGC material is CC0; public-administration documents use the Catalan open-data licence (described by BSC as equivalent to CC0); APDCAT material was obtained under a data-sharing agreement. I see no published licence conflict or additional redistribution restriction that would justify a hold. The APDCAT agreement is provenance for BSC's acquisition, not a separately stated downstream licence in the dataset card. The linked Tràmits Gencat legal notice permits reproduction, distribution, communication and transformation, while requiring source attribution, the last-update date and no distortion of meaning. These are manageable provenance obligations, not a blocker. Preserve BSC attribution, Generalitat/department attribution for the relevant subcorpus, source update dates where supplied, and the CC BY 4.0 URI.
 
 ## Content and language coverage
 
