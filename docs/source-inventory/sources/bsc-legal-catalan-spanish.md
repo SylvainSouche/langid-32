@@ -25,7 +25,7 @@ Authentic bilingual legal text: ~5.4M sentence pairs, ~13k paragraphs, 450 APDCA
 
 ## Verified upstream availability (independent of project acquisition)
 
-The dataset card (Hub revision not yet pinned) declares CC BY 4.0 and reports approximately 5.4 million sentence pairs in `dogc_ca-es.tsv`, approximately 13,000 paragraph pairs in `legal_ca-es_dataset_clean.tsv`, and 450 parallel APDCAT documents in `apdcat_ca-es.docs.jsonl` (about 170,000 words per language). These are three distinct granularities and must not be summed as if they were all sentences. The 5.4M value is one pair count, represented on both Catalan and Spanish sides; do not add the two sides together when reporting corpus size. The provider describes the texts as authentic and non-synthetic and says the sentence/paragraph datasets were deduplicated. Source: https://huggingface.co/datasets/BSC-LT/Legal_Catalan_Spanish_Parallel_Corpus
+The dataset card at Hub revision `5f7eda4` declares CC BY 4.0 and reports approximately 5.4 million sentence pairs in `dogc_ca-es.tsv`, approximately 13,000 paragraph pairs in `legal_ca-es_dataset_clean.tsv`, and 450 parallel APDCAT documents in `apdcat_ca-es.docs.jsonl` (about 170,000 words per language). These are three distinct granularities and must not be summed as if they were all sentences. The 5.4M value is one pair count, represented on both Catalan and Spanish sides; do not add the two sides together when reporting corpus size. The provider describes the texts as authentic and non-synthetic and says the sentence/paragraph datasets were deduplicated. Source: https://huggingface.co/datasets/BSC-LT/Legal_Catalan_Spanish_Parallel_Corpus
 
 ## Current langid-32 acquisition snapshot
 
@@ -39,9 +39,13 @@ The dataset card (Hub revision not yet pinned) declares CC BY 4.0 and reports ap
 
 > These counts describe our staged sample, not upstream capacity. They may reflect our own caps, partial downloads, filtering or selected snapshots. Counts across sources are not necessarily unique. Granularity varies by source.
 
+## Pinned upstream snapshot
+
+The audit targets Hugging Face revision `5f7eda4` (the README update dated 2026-10-19; abbreviated commit identifier surfaced by the Hub). Hub file sizes at that revision are: `dogc_ca-es.tsv` 2,068,213,310 bytes; `legal_ca-es_dataset_clean.tsv` 11,254,086 bytes; `apdcat_ca-es.docs.jsonl` 2,542,379 bytes. The DOGC Xet pointer exposes SHA-256 `6fef096b2ac863650c36898ff503ae0bb4deb30d9a1ce9a06ccecf048b6a1afe`. The audit workflow independently downloads each file and records its actual SHA-256 before parsing. Source snapshot: https://huggingface.co/datasets/BSC-LT/Legal_Catalan_Spanish_Parallel_Corpus/tree/5f7eda4
+
 ## Remaining checks
 
-- Pin exact upstream release/version, retrieval date and immutable identifier.
+- Record exact audit results and retrieval date after the GitHub Actions run completes.
 - Count full upstream records by language in the source's native unit, independently of project sampling.
 - Record raw, eligible-after-source-filters and project-selected counts separately.
 - Verify file-level rights and redistribution conditions before public release.
