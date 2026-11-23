@@ -23,6 +23,14 @@ General sentence export is CC BY 2.0 FR; only subset is CC0 1.0. Project uses CC
 
 Broad community language coverage; CC0 subset is smaller than full Tatoeba.
 
+## Verified upstream availability and language coverage
+
+The official downloads page confirms a separate `sentences_CC0` weekly export (updated Saturdays at 06:30 UTC), distinct from the general CC BY 2.0 FR sentence export. The CC0 export's published locale list includes these langid-32 target languages:
+
+`ar`, `ca`, `cs`, `da`, `de`, `en`, `es`, `fi`, `fr`, `hu`, `it`, `ja`, `nb`, `nl`, `pl`, `pt`, `ru`, `sv`, `zh` (Mandarin Chinese).
+
+The following target languages are not listed in the current CC0 locale catalogue: `bg`, `hr`, `et`, `el`, `ga`, `lv`, `lt`, `mt`, `ro`, `sk`, `sl`, `nn`, `ko`, `tr`, `is`. These are out of scope for this CC0-only source, not zero counts in Tatoeba generally. Exact sentence counts for the supported target languages remain unmeasured until the weekly CC0 archive is parsed; do not substitute project staged counts. Source: https://tatoeba.org/en/downloads
+
 ## Current langid-32 acquisition snapshot
 
 80,155 staged CC0 records; larger samples in English, French and Russian. Current export sample, not full CC0 availability.
@@ -54,7 +62,7 @@ Broad community language coverage; CC0 subset is smaller than full Tatoeba.
 
 ## Remaining checks
 
-- Pin exact upstream release/version, retrieval date and immutable identifier.
-- Count full upstream records by language in the source's native unit, independently of project sampling.
-- Record raw, eligible-after-source-filters and project-selected counts separately.
-- Verify file-level rights and redistribution conditions before public release.
+- Parse the official weekly `sentences_CC0.tar.bz2` export and count records by ISO 639-3 language code for all 19 supported target languages.
+- Record export timestamp, archive checksum, exact counts and unique sentence-ID counts.
+- Map Mandarin Chinese and Norwegian Bokmål codes explicitly; do not merge Norwegian Nynorsk into Bokmål.
+- Keep the CC0-only export separate from general CC BY 2.0 FR exports and audio licensing.
