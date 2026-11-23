@@ -19,7 +19,7 @@ This source-capacity matrix is separate from the historical acquisition matrix i
 Counts shown below are native upstream units until sentence-level candidate counts have been computed. Common Voice has provider-reported validated-sentence counts for Czech, English, French and Irish transcribed so far; DGT and FineWeb-2 have provider-reported per-language counts; FineWeb English has a dataset-viewer row count; TeMU-BSC has a conservative, file-level minimum for Catalan. FineWeb-2 counts are filtered document counts, not sentence counts; English is distributed separately in FineWeb. Other cells remain explicitly unmeasured rather than repeating old project caps.
 
 | Language | Common Voice 22 | DGT-TM 2021 (TUs) | FineWeb-2 (documents) | Leipzig News | Leipzig Wikipedia | Tatoeba CC0 | FineWeb English (records) | Målfrid 2026 (tokens) | Icelandic Gigaword 2024 (words) | GreynirCorpus (sentences) | Korean Wikipedia (articles) | BSC Legal (sentence pairs) | TeMU-BSC CC0 | MultiUN | UNPC | UN Arabic-English Filtered* |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | bg | TBD | 4,602,085 | 25,994,731 | TBD | TBD | — | — | — | — | — | — | — | — | — | — | — |
 | hr | TBD | 2,554,319 | 6,195,824 | TBD | TBD | — | — | — | — | — | — | — | — | — | — | — |
 | cs | 451,100 | 6,410,466 | 66,067,904 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
