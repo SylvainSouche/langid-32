@@ -23,6 +23,21 @@ Wikipedia generally CC BY-SA and/or GFDL depending on revision/imports; check pa
 
 Wikipedia text segmented into sentences; 3,000 project records per each of 34 target languages.
 
+## Verified upstream catalogue availability (independent of project acquisition)
+
+The provider's per-language catalogue lists Wikipedia corpora by dump year and offers fixed-size sentence packages (10K, 30K, 100K, 300K and sometimes 1M) plus an `All` archive. This confirms that the project's 3,000-row sample is not an upstream ceiling. Examples verified from the per-language catalogue include:
+
+- bg: 2021 offers 1M and All.
+- hr: 2021 offers 1M and All.
+- cs: 2018 offers 1M and All.
+- ga: 2021 offers 10K, 30K and All.
+- mt: 2021 offers 10K, 30K and All.
+- nn: Wikipedia packages through 2016 include 100K/300K; separate 2020 Web corpus offers up to 1M.
+- zh (Mandarin): 2021 offers 1M and All.
+- ca: 2016 offers up to 3M and All; 2018 offers 1M and All; 2021 offers All.
+
+The `All` corpus means the full release, not a fixed sample. The exact full-corpus sentence counts still need to be computed from the archive's `*_sentences.txt` file; fixed-size tiers are samples and must not be summed across releases. Provider format specification: https://wortschatz.informatik.uni-leipzig.de/public/documents/Format_Download_File-eng.pdf. Per-language catalogues: https://cls.wortschatz-leipzig.de/en
+
 ## Current langid-32 acquisition snapshot
 
 3,000/language is our sample, not full Leipzig/Wikipedia availability.
@@ -70,7 +85,7 @@ Wikipedia text segmented into sentences; 3,000 project records per each of 34 ta
 
 ## Remaining checks
 
-- Pin exact upstream release/version, retrieval date and immutable identifier.
-- Count full upstream records by language in the source's native unit, independently of project sampling.
-- Record raw, eligible-after-source-filters and project-selected counts separately.
-- Verify file-level rights and redistribution conditions before public release.
+- Enumerate each of the 34 target-language Wikipedia catalogue pages and pin the chosen dump year.
+- Download the `All` archive for each target language and count exact lines in `*_sentences.txt`.
+- Record archive checksums and release dates; never sum fixed-size tiers or multiple dump years.
+- Verify Wikipedia attribution/share-alike obligations and imported-content exceptions for each package.
