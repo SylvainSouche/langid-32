@@ -48,10 +48,11 @@ The table above is the **18 November candidate-staging snapshot**. The upstream 
 - **Norwegian:** Målfrid 2026 full scan: 1,550,489 distinct document IDs across Bokmål and Nynorsk, with 2.06B local whitespace tokens combined. NLOD 2.0 attribution and document-level third-party/personal-data exclusions remain.
 - **Croatian:** MaCoCu-hr 2.0 full structural audit: 8,106,239 documents and 62,797,162 paragraphs; CLARIN.SI declares CC0. Paragraph quality, fluency and sensitive-information flags must be retained.
 - **Slovenian:** MaCoCu-sl 2.0 audit is retrying after a CLARIN connection timeout. ParlaMint 4.0 is being audited for Icelandic, Slovenian and Turkish.
+- **Maltese:** MaCoCu-mt 2.0 is a newly identified CC0 source (537,336 catalogue texts; 347.9M catalogue words); its full XML audit is running. Korpus Malti is a separate, much larger corpus but carries CC BY-NC-SA 4.0 and includes literary material by permission, so it is not substituted for the CC0 source.
 - **Irish:** Gaois legislation TMX audit: 984,006 Irish segments, 478,948 distinct normalized segments across six files, CC BY 4.0 for the DCU derivative translation memories. This is a legal/administrative register, not general contemporary Irish.
 - **Japanese:** Soranoha v0.2 full plaintext audit: 17,308 works, 232.7M characters and 5.42M punctuation/line-break sentence segments. Works are stated to be public domain in Japan; bibliographic metadata needs CC BY 4.0 attribution.
 - **Korean:** cleaned 2026-07-01 Wikipedia release: 593,006 articles and 17.77M heuristic sentence segments. Its CC BY-SA 4.0/GFDL terms remain a compatibility decision, not a CC BY/CC0 source.
-- **Arabic:** the official UN download route currently redirects to the landing page rather than returning the archive. The HF derivative remains staged with UN acknowledgement/provenance limitations.
+- **Arabic:** the official UN download route currently redirects to the landing page rather than returning the archive. A full audit of all 19.28M train rows plus dev/test in the CC BY 4.0 HF derivative is now running; its schema still lacks source document IDs/URLs and row-level provenance.
 
 These are **upstream audit measures**, not final usable-record counts. They must still pass the global normalization, privacy, language/content, cross-source deduplication, source quota and rights gates before they can affect the 20k core or 10k reserve.
 
