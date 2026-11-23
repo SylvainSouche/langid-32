@@ -3,6 +3,7 @@ on:
   push:
     paths:
       - "scripts/audit_gaois_irish_legislation.py"
+      - "scripts/acquire_gaois_irish_legislation.py"
       - ".github/workflows/audit-gaois-irish-legislation.yml"
 permissions:
   contents: read
@@ -19,9 +20,15 @@ jobs:
         run: python -m pip install --disable-pip-version-check requests
       - name: Download and audit all six Irish legislation TMX files
         run: python scripts/audit_gaois_irish_legislation.py
-      - name: Upload audit report
+      - name: Build deterministic Irish-only preview sample
+        run: |
+          python scripts/acquire_gaois_irish_legislation.py --out out/candidates.jsonl --max-sample 50000
+          rm -f out/candidates.jsonl
+      - name: Upload audit and candidate manifests only
         uses: actions/upload-artifact@v4
         with:
           name: gaois-irish-legislation-audit-${{ github.run_id }}
-          path: reports/gaois-irish-legislation-tmx-audit.json
+          path: |
+            reports/gaois-irish-legislation-tmx-audit.json
+            out/manifest.json
           retention-days: 90
