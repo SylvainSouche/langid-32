@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Audit pinned BSC Legal Catalan–Spanish files without retaining source text."""
+"""Audit pinned BSC Legal Catalan–Spanish files with their actual TSV schemas."""
 from __future__ import annotations
 import csv, hashlib, json, os, sqlite3, sys, tempfile
+from collections import Counter
 from pathlib import Path
 import requests
 
@@ -43,20 +44,26 @@ def count_file(name: str, unit: str) -> dict:
     db.execute("PRAGMA cache_size=-200000")
     db.execute("CREATE TABLE ca (h BLOB PRIMARY KEY) WITHOUT ROWID")
     db.execute("CREATE TABLE es (h BLOB PRIMARY KEY) WITHOUT ROWID")
-    rows = malformed = empty_ca = empty_es = 0
+    db.execute("CREATE TABLE docs (h BLOB PRIMARY KEY) WITHOUT ROWID")
+    widths = Counter()
+    rows = headers = malformed = empty_ca = empty_es = 0
     ca_batch: list[tuple[bytes]] = []
     es_batch: list[tuple[bytes]] = []
-    insert_ca = "INSERT OR IGNORE INTO ca VALUES (?)"
-    insert_es = "INSERT OR IGNORE INTO es VALUES (?)"
+    doc_batch: list[tuple[bytes]] = []
     def flush() -> None:
         if ca_batch:
-            db.executemany(insert_ca, ca_batch)
-            db.executemany(insert_es, es_batch)
+            db.executemany("INSERT OR IGNORE INTO ca VALUES (?)", ca_batch)
+            db.executemany("INSERT OR IGNORE INTO es VALUES (?)", es_batch)
+            if doc_batch:
+                db.executemany("INSERT OR IGNORE INTO docs VALUES (?)", doc_batch)
             ca_batch.clear()
             es_batch.clear()
-    def add(ca: str, es: str) -> None:
+            doc_batch.clear()
+    def add(ca: str, es: str, doc_id: str | None = None) -> None:
         ca_batch.append((hashlib.sha256(ca.encode("utf-8")).digest(),))
         es_batch.append((hashlib.sha256(es.encode("utf-8")).digest(),))
+        if doc_id:
+            doc_batch.append((hashlib.sha256(doc_id.encode("utf-8")).digest(),))
         if len(ca_batch) >= BATCH:
             flush()
     try:
@@ -69,6 +76,7 @@ def count_file(name: str, unit: str) -> dict:
                     try:
                         item = json.loads(line)
                         ca, es = item["ca"], item["es"]
+                        doc_id = item.get("doc_id")
                         if not isinstance(ca, str) or not isinstance(es, str):
                             raise ValueError("ca/es not strings")
                     except Exception:
@@ -76,7 +84,7 @@ def count_file(name: str, unit: str) -> dict:
                         continue
                     empty_ca += not bool(ca.strip())
                     empty_es += not bool(es.strip())
-                    add(ca, es)
+                    add(ca, es, doc_id if isinstance(doc_id, str) else None)
         else:
             csv.field_size_limit(sys.maxsize)
             with source_path.open("r", encoding="utf-8", newline="") as stream:
@@ -85,26 +93,43 @@ def count_file(name: str, unit: str) -> dict:
                     if not fields:
                         continue
                     rows += 1
-                    if len(fields) != 2:
-                        malformed += 1
-                        continue
-                    ca, es = fields
+                    widths[len(fields)] += 1
+                    if rows == 1:
+                        expected_header = ["ca", "es"] if name == "dogc_ca-es.tsv" else ["dataset", "segment_id", "ca_text", "es_text", "alignment_score"]
+                        if [x.strip().lower() for x in fields] == expected_header:
+                            headers += 1
+                            continue
+                    if name == "dogc_ca-es.tsv":
+                        if len(fields) != 2:
+                            malformed += 1
+                            continue
+                        ca, es = fields
+                    else:
+                        if len(fields) != 5:
+                            malformed += 1
+                            continue
+                        ca, es = fields[2], fields[3]
                     empty_ca += not bool(ca.strip())
                     empty_es += not bool(es.strip())
                     add(ca, es)
                     if rows % 500000 == 0:
                         flush()
                         db.commit()
-                        print(f"{name}: {rows:,} rows", flush=True)
+                        print(f"{name}: {rows:,} logical rows", flush=True)
         flush()
         db.commit()
+        valid_pairs = rows - headers - malformed
         return {
             "file": name, "unit": unit, "revision": REVISION,
-            "url": url, "content_length": byte_count, "bytes_downloaded": byte_count,
-            "sha256": digest.hexdigest(), "rows": rows, "malformed_rows": malformed,
+            "url": url, "bytes_downloaded": byte_count,
+            "sha256": digest.hexdigest(),
+            "logical_rows_including_header": rows, "header_rows": headers,
+            "valid_pair_rows": valid_pairs, "malformed_rows": malformed,
+            "field_width_counts": dict(widths) if widths else None,
             "empty_ca": empty_ca, "empty_es": empty_es,
             "distinct_sha256_ca": db.execute("SELECT COUNT(*) FROM ca").fetchone()[0],
             "distinct_sha256_es": db.execute("SELECT COUNT(*) FROM es").fetchone()[0],
+            "distinct_doc_ids_sha256": db.execute("SELECT COUNT(*) FROM docs").fetchone()[0] if name.endswith(".jsonl") else None,
             "distinct_method": "SHA-256 of exact UTF-8 text; collision probability negligible",
         }
     finally:
@@ -115,12 +140,13 @@ def count_file(name: str, unit: str) -> dict:
 def main() -> None:
     results = [count_file(name, unit) for name, unit in FILES.items()]
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(json.dumps({"repository": REPO, "revision": REVISION,
-        "license_card": "CC-BY-4.0", "results": results},
-        ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(json.dumps(results, ensure_ascii=False, indent=2))
-    if any(x["malformed_rows"] for x in results):
-        raise SystemExit("Malformed records found; inspect report")
+    report = {
+        "repository": REPO, "revision": REVISION, "license_card": "CC-BY-4.0",
+        "results": results,
+        "warning": "Malformed TSV rows are excluded from valid-pair counts and retained in the report. Distinct counts are per file and per language side; paragraph/document units are not added to sentence pairs."
+    }
+    OUT.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    print(json.dumps(report, ensure_ascii=False, indent=2))
 
 if __name__ == "__main__":
     main()
