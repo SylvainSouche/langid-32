@@ -5,6 +5,8 @@ import collections, hashlib, json, os, tarfile, tempfile
 from pathlib import Path
 import xml.etree.ElementTree as ET
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 SOURCES = {
  "is": {"name":"ParlaMint-IS","url":"https://www.clarin.si/repository/xmlui/bitstream/handle/11356/1859/ParlaMint-IS.tgz?isAllowed=y&sequence=16","md5":"59e4889f7f81b23cbdc96b827bea4a40"},
@@ -55,8 +57,13 @@ def main():
         sha=hashlib.sha256(); md5=hashlib.md5(); size=0
         st=collections.Counter(); st["speaker_refs"]=set()
         try:
-            with requests.get(meta["url"],stream=True,timeout=(60,300),
-                              headers={"User-Agent":"langid-32-source-audit/1"}) as r:
+            session=requests.Session()
+            retry=Retry(total=8,connect=8,read=8,backoff_factor=3,
+                        status_forcelist=(429,500,502,503,504),
+                        allowed_methods=frozenset(["GET"]))
+            session.mount("https://",HTTPAdapter(max_retries=retry))
+            with session.get(meta["url"],stream=True,timeout=(120,600),
+                             headers={"User-Agent":"langid-32-source-audit/1"}) as r:
                 r.raise_for_status()
                 with path.open("wb") as out:
                     for block in r.iter_content(CHUNK):
