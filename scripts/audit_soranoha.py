@@ -8,7 +8,7 @@ import requests
 URL="https://zenodo.org/records/23469644/files/soranoha-plaintext.zip?download=1"
 OUT=Path("reports/soranoha-v0.2-audit.json")
 CHUNK=1024*1024
-SENTENCE_END=re.compile(r"(?<=[。！？!?])")
+SENTENCE_END=re.compile(r"(?<=[。！？!?])|\\n+")
 
 def norm(s):
     return " ".join(unicodedata.normalize("NFC",s).split())
