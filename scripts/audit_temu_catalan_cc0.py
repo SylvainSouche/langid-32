@@ -19,6 +19,12 @@ FILES = {
     "new_sentences_from_catalan_newswire.txt": "CC0_owner_permission",
     "aggregated_files/xitxat_and_toponyms.txt": "CC0_TeMU_aggregate",
 }
+AUX_FILES = [
+    "catalan_government_crawling_frases_seleccionades_filtrades_sorted.txt",
+    "gencat_cultura.txt", "gencat_economia.txt", "gencat_empresa.txt",
+    "gencat_habitatge.txt", "gencat_residus.txt", "gencat_web.txt",
+    "translated_wiki.es-ca.txt",
+]
 OUT = Path("reports/temu-catalan-cc0-audit.json")
 
 def norm(s: str) -> str:
@@ -70,7 +76,30 @@ def main() -> None:
             "within_file_normalized_duplicates": len(keys) - len(unique),
             **extra,
         })
-    # Report exact normalized text overlap among the eight line-based files.
+    auxiliary = []
+    aux_sets = {}
+    for path in AUX_FILES:
+        raw = zf.read(prefix + path)
+        content = raw.decode("utf-8-sig")
+        lines = [line for line in content.splitlines() if line.strip()]
+        keys = [norm(line) for line in lines]
+        aux_sets[path] = set(keys)
+        item = {
+            "path": path, "bytes": len(raw), "sha256": hashlib.sha256(raw).hexdigest(),
+            "nonempty_lines": len(lines), "distinct_normalized_lines": len(set(keys)),
+            "within_file_duplicates": len(keys) - len(set(keys)),
+            "included_in_CC0_union": False,
+        }
+        if path.endswith("_sorted.txt"):
+            original = "catalan_government_crawling_frases_seleccionades_filtrades.txt"
+            item["comparison_to_original"] = {
+                "original_nonempty_lines": next(x["nonempty_records"] for x in results if x["path"] == original),
+                "shared_normalized_lines": len(aux_sets[path] & text_sets[original]),
+                "sorted_only_lines": len(aux_sets[path] - text_sets[original]),
+                "original_only_lines": len(text_sets[original] - aux_sets[path]),
+            }
+        auxiliary.append(item)
+    # Report exact normalized text overlap among the documented CC0 files.
     names = list(text_sets)
     cross = []
     for i, left in enumerate(names):
@@ -82,7 +111,7 @@ def main() -> None:
     OUT.parent.mkdir(parents=True, exist_ok=True)
     report = {
         "repository": REPO, "revision": REV, "archive_sha256": archive_sha,
-        "archive_bytes": len(archive), "results": results,
+        "archive_bytes": len(archive), "results": results, "auxiliary_files_excluded_from_CC0_union": auxiliary,
         "normalized_text_union": {
             "line_based_files": 8,
             "line_based_nonempty_rows": sum(x["nonempty_records"] for x in results if not x["path"].endswith(".tsv")),
@@ -91,7 +120,7 @@ def main() -> None:
             "distinct_normalized_text_strings": len(union),
         },
         "cross_file_overlap_pairs": cross,
-        "warning": "TSV column semantics are not inferred. No total combines TSV with line files. Counts are structural and exact-text normalized, not semantic deduplication or rights verification."
+        "warning": "The TSV sentence text is column 0; column 1 contains four source labels. Auxiliary files are counted separately and excluded from the CC0 union pending provenance review. Counts are exact-text normalized, not semantic deduplication or rights verification."
     }
     OUT.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(report, ensure_ascii=False, indent=2))
