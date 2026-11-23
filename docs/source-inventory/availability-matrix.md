@@ -57,6 +57,10 @@ Counts shown below are native upstream units until sentence-level candidate coun
 
 * The Arabic-English filtered derivative combines MultiUN and UNPC. Its pair count must not be added to either upstream source, nor counted as independent unique material.
 
+## Leipzig catalogue findings (package availability; exact `All` counts pending)
+
+The official per-language Leipzig catalogue confirms fixed-size sentence packages and full `All` archives. It has been checked across the target-language pages. News packages reach 1M for many target languages (including bg, hr, cs, da, nl, en, fi, fr, el, hu, it, lt, pl, pt, ro, sl, es, sv, ru, ko, ar and tr); lower maximum tiers occur for et, lv, mt, sk and is. Irish and Nynorsk have no News section in their current language pages. Wikipedia `All` packages exist for the target languages examined, with smaller fixed tiers for Irish and Maltese and up to 3M for Catalan in one release. These are catalogue availability tiers, not exact full-corpus sentence counts. The `All` archives must be downloaded and their `*_sentences.txt` files counted before replacing the matrix's `TBD` cells. Do not sum size tiers or release years. Sources: https://cls.wortschatz-leipzig.de/en and https://wortschatz.informatik.uni-leipzig.de/public/documents/Format_Download_File-eng.pdf
+
 ## First verified provider counts
 
 ### Common Voice 22.0
@@ -111,7 +115,7 @@ The National Library of Norway reports provider token counts: Bokmål 1,890,232,
 
 1. Common Voice 22: provider `validatedSentences` figures have now been transcribed for cs, en, fr and ga; extract and verify all remaining target locales. Do not use the project's 9,000 cap.
 2. FineWeb-2: filtered document counts have been transcribed for 30 target languages. Complete the missing Gaelic, Nynorsk and Maltese mapping; record removed-subset counts and word counts too. FineWeb English has 25.9B provider rows recorded separately.
-3. Leipzig News and Wikipedia: enumerate downloadable package manifests for every target language and count sentence rows in the actual archives.
+3. Leipzig News and Wikipedia: per-language catalogue review confirms fixed-size tiers up to 1M for many News corpora and `All` archives for Wikipedia/News. Download pinned `All` archives and count exact `*_sentences.txt` rows; the 3k project cap remains irrelevant.
 4. Tatoeba: CC0 language coverage is now mapped; count the weekly CC0 export by language code. Do not use the larger CC-BY export.
 5. Målfrid, Icelandic Gigaword, Korean Wikipedia and GreynirCorpus: IGC2024 Filtered-1 provider word count (794,816,184) is recorded; count its documents and segment complete text. Korean Wikipedia has 647,897 article records; sentence segmentation remains. GreynirCorpus has 10M provider-reported sentences. Målfrid counts remain tokens, not sentence totals.
 6. BSC Legal and TeMU-BSC: BSC Legal reports ~5.4M Catalan–Spanish sentence pairs plus separate paragraph/document units; verify exact row counts and rights. TeMU-BSC has a conservative identified minimum of 249,681 Catalan CC0 sentences from two explicitly counted files; enumerate the remaining files, rights and overlaps.
