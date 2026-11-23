@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Audit the documented CC0 sentence files in TeMU-BSC/catalan_CC0_sentences."""
+"""Audit documented CC0 files in TeMU-BSC/catalan_CC0_sentences."""
 from __future__ import annotations
-import csv, hashlib, io, json, re, unicodedata, urllib.request, zipfile
+import csv, hashlib, io, json, unicodedata, urllib.request, zipfile
 from collections import Counter
 from pathlib import Path
 
@@ -31,46 +31,64 @@ def main() -> None:
     archive_sha = hashlib.sha256(archive).hexdigest()
     zf = zipfile.ZipFile(io.BytesIO(archive))
     prefix = f"catalan_CC0_sentences-{REV}/"
-    all_hashes: dict[str, set[str]] = {}
+    text_sets: dict[str, set[str]] = {}
     results = []
     for path, licence_basis in FILES.items():
         raw = zf.read(prefix + path)
-        text = raw.decode("utf-8-sig")
-        lines = [line for line in text.splitlines() if line.strip()]
-        # For TSV retain row counts and column structure; do not guess which
-        # column is the sentence field without a schema.
+        content = raw.decode("utf-8-sig")
+        physical = content.splitlines()
+        lines = [line for line in physical if line.strip()]
+        extra = {}
         if path.endswith(".tsv"):
-            parsed = list(csv.reader(io.StringIO(text), delimiter="\t"))
+            parsed = list(csv.reader(io.StringIO(content), delimiter="\t"))
             widths = Counter(len(row) for row in parsed)
-            keys = [norm("\t".join(row)) for row in parsed if any(x.strip() for x in row)]
-            unit = "TSV_records (sentence field not inferred)"
+            col0 = [norm(row[0]) for row in parsed if len(row) > 0 and row[0].strip()]
+            col1 = [norm(row[1]) for row in parsed if len(row) > 1 and row[1].strip()]
+            extra = {
+                "tsv_column_widths": dict(widths),
+                "column_0_nonempty": len(col0),
+                "column_0_distinct_normalized": len(set(col0)),
+                "column_1_nonempty": len(col1),
+                "column_1_distinct_normalized": len(set(col1)),
+                "rows_not_two_columns": sum(1 for row in parsed if len(row) != 2),
+            }
+            # Keep TSV separate until column semantics are verified.
+            keys = []
+            unit = "TSV_records; per-column counts reported separately"
         else:
             keys = [norm(line) for line in lines]
-            widths = Counter()
+            text_sets[path] = set(keys)
             unit = "non-empty text lines (provider-described sentences)"
         unique = set(keys)
-        all_hashes[path] = unique
         results.append({
             "path": path, "licence_basis_from_README": licence_basis,
             "unit": unit, "bytes": len(raw), "sha256": hashlib.sha256(raw).hexdigest(),
-            "physical_lines": len(text.splitlines()), "nonempty_records": len(lines),
-            "distinct_NFC_whitespace_casefold_records": len(unique),
-            "within_file_normalized_duplicates": len(keys) - len(unique),
-            "tsv_column_widths": dict(widths) if widths else None,
+            "physical_lines": len(physical), "nonempty_records": len(lines),
+            "distinct_NFC_whitespace_casefold_records": len(unique) if keys else None,
+            "within_file_normalized_duplicates": len(keys) - len(unique) if keys else None,
+            **extra,
         })
-    # Cross-file duplicate counts are informative only: aggregate files
-    # intentionally include component files, so do not sum these counts.
+    # Report exact normalized text overlap among the eight line-based files.
+    names = list(text_sets)
     cross = []
-    for i, left in enumerate(FILES):
-        for right in list(FILES)[i+1:]:
-            overlap = len(all_hashes[left] & all_hashes[right])
+    for i, left in enumerate(names):
+        for right in names[i+1:]:
+            overlap = len(text_sets[left] & text_sets[right])
             if overlap:
                 cross.append({"left": left, "right": right, "shared_normalized_records": overlap})
+    union = set().union(*text_sets.values())
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    report = {"repository": REPO, "revision": REV, "archive_sha256": archive_sha,
-              "archive_bytes": len(archive), "results": results,
-              "cross_file_overlap_pairs": cross,
-              "warning": "No totals across files: aggregate/component overlap and differing row schemas. Counts are structural, not semantic or rights verification."}
+    report = {
+        "repository": REPO, "revision": REV, "archive_sha256": archive_sha,
+        "archive_bytes": len(archive), "results": results,
+        "line_file_union": {
+            "files": len(text_sets),
+            "nonempty_rows_sum_before_dedup": sum(x["nonempty_records"] for x in results if x["path"] in text_sets),
+            "distinct_normalized_texts_across_all_line_files": len(union),
+        },
+        "cross_file_overlap_pairs": cross,
+        "warning": "TSV column semantics are not inferred. No total combines TSV with line files. Counts are structural and exact-text normalized, not semantic deduplication or rights verification."
+    }
     OUT.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(report, ensure_ascii=False, indent=2))
 
