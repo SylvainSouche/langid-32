@@ -87,8 +87,8 @@ def main() -> None:
                         depth -= 1
         db.commit()
         report = {
-            "dataset": "Maltese web corpus MaCoCu-hr 2.0",
-            "record": "https://hdl.handle.net/11356/1806",
+            "dataset": "Maltese web corpus MaCoCu-mt 2.0",
+            "record": "https://hdl.handle.net/11356/1803",
             "url": URL, "licence": "CC0-1.0 (CLARIN.SI record)",
             "archive_bytes": size, "archive_sha256": h.hexdigest(),
             "zip_members": names, "xml_member": matches[0], "xml_uncompressed_bytes": xml_uncompressed,
@@ -99,7 +99,7 @@ def main() -> None:
             "distinct_ids": db.execute("SELECT COUNT(*) FROM ids").fetchone()[0],
             "distinct_urls": db.execute("SELECT COUNT(*) FROM urls").fetchone()[0],
             "duplicate_id_values": duplicate_ids, "duplicate_url_values": duplicate_urls,
-            "method": "Full streaming XML parse without writing the 22GB expanded XML to disk; counts all elements and attribute occurrences, and exact distinct id/url values.",
+            "method": "Full streaming XML parse without writing the 3GB expanded XML to disk; counts all elements and attribute occurrences, and exact distinct id/url values.",
             "warning": "This is a structural and provenance-metadata audit, not a sentence count or privacy/rights clearance. The corpus notice-and-takedown route and any personal/sensitive content must still be handled."
         }
         OUT.parent.mkdir(parents=True, exist_ok=True)
