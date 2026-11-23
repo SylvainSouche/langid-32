@@ -7,7 +7,7 @@ from pathlib import Path
 REVISION = "deb60c4b2775a4e0c709a6890c28678b913f44aa"
 ROOT = Path(".")
 OUT = Path("reports/greynir-corpus-audit.json")
-MARKER = b"( (META"
+MARKER = b"(ID-CORPUS"
 
 def count_gzip(path: Path, kind: str) -> dict:
     digest = hashlib.sha256()
@@ -82,7 +82,7 @@ def main() -> None:
     report = {
         "repository": "mideind/GreynirCorpus",
         "revision": REVISION,
-        "method": "Count occurrences of the tree-record opener ( (META in every decompressed gzip/plain treebank file; verify all LFS pointers were hydrated.",
+        "method": "Count occurrences of the the (ID-CORPUS metadata field in every decompressed gzip/plain treebank file; verify all LFS pointers were hydrated.",
         "files": files + gold,
         "totals": totals,
         "warning": "Copper/silver/extra are separate corpus partitions with possible overlap; do not sum them as unique sentences without text-level cross-partition deduplication."
