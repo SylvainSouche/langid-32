@@ -30,7 +30,7 @@ The GitHub repository tree was inspected at commit `deb60c4b2775a4e0c709a6890c28
 - Audit script: `scripts/audit_greynir_corpus.py`
 - Workflow: `.github/workflows/audit-greynir-corpus.yml`
 - Target revision: `deb60c4b2775a4e0c709a6890c28678b913f44aa`
-- Successful audit: [GitHub Actions run 45222071098](https://github.com/SylvainSouche/langid-32/actions/runs/45222071098)
+- Successful audit: [GitHub Actions run 45222428737](https://github.com/SylvainSouche/langid-32/actions/runs/45222428737)
 - Audit artifact contains per-file compressed SHA-256 values.
 
 Actual content-level record counts at the pinned revision:
