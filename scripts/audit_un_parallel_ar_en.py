@@ -23,10 +23,15 @@ def main():
                 h = hashlib.sha256()
                 size = 0
                 with requests.get(BASE + part, stream=True, timeout=(60, 240),
-                                  headers={"User-Agent":"langid-32-source-audit/1"}) as r:
+                                  headers={"User-Agent":"Mozilla/5.0 langid-32-source-audit/1","Referer":"https://www.un.org/dgacm/content/uncorpus/Download","Accept":"application/octet-stream,*/*"}) as r:
                     r.raise_for_status()
+                    first = True
                     for block in r.iter_content(CHUNK):
                         if block:
+                            if first:
+                                first = False
+                                if not block.startswith(bytes([31, 139])):
+                                    raise RuntimeError(f"Expected gzip bytes for {part}; HTTP {r.status_code}; final URL {r.url}; content-type {r.headers.get('Content-Type')}; first bytes {block[:240]!r}")
                             out.write(block); h.update(block); archive_hash.update(block)
                             size += len(block); archive_size += len(block)
                 part_info.append({"name":part,"bytes":size,"sha256":h.hexdigest()})
