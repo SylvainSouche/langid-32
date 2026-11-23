@@ -76,6 +76,9 @@ jobs:
           done
           exit "$failed"
 
+      - name: Acquire and deduplicate CC BY 4.0 Gaois Irish legislation sample
+        run: python scripts/acquire_gaois_irish_legislation.py --out input/waiting/irish/candidates.jsonl --max-sample 50000
+
       - name: Build 35k-per-language candidate pool without premature source caps
         env:
           PYTHONPATH: src
