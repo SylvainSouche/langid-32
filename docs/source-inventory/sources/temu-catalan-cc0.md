@@ -25,15 +25,24 @@ Catalan government crawl, linguistic-policy material, dictionaries, templates, l
 
 ## Verified upstream availability (independent of project acquisition)
 
-The upstream README reports at least two separately identifiable sentence files:
+The pinned upstream README (`30f19bbfaca7b8abdd195c4687c1a992bde4f63f`) reports the following distinct CC0 files or non-overlapping aggregate groups. This expands the previously documented two-file minimum. Counts below are **raw source-reported sentence rows**, not within-source unique sentences; the repository does not publish a global deduplication count. Some entries are template-generated or synthetic-like, so retain their provenance for later quality assessment.
 
-| File | Provider-reported sentences | Notes |
+| File or non-overlapping group | Sentence rows | Basis / note |
 |---|---:|---|
-| `catalan_government_crawling_frases_seleccionades_filtrades_sorted.txt` | 93,691 | Selected/filtered sentences from a 39-million-token Catalan Government web crawl |
-| `datasets_sentences.tsv` | 155,990 | Sentences extracted from Projecte Aina datasets (caBreu, CoQCat, NLUCat, Parafraseja) |
-| **Identified minimum** | **249,681** | Sum of the two named files only; not a complete repository total or post-deduplication count |
+| catalan_government_crawling_frases_seleccionades_filtrades.txt | 93,691 | Provider README; selected/filtered from Catalan Government crawl; CC0 |
+| datasets_sentences.tsv | 155,990 | Provider README; Projecte Aina source datasets; CC0 waiver |
+| Seven constituent files of new_catalan_cc0_corpus.txt | 107,892 | Sum of the seven individual README counts; TeMU-BSC-owned CC0 material; aggregate file itself is not added again |
+| frases_agenda.txt | 160,665 | Template-generated; TeMU-BSC CC0 waiver |
+| frases_diccionaris_enciclopedia.txt | 20,122 | Counted non-empty lines in the file at the pinned repository revision; source README says ~20k; CC0 waiver |
+| frases_toponimia_valenciana_balear.txt | 15,451 | Template-generated; TeMU-BSC CC0 waiver |
+| literatura.txt | 366 | Counted non-empty lines in the file at the pinned repository revision; source README reports 366; CC0 |
+| new_sentences_from_catalan_newswire.txt | 58,310 | Provider README; owner agrees to CC0 publication |
+| xitxat_toponyms.txt | 37,428 | Provider-reported aggregate; do not add its constituent files separately |
+| **Reported raw CC0 rows across these disjoint files/groups** | **649,915** | Sum before cross-file exact/near-duplicate audit; not a unique-sentence count |
 
-Do not add aggregate files to their constituent files. In particular, `new_catalan_cc0_corpus.txt` aggregates seven listed files and `xitxat_toponyms.txt` aggregates other files. The README also lists sources with individual permission/waiver statements; file-level terms must be checked before counting them as CC0-eligible. This 249,681 minimum is not the same as the project's 174,157 staged records. Source: https://github.com/TeMU-BSC/catalan_CC0_sentences
+The seven-file group consists of `edited_generated_selected_chatbot.txt` (2,166), `edited_selected_chatbot.txt` (873), `frases_spl.txt` (1,711), `generades_spl_seleccionades.txt` (4,469), `more_intents.txt` (74,772), `plantilles_intents.txt` (2,664), and `selected_club.txt` (21,237). The xitxat aggregate includes `sentences_from_xitxat_corpus.txt` and `wikidata_sentences.txt`, so these are not added a second time. The README also lists files under individual permission arrangements (including Marius Serra and Joan Pujolar contributions); they are not included in this CC0 subtotal. The translated Spanish-Wikipedia file is also excluded until its rights basis is documented.
+
+This subtotal replaces the former 249,681 two-file minimum, but remains a pre-dedup raw count. It is not the same as the project's 174,157 staged records. Source: https://github.com/TeMU-BSC/catalan_CC0_sentences/tree/30f19bbfaca7b8abdd195c4687c1a992bde4f63f
 
 ## Current langid-32 acquisition snapshot
 
