@@ -57,7 +57,7 @@ def main():
     db.execute("CREATE TABLE seen (digest TEXT PRIMARY KEY) WITHOUT ROWID")
     heap, serial = [], 0
     downloads, totals = [], {"translation_units": 0, "irish_segments": 0,
-        "empty_or_missing_irish": 0, "clean_irish_segments": 0,
+        "empty_or_missing_irish": 0, "filtered_irish_segments": 0, "clean_irish_segments": 0,
         "duplicate_irish_segments": 0, "selected": 0}
     try:
         for label, url in SOURCES:
@@ -81,12 +81,17 @@ def main():
                                 if lang.startswith("ga"): segments["ga"] = value
                                 elif lang.startswith("en"): segments["en"] = value
                             totals["translation_units"] += 1
-                            ga = clean(segments.get("ga", ""))
-                            if not ga:
+                            raw_ga = " ".join(unicodedata.normalize("NFC", segments.get("ga", "")).split())
+                            if not raw_ga:
                                 totals["empty_or_missing_irish"] += 1
                                 tu.clear()
                                 continue
                             totals["irish_segments"] += 1
+                            ga = clean(raw_ga)
+                            if not ga:
+                                totals["filtered_irish_segments"] += 1
+                                tu.clear()
+                                continue
                             totals["clean_irish_segments"] += 1
                             digest = hashlib.sha256(ga.encode("utf-8")).hexdigest()
                             cur = db.execute("INSERT OR IGNORE INTO seen VALUES (?)", (digest,))
@@ -137,6 +142,7 @@ def main():
             for row in selected:
                 out.write(json.dumps(row, ensure_ascii=False, separators=(",", ":")) + "\n")
         totals["selected"] = len(selected)
+        totals["distinct_clean_irish_segments"] = totals["clean_irish_segments"] - totals["duplicate_irish_segments"]
         manifest = {
             "source": "Gaois Parallel English-Irish Corpus of Legislation",
             "status": "technical_candidate_not_rights_cleared",
