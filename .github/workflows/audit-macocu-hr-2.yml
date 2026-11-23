@@ -1,0 +1,27 @@
+name: Audit MaCoCu Croatian web corpus 2.0
+on:
+  push:
+    paths:
+      - "scripts/audit_macocu_hr_2.py"
+      - ".github/workflows/audit-macocu-hr-2.yml"
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install HTTP client
+        run: python -m pip install --disable-pip-version-check requests
+      - name: Download and stream-parse complete Croatian XML corpus
+        run: python scripts/audit_macocu_hr_2.py
+      - name: Upload aggregate audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: macocu-hr-2-audit-${{ github.run_id }}
+          path: reports/macocu-hr-2.0-audit.json
+          retention-days: 90
