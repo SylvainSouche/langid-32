@@ -10,6 +10,7 @@ import bz2
 import csv
 import hashlib
 import json
+import sys
 from collections import Counter
 from pathlib import Path
 
@@ -65,6 +66,7 @@ def inspect(path: Path, kind: str, expected_code: str) -> dict:
 
 
 def main() -> None:
+    csv.field_size_limit(sys.maxsize)
     reports = []
     for folder in sorted(p for p in ROOT.iterdir() if p.is_dir()):
         code = folder.name
