@@ -5,7 +5,7 @@ import collections, hashlib, json, os, tempfile, tarfile
 from pathlib import Path
 import requests
 
-BASE = "https://conferences.unite.un.org/UNCorpus/Home/DownloadFile?filename="
+BASE = "https://conferences.unite.un.org/UNCORPUS/en/DownloadFile?filename="
 PARTS = ["UNv1.0.ar-en.tar.gz.00", "UNv1.0.ar-en.tar.gz.01"]
 OUT = Path("reports/un-parallel-corpus-ar-en-audit.json")
 CHUNK = 1024 * 1024
