@@ -61,6 +61,10 @@ The UN ODS FAQ describes the system's scope and language access: https://documen
 
 It is a strong candidate for source-level acquisition and language coverage analysis. The current project inventory previously recorded zero selected records for the separate ymoslem/UN-Arabic-English-Filtered dataset; that is not evidence of zero MultiUN availability. Do not count the Hugging Face derivative's 19.3 million aligned Arabic-English rows as MultiUN's exact upstream count, because that derivative combines MultiUN and UNPC and applies additional filtering.
 
+## Verified upstream availability (independent of project acquisition)
+
+OPUS's current MultiUN v1 catalogue reports **489,334 files, 1.99 billion tokens and 81.41 million sentence fragments** across seven languages and 21 bitexts. These are corpus-wide aggregate figures, not per-language unique sentence counts. Pairwise configurations overlap, so summing rows across bitexts would multiply shared monolingual material. Exact per-language sentence counts require extracting language sides from the downloadable OPUS packages and deduplicating by sentence/document identity. Source: https://opus.nlpl.eu/datasets/MultiUN
+
 ## Current langid-32 project count
 
 - Current staged/selected records attributed directly to this independent MultiUN source: **0** (not yet separately acquired or attributed).
