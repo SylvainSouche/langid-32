@@ -18,42 +18,42 @@ This source-capacity matrix is separate from the historical acquisition matrix i
 
 Counts shown below are native upstream units until sentence-level candidate counts have been computed. Common Voice has provider-reported validated-sentence counts for Czech, English, French and Irish transcribed so far; DGT and FineWeb-2 have provider-reported per-language counts; FineWeb English has a dataset-viewer row count; TeMU-BSC has a conservative, file-level minimum for Catalan. FineWeb-2 counts are filtered document counts, not sentence counts; English is distributed separately in FineWeb. Other cells remain explicitly unmeasured rather than repeating old project caps.
 
-| Language | Common Voice 22 | DGT-TM 2021 (TUs) | FineWeb-2 (documents) | Leipzig News | Leipzig Wikipedia | Tatoeba CC0 | FineWeb English (records) | Målfrid 2026 (tokens) | Icelandic Gigaword 2024 (words) | Korean Wikipedia (articles) | BSC Legal (sentence pairs) | TeMU-BSC CC0 | MultiUN | UNPC | UN Arabic-English Filtered* |
+| Language | Common Voice 22 | DGT-TM 2021 (TUs) | FineWeb-2 (documents) | Leipzig News | Leipzig Wikipedia | Tatoeba CC0 | FineWeb English (records) | Målfrid 2026 (tokens) | Icelandic Gigaword 2024 (words) | GreynirCorpus (sentences) | Korean Wikipedia (articles) | BSC Legal (sentence pairs) | TeMU-BSC CC0 | MultiUN | UNPC | UN Arabic-English Filtered* |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| bg | TBD | 4,602,085 | 25,994,731 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — |
-| hr | TBD | 2,554,319 | 6,195,824 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — |
-| cs | 451,100 | 6,410,466 | 66,067,904 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — |
-| da | TBD | 5,935,254 | 45,391,655 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — |
-| nl | TBD | 5,873,514 | 147,301,270 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — |
-| en | 1,680,014 | 8,624,934 | TBD | TBD | TBD | TBD | 25,900,000,000 | 570,099,658 | — | — | — | — | TBD | TBD | TBD |
-| et | TBD | 6,450,667 | 10,218,587 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — |
-| fi | TBD | 5,933,745 | 36,710,816 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — |
-| fr | 1,648,822 | 6,397,822 | 360,058,973 | TBD | TBD | TBD | — | — | — | — | — | — | TBD | TBD | — |
-| de | TBD | 5,958,872 | 495,964,485 | TBD | TBD | TBD | — | — | — | — | — | — | TBD (small) | — | — |
-| el | TBD | 5,782,498 | 47,421,073 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — |
-| hu | TBD | 6,559,000 | 49,935,986 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — |
-| ga | 1,675 | 235,384 | TBD | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — |
-| it | TBD | 5,967,350 | 238,984,437 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — |
-| lv | TBD | 6,504,918 | 8,030,316 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — |
-| lt | TBD | 6,501,706 | 13,471,965 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — |
-| mt | TBD | 4,830,614 | TBD | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — |
-| pl | TBD | 6,463,748 | 151,966,724 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — |
-| pt | TBD | 6,390,501 | 199,737,979 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — |
-| ro | TBD | 4,520,726 | 58,303,671 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — |
-| sk | TBD | 6,505,108 | 29,991,521 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — |
-| sl | TBD | 6,472,554 | 12,059,130 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — |
-| es | TBD | 5,965,669 | 441,287,261 | TBD | TBD | TBD | — | — | — | — | ~5,400,000 sentence pairs | — | TBD | TBD | — |
-| sv | TBD | 6,025,986 | 59,485,306 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — |
-| nb | TBD | — | 38,144,343 | TBD | TBD | TBD | — | 1,890,232,881 | — | — | — | — | — | — | — |
-| nn | TBD | — | TBD | TBD | TBD | TBD | — | 170,231,965 | — | — | — | — | — | — | — |
-| ru | TBD | — | 699,083,579 | TBD | TBD | TBD | — | — | — | — | — | — | TBD | TBD | — |
-| ja | TBD | — | 400,138,563 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — |
-| zh | TBD | — | 636,058,984 | TBD | TBD | TBD | — | — | — | — | — | — | TBD | TBD | — |
-| ko | TBD | — | 60,874,355 | TBD | TBD | TBD | — | — | — | TBD | — | — | — | — | — |
-| ar | TBD | — | 61,977,525 | TBD | TBD | TBD | — | — | — | — | — | — | TBD | TBD | TBD |
-| tr | TBD | — | 95,129,129 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — |
-| ca | TBD | — | 17,136,414 | TBD | TBD | TBD | — | — | — | — | ~5,400,000 sentence pairs | ≥249,681 identified CC0 sentences (partial) | — | — | — |
-| is | TBD | — | 3,014,429 | TBD | TBD | TBD | — | — | 794,816,184 | — | — | — | — | — | — |
+| bg | TBD | 4,602,085 | 25,994,731 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
+| hr | TBD | 2,554,319 | 6,195,824 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
+| cs | 451,100 | 6,410,466 | 66,067,904 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
+| da | TBD | 5,935,254 | 45,391,655 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
+| nl | TBD | 5,873,514 | 147,301,270 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
+| en | 1,680,014 | 8,624,934 | TBD | TBD | TBD | TBD | 25,900,000,000 | 570,099,658 | — | — | — | — | — | TBD | TBD | TBD |
+| et | TBD | 6,450,667 | 10,218,587 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
+| fi | TBD | 5,933,745 | 36,710,816 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
+| fr | 1,648,822 | 6,397,822 | 360,058,973 | TBD | TBD | TBD | — | — | — | — | — | — | — | TBD | TBD | — |
+| de | TBD | 5,958,872 | 495,964,485 | TBD | TBD | TBD | — | — | — | — | — | — | — | TBD (small) | — | — |
+| el | TBD | 5,782,498 | 47,421,073 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
+| hu | TBD | 6,559,000 | 49,935,986 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
+| ga | 1,675 | 235,384 | TBD | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
+| it | TBD | 5,967,350 | 238,984,437 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
+| lv | TBD | 6,504,918 | 8,030,316 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
+| lt | TBD | 6,501,706 | 13,471,965 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
+| mt | TBD | 4,830,614 | TBD | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
+| pl | TBD | 6,463,748 | 151,966,724 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
+| pt | TBD | 6,390,501 | 199,737,979 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
+| ro | TBD | 4,520,726 | 58,303,671 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
+| sk | TBD | 6,505,108 | 29,991,521 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
+| sl | TBD | 6,472,554 | 12,059,130 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
+| es | TBD | 5,965,669 | 441,287,261 | TBD | TBD | TBD | — | — | — | — | — | ~5,400,000 sentence pairs | — | TBD | TBD | — |
+| sv | TBD | 6,025,986 | 59,485,306 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
+| nb | TBD | — | 38,144,343 | TBD | TBD | TBD | — | 1,890,232,881 | — | — | — | — | — | — | — | — |
+| nn | TBD | — | TBD | TBD | TBD | TBD | — | 170,231,965 | — | — | — | — | — | — | — | — |
+| ru | TBD | — | 699,083,579 | TBD | TBD | TBD | — | — | — | — | — | — | — | TBD | TBD | — |
+| ja | TBD | — | 400,138,563 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
+| zh | TBD | — | 636,058,984 | TBD | TBD | TBD | — | — | — | — | — | — | — | TBD | TBD | — |
+| ko | TBD | — | 60,874,355 | TBD | TBD | TBD | — | — | — | — | TBD | — | — | — | — | — |
+| ar | TBD | — | 61,977,525 | TBD | TBD | TBD | — | — | — | — | — | — | — | TBD | TBD | TBD |
+| tr | TBD | — | 95,129,129 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
+| ca | TBD | — | 17,136,414 | TBD | TBD | TBD | — | — | — | — | — | ~5,400,000 sentence pairs | ≥249,681 identified CC0 sentences (partial) | — | — | — |
+| is | TBD | — | 3,014,429 | TBD | TBD | TBD | — | — | 794,816,184 | 10,000,000 | — | — | — | — | — | — |
 
 * The Arabic-English filtered derivative combines MultiUN and UNPC. Its pair count must not be added to either upstream source, nor counted as independent unique material.
 
@@ -79,6 +79,22 @@ The BSC dataset card reports about 5.4 million parallel sentence pairs in `dogc_
 
 The CLARIN-IS record for the exact Filtered-1 artifact used by the project (handle 381) reports 794,816,184 words across filtered, deduplicated, normalized Icelandic documents. This is a word count, not a sentence or document count. A separate Filtered-2 artifact exists under handle 382 and must not be merged into Filtered-1 without checking overlap and licence scope. Source: https://repository.clarin.is/repository/xmlui/handle/20.500.12537/381
 
+### GreynirCorpus 1.1
+
+The CLARIN-IS repository metadata and the upstream project README independently describe GreynirCorpus 1.1 as **10 million Icelandic sentences**, approximately **110,893,504 tokens** in the repository record (the project README gives approximately 140 million words). The 5,000 hand-annotated trees are a subset/annotation layer, not additional sentences. The repository marks the corpus publicly available under CC BY 4.0. This is upstream capacity only; langid-32's previous zero staged records and pending project rights review are separate questions. Sources: https://repository.clarin.is/repository/xmlui/handle/20.500.12537/119 and https://github.com/mideind/GreynirCorpus
+
+### Korean Wikipedia 2023-11-01
+
+The pinned Wikimedia/Hugging Face `20231101.ko` split contains **647,897 article records** (provider split metadata rounds this to 647.9K). The dataset has one full cleaned article per row; this is an article count, not a sentence count. Sentence candidates require segmenting the full article text. The three Parquet shards total about 783 MB. License metadata lists CC BY-SA 3.0 and GFDL; preserve article/revision attribution and review imported-content exceptions. Sources: https://huggingface.co/datasets/wikimedia/wikipedia/tree/bef9a7e34c90b82f0a90ce374ae17c7c6873e314/20231101.ko and https://huggingface.co/datasets/wikimedia/wikipedia
+
+### UN Parallel Corpus (UNPC)
+
+The UN's official v1.0 statistics report **799,276 total documents**, **1,727,539 aligned document pairs**, and a fully aligned subcorpus of **86,307 documents / 11,365,709 aligned lines**. Pairwise statistics are published per language pair: each upper-triangle cell contains aligned document count and aligned line count; lower-triangle cells contain token counts for each language side. Pairwise lines must not be summed across the 15 language pairs because the same sentence/document can recur in several pair configurations. The source provides language-specific XML archives and parallel link files, enabling a proper monolingual extraction; exact unique sentence counts by language remain to be computed. Official source and attribution requirement: https://www.un.org/dgacm/en/content/uncorpus and https://www.un.org/dgacm/content/uncorpus/Download
+
+### Tatoeba CC0 subset
+
+The current official download page confirms that the CC0 export is a distinct subset of Tatoeba's larger CC BY 2.0 FR export. The CC0 locale list includes these project target languages: Arabic, Catalan, Czech, Danish, Dutch, English, Finnish, French, German, Hungarian, Italian, Japanese, Mandarin Chinese, Norwegian Bokmål, Polish, Portuguese, Russian, Spanish and Swedish. It does not list the other target languages. The matrix uses `—` only for those absent from the provider's published CC0 language list; counts for supported target languages remain TBD pending an actual count of the weekly CC0 archive. Source: https://tatoeba.org/en/downloads
+
 ### FineWeb English
 
 The Hugging Face dataset page exposes 25.9 billion rows for the default FineWeb dataset and describes more than 18.5 trillion tokens. The row figure is retained as the provider's native record count; it is not a sentence count. Source: https://huggingface.co/datasets/HuggingFaceFW/fineweb
@@ -96,10 +112,10 @@ The National Library of Norway reports provider token counts: Bokmål 1,890,232,
 1. Common Voice 22: provider `validatedSentences` figures have now been transcribed for cs, en, fr and ga; extract and verify all remaining target locales. Do not use the project's 9,000 cap.
 2. FineWeb-2: filtered document counts have been transcribed for 30 target languages. Complete the missing Gaelic, Nynorsk and Maltese mapping; record removed-subset counts and word counts too. FineWeb English has 25.9B provider rows recorded separately.
 3. Leipzig News and Wikipedia: enumerate downloadable package manifests for every target language and count sentence rows in the actual archives.
-4. Tatoeba: count the CC0 export by language code; distinguish CC0-only from the larger CC-BY export.
-5. Målfrid, Icelandic Gigaword, Korean Wikipedia: IGC2024 Filtered-1 provider word count (794,816,184) is recorded; count its documents and segment complete text into candidate sentences. For Målfrid and Korean Wikipedia, continue counting documents/records and segment complete text; provider token/word/article totals are not sentence totals.
+4. Tatoeba: CC0 language coverage is now mapped; count the weekly CC0 export by language code. Do not use the larger CC-BY export.
+5. Målfrid, Icelandic Gigaword, Korean Wikipedia and GreynirCorpus: IGC2024 Filtered-1 provider word count (794,816,184) is recorded; count its documents and segment complete text. Korean Wikipedia has 647,897 article records; sentence segmentation remains. GreynirCorpus has 10M provider-reported sentences. Målfrid counts remain tokens, not sentence totals.
 6. BSC Legal and TeMU-BSC: BSC Legal reports ~5.4M Catalan–Spanish sentence pairs plus separate paragraph/document units; verify exact row counts and rights. TeMU-BSC has a conservative identified minimum of 249,681 Catalan CC0 sentences from two explicitly counted files; enumerate the remaining files, rights and overlaps.
-7. MultiUN and UNPC: count monolingual language sides, not pair-configuration row sums; deduplicate within each corpus and compare document identifiers between corpora.
-8. GreynirCorpus: currently excluded pending explicit rights approval; inventorying its upstream capacity does not imply permission to use it.
+7. MultiUN and UNPC: UNPC official corpus-wide counts (799,276 documents; 1,727,539 aligned document pairs; 11,365,709 lines in the fully aligned subcorpus) are recorded. Count monolingual language sides, not pair-configuration row sums; deduplicate within each corpus and compare document identifiers between corpora.
+8. GreynirCorpus: upstream size is 10M Icelandic sentences (~110.9M tokens in CLARIN metadata); CC BY 4.0. Project use remains subject to the separate rights/approval decision.
 
 No source's previous langid-32 sample cap or staged count is admissible as an upstream availability count.
