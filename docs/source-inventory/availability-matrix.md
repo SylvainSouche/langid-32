@@ -49,7 +49,7 @@ Counts shown below are native upstream units until sentence-level candidate coun
 | ru | TBD | — | 699,083,579 | TBD | TBD | TBD | — | — | — | — | — | — | — | TBD | TBD | — |
 | ja | TBD | — | 400,138,563 | TBD | TBD | TBD | — | — | — | — | — | — | — | — | — | — |
 | zh | TBD | — | 636,058,984 | TBD | TBD | TBD | — | — | — | — | — | — | — | TBD | TBD | — |
-| ko | TBD | — | 60,874,355 | TBD | TBD | — | — | — | — | — | TBD | — | — | — | — | — |
+| ko | TBD | — | 60,874,355 | TBD | TBD | — | — | — | — | — | 647.9K | — | — | — | — | — |
 | ar | TBD | — | 61,977,525 | TBD | TBD | TBD | — | — | — | — | — | — | — | TBD | TBD | TBD |
 | tr | TBD | — | 95,129,129 | TBD | TBD | — | — | — | — | — | — | — | — | — | — | — |
 | ca | TBD | — | 17,136,414 | TBD | TBD | TBD | — | — | — | — | — | ~5,400,000 sentence pairs | ≥249,681 identified CC0 sentences (partial) | — | — | — |
