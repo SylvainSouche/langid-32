@@ -27,9 +27,22 @@ def main():
         uri=rec.get("formats",{}).get("xml",{}).get("uri")
         if uri and uri not in urls: urls.append(uri)
     report["xml_uris_found"]=len(urls)
-    for uri in urls[:5]:
+    try:
+        ga_probe=s.get(API,params={"date_start":"2024-01-01","date_end":"2024-12-31","limit":5,"skip":0,"lang":"ga"},
+                       timeout=(30,120),headers={"User-Agent":"langid-32-source-audit/1"})
+        ga_probe.raise_for_status()
+        gp=ga_probe.json()
+        report["undocumented_debate_lang_ga_probe"]={"api_counts":gp.get("head",{}).get("counts",{}),
+            "returned_records":len(gp.get("results",[])),
+            "first_xml_uri":(gp.get("results") or [{}])[0].get("debateRecord",{}).get("formats",{}).get("xml",{}).get("uri")}
+    except Exception as e:
+        report["undocumented_debate_lang_ga_probe"]={"error":f"{type(e).__name__}: {e}"}
+    uri=urls[0] if urls else None
+    if uri:
+      for variant,candidate in [("published",uri),("gle_path",uri.replace("/mul@/","/gle@/")),("ga_path",uri.replace("/mul@/","/ga@/"))]:
+        if candidate==uri and variant!="published": continue
         try:
-            x=s.get(uri,stream=True,timeout=(30,180),headers={"User-Agent":"langid-32-source-audit/1"})
+            x=s.get(candidate,stream=True,timeout=(30,180),headers={"User-Agent":"langid-32-source-audit/1"})
             x.raise_for_status()
             path=Path("/tmp/oireachtas.xml"); h=hashlib.sha256(); size=0
             with path.open("wb") as out:
@@ -72,14 +85,14 @@ def main():
                             speech_tokens["ga"]+=len(text.split())
                     if stack: stack.pop()
                     el.clear()
-            report["xml_documents"].append({"uri":uri,"bytes":size,"sha256":h.hexdigest(),
+            report["xml_documents"].append({"variant":variant,"uri":candidate,"bytes":size,"sha256":h.hexdigest(),
                 "element_tags":dict(tags.most_common(30)),"attribute_names":dict(attribute_names),
                 "language_attribute_values":dict(language_attr_values),"frbr_language_metadata":frbr_languages,
                 "xml_lang_inherited_element_counts":dict(lang_tags),
                 "speech_elements_by_language":dict(speech),"ga_speech_characters":speech_chars.get("ga",0),
                 "ga_speech_whitespace_tokens":speech_tokens.get("ga",0)})
         except Exception as e:
-            report["xml_documents"].append({"uri":uri,"error":f"{type(e).__name__}: {e}"})
+            report["xml_documents"].append({"variant":variant,"uri":candidate,"error":f"{type(e).__name__}: {e}"})
     OUT.parent.mkdir(parents=True,exist_ok=True)
     OUT.write_text(json.dumps(report,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     print(OUT.read_text(encoding="utf-8"))
