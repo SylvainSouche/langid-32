@@ -46,7 +46,7 @@ def main():
             readme=z.read(prefix+"README.md").decode("utf-8","replace")
             for member in sorted(n for n in names if n.startswith(prefix) and not n.endswith("/") and n.lower().endswith((".txt",".tsv"))):
                 rel=member[len(prefix):]
-                if "/" in rel: continue
+                basename=rel.rsplit("/",1)[-1]
                 raw=z.read(member)
                 text=raw.decode("utf-8","replace")
                 rows=collections.Counter(); unique=set()
@@ -76,8 +76,8 @@ def main():
                 rows["normalized_duplicates_within_file"]=max(0,rows.get("nonempty_sentence_cells",rows.get("nonempty_lines",0))-len(unique))
                 rows["bytes"]=len(raw); rows["sha256"]=hashlib.sha256(raw).hexdigest()
                 rows["cc0_constituent_in_union"]=rel in CC0_COMPONENTS
-                rows["aggregate_not_added_to_union"]=rel in AGGREGATES
-                rows["other_or_rights_unresolved"]=rel not in CC0_COMPONENTS and rel not in AGGREGATES
+                rows["aggregate_not_added_to_union"]=basename in AGGREGATES
+                rows["other_or_rights_unresolved"]=rel not in CC0_COMPONENTS and basename not in AGGREGATES
                 files.append({"file":rel,"measured":dict(rows)})
         db.commit()
         union_count=db.execute("SELECT COUNT(*) FROM union_text").fetchone()[0]
