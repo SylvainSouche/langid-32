@@ -23,6 +23,10 @@ ODC-By 1.0 dataset licence; underlying Common Crawl page rights/terms remain unr
 
 Multilingual web crawl; card describes 96 snapshots, ~20 TB, 5B documents, >3T words, 1,868 language-script pairs.
 
+## Upstream availability (independent of project acquisition)
+
+The provider publishes per-language/script counts for its filtered subsets. The target-language document counts transcribed from that table are maintained in [the upstream availability matrix](../availability-matrix.md). They are provider document counts, **not sentence counts**. The dataset also publishes removed subsets separately; the filtered and removed subsets together represent the full globally deduplicated data for each language. English is intentionally distributed in the separate FineWeb dataset.
+
 ## Current langid-32 acquisition snapshot
 
 610,702 staged records. Most per-language counts are stream/sampler caps (~10–20k); Catalan and Icelandic 50k. Not upstream availability; held.
