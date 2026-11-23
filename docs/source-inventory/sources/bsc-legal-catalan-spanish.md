@@ -13,7 +13,7 @@ HF dataset; downloads dogc_ca-es.tsv, legal_ca-es_dataset_clean.tsv, apdcat_ca-e
 
 ## File types and structure
 
-TSV sentence-level, TSV paragraph-level, JSONL document-level parallel data.
+TSV sentence-level (`ca`, `es`); TSV paragraph-level (`dataset`, `segment_id`, `ca_text`, `es_text`, `alignment_score`); JSONL document-level parallel data (`ca`, `es`, `doc_id`, source URLs and alignment/segment metadata).
 
 ## Distribution conditions and rights
 
