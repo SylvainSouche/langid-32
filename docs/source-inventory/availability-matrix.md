@@ -20,7 +20,7 @@ Counts shown below are native upstream units until sentence-level candidate coun
 
 | Language | Common Voice 22 | DGT-TM 2021 (TUs) | FineWeb-2 (all deduped documents) | Leipzig News | Leipzig Wikipedia | Tatoeba CC0 | Tatoeba all licences (sentences) | FineWeb English (records) | Målfrid 2026 (tokens) | Icelandic Gigaword 2024 (words) | GreynirCorpus (sentences) | Korean Wikipedia (articles) | BSC Legal (sentence pairs) | TeMU-BSC CC0 | MultiUN | UNPC | UN Arabic-English Filtered* |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| bg | 39,572 | 4,602,085 | 67,154,724 | TBD | TBD | — | — | — | — | — | — | — | — | — | — | — |
+| bg | 39,572 | 4,602,085 | 67,154,724 | TBD | TBD | — | 25,725 | — | — | — | — | — | — | — | — | — |
 | hr | — | 2,554,319 | 60,362,437 | TBD | TBD | — | 6,587 | — | — | — | — | — | — | — | — | — | — |
 | cs | 451,100 | 6,410,466 | 239,100,701 | TBD | TBD | TBD | 90,266 | — | — | — | — | — | — | — | — | — | — |
 | da | 20,779 | 5,935,254 | 148,211,420 | TBD | TBD | TBD | 66,569 | — | — | — | — | — | — | — | — | — | — |
@@ -50,7 +50,7 @@ Counts shown below are native upstream units until sentence-level candidate coun
 | ja | 37,288 | — | 1,274,369,743 | TBD | TBD | TBD | 249,285 | — | — | — | — | — | — | — | — | — | — |
 | zh | 78,686 | — | 1,485,809,411 | TBD | TBD | TBD | 89,428 | — | — | — | — | — | — | — | TBD | TBD | — |
 | ko | 7,322 | — | 197,842,127 | TBD | TBD | — | 16,027 | — | — | — | — | 647,897 | — | — | — | — | — |
-| ar | 59,434 | — | 154,130,106 | TBD | TBD | TBD | — | — | — | — | — | — | — | TBD | TBD | TBD |
+| ar | 59,434 | — | 154,130,106 | TBD | TBD | TBD | 68,968 | — | — | — | — | — | — | TBD | TBD | TBD |
 | tr | 410,398 | — | 260,547,567 | TBD | TBD | — | 750,704 | — | — | — | — | — | — | — | — | — | — |
 | ca | 1,302,361 | — | 45,018,757 | TBD | TBD | TBD | 11,016 | — | — | — | — | — | ~5,400,000 sentence pairs | ~649,915 reported CC0 sentence rows (pre-dedup) | — | — | — |
 | is | 4,993 | — | 8,349,376 | TBD | TBD | — | 13,396 | — | — | 794,816,184 | ~10,000,000 | — | — | — | — | — | — |
