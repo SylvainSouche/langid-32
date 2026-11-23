@@ -25,7 +25,7 @@ English web text from Common Crawl since 2013; card reports >18.5T tokens.
 
 ## Verified upstream availability (independent of project acquisition)
 
-The current Hugging Face dataset page reports **25.9 billion rows** for the default dataset view and describes the corpus as containing more than **18.5 trillion tokens**. The row count is the provider's dataset-viewer record count, not a count of sentences. Sentence candidates require segmentation of the complete text field; do not infer them by multiplying the row count by an assumed average. Source: https://huggingface.co/datasets/HuggingFaceFW/fineweb
+The current Hugging Face dataset page reports approximately **25.9 billion rows** for the default dataset view and describes the corpus as containing more than **18.5 trillion tokens**. The row count is the provider's dataset-viewer record count, not a count of sentences. Sentence candidates require segmentation of the complete text field; do not infer them by multiplying the row count by an assumed average. Source: https://huggingface.co/datasets/HuggingFaceFW/fineweb
 
 ## Current langid-32 acquisition snapshot
 
@@ -42,6 +42,6 @@ The current Hugging Face dataset page reports **25.9 billion rows** for the defa
 ## Remaining checks
 
 - Pin an immutable dataset revision and record the exact dataset-viewer/API snapshot date.
-- Verify the 25.9B row count against the pinned Parquet manifest/shard metadata.
+- Verify the approximate 25.9B row count against the pinned Parquet manifest/shard metadata.
 - Obtain complete token/word counts and segment the complete text field to measure sentence candidates.
 - Keep underlying Common Crawl text rights separate from the ODC-By dataset/compilation terms.
