@@ -23,6 +23,18 @@ Many files declared CC0/public domain, but terms vary by file. Check README entr
 
 Catalan government crawl, linguistic-policy material, dictionaries, templates, literature and community contributions.
 
+## Verified upstream availability (independent of project acquisition)
+
+The upstream README reports at least two separately identifiable sentence files:
+
+| File | Provider-reported sentences | Notes |
+|---|---:|---|
+| `catalan_government_crawling_frases_seleccionades_filtrades_sorted.txt` | 93,691 | Selected/filtered sentences from a 39-million-token Catalan Government web crawl |
+| `datasets_sentences.tsv` | 155,990 | Sentences extracted from Projecte Aina datasets (caBreu, CoQCat, NLUCat, Parafraseja) |
+| **Identified minimum** | **249,681** | Sum of the two named files only; not a complete repository total or post-deduplication count |
+
+Do not add aggregate files to their constituent files. In particular, `new_catalan_cc0_corpus.txt` aggregates seven listed files and `xitxat_toponyms.txt` aggregates other files. The README also lists sources with individual permission/waiver statements; file-level terms must be checked before counting them as CC0-eligible. This 249,681 minimum is not the same as the project's 174,157 staged records. Source: https://github.com/TeMU-BSC/catalan_CC0_sentences
+
 ## Current langid-32 acquisition snapshot
 
 174,157 current Catalan records; may include generated/template examples; not necessarily unique natural sentences or full upstream count.
@@ -37,7 +49,7 @@ Catalan government crawl, linguistic-policy material, dictionaries, templates, l
 
 ## Remaining checks
 
-- Pin exact upstream release/version, retrieval date and immutable identifier.
-- Count full upstream records by language in the source's native unit, independently of project sampling.
-- Record raw, eligible-after-source-filters and project-selected counts separately.
-- Verify file-level rights and redistribution conditions before public release.
+- Enumerate every remaining individual file and identify aggregate/constituent relationships.
+- Verify file-level waivers, contributor agreements and permission scope; do not assume every repository file is CC0.
+- Count exact lines and unique normalized sentences from a pinned Git revision, then reconcile against the README's stated totals.
+- Keep the 249,681 identified minimum separate from the 174,157 historical project sample.
