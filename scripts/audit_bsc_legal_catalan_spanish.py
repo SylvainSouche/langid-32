@@ -6,7 +6,7 @@ from pathlib import Path
 import requests
 
 REPO = "BSC-LT/Legal_Catalan_Spanish_Parallel_Corpus"
-REVISION = os.environ.get("BSC_REVISION", "a1b279e")
+REVISION = os.environ.get("BSC_REVISION", "5f7eda4")
 BASE = f"https://huggingface.co/datasets/{REPO}/resolve/{REVISION}/"
 FILES = {
     "dogc_ca-es.tsv": "sentence_pair",
