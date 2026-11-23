@@ -64,7 +64,7 @@ The pinned Hugging Face conversion includes `release_stats.py`, with provider-re
 | ca | ca | 1,302,361 |
 | is | is | 4,993 |
 
-These are sentence counts, not audio-clip counts or project-selected records. The complete per-locale table is not yet transcribed; all other target-language cells remain unmeasured, not zero. Source file at pinned revision: https://huggingface.co/datasets/fsicoli/common_voice_22_0/blob/0ca7c0e9cf2c25897c13aa73c54003d8d6d1cf28/release_stats.py
+The `zh` value is the raw sum of the `zh-CN` and `zh-TW` locale counts; cross-locale duplicates have not yet been removed. These are sentence counts, not audio-clip counts or project-selected records. The complete per-locale table is not yet transcribed; all other target-language cells remain unmeasured, not zero. Source file at pinned revision: https://huggingface.co/datasets/fsicoli/common_voice_22_0/blob/0ca7c0e9cf2c25897c13aa73c54003d8d6d1cf28/release_stats.py
 
 ## Current langid-32 acquisition snapshot
 
