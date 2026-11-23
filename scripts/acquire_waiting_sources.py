@@ -361,20 +361,59 @@ def main():
 
         elif args.source == "korean":
             revisions["wikipedia"] = resolve_hf_revision("wikimedia/wikipedia")
-            from datasets import load_dataset
-            dataset = load_dataset("wikimedia/wikipedia", "20231101.ko", split="train",
-                                   streaming=True, revision=revisions["wikipedia"])
-            for index, item in enumerate(dataset):
-                page_id = str(item.get("id") or index)
-                provenance = {"dataset_repo": "wikimedia/wikipedia",
-                               "repo_commit": revisions["wikipedia"], "page_id": page_id}
-                for key in ("url", "title"):
-                    if item.get(key):
-                        provenance[key] = item[key]
-                for paragraph in re.split(r"(?<=[.!?。！？])\s+|\n+", item.get("text", "")):
-                    add("ko", "korean_wikipedia_20231101", paragraph, page_id, provenance)
-                if index >= 499999:
+            # Avoid datasets' threaded streaming reader: it repeatedly aborts the
+            # hosted runner with Errno 9 / PyGILState_Release on this repository.
+            # Download pinned Parquet shards and iterate them synchronously with
+            # PyArrow. The repository revision is immutable and recorded above.
+            from huggingface_hub import HfApi, hf_hub_download
+            import pyarrow.parquet as pq
+
+            api = HfApi()
+            files = sorted(
+                name for name in api.list_repo_files(
+                    "wikimedia/wikipedia", repo_type="dataset",
+                    revision=revisions["wikipedia"]
+                )
+                if name.startswith("20231101.ko/") and name.endswith(".parquet")
+            )
+            if not files:
+                raise RuntimeError("No Korean Wikipedia Parquet shards found at pinned revision")
+            processed = 0
+            for filename in files:
+                local_path = hf_hub_download(
+                    repo_id="wikimedia/wikipedia", repo_type="dataset",
+                    filename=filename, revision=revisions["wikipedia"]
+                )
+                parquet = pq.ParquetFile(local_path)
+                columns = set(parquet.schema_arrow.names)
+                required = {"id", "text"}
+                if not required.issubset(columns):
+                    raise RuntimeError(f"Unexpected Wikipedia Parquet schema in {filename}: {sorted(columns)}")
+                selected_columns = [name for name in ("id", "url", "title", "text") if name in columns]
+                for batch in parquet.iter_batches(batch_size=512, columns=selected_columns):
+                    for item in batch.to_pylist():
+                        page_id = str(item.get("id") or processed)
+                        provenance = {
+                            "dataset_repo": "wikimedia/wikipedia",
+                            "repo_commit": revisions["wikipedia"],
+                            "page_id": page_id,
+                            "source_file": filename,
+                        }
+                        for key in ("url", "title"):
+                            if item.get(key):
+                                provenance[key] = item[key]
+                        for paragraph in re.split(r"(?<=[.!?。！？])\\s+|\\n+", item.get("text", "")):
+                            add("ko", "korean_wikipedia_20231101", paragraph, page_id, provenance)
+                        processed += 1
+                        if processed >= 500000:
+                            break
+                    if processed >= 500000:
+                        break
+                Path(local_path).unlink(missing_ok=True)
+                if processed >= 500000:
                     break
+            if not processed:
+                raise RuntimeError("Pinned Korean Wikipedia Parquet shards contained no rows")
             notes.append("Wikimedia Korean dump: CC BY-SA/GFDL attribution and share-alike obligations retained; release hold remains.")
 
         elif args.source == "fineweb2":
