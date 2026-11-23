@@ -63,8 +63,14 @@ def main() -> None:
         actual = sum(1 for x in files if x["kind"] == kind)
         if actual != expected_count:
             raise RuntimeError(f"Expected {expected_count} {kind} files after LFS checkout; found {actual}")
-    if not gold:
-        raise RuntimeError("No gold-standard files found; checkout path is probably wrong")
+    gold_dev = [x for x in gold if x["kind"] == "devset/psd"]
+    gold_test = [x for x in gold if x["kind"] == "testset/psd"]
+    if len(gold_dev) != 450 or len(gold_test) != 50:
+        raise RuntimeError(f"Expected 450 development and 50 test files; found {len(gold_dev)} and {len(gold_test)}")
+    if sum(x["tree_records_marker_count"] for x in gold_dev) != 4500 or sum(x["tree_records_marker_count"] for x in gold_test) != 500:
+        raise RuntimeError("Gold-standard record totals differ from the documented 4,500/500 split")
+    if any(x["tree_records_marker_count"] != 1_000_000 for x in files if x["kind"] == "copper"):
+        raise RuntimeError("At least one copper file differs from the one-million-record specification")
     totals = {}
     for kind in ("copper", "silver", "extra"):
         subset = [x for x in files if x["kind"] == kind]
@@ -82,7 +88,7 @@ def main() -> None:
     report = {
         "repository": "mideind/GreynirCorpus",
         "revision": REVISION,
-        "method": "Count occurrences of the the (ID-CORPUS metadata field in every decompressed gzip/plain treebank file; verify all LFS pointers were hydrated.",
+        "method": "Count occurrences of the (ID-CORPUS metadata field in every decompressed gzip/plain treebank file; verify all LFS pointers were hydrated.",
         "files": files + gold,
         "totals": totals,
         "warning": "Copper/silver/extra are separate corpus partitions with possible overlap; do not sum them as unique sentences without text-level cross-partition deduplication."
