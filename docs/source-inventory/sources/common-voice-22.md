@@ -29,10 +29,40 @@ The pinned Hugging Face conversion includes `release_stats.py`, with provider-re
 
 | Language | Locale | Validated sentences |
 |---|---|---:|
+| bg | bg | 39,572 |
+| hr | — | — |
 | cs | cs | 451,100 |
+| da | da | 20,779 |
+| nl | nl | 259,729 |
 | en | en | 1,680,014 |
+| et | et | 10,910 |
+| fi | fi | 5,848 |
 | fr | fr | 1,648,822 |
+| de | de | 2,057,917 |
+| el | el | 6,856 |
+| hu | hu | 326,221 |
 | ga | ga-IE | 1,675 |
+| it | it | 924,883 |
+| lv | lv | 34,333 |
+| lt | lt | 129,304 |
+| mt | mt | 5,273 |
+| pl | pl | 229,899 |
+| pt | pt | 43,526 |
+| ro | ro | 13,753 |
+| sk | sk | 17,876 |
+| sl | sl | 4,206 |
+| es | es | 1,081,921 |
+| sv | sv-SE | 26,202 |
+| nb | nb-NO | 4,372 |
+| nn | nn-NO | 5,318 |
+| ru | ru | 47,819 |
+| ja | ja | 37,288 |
+| zh | zh-CN + zh-TW | 78,686 |
+| ko | ko | 7,322 |
+| ar | ar | 59,434 |
+| tr | tr | 410,398 |
+| ca | ca | 1,302,361 |
+| is | is | 4,993 |
 
 These are sentence counts, not audio-clip counts or project-selected records. The complete per-locale table is not yet transcribed; all other target-language cells remain unmeasured, not zero. Source file at pinned revision: https://huggingface.co/datasets/fsicoli/common_voice_22_0/blob/0ca7c0e9cf2c25897c13aa73c54003d8d6d1cf28/release_stats.py
 
@@ -82,7 +112,6 @@ These are sentence counts, not audio-clip counts or project-selected records. Th
 
 ## Remaining checks
 
-- Extract all remaining target locales from the pinned `release_stats.py` and verify locale-to-language mapping, including zh-CN/zh-TW and nb/nn variants.
 - Reconcile provider `validatedSentences` counts with actual sentence TSVs at the same immutable revision.
 - Keep provider counts, downloaded rows, project-filtered candidates and globally deduplicated sentences separate.
 - Reconfirm the CC0 declaration applies to this text-only conversion and retain its revision/hash.
