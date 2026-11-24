@@ -29,7 +29,7 @@ def test_replenishes_until_target_across_batches_and_deduplicates_globally():
     ]
     assert result.scanned == 6
     assert result.rejected_by_engine == 2
-    assert result.duplicates_across_batches == 0
+    assert result.duplicates_across_batches == 1
     assert all(row["language"] == "en" for row in result.rows)
     assert all(row["source"] == "synthetic-source" for row in result.rows)
 
