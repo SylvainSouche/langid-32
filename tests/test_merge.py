@@ -276,6 +276,7 @@ def test_source_intake_cap_is_independent_for_each_language(tmp_path):
     source.write_text("".join(json.dumps(row) + "\n" for row in rows))
     args = _args(tmp_path, [source])
     args.max_per_language = 0
+    args.max_sentences_per_source = 20
     args.validation_fraction = 0
     args.test_fraction = 0
     merge(args)
