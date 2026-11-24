@@ -1,0 +1,28 @@
+name: Data-Juicer prototype
+
+on:
+  push:
+    branches:
+      - "experiment/datajuicer-prefect-prototype"
+    paths:
+      - "experiments/datajuicer/**"
+      - ".github/workflows/datajuicer-prototype.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  datajuicer-small-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install isolated experiment dependencies
+        run: python -m pip install "py-data-juicer==1.6.0" pytest
+      - name: Run synthetic replenishment and operator tests
+        run: python -m pytest -q experiments/datajuicer
