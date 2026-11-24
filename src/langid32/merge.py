@@ -159,6 +159,9 @@ def _matches_exclusion(row, rule):
 def read_inputs(paths: list[Path], args):
     rejected = Counter()
     rows = []
+    source_seen = defaultdict(set)
+    source_retained = Counter()
+    source_limit = getattr(args, "max_sentences_per_source", 20000)
     exclusions_path = getattr(args, "exclusions", None)
     exclusions = load_exclusions(exclusions_path)
     for path in paths:
@@ -229,6 +232,15 @@ def read_inputs(paths: list[Path], args):
                     rejected["empty_group_id"] += 1
                     continue
                 source = str(row["source"]).strip()
+                if text in source_seen[source]:
+                    rejected[f"source_duplicate_within_source:{source}"] += 1
+                    continue
+                if source_limit and source_retained[source] >= source_limit:
+                    rejected[f"source_limit_discarded:{source}"] += 1
+                    continue
+                source_seen[source].add(text)
+                source_retained[source] += 1
+                rejected[f"source_retained:{source}"] = source_retained[source]
                 normalized = {
                     "text": text,
                     "language": language,
@@ -576,6 +588,8 @@ def main():
     parser.add_argument("--min-chars", type=int, default=12)
     parser.add_argument("--max-chars", type=int, default=500)
     parser.add_argument("--max-bytes", type=int, default=1500)
+    parser.add_argument("--max-sentences-per-source", type=int, default=20000,
+                        help="Maximum screened unique records retained from each source before global merge/JQL")
     parser.add_argument("--max-per-language", type=int, default=30000,
                         help="Total candidate pool per language; 0 disables all caps")
     parser.add_argument("--core-per-language", type=int, default=20000,
@@ -592,6 +606,8 @@ def main():
     args = parser.parse_args()
     if args.min_chars < 1 or args.max_chars < args.min_chars or args.max_bytes < 1:
         parser.error("invalid text length limits")
+    if args.max_sentences_per_source < 0:
+        parser.error("--max-sentences-per-source must be >= 0")
     if args.max_per_language < 0:
         parser.error("--max-per-language must be >= 0")
     if args.core_per_language < 0:
