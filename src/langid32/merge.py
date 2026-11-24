@@ -240,7 +240,6 @@ def read_inputs(paths: list[Path], args):
                     continue
                 source_seen[source].add(text)
                 source_retained[source] += 1
-                rejected[f"source_retained:{source}"] = source_retained[source]
                 normalized = {
                     "text": text,
                     "language": language,
@@ -281,7 +280,7 @@ def read_inputs(paths: list[Path], args):
                 kept.append(row)
         rows = kept
         rejected["exclusion_rules_matched"] = sum(matched_rules.values())
-    return rows, rejected
+    return rows, rejected, source_retained
 
 
 def _select_source_balanced(bucket, target, preferred_share, hard_share):
@@ -324,7 +323,7 @@ def _select_source_balanced(bucket, target, preferred_share, hard_share):
 def merge(args):
     exclusions_path = getattr(args, "exclusions", None)
     exclusions = load_exclusions(exclusions_path)
-    rows, rejected = read_inputs(args.inputs, args)
+    rows, rejected, source_intake_counts = read_inputs(args.inputs, args)
 
     owners = defaultdict(set)
     for row in rows:
@@ -545,6 +544,7 @@ def merge(args):
         "source_quota_shortfalls": source_quota_shortfalls,
         "cross_language_collision_strings_removed": len(cross_language_texts),
         "rejected": dict(sorted(rejected.items())),
+        "source_intake_counts_before_global_dedup": dict(sorted(source_intake_counts.items())),
         "duplicate_source_pairs": dict(sorted(duplicate_by_source_pair.items())),
         "privacy_flag_counts": dict(sorted(privacy_flag_counts.items())),
         "rights_status_counts": dict(sorted(rights_status_counts.items())),
