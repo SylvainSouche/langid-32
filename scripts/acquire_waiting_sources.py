@@ -6,7 +6,6 @@ import argparse
 import csv
 import gzip
 import hashlib
-import heapq
 import json
 import re
 import shutil
@@ -108,8 +107,9 @@ def main():
     temp_root = Path(tempfile.mkdtemp())
     output_root = Path(args.out)
     output_root.mkdir(parents=True, exist_ok=True)
-    heaps = defaultdict(list)
+    retained = defaultdict(list)
     seen = defaultdict(set)
+    max_per_source = 20000
     downloads = []
     notes = []
     scanned = Counter()
@@ -172,7 +172,7 @@ def main():
         key = (language, source)
         text_hash = hashlib.sha256(text.encode("utf-8")).hexdigest()
         scanned[key] += 1
-        if text_hash in seen[key]:
+        if text_hash in seen[key] or len(retained[key]) >= max_per_source:
             return
         release, licence, origin, rights_status = source_metadata(source)
         source_record_id = str(group_id or text_hash)
@@ -192,18 +192,14 @@ def main():
             "text_origin": origin,
             "provenance": prov,
         }
-        rank = int(text_hash, 16)
-        heap = heaps[key]
-        if len(heap) < 50000:
-            heapq.heappush(heap, (-rank, record, text_hash))
-            seen[key].add(text_hash)
-        elif rank < -heap[0][0]:
-            removed = heapq.heapreplace(heap, (-rank, record, text_hash))
-            seen[key].remove(removed[2])
-            seen[key].add(text_hash)
+        retained[key].append(record)
+        seen[key].add(text_hash)
 
     def scan(root, language, source):
+        key = (language, source)
         for path in ([root] if root.is_file() else root.rglob("*")):
+            if len(retained[key]) >= max_per_source:
+                break
             if not path.is_file():
                 continue
             relative = path.name if root.is_file() else path.relative_to(root).as_posix()
@@ -212,6 +208,8 @@ def main():
                     opener = gzip.open if path.name.endswith(".gz") else open
                     with opener(path, "rt", encoding="utf-8", errors="replace") as stream:
                         for index, line in enumerate(stream, 1):
+                            if len(retained[key]) >= max_per_source:
+                                break
                             try:
                                 item = json.loads(line)
                             except json.JSONDecodeError:
@@ -262,6 +260,8 @@ def main():
                             segment_index = first.index("segment_id") if "segment_id" in first else None
                             alignment_index = first.index("alignment_score") if "alignment_score" in first else None
                             for index, row in enumerate(reader, 2):
+                                if len(retained[key]) >= max_per_source:
+                                    break
                                 if len(row) <= text_index:
                                     continue
                                 value = row[text_index]
@@ -284,6 +284,8 @@ def main():
                                     {"source_file": relative, "source_record_index": 1,
                                      "source_document_id": None})
                             for index, row in enumerate(reader, 2):
+                                if len(retained[key]) >= max_per_source:
+                                    break
                                 if row:
                                     add(language, source, row[0], f"{relative}:row:{index}",
                                         {"source_file": relative, "source_record_index": index,
@@ -463,11 +465,10 @@ def main():
 
         selected = []
         stats = Counter()
-        for (language, source), heap in sorted(heaps.items()):
-            items = [item[1] for item in heap]
+        for (language, source), items in sorted(retained.items()):
             selected.extend(items)
             stats[f"{language}|{source}|screened"] = scanned[(language, source)]
-            stats[f"{language}|{source}|unique_sampled"] = len(items)
+            stats[f"{language}|{source}|unique_retained"] = len(items)
 
         seen_text = set()
         deduplicated = []
@@ -493,8 +494,8 @@ def main():
             "stats": dict(stats),
             "total_selected": len(deduplicated),
             "notes": notes,
-            "stats_note": "Screened counts include repeated texts; deterministic hash-priority sample capped at 50k per source; cross-source dedup applies only to sampled records.",
-            "status": "automated candidate only; all source rights statuses remain held or conditional until reviewed",
+            "stats_note": "Source-order scan: retain the first 20,000 unique records passing acquisition screening per source/language, or exhaust the source; no hash-priority sampling. Global merge performs cross-source deduplication.",
+            "status": "automated candidate; declared CC BY/CC0 source terms accepted at corpus level; non-CC-BY/CC0 or explicitly unresolved upstream rights remain held",
         }
         (output_root / "manifest.json").write_text(
             json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
