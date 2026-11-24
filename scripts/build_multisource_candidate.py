@@ -232,6 +232,7 @@ def main():
         sys.executable, "-m", "langid32.merge",
         "--output", str(args.output / "candidate"),
         "--exclusions", str(args.exclusions),
+        "--max-sentences-per-source", "20000",
         "--max-per-language", str(args.max_per_language),
         "--core-per-language", str(args.core_per_language),
         "--preferred-source-share", str(args.preferred_source_share),
