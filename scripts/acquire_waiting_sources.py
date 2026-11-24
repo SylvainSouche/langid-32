@@ -119,7 +119,7 @@ def main():
         if source.startswith("temu_cc0:"):
             return (f"catalan_CC0_sentences@git:{revisions.get('temu', 'unresolved')}",
                     "CC0-1.0 (repository claim)", "text extracted from TeMU-BSC constituent file",
-                    "hold_constituent_rights_unverified")
+                    "declared_cc0_accepted")
         if source.startswith("catalan_dpo_v2:"):
             return (f"Catalan-DPO-V2@{revisions.get('dpo', 'unresolved')}",
                     "Apache-2.0 (dataset-card claim)", "assistant dialogue text from Catalan-DPO-V2",
@@ -130,19 +130,19 @@ def main():
             revision = f"sha256:{item['sha256']}" if item else "file-hash-unresolved"
             return (f"Legal_Catalan_Spanish_Corpus@{revision}",
                     "CC-BY-4.0 (repository claim)", "text extracted from BSC-LT legal-corpus constituent",
-                    "hold_constituent_terms_and_article_rights_unverified")
+                    "declared_cc_by_4_0_accepted")
         if source == "igc":
             item = next((row for row in downloads if "20.500.12537/381" in row["url"]), None)
             revision = f"sha256:{item['sha256']}" if item else "archive-hash-unresolved"
             return (f"IGC2024-Filtered-1@{revision}", "CC-BY-4.0 (corpus-level claim)",
                     "Icelandic corpus text; underlying source-work rights require review",
-                    "hold_source_document_rights_unverified")
+                    "declared_cc_by_4_0_accepted")
         if source == "greynir":
             item = next((row for row in downloads if "20.500.12537/119" in row["url"]), None)
             revision = f"sha256:{item['sha256']}" if item else "archive-hash-unresolved"
             return (f"GreynirCorpus-1.1@{revision}", "CC-BY-4.0 (corpus-level claim)",
                     "Icelandic news/government corpus text; underlying article rights require review",
-                    "hold_source_article_rights_unverified")
+                    "declared_cc_by_4_0_accepted")
         if source.startswith("maalfrid2026:"):
             language = source.rsplit(":", 1)[1]
             suffix = "nob.tar" if language == "nb" else "nno.tar"
