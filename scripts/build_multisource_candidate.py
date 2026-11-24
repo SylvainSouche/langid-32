@@ -194,7 +194,7 @@ def main():
     # Keep every source-retained row until global merge/deduplication.
     combined_path = args.output / "all-source-inputs.jsonl"
     combined_rows = 0
-    with combined_path.open("w", encoding="utf-8", newline="\\n") as combined:
+    with combined_path.open("w", encoding="utf-8") as combined:
         for path in merge_inputs:
             with path.open("r", encoding="utf-8") as source:
                 for line in source:
