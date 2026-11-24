@@ -16,3 +16,5 @@ artifact-upload-fix-2026-11-19
 Retry Korean Wikipedia with pinned Parquet and synchronous PyArrow acquisition; 2026-11-23.
 
 Source-first intake: 20k screened unique rows per source, then global deduplication and 35k language-level source-balanced selection. Preselection disabled.
+
+Diagnostics: report screened per-source intake before global deduplication.
