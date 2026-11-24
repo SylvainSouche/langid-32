@@ -9,6 +9,7 @@ def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--root", type=Path, default=Path("."))
     root = p.parse_args().root
+    # The adapter enforces 20,000 retained unique sentences per source family.
     subprocess.run([sys.executable, "scripts/acquire_waiting_sources.py", "--source", "catalan",
                     "--out", str(root / "input/waiting/catalan")], check=True)
 
