@@ -11,6 +11,7 @@ permissions:
   contents: read
 jobs:
   historical:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -37,6 +38,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with: {name: acquisition-historical, path: checkpoint.bin, retention-days: 7}
   common-voice:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 180
     steps:
@@ -54,6 +56,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with: {name: acquisition-common-voice, path: checkpoint.bin, retention-days: 7}
   waiting-source:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 360
     strategy:
@@ -78,6 +81,7 @@ jobs:
           path: checkpoint.bin
           retention-days: 7
   candidate:
+    if: github.ref == 'refs/heads/main'
     needs: [historical, common-voice, waiting-source]
     runs-on: ubuntu-latest
     timeout-minutes: 360
@@ -106,6 +110,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with: {name: candidate-checkpoint, path: candidate.bin, retention-days: 7}
   jql:
+    if: github.ref == 'refs/heads/main'
     needs: [candidate]
     runs-on: ubuntu-latest
     timeout-minutes: 180
