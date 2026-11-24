@@ -18,3 +18,5 @@ Retry Korean Wikipedia with pinned Parquet and synchronous PyArrow acquisition; 
 Source-first intake: 20k screened unique rows per source, then global deduplication and 35k language-level source-balanced selection. Preselection disabled.
 
 Diagnostics: report screened per-source intake before global deduplication.
+
+Fix source bucket ordering and emit explicit unexpected-key diagnostics.
