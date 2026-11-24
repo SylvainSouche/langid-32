@@ -273,7 +273,7 @@ def test_source_intake_cap_is_independent_for_each_language(tmp_path):
         _row(f"English sentence number {i}", "en", "shared-source", f"en:doc{i}")
         for i in range(25)
     ]
-    source.write_text("".join(json.dumps(row) + "\\n" for row in rows))
+    source.write_text("".join(json.dumps(row) + "\n" for row in rows))
     args = _args(tmp_path, [source])
     args.max_per_language = 0
     args.validation_fraction = 0
