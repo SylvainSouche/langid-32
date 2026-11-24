@@ -25,6 +25,19 @@ URL = re.compile(r"(?i)(https?://|www\\.)\\S+")
 NUMBER = re.compile(r"\\d{9,}")
 IPV4 = re.compile(r"(?<![\\w.])(?:\\d{1,3}\\.){3}\\d{1,3}(?![\\w.])")
 
+SOURCE_FAMILIES = (
+    "temu_cc0", "bsc_legal", "maalfrid2026", "fineweb2",
+    "un_arabic_english_filtered",
+)
+
+
+def source_bucket(source):
+    """Return the quota bucket; component filenames stay on individual records."""
+    for family in SOURCE_FAMILIES:
+        if source.startswith(family + ":"):
+            return family
+    return source
+
 
 def clean(value, language):
     text = " ".join(unicodedata.normalize("NFC", str(value or "")).split())
@@ -169,7 +182,7 @@ def main():
         text = clean(value, language)
         if not text:
             return
-        bucket_key = (language, source)
+        bucket_key = (language, source_bucket(source))
         text_hash = hashlib.sha256(text.encode("utf-8")).hexdigest()
         scanned[bucket_key] += 1
         if text_hash in seen[bucket_key] or len(retained[bucket_key]) >= max_per_source:
@@ -196,7 +209,7 @@ def main():
         seen[bucket_key].add(text_hash)
 
     def scan(root, language, source):
-        bucket_key = (language, source)
+        bucket_key = (language, source_bucket(source))
         for path in sorted([root] if root.is_file() else root.rglob("*")):
             if len(retained[bucket_key]) >= max_per_source:
                 break

@@ -2,7 +2,7 @@
 """Build a small, text-only Common Voice candidate sample from private Common Voice TSVs.
 
 Raw TSVs stay on the ephemeral runner and are never uploaded or committed.
-Only deterministic, deduplicated sentence text (up to 9,000/language) and an
+Only deterministic, deduplicated sentence text (up to 20,000/language) and an
 aggregate report are written to the artifact.
 """
 from __future__ import annotations
@@ -46,7 +46,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input-root", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
-    parser.add_argument("--per-language-cap", type=int, default=9000)
+    parser.add_argument("--per-language-cap", type=int, default=20000)
     args = parser.parse_args()
     download_manifest_path = args.input_root / "hf-common-voice-download-manifest.json"
     if not download_manifest_path.is_file():
@@ -125,8 +125,7 @@ def main() -> None:
     final_counts = {}
     with output_path.open("w", encoding="utf-8", newline="\n") as out:
         for language in LANGUAGES:
-            items = sorted(candidates[language].items(),
-                           key=lambda item: priority(language, item[0]))
+            items = list(candidates[language].items())
             before = len(items)
             items = items[:args.per_language_cap]
             final_counts[language] = {

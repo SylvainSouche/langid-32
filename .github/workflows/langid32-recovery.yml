@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [catalan, icelandic, norwegian, fineweb2, arabic]
+        target: [catalan]
     steps:
       - uses: actions/checkout@v4
       - name: Validate checkpoint key before acquisition
@@ -82,12 +82,40 @@ jobs:
           run-id: "45399888112"
           name: acquisition-gaois
           path: checkpoints/old-gaois
-      - name: Download repaired acquisition checkpoints
+      - name: Reuse repaired Icelandic checkpoint from prior repair run
         uses: actions/download-artifact@v4
         with:
-          pattern: "recovery-*"
-          path: checkpoints/repaired
-          merge-multiple: false
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: "45413806910"
+          name: recovery-icelandic
+          path: checkpoints/repaired-icelandic
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: "45413806910"
+          name: recovery-fineweb2
+          path: checkpoints/repaired-fineweb2
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: "45413806910"
+          name: recovery-norwegian
+          path: checkpoints/repaired-norwegian
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: "45413806910"
+          name: recovery-arabic
+          path: checkpoints/repaired-arabic
+      - name: Download corrected Catalan checkpoint
+        uses: actions/download-artifact@v4
+        with:
+          name: recovery-catalan
+          path: checkpoints/repaired-catalan
       - name: Restore all source checkpoints
         env:
           LANGID32_CHECKPOINT_KEY: ${{ secrets.LANGID32_CHECKPOINT_KEY }}
@@ -95,6 +123,8 @@ jobs:
           find checkpoints -name checkpoint.bin -print0 | while IFS= read -r -d '' f; do
             python scripts/checkpoint.py unpack --archive "$f"
           done
+      - name: Re-curate preserved Common Voice raw TSVs to the 20k source quota
+        run: python scripts/curate_common_voice_hf.py --input-root input/common-voice/source --output input/common-voice --per-language-cap 20000
       - name: Build candidate corpus
         env:
           PYTHONPATH: src
