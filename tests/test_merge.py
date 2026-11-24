@@ -261,3 +261,28 @@ def test_source_dataset_exclusion_quarantines_dpo_components_and_greynir(tmp_pat
     assert internal[0]["source"] == "igc"
     assert manifest["rejected"]["source_exclusion_registry"] == 3
     assert manifest["exclusion_registry"]["active_rules_loaded"] == 3
+
+
+
+def test_source_intake_cap_is_independent_for_each_language(tmp_path):
+    source = tmp_path / "multilingual-source.jsonl"
+    rows = [
+        _row(f"French sentence number {i}", "fr", "shared-source", f"fr:doc{i}")
+        for i in range(25)
+    ] + [
+        _row(f"English sentence number {i}", "en", "shared-source", f"en:doc{i}")
+        for i in range(25)
+    ]
+    source.write_text("".join(json.dumps(row) + "\\n" for row in rows))
+    args = _args(tmp_path, [source])
+    args.max_per_language = 0
+    args.validation_fraction = 0
+    args.test_fraction = 0
+    merge(args)
+    manifest = json.loads((args.output / "manifest.json").read_text())
+    intake = manifest["source_intake_counts_before_global_dedup"]
+    assert intake["fr:shared-source"] == 20
+    assert intake["en:shared-source"] == 20
+    internal = [json.loads(line) for line in (args.output / "records.jsonl").read_text().splitlines()]
+    assert sum(row["language"] == "fr" for row in internal) == 20
+    assert sum(row["language"] == "en" for row in internal) == 20
