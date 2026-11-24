@@ -169,10 +169,10 @@ def main():
         text = clean(value, language)
         if not text:
             return
-        key = (language, source)
+        bucket_key = (language, source)
         text_hash = hashlib.sha256(text.encode("utf-8")).hexdigest()
-        scanned[key] += 1
-        if text_hash in seen[key] or len(retained[key]) >= max_per_source:
+        scanned[bucket_key] += 1
+        if text_hash in seen[bucket_key] or len(retained[bucket_key]) >= max_per_source:
             return
         release, licence, origin, rights_status = source_metadata(source)
         source_record_id = str(group_id or text_hash)
@@ -192,13 +192,13 @@ def main():
             "text_origin": origin,
             "provenance": prov,
         }
-        retained[key].append(record)
-        seen[key].add(text_hash)
+        retained[bucket_key].append(record)
+        seen[bucket_key].add(text_hash)
 
     def scan(root, language, source):
-        key = (language, source)
-        for path in ([root] if root.is_file() else root.rglob("*")):
-            if len(retained[key]) >= max_per_source:
+        bucket_key = (language, source)
+        for path in sorted([root] if root.is_file() else root.rglob("*")):
+            if len(retained[bucket_key]) >= max_per_source:
                 break
             if not path.is_file():
                 continue
@@ -216,8 +216,8 @@ def main():
                                 continue
                             if isinstance(item, dict):
                                 values = []
-                                for key in ("fulltext", "text", "content", "sentence", "body", "ca", "ca_text", "text_ar"):
-                                    value = item.get(key)
+                                for field_name in ("fulltext", "text", "content", "sentence", "body", "ca", "ca_text", "text_ar"):
+                                    value = item.get(field_name)
                                     if isinstance(value, str):
                                         values.append(value)
                                     elif isinstance(value, list):
@@ -233,13 +233,13 @@ def main():
                                     "source_record_index": index,
                                     "source_document_id": str(document_id),
                                 }
-                                for key in ("url", "source_url", "canonical_url", "url_ca", "url_es",
+                                for field_name in ("url", "source_url", "canonical_url", "url_ca", "url_es",
                                             "title", "author", "date", "published", "publisher",
                                             "domain", "doc_hash", "mimetype", "lang", "dataset",
                                             "segment_id", "alignment_score"):
-                                    value = item.get(key)
-                                    if isinstance(value, (str, int, float)) and value != "":
-                                        provenance[key] = value
+                                    field_value = item.get(field_name)
+                                    if isinstance(field_value, (str, int, float)) and field_value != "":
+                                        provenance[field_name] = field_value
                                 source_url = (item.get("source_url") or item.get("url")
                                               or item.get("canonical_url") or item.get("url_ca"))
                                 if source_url:
@@ -476,7 +476,10 @@ def main():
         unexpected_keys = [repr(key) for key in retained if not (isinstance(key, tuple) and len(key) == 2)]
         if unexpected_keys:
             raise RuntimeError(f"Unexpected source bucket keys: {unexpected_keys[:10]}")
-        for (language, source), items in sorted(retained.items(), key=lambda pair: (str(pair[0][0]), str(pair[0][1]))):
+        for bucket_key, items in sorted(retained.items(), key=lambda pair: (str(pair[0][0]), str(pair[0][1]))):
+            if not isinstance(bucket_key, tuple) or len(bucket_key) != 2:
+                raise RuntimeError(f"Invalid source bucket key at serialization: {bucket_key!r}")
+            language, source = bucket_key
             selected.extend(items)
             stats[f"{language}|{source}|screened"] = scanned[(language, source)]
             stats[f"{language}|{source}|unique_retained"] = len(items)
