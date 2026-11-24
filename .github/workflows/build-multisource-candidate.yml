@@ -1,4 +1,4 @@
-name: Build full multisource candidate corpus and JQL assessment
+name: Build source-first 35k candidate corpus and JQL assessment
 
 on:
   workflow_dispatch:
@@ -81,7 +81,7 @@ jobs:
       - name: Acquire and deduplicate CC BY 4.0 Gaois Irish legislation sample
         run: python scripts/acquire_gaois_irish_legislation.py --out input/waiting/irish/candidates.jsonl --max-sample 50000
 
-      - name: Build 35k-per-language candidate pool without premature source caps
+      - name: Screen up to 20k per source, then globally deduplicate and select 35k per language
         env:
           PYTHONPATH: src
         run: |
@@ -109,7 +109,7 @@ jobs:
         if: always()
         run: |
           rm -rf input
-          rm -rf out/normalized-inputs out/preselected-input.jsonl
+          rm -rf out/normalized-inputs out/all-source-inputs.jsonl
           rm -f out/candidate/train.jsonl out/candidate/validation.jsonl \
             out/candidate/test.jsonl out/candidate/reserve.jsonl \
             out/candidate/records.jsonl
