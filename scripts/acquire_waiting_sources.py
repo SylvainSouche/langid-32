@@ -382,6 +382,8 @@ def main():
                 raise RuntimeError("No Korean Wikipedia Parquet shards found at pinned revision")
             processed = 0
             for filename in files:
+                if len(retained[("ko", "korean_wikipedia_20231101")]) >= max_per_source:
+                    break
                 local_path = hf_hub_download(
                     repo_id="wikimedia/wikipedia", repo_type="dataset",
                     filename=filename, revision=revisions["wikipedia"]
@@ -394,6 +396,8 @@ def main():
                 selected_columns = [name for name in ("id", "url", "title", "text") if name in columns]
                 for batch in parquet.iter_batches(batch_size=512, columns=selected_columns):
                     for item in batch.to_pylist():
+                        if len(retained[("ko", "korean_wikipedia_20231101")]) >= max_per_source:
+                            break
                         page_id = str(item.get("id") or processed)
                         provenance = {
                             "dataset_repo": "wikimedia/wikipedia",
@@ -407,12 +411,12 @@ def main():
                         for paragraph in re.split(r"(?<=[.!?。！？])\\s+|\\n+", item.get("text", "")):
                             add("ko", "korean_wikipedia_20231101", paragraph, page_id, provenance)
                         processed += 1
-                        if processed >= 500000:
+                        if len(retained[("ko", "korean_wikipedia_20231101")]) >= max_per_source:
                             break
-                    if processed >= 500000:
+                    if len(retained[("ko", "korean_wikipedia_20231101")]) >= max_per_source:
                         break
                 Path(local_path).unlink(missing_ok=True)
-                if processed >= 500000:
+                if len(retained[("ko", "korean_wikipedia_20231101")]) >= max_per_source:
                     break
             if not processed:
                 raise RuntimeError("Pinned Korean Wikipedia Parquet shards contained no rows")
@@ -427,6 +431,8 @@ def main():
                                            streaming=True, revision=revisions["fineweb2"])
                     source = "fineweb2:" + config
                     for index, item in enumerate(dataset):
+                        if len(retained[(language, source)]) >= max_per_source:
+                            break
                         document_id = str(item.get("id") or item.get("url") or index)
                         provenance = {"dataset_repo": "HuggingFaceFW/fineweb-2",
                                       "repo_commit": revisions["fineweb2"],
@@ -435,7 +441,7 @@ def main():
                             if item.get(key) is not None:
                                 provenance[key] = item[key]
                         add(language, source, item.get("text"), document_id, provenance)
-                        if index >= 499999:
+                        if len(retained[(language, source)]) >= max_per_source:
                             break
                     notes.append(config + ": underlying web-text rights unresolved; technical candidates only.")
                 except Exception as exc:
@@ -447,6 +453,8 @@ def main():
             dataset = load_dataset("ymoslem/UN-Arabic-English-Filtered", split="train",
                                    streaming=True, revision=revisions["un_arabic"])
             for index, item in enumerate(dataset):
+                if len(retained[("ar", "un_arabic_english_filtered:text_ar")]) >= max_per_source:
+                    break
                 document_id = str(item.get("id") or item.get("url") or index)
                 provenance = {"dataset_repo": "ymoslem/UN-Arabic-English-Filtered",
                               "repo_commit": revisions["un_arabic"],
