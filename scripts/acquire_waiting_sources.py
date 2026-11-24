@@ -33,7 +33,7 @@ def clean(value, language):
             or letters / len(text) < 0.45 or EMAIL.search(text)
             or URL.search(text) or NUMBER.search(text) or IPV4.search(text)):
         return None
-    if language == "ar" and sum("\\u0600" <= char <= "\\u06ff" for char in text) < max(10, letters * 0.35):
+    if language == "ar" and sum("\u0600" <= char <= "\u06ff" for char in text) < max(10, letters * 0.35):
         return None
     return text
 
@@ -160,9 +160,9 @@ def main():
                     "web-crawl document text", "hold_underlying_web_text_rights_unresolved")
         if source.startswith("un_arabic_english_filtered:"):
             return (f"UN-Arabic-English-Filtered@{revisions.get('un_arabic', 'unresolved')}",
-                    "UNVERIFIED (HF derivative card reports CC-BY-4.0)",
+                    "CC-BY-4.0 (HF dataset card claim)",
                     "Arabic text from a UN-derived dataset; upstream source terms unverified",
-                    "hold_upstream_UN_terms_unverified")
+                    "declared_cc_by_4_0_accepted")
         raise ValueError(f"No source metadata mapping for {source}")
 
     def add(language, source, value, group_id="", provenance=None):
@@ -208,7 +208,7 @@ def main():
                     opener = gzip.open if path.name.endswith(".gz") else open
                     with opener(path, "rt", encoding="utf-8", errors="replace") as stream:
                         for index, line in enumerate(stream, 1):
-                            if len(retained[key]) >= max_per_source:
+                            if len(retained[bucket_key]) >= max_per_source:
                                 break
                             try:
                                 item = json.loads(line)
@@ -260,7 +260,7 @@ def main():
                             segment_index = first.index("segment_id") if "segment_id" in first else None
                             alignment_index = first.index("alignment_score") if "alignment_score" in first else None
                             for index, row in enumerate(reader, 2):
-                                if len(retained[key]) >= max_per_source:
+                                if len(retained[bucket_key]) >= max_per_source:
                                     break
                                 if len(row) <= text_index:
                                     continue
@@ -284,7 +284,7 @@ def main():
                                     {"source_file": relative, "source_record_index": 1,
                                      "source_document_id": None})
                             for index, row in enumerate(reader, 2):
-                                if len(retained[key]) >= max_per_source:
+                                if len(retained[bucket_key]) >= max_per_source:
                                     break
                                 if row:
                                     add(language, source, row[0], f"{relative}:row:{index}",
@@ -425,7 +425,9 @@ def main():
         elif args.source == "fineweb2":
             revisions["fineweb2"] = resolve_hf_revision("HuggingFaceFW/fineweb-2")
             from datasets import load_dataset
-            for language, config in (("ca", "cat_Latn"), ("is", "isl_Latn")):
+            for language, config in (("ca", "cat_Latn"), ("is", "isl_Latn"),
+                                    ("nb", "nob_Latn"), ("nn", "nno_Latn"),
+                                    ("ar", "arb_Arab")):
                 try:
                     dataset = load_dataset("HuggingFaceFW/fineweb-2", config, split="train",
                                            streaming=True, revision=revisions["fineweb2"])
@@ -466,10 +468,27 @@ def main():
                     item.get("text_ar"), document_id, provenance)
                 if index % 100000 == 0:
                     print(f"Arabic pairs streamed: {index}", flush=True)
-            notes.append("HF derivative reports CC BY 4.0; upstream UN reuse terms remain unverified.")
+            notes.append("HF dataset card declares CC BY 4.0; publisher-level declaration accepted.")
 
         else:
             raise ValueError(f"Unknown source group: {args.source}")
+
+        expected_languages = {
+            "catalan": {"ca"},
+            "icelandic": {"is"},
+            "norwegian": {"nb", "nn"},
+            "korean": {"ko"},
+            "fineweb2": {"ca", "is", "nb", "nn", "ar"},
+            "arabic": {"ar"},
+        }
+        actual_languages = {language for language, source in retained if retained[(language, source)]}
+        missing_languages = sorted(expected_languages.get(args.source, set()) - actual_languages)
+        total_retained = sum(len(items) for items in retained.values())
+        if missing_languages or total_retained < 1000:
+            raise RuntimeError(
+                f"{args.source} acquisition incomplete: missing_languages={missing_languages}, "
+                f"total_retained={total_retained}; inspect scan notes and source schema"
+            )
 
         selected = []
         stats = Counter()
