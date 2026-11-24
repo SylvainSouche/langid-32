@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build a small, text-only Common Voice candidate sample from private Common Voice TSVs.
 
-Raw TSVs stay on the ephemeral runner and are never uploaded or committed.
+Raw TSVs are kept only in private working storage and authenticated encrypted checkpoints; never uploaded in plaintext or committed.
 Only deterministic, deduplicated sentence text (up to 20,000/language) and an
 aggregate report are written to the artifact.
 """
