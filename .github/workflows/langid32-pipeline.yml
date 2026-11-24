@@ -1,12 +1,6 @@
 name: langid-32 staged corpus pipeline
 on:
   workflow_dispatch:
-    inputs:
-      target:
-        description: "Stage target to run (all for complete pipeline)"
-        required: false
-        type: string
-        default: all
   push:
     paths:
       - "stages/**"
@@ -21,6 +15,9 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
+      - name: Validate checkpoint key before acquisition
+        env: {LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"}
+        run: python -c 'import os,sys; k=os.environ.get("LANGID32_CHECKPOINT_KEY",""); sys.exit(0 if len(k)>=32 else "LANGID32_CHECKPOINT_KEY is missing or shorter than 32 characters")'
       - uses: actions/download-artifact@v4
         with: {github-token: "${{ secrets.GITHUB_TOKEN }}", repository: "${{ github.repository }}", run-id: "43950037392", path: input/v5}
       - uses: actions/download-artifact@v4
@@ -29,6 +26,8 @@ jobs:
         with: {github-token: "${{ secrets.GITHUB_TOKEN }}", repository: "${{ github.repository }}", run-id: "44121162591", path: input/tatoeba}
       - uses: actions/download-artifact@v4
         with: {github-token: "${{ secrets.GITHUB_TOKEN }}", repository: "${{ github.repository }}", run-id: "44291075180", path: input/dgt}
+      - name: Validate historical target
+        run: python stages/01-acquisition/run.py --target historical
       - uses: actions/setup-python@v5
         with: {python-version: "3.12"}
       - run: python -m pip install cryptography
@@ -42,6 +41,9 @@ jobs:
     timeout-minutes: 180
     steps:
       - uses: actions/checkout@v4
+      - name: Validate checkpoint key before acquisition
+        env: {LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"}
+        run: python -c 'import os,sys; k=os.environ.get("LANGID32_CHECKPOINT_KEY",""); sys.exit(0 if len(k)>=32 else "LANGID32_CHECKPOINT_KEY is missing or shorter than 32 characters")'
       - uses: actions/setup-python@v5
         with: {python-version: "3.12"}
       - run: python stages/01-acquisition/run.py --target common-voice
@@ -60,6 +62,9 @@ jobs:
         target: [catalan, icelandic, norwegian, korean, fineweb2, arabic, gaois]
     steps:
       - uses: actions/checkout@v4
+      - name: Validate checkpoint key before acquisition
+        env: {LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"}
+        run: python -c 'import os,sys; k=os.environ.get("LANGID32_CHECKPOINT_KEY",""); sys.exit(0 if len(k)>=32 else "LANGID32_CHECKPOINT_KEY is missing or shorter than 32 characters")'
       - uses: actions/setup-python@v5
         with: {python-version: "3.12"}
       - run: python -m pip install datasets huggingface_hub pyarrow fasttext-wheel cryptography
@@ -78,6 +83,9 @@ jobs:
     timeout-minutes: 360
     steps:
       - uses: actions/checkout@v4
+      - name: Validate checkpoint key before restore
+        env: {LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"}
+        run: python -c 'import os,sys; k=os.environ.get("LANGID32_CHECKPOINT_KEY",""); sys.exit(0 if len(k)>=32 else "LANGID32_CHECKPOINT_KEY is missing or shorter than 32 characters")'
       - uses: actions/setup-python@v5
         with: {python-version: "3.12"}
       - run: python -m pip install cryptography pyarrow
@@ -103,6 +111,9 @@ jobs:
     timeout-minutes: 180
     steps:
       - uses: actions/checkout@v4
+      - name: Validate checkpoint key before restore
+        env: {LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"}
+        run: python -c 'import os,sys; k=os.environ.get("LANGID32_CHECKPOINT_KEY",""); sys.exit(0 if len(k)>=32 else "LANGID32_CHECKPOINT_KEY is missing or shorter than 32 characters")'
       - uses: actions/setup-python@v5
         with: {python-version: "3.12"}
       - run: python -m pip install cryptography pyarrow
