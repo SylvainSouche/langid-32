@@ -1,0 +1,119 @@
+name: langid-32 staged corpus pipeline
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Stage target to run (all for complete pipeline)"
+        required: false
+        type: string
+        default: all
+  push:
+    paths:
+      - "stages/**"
+      - "scripts/checkpoint.py"
+      - ".github/workflows/langid32-pipeline.yml"
+permissions:
+  actions: read
+  contents: read
+jobs:
+  historical:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: {github-token: "${{ secrets.GITHUB_TOKEN }}", repository: "${{ github.repository }}", run-id: "43950037392", path: input/v5}
+      - uses: actions/download-artifact@v4
+        with: {github-token: "${{ secrets.GITHUB_TOKEN }}", repository: "${{ github.repository }}", run-id: "44361364340", path: input/leipzig}
+      - uses: actions/download-artifact@v4
+        with: {github-token: "${{ secrets.GITHUB_TOKEN }}", repository: "${{ github.repository }}", run-id: "44121162591", path: input/tatoeba}
+      - uses: actions/download-artifact@v4
+        with: {github-token: "${{ secrets.GITHUB_TOKEN }}", repository: "${{ github.repository }}", run-id: "44291075180", path: input/dgt}
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: python -m pip install cryptography
+      - name: Encrypt acquisition checkpoint
+        env: {LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"}
+        run: python scripts/checkpoint.py pack --archive checkpoint.bin
+      - uses: actions/upload-artifact@v4
+        with: {name: acquisition-historical, path: checkpoint.bin, retention-days: 7}
+  common-voice:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: python stages/01-acquisition/run.py --target common-voice
+      - run: python -m pip install cryptography
+      - name: Encrypt acquisition checkpoint
+        env: {LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"}
+        run: python scripts/checkpoint.py pack --archive checkpoint.bin
+      - uses: actions/upload-artifact@v4
+        with: {name: acquisition-common-voice, path: checkpoint.bin, retention-days: 7}
+  waiting-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [catalan, icelandic, norwegian, korean, fineweb2, arabic, gaois]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: python -m pip install datasets huggingface_hub pyarrow fasttext-wheel cryptography
+      - run: python stages/01-acquisition/run.py --target "${{ matrix.target }}"
+      - name: Encrypt acquisition checkpoint
+        env: {LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"}
+        run: python scripts/checkpoint.py pack --archive checkpoint.bin
+      - uses: actions/upload-artifact@v4
+        with:
+          name: acquisition-${{ matrix.target }}
+          path: checkpoint.bin
+          retention-days: 7
+  candidate:
+    needs: [historical, common-voice, waiting-source]
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: python -m pip install cryptography pyarrow
+      - uses: actions/download-artifact@v4
+        with: {pattern: "acquisition-*", path: checkpoints, merge-multiple: false}
+      - name: Restore acquisition checkpoints
+        env: {LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"}
+        run: |
+          find checkpoints -name checkpoint.bin -print0 | while IFS= read -r -d '' f; do
+            python scripts/checkpoint.py unpack --archive "$f"
+          done
+      - name: Build candidate corpus
+        env: {PYTHONPATH: src}
+        run: python stages/02-candidate/run.py
+      - name: Encrypt candidate checkpoint
+        env: {LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"}
+        run: python scripts/checkpoint.py pack --archive candidate.bin
+      - uses: actions/upload-artifact@v4
+        with: {name: candidate-checkpoint, path: candidate.bin, retention-days: 7}
+  jql:
+    needs: [candidate]
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: python -m pip install cryptography pyarrow
+      - uses: actions/download-artifact@v4
+        with: {name: candidate-checkpoint, path: checkpoint}
+      - name: Restore candidate checkpoint
+        env: {LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"}
+        run: python scripts/checkpoint.py unpack --archive checkpoint/candidate.bin
+      - run: python stages/03-jql/run.py
+      - name: Encrypt final assessment
+        env: {LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"}
+        run: python scripts/checkpoint.py pack --archive final.bin
+      - uses: actions/upload-artifact@v4
+        with: {name: langid-32-jql-assessment-full-encrypted, path: final.bin, retention-days: 30}

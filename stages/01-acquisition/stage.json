@@ -1,0 +1,1 @@
+{"id":"acquisition","purpose":"Acquire immutable source snapshots and screened candidates independently by target.","targets":["historical","common-voice","catalan","icelandic","norwegian","korean","fineweb2","arabic","gaois"],"outputs":["input/"],"retry":"Retry only the failed target job; retain successful target artifacts."}
