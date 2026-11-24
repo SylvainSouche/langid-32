@@ -14,3 +14,5 @@ artifact-upload-fix-2026-11-19
 2026-11-23 retry: resumable Range download for multi-GB Målfrid archives; disable HF Xet/transfer extensions to avoid Python 3.12 streaming shutdown crash in Korean Wikipedia and FineWeb-2 acquisition.
 
 Retry Korean Wikipedia with pinned Parquet and synchronous PyArrow acquisition; 2026-11-23.
+
+Source-first intake: 20k screened unique rows per source, then global deduplication and 35k language-level source-balanced selection. Preselection disabled.
