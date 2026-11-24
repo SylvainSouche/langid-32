@@ -232,14 +232,15 @@ def read_inputs(paths: list[Path], args):
                     rejected["empty_group_id"] += 1
                     continue
                 source = str(row["source"]).strip()
-                if text in source_seen[source]:
-                    rejected[f"source_duplicate_within_source:{source}"] += 1
+                source_key = (language, source)
+                if text in source_seen[source_key]:
+                    rejected[f"source_duplicate_within_source:{language}:{source}"] += 1
                     continue
-                if source_limit and source_retained[source] >= source_limit:
-                    rejected[f"source_limit_discarded:{source}"] += 1
+                if source_limit and source_retained[source_key] >= source_limit:
+                    rejected[f"source_limit_discarded:{language}:{source}"] += 1
                     continue
-                source_seen[source].add(text)
-                source_retained[source] += 1
+                source_seen[source_key].add(text)
+                source_retained[source_key] += 1
                 normalized = {
                     "text": text,
                     "language": language,
@@ -544,7 +545,10 @@ def merge(args):
         "source_quota_shortfalls": source_quota_shortfalls,
         "cross_language_collision_strings_removed": len(cross_language_texts),
         "rejected": dict(sorted(rejected.items())),
-        "source_intake_counts_before_global_dedup": dict(sorted(source_intake_counts.items())),
+        "source_intake_counts_before_global_dedup": {
+            f"{language}:{source}": count
+            for (language, source), count in sorted(source_intake_counts.items())
+        },
         "duplicate_source_pairs": dict(sorted(duplicate_by_source_pair.items())),
         "privacy_flag_counts": dict(sorted(privacy_flag_counts.items())),
         "rights_status_counts": dict(sorted(rights_status_counts.items())),
