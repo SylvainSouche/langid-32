@@ -473,7 +473,10 @@ def main():
 
         selected = []
         stats = Counter()
-        for (language, source), items in sorted(retained.items()):
+        unexpected_keys = [repr(key) for key in retained if not (isinstance(key, tuple) and len(key) == 2)]
+        if unexpected_keys:
+            raise RuntimeError(f"Unexpected source bucket keys: {unexpected_keys[:10]}")
+        for (language, source), items in sorted(retained.items(), key=lambda pair: (str(pair[0][0]), str(pair[0][1]))):
             selected.extend(items)
             stats[f"{language}|{source}|screened"] = scanned[(language, source)]
             stats[f"{language}|{source}|unique_retained"] = len(items)
