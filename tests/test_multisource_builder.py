@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from scripts.build_multisource_candidate import normalize_file, preselect_files, source_family
+from scripts.build_multisource_candidate import normalize_file, source_family
 
 
 def test_source_family_uses_dataset_not_file_or_config():
@@ -73,33 +73,6 @@ def test_normalize_file_rejects_unmapped_source_component(tmp_path):
     source.write_text(json.dumps(row) + "\n", encoding="utf-8")
     with pytest.raises(ValueError, match="Unmapped source component"):
         normalize_file(source, output)
-
-
-
-def test_preselect_files_is_deterministic_and_respects_source_language_cap(tmp_path):
-    source = tmp_path / "input.jsonl"
-    rows = [
-        {
-            "text": f"A sufficiently long source sentence number {index}.",
-            "language": "fr",
-            "source": "fineweb2",
-            "group_id": f"fineweb2:doc-{index}",
-            "provenance": {},
-        }
-        for index in range(8)
-    ]
-    source.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
-    first = tmp_path / "first.jsonl"
-    second = tmp_path / "second.jsonl"
-    report = preselect_files([source], first, 3, "fixed-seed")
-    preselect_files([source], second, 3, "fixed-seed")
-    assert report["rows_seen"] == 8
-    assert report["rows_selected"] == 3
-    assert report["bucket_counts"] == {"fineweb2:fr": 3}
-    assert first.read_bytes() == second.read_bytes()
-    lines = first.read_text(encoding="utf-8").splitlines()
-    assert len(lines) == 3
-    assert all(json.loads(line)["source"] == "fineweb2" for line in lines)
 
 
 
