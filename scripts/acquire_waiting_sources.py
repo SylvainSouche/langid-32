@@ -115,7 +115,16 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--source", required=True)
     parser.add_argument("--out", required=True)
+    parser.add_argument("--fineweb2-config")
     args = parser.parse_args()
+    fineweb2_languages = {
+        "cat_Latn": "ca", "isl_Latn": "is", "nob_Latn": "nb",
+        "nno_Latn": "nn", "arb_Arab": "ar", "hrv_Latn": "hr",
+        "fin_Latn": "fi", "ell_Grek": "el", "mlt_Latn": "mt",
+        "slv_Latn": "sl",
+    }
+    if args.source == "fineweb2" and args.fineweb2_config not in fineweb2_languages:
+        parser.error("--fineweb2-config must name exactly one supported FineWeb-2 configuration")
 
     temp_root = Path(tempfile.mkdtemp())
     output_root = Path(args.out)
@@ -438,29 +447,31 @@ def main():
         elif args.source == "fineweb2":
             revisions["fineweb2"] = resolve_hf_revision("HuggingFaceFW/fineweb-2")
             from datasets import load_dataset
-            for language, config in (("ca", "cat_Latn"), ("is", "isl_Latn"),
-                                    ("nb", "nob_Latn"), ("nn", "nno_Latn"),
-                                    ("ar", "arb_Arab")):
-                try:
-                    dataset = load_dataset("HuggingFaceFW/fineweb-2", config, split="train",
-                                           streaming=True, revision=revisions["fineweb2"])
-                    source = "fineweb2:" + config
-                    for index, item in enumerate(dataset):
-                        if len(retained[(language, source)]) >= max_per_source:
-                            break
-                        document_id = str(item.get("id") or item.get("url") or index)
-                        provenance = {"dataset_repo": "HuggingFaceFW/fineweb-2",
-                                      "repo_commit": revisions["fineweb2"],
-                                      "document_id": document_id}
-                        for key in ("url", "date", "dump", "language_score"):
-                            if item.get(key) is not None:
-                                provenance[key] = item[key]
-                        add(language, source, item.get("text"), document_id, provenance)
-                        if len(retained[(language, source)]) >= max_per_source:
-                            break
-                    notes.append(config + ": underlying web-text rights unresolved; technical candidates only.")
-                except Exception as exc:
-                    notes.append(config + ": " + repr(exc))
+            config = args.fineweb2_config
+            language = fineweb2_languages[config]
+            dataset = load_dataset("HuggingFaceFW/fineweb-2", config, split="train",
+                                   streaming=True, revision=revisions["fineweb2"])
+            source = "fineweb2:" + config
+            bucket_key = (language, source_bucket(source))
+            for index, item in enumerate(dataset):
+                if len(retained[bucket_key]) >= max_per_source:
+                    break
+                document_id = str(item.get("id") or item.get("url") or index)
+                provenance = {"dataset_repo": "HuggingFaceFW/fineweb-2",
+                              "repo_commit": revisions["fineweb2"],
+                              "document_id": document_id,
+                              "fineweb2_config": config}
+                for key in ("url", "date", "dump", "language_score"):
+                    if item.get(key) is not None:
+                        provenance[key] = item[key]
+                add(language, source, item.get("text"), document_id, provenance)
+                if (index + 1) % 100000 == 0:
+                    print(f"{config}: streamed {index + 1}; retained {len(retained[bucket_key])}", flush=True)
+            if len(retained[bucket_key]) < max_per_source:
+                notes.append(f"{config}: source exhausted at {len(retained[bucket_key])} retained records.")
+            else:
+                notes.append(f"{config}: reached the {max_per_source}-record source/language quota.")
+            notes.append(config + ": underlying web-text rights unresolved; technical candidates only.")
 
         elif args.source == "arabic":
             revisions["un_arabic"] = resolve_hf_revision("ymoslem/UN-Arabic-English-Filtered")
@@ -491,10 +502,10 @@ def main():
             "icelandic": {"is"},
             "norwegian": {"nb", "nn"},
             "korean": {"ko"},
-            "fineweb2": {"ca", "is", "nb", "nn", "ar"},
+            "fineweb2": {fineweb2_languages[args.fineweb2_config]} if args.source == "fineweb2" else set(),
             "arabic": {"ar"},
         }
-        actual_languages = {language for language, source in retained if retained[(language, source)]}
+        actual_languages = {language for (language, _bucket), items in retained.items() if items}
         missing_languages = sorted(expected_languages.get(args.source, set()) - actual_languages)
         total_retained = sum(len(items) for items in retained.values())
         if missing_languages or total_retained < 1000:

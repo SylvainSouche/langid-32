@@ -11,13 +11,24 @@ permissions:
   actions: read
   contents: read
 jobs:
-  repair-acquisition:
+  fineweb2:
     runs-on: ubuntu-latest
     timeout-minutes: 360
     strategy:
       fail-fast: false
+      max-parallel: 10
       matrix:
-        target: [catalan]
+        config:
+          - cat_Latn
+          - isl_Latn
+          - nob_Latn
+          - nno_Latn
+          - arb_Arab
+          - hrv_Latn
+          - fin_Latn
+          - ell_Grek
+          - mlt_Latn
+          - slv_Latn
     steps:
       - uses: actions/checkout@v4
       - name: Validate checkpoint key before acquisition
@@ -27,20 +38,20 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: python -m pip install datasets huggingface_hub pyarrow fasttext-wheel cryptography
-      - name: Acquire repaired target
-        run: python stages/01-acquisition/run.py --target "${{ matrix.target }}"
-      - name: Encrypt target checkpoint
+      - run: python -m pip install datasets huggingface_hub pyarrow cryptography
+      - name: Acquire one FineWeb-2 configuration
+        run: python stages/01-acquisition/targets/fineweb2.py --config "${{ matrix.config }}"
+      - name: Encrypt isolated batch checkpoint
         env:
           LANGID32_CHECKPOINT_KEY: ${{ secrets.LANGID32_CHECKPOINT_KEY }}
-        run: python scripts/checkpoint.py pack --archive checkpoint.bin
+        run: python scripts/checkpoint.py pack --archive "fineweb2-${{ matrix.config }}.bin"
       - uses: actions/upload-artifact@v4
         with:
-          name: recovery-${{ matrix.target }}
-          path: checkpoint.bin
+          name: recovery-fineweb2-${{ matrix.config }}
+          path: fineweb2-${{ matrix.config }}.bin
           retention-days: 7
   candidate:
-    needs: [repair-acquisition]
+    needs: [fineweb2]
     runs-on: ubuntu-latest
     timeout-minutes: 360
     steps:
@@ -90,12 +101,11 @@ jobs:
           run-id: "45413806910"
           name: recovery-icelandic
           path: checkpoints/repaired-icelandic
-      - uses: actions/download-artifact@v4
+      - name: Download all parallel FineWeb-2 batches
+        uses: actions/download-artifact@v4
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          repository: ${{ github.repository }}
-          run-id: "45413806910"
-          name: recovery-fineweb2
+          pattern: recovery-fineweb2-*
+          merge-multiple: true
           path: checkpoints/repaired-fineweb2
       - uses: actions/download-artifact@v4
         with:
@@ -111,9 +121,12 @@ jobs:
           run-id: "45413806910"
           name: recovery-arabic
           path: checkpoints/repaired-arabic
-      - name: Download corrected Catalan checkpoint
+      - name: Reuse corrected Catalan checkpoint from prior successful acquisition
         uses: actions/download-artifact@v4
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: "45414736117"
           name: recovery-catalan
           path: checkpoints/repaired-catalan
       - name: Restore all source checkpoints
