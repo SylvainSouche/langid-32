@@ -53,6 +53,11 @@ PERSON_CONTEXT = re.compile(
     r"patient|customer|employee|recipient)\s*[:,-]?\s*"
     r"([A-ZÀ-ÖØ-Þ][\wÀ-ÖØ-öø-ÿ'’-]+(?:\s+[A-ZÀ-ÖØ-Þ][\wÀ-ÖØ-öø-ÿ'’-]+){0,2})"
 )
+CJK_PERSON_CONTEXT = re.compile(
+    r"(?:氏名|名前|担当者|著者|連絡先|申請者|患者|顧客)\s*[:：]?\s*[一-龯]{2,4}|"
+    r"(?:姓名|名字|联系人|聯絡人|作者|申请人|患者|客户)\s*[:：]?\s*[一-龯]{2,4}|"
+    r"(?:성명|이름|담당자|작성자|연락처|환자|고객)\s*[:：]?\s*[가-힣]{2,4}"
+)
 CAPITALIZED_PAIR = re.compile(
     r"\b([A-ZÀ-ÖØ-ÞΑ-ΩΆΈΉΊΌΎΏА-ЯЁ][\wÀ-ÖØ-öø-ÿ'’-]+)\s+"
     r"([A-ZÀ-ÖØ-ÞΑ-ΩΆΈΉΊΌΎΏА-ЯЁ][\wÀ-ÖØ-öø-ÿ'’-]+)\b"
@@ -164,7 +169,7 @@ def screen_text(value: str, *, record: dict | None = None,
         ("phone_or_long_identifier", _has_phone_like(text) or LONG_NUMBER.search(text)),
         ("street_address", (STREET.search(text) and (HOUSE_NUMBER.search(text) or STREET_TRAILING_NUMBER.search(text))) or CJK_ADDRESS.search(text)),
         ("person_name_honorific", HONORIFIC.search(text)),
-        ("person_name_context", PERSON_CONTEXT.search(text)),
+        ("person_name_context", PERSON_CONTEXT.search(text) or CJK_PERSON_CONTEXT.search(text)),
     )
     rejected = [name for name, matched in high_confidence if matched]
     if rejected:
