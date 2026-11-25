@@ -43,6 +43,21 @@ The previous active rule excluding source family `greynir` wholesale is too broa
 - Exclude only the **Gold development/test** partition.
 - Do not invent a shared family-wide cap for Copper and Silver.
 
+## Other staged source families and rights holds
+
+| Source | Candidate decision | Release/rights status |
+|---|---|---|
+| FineWeb v1 | Exclude | ODC-BY covers the compilation, not individual web-page excerpts |
+| BSC-LT Legal Catalan-Spanish | Technical candidate only | Hold pending file- and constituent-level terms |
+| Korean Wikipedia cleaned | Technical candidate only | Hold pending CC BY-SA/GFDL compatibility review |
+| Målfrid 2026 | Technical candidate only | Hold pending database and third-party content review |
+| TeMU-BSC CC0 component union | Include the README-scoped CC0/waived constituents | Source-level review remains; retain constituent-file provenance |
+| Gaois Irish legislation TMX | Include Irish-side segments | CC BY 4.0 derivative; preserve DCU/Gaois attribution and review original legislation rights |
+| UN Arabic-English Filtered | Include | CC BY 4.0; preserve derivative credit and mandatory UN acknowledgement |
+| Catalan-DPO-V2 | Exclude | Hold pending a Catalan-only, source-traceable rights review |
+
+The source registry is fail-closed: every candidate source identifier must have a rule in the central configuration. Explicitly excluded and unregistered sources are rejected before candidate family normalization. A rights hold may permit technical candidate use only where the source decision says so; it never implies release clearance.
+
 ## Rights and provenance remain separate
 
 - FineWeb2 may be used in the technical candidate but remains on hold for release because underlying web-text rights are unresolved.
