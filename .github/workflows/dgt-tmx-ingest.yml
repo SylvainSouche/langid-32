@@ -7,6 +7,8 @@ on:
       - "src/langid32/dgt_tmx_stage.py"
       - "src/langid32/merge.py"
       - "tests/test_dgt_tmx_stage.py"
+      - "tests/test_acquisition_buckets.py"
+      - "scripts/acquire_waiting_sources.py"
       - "pyproject.toml"
       - "config/langid32.toml"
       - "src/langid32/settings.py"
@@ -55,7 +57,7 @@ jobs:
         if: always() && hashFiles('reports/dgt-tm-2021-staged*') != ''
         uses: actions/upload-artifact@v4
         with:
-          name: dgt-tm-2021-first-pass-20k-${{ github.run_id }}
+          name: dgt-tm-2021-first-pass-${{ github.run_id }}
           path: |
             reports/dgt-tm-2021-staged.jsonl
             reports/dgt-tm-2021-staged.manifest.json
