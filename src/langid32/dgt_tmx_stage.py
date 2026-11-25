@@ -281,7 +281,9 @@ def main():
     if ((args.target_per_language is not None and args.target_per_language < 1)
             or (args.max_per_document_language is not None and args.max_per_document_language < 1)):
         parser.error("target and per-document cap must be positive")
-    if args.min_chars < 1 or args.max_chars < args.min_chars or args.max_bytes < 1:
+    if ((args.min_chars is not None and args.min_chars < 1)
+            or (args.max_chars is not None and args.min_chars is not None and args.max_chars < args.min_chars)
+            or (args.max_bytes is not None and args.max_bytes < 1)):
         parser.error("invalid text length limits")
     stage(args)
 
