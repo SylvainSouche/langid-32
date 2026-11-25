@@ -25,7 +25,7 @@ jobs:
           python -m pip install -e ".[dev]"
           python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
       - name: Compile pipeline scripts
-        run: python -m compileall -q scripts
+        run: python -m compileall -q src scripts stages tests
       - name: Validate Make dependency graph
         run: |
           make -n all
