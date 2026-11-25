@@ -54,7 +54,9 @@ def source_family(raw_source: str) -> tuple[str, str | None]:
     return raw_source, None
 
 
-def normalize_file(source_path: Path, destination: Path, *, config, source_language_counts=None, filter_superseded=False):
+def normalize_file(source_path: Path, destination: Path, *, config=None, source_language_counts=None, filter_superseded=False):
+    if config is None:
+        config = load_config()
     rows_in = 0
     rows_out = 0
     filtered = Counter()
