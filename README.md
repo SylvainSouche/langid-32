@@ -15,9 +15,9 @@ Build a balanced, reproducible text corpus for 34 language labels:
 - Norwegian Bokmål (`nb`) and Nynorsk (`nn`) as separate labels.
 - Chinese (`zh`), combining the intended Simplified and Traditional source varieties.
 
-Target **30,000 usable records per language**: a 20,000-record core plus up to 10,000 reserve. A language must have at least 20,000 usable records to meet the minimum. Counts are measured only after normalization, privacy filtering, language/content checks, global exact deduplication and source quota enforcement.
+The candidate intake floor, exact final per-language sentence target and any language-specific overrides are defined in the central configuration. Counts are measured only after normalization, privacy filtering, language/content checks, global exact deduplication and source quota enforcement.
 
-Source mix target: **30% preferred, 50% hard ceiling per source and language**. Any exception must be explicit, justified and reported; a single-source class is not considered balanced.
+Candidate-stage preferred and hard source-share limits, and the final baseline-proportional source mix, are defined in the central configuration.
 
 ## Voluntary source-selection decision
 
@@ -66,7 +66,7 @@ The waiting-source artifact contains useful independent candidates, but some cla
 - Korean: the current Wikipedia candidate has CC BY-SA/GFDL obligations; it is not yet approved for the release.
 - Arabic: the UN-derived candidate needs confirmation of the underlying UN source terms; the Hugging Face card alone is not sufficient.
 
-See the [source decision register](docs/source-decisions.md) for authoritative inclusion/exclusion decisions and the [source register](docs/source-register.md) for measured audits, provenance, rights position and retired routes. The [dated corpus status report](docs/corpus-status-2026-11-17.md) and [candidate audits](docs/candidate-audit-v5.md) preserve historical measurements; they are not current acquisition plans. The [v6 corpus policy](docs/corpus-policy-v6.md) defines selection rules.
+See the [source decision register](docs/source-decisions.md) for authoritative inclusion/exclusion decisions and the [source register](docs/source-register.md) for measured audits, provenance, rights position and retired routes. The [dated corpus status report](docs/corpus-status-2026-11-17.md) and [candidate audits](docs/candidate-audit-v5.md) preserve historical measurements; they are not current acquisition plans. The [v6 corpus policy](docs/corpus-policy-v6.md) defines the wider selection principles; active numeric rules live only in [config/langid32.toml](config/langid32.toml).
 
 ## Data preparation rules
 
@@ -79,7 +79,7 @@ The global merge is responsible for:
 3. Exact deduplication within each language across **all** staged sources.
 4. Removal of every normalized text string found under more than one language label. No “first language wins” rule is used.
 5. Stable document/group-aware train, validation and test assignment before sample selection.
-6. Deterministic source-aware selection, per-language source-share reporting, and a 20k core plus 10k reserve.
+6. Deterministic source-aware selection, per-language source-share reporting, and the configured candidate core/reserve policy.
 7. A private provenance sidecar, source manifests, hashes, counts and exclusion reports.
 
 The automated privacy patterns are not a complete privacy review. Phone-like and long numeric strings are flagged for further assessment; automated language checks do not replace human review. Defective records are discarded rather than silently repaired.
