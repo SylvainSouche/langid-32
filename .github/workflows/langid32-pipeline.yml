@@ -100,13 +100,18 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "${{ steps.runtime.outputs.python_version }}"
-      - run: python stages/01-acquisition/run.py --target common-voice
+      - name: Acquire Common Voice HF text
+        id: acquire
+        run: python stages/01-acquisition/run.py --target common-voice
       - run: python -m pip install cryptography
-      - name: Encrypt acquisition checkpoint
+      - name: Encrypt Common Voice checkpoint, including partial progress on failure
+        id: checkpoint
+        if: always() && steps.acquire.outcome != 'skipped'
         env:
           LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"
         run: python scripts/checkpoint.py pack --archive checkpoint.bin
       - uses: actions/upload-artifact@v4
+        if: always() && steps.checkpoint.outcome == 'success'
         with:
           name: acquisition-common-voice
           path: checkpoint.bin
@@ -158,14 +163,18 @@ jobs:
           python-version: "${{ steps.runtime.outputs.python_version }}"
       - run: python -m pip install datasets huggingface_hub pyarrow fasttext-wheel cryptography
       - name: Acquire waiting-source target
+        id: acquire
         env:
           LANGID32_ACQUISITION_STARTED_EPOCH: "${{ needs.config.outputs.acquisition_started_epoch }}"
         run: python stages/01-acquisition/run.py --target "${{ matrix.target }}" ${{ matrix.config && format('--config {0}', matrix.config) || '' }}
-      - name: Encrypt acquisition checkpoint
+      - name: Encrypt acquisition checkpoint, including partial progress on failure
+        id: checkpoint
+        if: always() && steps.acquire.outcome != 'skipped'
         env:
           LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"
         run: python scripts/checkpoint.py pack --archive checkpoint.bin
       - uses: actions/upload-artifact@v4
+        if: always() && steps.checkpoint.outcome == 'success'
         with:
           name: acquisition-${{ matrix.target }}-${{ matrix.config || 'default' }}
           path: checkpoint.bin
