@@ -31,13 +31,13 @@ jobs:
     outputs:
       matrix: ${{ steps.config.outputs.matrix }}
       max_parallel: ${{ steps.config.outputs.max_parallel }}
+      python_version: ${{ steps.config.outputs.python_version }}
+      short_retention_days: ${{ steps.config.outputs.short_retention_days }}
+      retention_days: ${{ steps.config.outputs.retention_days }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
       - id: config
-        run: python scripts/emit_jql_matrix.py
+        run: python3 scripts/emit_jql_matrix.py
 
   score:
     needs: prepare
@@ -56,7 +56,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: ${{ needs.prepare.outputs.python_version }}
           cache: pip
       - name: Restore Hugging Face model cache
         uses: actions/cache@v4
@@ -98,7 +98,7 @@ jobs:
           name: jql-ratings-${{ matrix.index }}
           path: ratings/shard-${{ matrix.index }}.csv
           if-no-files-found: error
-          retention-days: 2
+          retention-days: ${{ needs.prepare.outputs.short_retention_days }}
 
   boundary:
     needs: prepare
@@ -213,4 +213,4 @@ jobs:
           name: langid-32-jql-consensus-full
           path: out/
           if-no-files-found: error
-          retention-days: 30
+          retention-days: ${{ needs.prepare.outputs.retention_days }}
