@@ -1,9 +1,6 @@
-name: Top up FineWeb2 short target subsets
+name: LEGACY — FineWeb2 short-subset top-up
 
 on:
-  push:
-    paths:
-      - "scripts/extract_fineweb2_sample.py"
   workflow_dispatch:
 
 permissions:
