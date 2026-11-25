@@ -494,7 +494,9 @@ def main():
                 path = Path(filename)
                 if not path.is_file():
                     failed = True
-                    notes.append(f"Planned source file disappeared before processing: {filename}")
+                    message = f"Planned source file disappeared before processing: {filename}".replace("$","")
+                    notes.append(message)
+                    failures.append(message)
                     break
                 if filename not in file_stats:
                     # Recover an older pending batch even if upstream discovery
@@ -507,12 +509,16 @@ def main():
                     after_hash = path.stat()
                     if (before.st_size, before.st_mtime_ns) != (after_hash.st_size, after_hash.st_mtime_ns):
                         failed = True
-                        notes.append(f"Source file changed while validating resumed batch: {filename}")
+                        message = f"Source file changed while validating resumed batch: {filename}".replace("$","")
+                    notes.append(message)
+                    failures.append(message)
                         break
                     actual_hash = digest.hexdigest()
                     if expected_hash and actual_hash != expected_hash:
                         failed = True
-                        notes.append(f"Source file content no longer matches planned batch: {filename}")
+                        message = f"Source file content no longer matches planned batch: {filename}".replace("$","")
+                    notes.append(message)
+                    failures.append(message)
                         break
                     expected_hash = actual_hash
                     file_stats[filename] = (after_hash.st_size, after_hash.st_mtime_ns)
@@ -523,7 +529,9 @@ def main():
                 after = path.stat()
                 if (after.st_size, after.st_mtime_ns) != file_stats[filename]:
                     failed = True
-                    notes.append(f"Source file changed during processing: {filename}")
+                    message = f"Source file changed during processing: {filename}".replace("$","")
+                    notes.append(message)
+                    failures.append(message)
                     break
                 hashes[logical_filename] = expected_hash
             if failed:
