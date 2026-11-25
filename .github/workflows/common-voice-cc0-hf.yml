@@ -6,6 +6,8 @@ on:
     paths:
       - "scripts/download_common_voice_hf.py"
       - "scripts/curate_common_voice_hf.py"
+      - "config/langid32.toml"
+      - "src/langid32/settings.py"
       - ".github/workflows/common-voice-cc0-hf.yml"
   workflow_dispatch:
 
@@ -37,7 +39,7 @@ jobs:
 
       - name: Curate text-only candidates
         run: |
-          python scripts/curate_common_voice_hf.py --input-root /tmp/common-voice-private --output /tmp/common-voice-curated --per-language-cap 9000
+          python scripts/curate_common_voice_hf.py --input-root /tmp/common-voice-private --output /tmp/common-voice-curated
 
       - name: Assemble metadata-only audit artifact
         if: always()
