@@ -248,7 +248,7 @@ def main():
                     opener = gzip.open if path.name.endswith(".gz") else open
                     with opener(path, "rt", encoding="utf-8", errors="replace") as stream:
                         for index, line in enumerate(stream, 1):
-                            if len(retained[bucket_key]) >= max_per_source:
+                            if quota_reached(bucket_key):
                                 break
                             try:
                                 item = json.loads(line)
@@ -300,7 +300,7 @@ def main():
                             segment_index = first.index("segment_id") if "segment_id" in first else None
                             alignment_index = first.index("alignment_score") if "alignment_score" in first else None
                             for index, row in enumerate(reader, 2):
-                                if len(retained[bucket_key]) >= max_per_source:
+                                if quota_reached(bucket_key):
                                     break
                                 if len(row) <= text_index:
                                     continue
@@ -324,7 +324,7 @@ def main():
                                     {"source_file": relative, "source_record_index": 1,
                                      "source_document_id": None})
                             for index, row in enumerate(reader, 2):
-                                if len(retained[bucket_key]) >= max_per_source:
+                                if quota_reached(bucket_key):
                                     break
                                 if row:
                                     add(language, source, row[0], f"{relative}:row:{index}",
@@ -451,12 +451,12 @@ def main():
                         for paragraph in re.split(r"(?<=[.!?。！？])\\s+|\\n+", item.get("text", "")):
                             add("ko", "korean_wikipedia_20231101", paragraph, page_id, provenance)
                         processed += 1
-                        if len(retained[("ko", "korean_wikipedia_20231101")]) >= max_per_source:
+                        if quota_reached(("ko", "korean_wikipedia_20231101")):
                             break
-                    if len(retained[("ko", "korean_wikipedia_20231101")]) >= max_per_source:
+                    if quota_reached(("ko", "korean_wikipedia_20231101")):
                         break
                 Path(local_path).unlink(missing_ok=True)
-                if len(retained[("ko", "korean_wikipedia_20231101")]) >= max_per_source:
+                if quota_reached(("ko", "korean_wikipedia_20231101")):
                     break
             if not processed:
                 raise RuntimeError("Pinned Korean Wikipedia Parquet shards contained no rows")
@@ -490,7 +490,7 @@ def main():
             http = fsspec.filesystem("https")
             processed = 0
             for filename in files:
-                if len(retained[bucket_key]) >= max_per_source:
+                if quota_reached(bucket_key):
                     break
                 url = hf_hub_url(
                     repo_id="HuggingFaceFW/fineweb-2", filename=filename,
@@ -510,7 +510,7 @@ def main():
                     ]
                     for batch in parquet.iter_batches(batch_size=512, columns=selected_columns):
                         for item in batch.to_pylist():
-                            if len(retained[bucket_key]) >= max_per_source:
+                            if quota_reached(bucket_key):
                                 break
                             document_id = str(item.get("id") or item.get("url") or processed)
                             provenance = {
@@ -526,7 +526,7 @@ def main():
                                     provenance[key] = item[key]
                             add(language, source, item.get("text"), document_id, provenance)
                             processed += 1
-                        if len(retained[bucket_key]) >= max_per_source:
+                        if quota_reached(bucket_key):
                             break
                 if processed and processed % 100000 == 0:
                     print(f"{config}: read {processed}; retained {len(retained[bucket_key])}", flush=True)
