@@ -57,10 +57,31 @@ languages = ["hr", "fi", "el", "mt", "sl", "is"]
 
 [acquisition.source_rules.tatoeba_cc0]
 target = 20000
+languages = ["fi"]
 
 [acquisition.source_rules.gaois_irish_legislation]
 target = 20000
 languages = ["ga"]
+
+[acquisition.source_rules.igc2024_filtered_1]
+target = 20000
+languages = ["is"]
+
+[acquisition.source_rules.macocu_2_0]
+target = 20000
+languages = ["hr", "mt", "sl"]
+
+[acquisition.source_rules.parlamint_4_0]
+target = 20000
+languages = ["is", "sl"]
+
+[acquisition.source_rules.greynir_copper]
+target = 20000
+languages = ["is"]
+
+[acquisition.source_rules.greynir_silver]
+target = 20000
+languages = ["is"]
 
 [acquisition.source_rules.waiting_sources]
 target = 20000
