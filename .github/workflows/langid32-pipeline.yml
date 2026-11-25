@@ -108,7 +108,7 @@ jobs:
       - uses: actions/setup-python@v5
         with: {python-version: ${{ steps.runtime.outputs.python_version }}}
       - run: python -m pip install datasets huggingface_hub pyarrow fasttext-wheel cryptography
-      - run: python stages/01-acquisition/run.py --target "${{ matrix.target }}"
+      - name: Acquire waiting-source target\n        env:\n          LANGID32_ACQUISITION_STARTED_EPOCH: "${{ needs.config.outputs.acquisition_started_epoch }}"\n        run: python stages/01-acquisition/run.py --target "${{ matrix.target }}"
       - name: Encrypt acquisition checkpoint
         env: {LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"}
         run: python scripts/checkpoint.py pack --archive checkpoint.bin
