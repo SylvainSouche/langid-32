@@ -32,9 +32,15 @@ HOUSE_NUMBER = re.compile(
     r"cesta|ulice|utca|gata|gatan|veg(?:en)?|gade|kadun|tie|katu|улица|проспект|شارع)\b"
 )
 STREET_TRAILING_NUMBER = re.compile(
-    r"(?i)\b(?:street|road|avenue|boulevard|lane|drive|rue|chemin|route|calle|"
+    r"(?i)\b(?:street|st\.?|road|rd\.?|avenue|ave\.?|boulevard|blvd\.?|lane|drive|rue|chemin|route|calle|"
     r"carrer|via|viale|ulica|ul\.?|cesta|utca|gata|gatan|veg(?:en)?|gade|"
     r"kadun|tie|katu|улица|проспект|شارع)\s+(?:[\wÀ-ž.'’-]+\s+){0,4}\d{1,5}\b"
+)
+CJK_ADDRESS = re.compile(
+    r"(?:〒\s*\d{3}-?\d{4}|"
+    r"[一-龯]{2,}(?:都|道|府|県|市|区|町|村)[一-龯ぁ-んァ-ヶー0-9-]{0,20}\d{1,5}(?:[-丁目番地号]\d{0,5})*|"
+    r"[一-龯]{2,}(?:省|市|区|县|縣|镇|鎮|路|街|大道|弄|巷)[一-龯0-9-]{0,20}\d{1,5}(?:号|號|弄|巷|室)?|"
+    r"[\uac00-\ud7a3]{2,}(?:로|길)\s*\d{1,5}(?:번길|번지)?)"
 )
 HONORIFIC = re.compile(
     r"(?i)\b(?:mr|mrs|ms|miss|dr|prof|professor|herr|frau|monsieur|"
@@ -156,7 +162,7 @@ def screen_text(value: str, *, record: dict | None = None,
         ("ipv4", _has_ipv4(text)),
         ("ipv6", _has_ipv6(text)),
         ("phone_or_long_identifier", _has_phone_like(text) or LONG_NUMBER.search(text)),
-        ("street_address", STREET.search(text) and (HOUSE_NUMBER.search(text) or STREET_TRAILING_NUMBER.search(text))),
+        ("street_address", (STREET.search(text) and (HOUSE_NUMBER.search(text) or STREET_TRAILING_NUMBER.search(text))) or CJK_ADDRESS.search(text)),
         ("person_name_honorific", HONORIFIC.search(text)),
         ("person_name_context", PERSON_CONTEXT.search(text)),
     )
