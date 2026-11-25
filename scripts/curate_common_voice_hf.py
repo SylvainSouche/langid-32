@@ -49,7 +49,10 @@ def main() -> None:
     candidates = defaultdict(dict)
     counts = Counter()
     args.output.mkdir(parents=True, exist_ok=True)
-    state_db = open_state(args.output / "common-voice-acquisition.sqlite")
+    resolved_revision = str(download_manifest.get("revision_resolved") or "")
+    if not resolved_revision:
+        raise SystemExit("Common Voice manifest has no immutable dataset revision.")
+    state_db = open_state(args.output / f"common-voice-acquisition-{resolved_revision[:12]}.sqlite")
     acquisition_status = []
     for language in languages:
         path = args.input_root / language / "validated_sentences.tsv"
