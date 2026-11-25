@@ -18,13 +18,13 @@ jobs:
           python-version: "3.12"
       - name: Install acquisition dependencies
         run: python -m pip install --disable-pip-version-check requests pyarrow
-      - name: Acquire one news and one Wikipedia corpus per target language
-        run: python scripts/acquire_leipzig_balanced.py --out out/leipzig --quota 3000 --pause 1
+      - name: Acquire up to 20,000 eligible unique entries per source and language
+        run: python scripts/acquire_leipzig_balanced.py --out out/leipzig --quota 20000 --pause 1
       - name: Upload samples, provenance, manifests and original archives
         if: always() && hashFiles('out/leipzig/**') != ''
         uses: actions/upload-artifact@v4
         with:
-          name: leipzig-balanced-34-${{ github.run_id }}
+          name: leipzig-first-pass-20k-34-${{ github.run_id }}
           path: out/leipzig/
           retention-days: 30
           if-no-files-found: error
