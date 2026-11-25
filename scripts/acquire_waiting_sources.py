@@ -161,6 +161,7 @@ def main():
         return acquisition_target(cfg, source, language)
 
     def quota_reached(bucket_key):
+        check_global_deadline()
         return len(retained[bucket_key]) >= limit_for(*bucket_key)
     downloads = []
     notes = []
