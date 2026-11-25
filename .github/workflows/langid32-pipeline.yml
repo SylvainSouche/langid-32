@@ -79,7 +79,7 @@ jobs:
           path: checkpoint.bin
           retention-days: "${{ steps.runtime.outputs.checkpoint_retention_days }}"
   common-voice:
-    if: false # Disabled until individual Common Voice locale terms are accepted and recorded.
+    if: github.ref == 'refs/heads/main'
     needs: [config]
     runs-on: ubuntu-latest
     timeout-minutes: ${{ fromJSON(needs.config.outputs.acquisition_job_timeout_minutes) }}
