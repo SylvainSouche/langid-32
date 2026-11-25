@@ -74,6 +74,8 @@ def plan_file_batches(db: sqlite3.Connection, source: str, language: str,
 
 def next_batch(db: sqlite3.Connection, source: str, language: str):
     """Return and mark the next incomplete batch; interrupted running batches are retryable."""
+    if task_complete(db, source, language):
+        return None
     row = db.execute(
         "SELECT batch_no,files_json FROM file_batch "
         "WHERE source=? AND language=? AND status IN ('pending','running') "
@@ -116,6 +118,8 @@ def add_eligible(db: sqlite3.Connection, source: str, language: str,
     for record in records:
         if count >= task[0]:
             break
+        if str(record.get("source", source)) != source or str(record.get("language", language)) != language:
+            raise ValueError("Record source/language does not match its exact acquisition task")
         text = " ".join(str(record.get("text", "")).split())
         if not text:
             continue
@@ -140,8 +144,12 @@ def finish_batch(db: sqlite3.Connection, source: str, language: str, batch_no: i
     if row is None:
         raise KeyError((source, language, batch_no))
     expected = set(json.loads(row[0]))
-    if set(file_hashes) != expected or any(not value for value in file_hashes.values()):
-        raise ValueError("A batch can complete only when every planned file has a SHA-256")
+    valid_hashes = all(
+        len(value) == 64 and all(ch in "0123456789abcdef" for ch in value.lower())
+        for value in file_hashes.values()
+    )
+    if set(file_hashes) != expected or not valid_hashes:
+        raise ValueError("A batch can complete only when every planned file has a valid SHA-256")
     db.executemany(
         "INSERT OR REPLACE INTO processed_file(source,language,path,sha256,batch_no) VALUES(?,?,?,?,?)",
         [(source, language, path, file_hashes[path], batch_no) for path in sorted(expected)])
@@ -151,6 +159,9 @@ def finish_batch(db: sqlite3.Connection, source: str, language: str, batch_no: i
 
 
 def mark_exhausted(db: sqlite3.Connection, source: str, language: str) -> int:
+    pending = pending_batch_count(db, source, language)
+    if pending:
+        raise RuntimeError(f"Cannot mark {source}/{language} exhausted with {pending} incomplete batches")
     db.execute("UPDATE task SET exhausted=1 WHERE source=? AND language=?", (source, language))
     db.commit()
     row = db.execute("SELECT target FROM task WHERE source=? AND language=?",
