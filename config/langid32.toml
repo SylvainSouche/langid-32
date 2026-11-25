@@ -254,7 +254,7 @@ terminal_punctuation = "record_flag_only"
 
 [execution]
 # Acquisition is scheduled in bounded file batches. Counts are post-filter, post-dedup.
-acquisition_files_per_batch = 8
+acquisition_files_per_batch = 1
 acquisition_max_parallel_source_tasks = 4
 acquisition_job_timeout_minutes = 300
 acquisition_global_budget_minutes = 330
