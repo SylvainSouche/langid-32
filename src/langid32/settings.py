@@ -17,7 +17,44 @@ def load_config(path: str | Path | None = None) -> dict[str, Any]:
         config = tomllib.load(stream)
     if config.get("schema_version") != 1:
         raise ValueError(f"Unsupported langid-32 config schema in {config_path}")
+    validate_acquisition_policy(config)
     return config
+
+
+def validate_acquisition_policy(config: dict[str, Any]) -> None:
+    """Fail closed on unsafe quota aliasing or acquisition runtime settings."""
+    acquisition = config["acquisition"]
+    execution = config["execution"]
+    if not acquisition.get("filter_before_quota") or not acquisition.get("privacy_filter_before_quota"):
+        raise ValueError("Acquisition must apply quality and privacy filters before quota accounting")
+    target = int(acquisition["first_pass_target_per_source_language"])
+    if target != 20000:
+        raise ValueError(f"Expected the approved 20,000 post-filter target, got {target}")
+    for source, rule in acquisition.get("source_rules", {}).items():
+        if "quota_key" in rule:
+            raise ValueError(
+                f"Source-family quota alias is forbidden: {source}.quota_key; "
+                "each original source keeps its own source-language target"
+            )
+    positive = (
+        "acquisition_files_per_batch",
+        "acquisition_max_parallel_source_tasks",
+        "acquisition_job_timeout_minutes",
+        "acquisition_global_budget_minutes",
+        "acquisition_safety_margin_minutes",
+        "acquisition_retry_attempts",
+        "acquisition_checkpoint_every_files",
+    )
+    for key in positive:
+        if int(execution[key]) <= 0:
+            raise ValueError(f"execution.{key} must be positive")
+    budget = int(execution["acquisition_global_budget_minutes"])
+    margin = int(execution["acquisition_safety_margin_minutes"])
+    timeout = int(execution["acquisition_job_timeout_minutes"])
+    if budget + margin > 360:
+        raise ValueError("Acquisition budget plus safety margin exceeds the six-hour limit")
+    if timeout > budget or timeout + margin > 360:
+        raise ValueError("Per-job timeout conflicts with the acquisition budget/six-hour limit")
 
 
 def language_target(config: dict[str, Any], language: str) -> int:
