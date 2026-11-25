@@ -1,9 +1,6 @@
-name: Extract bounded FineWeb2 31-language samples
+name: LEGACY — FineWeb2 31-language sample extraction
 
 on:
-  push:
-    paths:
-      - "scripts/extract_fineweb2_sample.py"
   workflow_dispatch:
 
 permissions:
