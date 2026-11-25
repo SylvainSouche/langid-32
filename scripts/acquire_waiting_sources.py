@@ -226,6 +226,7 @@ def main():
 
     downloads = []
     notes = []
+    failures = []
     privacy_counts = Counter()
     scanned = Counter()
     revisions = {}
@@ -429,7 +430,9 @@ def main():
                                      "source_document_id": None})
 
         except Exception as exc:
-            notes.append(f"{path}: {type(exc).__name__}: {exc}")
+            message = f"{path}: {type(exc).__name__}: {exc}"
+            notes.append(message)
+            failures.append(message)
             return False
 
         if quota_stopped:
@@ -557,7 +560,9 @@ def main():
                     downloads.append(fetch(base + filename, path))
                     scan(path, "ca", "bsc_legal:" + filename)
                 except Exception as exc:
-                    notes.append(filename + ": " + repr(exc))
+                    message = filename + ": " + repr(exc)
+                    notes.append(message)
+                    failures.append(message)
 
         elif args.source == "icelandic":
             for name, url, is_zip in [
@@ -576,7 +581,9 @@ def main():
                             source_tar.extractall(extracted, filter="data")
                     scan(extracted, "is", name)
                 except Exception as exc:
-                    notes.append(name + ": " + repr(exc))
+                    message = name + ": " + repr(exc)
+                    notes.append(message)
+                    failures.append(message)
 
         elif args.source == "norwegian":
             for language, code in (("nb", "nob"), ("nn", "nno")):
@@ -590,7 +597,9 @@ def main():
                         source_tar.extractall(extracted, filter="data")
                     scan(extracted, language, "maalfrid2026:" + language)
                 except Exception as exc:
-                    notes.append(language + ": " + repr(exc))
+                    message = language + ": " + repr(exc)
+                    notes.append(message)
+                    failures.append(message)
 
         elif args.source == "korean":
             revisions["wikipedia"] = resolve_hf_revision("wikimedia/wikipedia")
@@ -890,13 +899,19 @@ def main():
                 output.write(json.dumps(item, ensure_ascii=False, separators=(",", ":")) + "\n")
 
         counts = Counter((item["language"], item["source"]) for item in deduplicated)
+        task_status = [
+            task_report(state_db, source, language)
+            for language, source in sorted(initialized_tasks)
+        ]
+        incomplete_tasks = [item for item in task_status if not item["complete"]]
         report = {
             "source_group": args.source,
             "downloads": downloads,
             "source_revisions": revisions,
             "counts": {"|".join(key): value for key, value in sorted(counts.items())},
-            "source_language_status": [task_report(state_db, source, language)
-                                      for language, source in sorted(initialized_tasks)],
+            "source_language_status": task_status,
+            "incomplete_tasks": incomplete_tasks,
+            "acquisition_failures": failures,
             "stats": dict(stats),
             "total_selected": len(deduplicated),
             "notes": notes,
@@ -911,6 +926,12 @@ def main():
             json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
         )
         print(json.dumps(report, ensure_ascii=False, indent=2))
+        if failures or incomplete_tasks:
+            raise SystemExit(
+                f"Acquisition incomplete: {len(failures)} source errors, "
+                f"{len(incomplete_tasks)} unfinished source/language tasks; "
+                "the encrypted checkpoint preserves partial progress for resumption."
+            )
     finally:
         state_db.close()
 
