@@ -97,7 +97,7 @@ def _has_phone_like(text: str) -> bool:
 
 
 def _has_ambiguous_name(text: str) -> bool:
-    if _has_ambiguous_name(text):
+    if AMBIGUOUS_PROPER_NAME.search(text):
         return True
     return any(
         match.group(1).casefold() not in SENTENCE_START_STOPWORDS
@@ -124,7 +124,7 @@ def screen_text(value: str, *, record: dict | None = None,
     if rejected:
         return PrivacyResult(False, "rejected", tuple(sorted(set(rejected))))
     uncertain = list(metadata_flags)
-    if AMBIGUOUS_PROPER_NAME.search(text):
+    if _has_ambiguous_name(text):
         uncertain.append("ambiguous_proper_name")
     if uncertain:
         status = "quarantined" if uncertain_action == "quarantine" else "rejected"
