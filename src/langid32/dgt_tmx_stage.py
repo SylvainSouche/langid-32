@@ -100,7 +100,7 @@ def heap_add(heap, limit: int, priority: int, text_hash: str, record):
 
 def stage(args):
     global SEED
-    cfg = load_config(args.config)
+    cfg = load_config(getattr(args, "config", None))
     SEED = cfg["acquisition"].get("seed", SEED)
     target_by_language = {lang: (args.target_per_language or acquisition_target(cfg, "dgt_tm_2021", lang)) for lang in EU_LANGUAGES}
     dgt_rule = cfg["acquisition"]["source_rules"]["dgt_tm_2021"]
