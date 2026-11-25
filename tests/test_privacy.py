@@ -108,3 +108,18 @@ def test_provenance_sanitizer_removes_personal_names_but_keeps_source_references
     assert cleaned["speaker_role"] == "member of parliament"
     assert cleaned["source_url"] == "https://example.org/document/42"
     assert {"author", "speaker_name", "title"}.issubset(set(removed))
+
+
+def test_top_level_identity_metadata_is_removed_from_candidate_records():
+    from langid32.privacy import sanitize_provenance
+    cleaned, removed = sanitize_provenance({
+        "text": "A clean sentence with enough words for the corpus.",
+        "language": "en",
+        "author": "Alice Martin",
+        "speaker_name": "Jean Dupont",
+        "source": "sample-source",
+    })
+    assert cleaned["text"].startswith("A clean sentence")
+    assert cleaned["source"] == "sample-source"
+    assert "author" not in cleaned and "speaker_name" not in cleaned
+    assert {"author", "speaker_name"}.issubset(set(removed))
