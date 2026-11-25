@@ -55,6 +55,7 @@ long_numeric_min_digits = 9
 
 [acquisition.source_rules.fineweb2]
 target = 20000
+quota_key = "fineweb2"
 languages = ["hr", "fi", "el", "mt", "sl", "is"]
 
 [acquisition.source_rules.tatoeba_cc0]
@@ -83,6 +84,7 @@ status = "technical_candidate_only_share_alike_compatibility_hold"
 
 [acquisition.source_rules.maalfrid2026]
 target = 20000
+quota_key = "maalfrid2026"
 languages = ["nb", "nn"]
 status = "technical_candidate_only_database_and_third_party_rights_hold"
 
@@ -93,6 +95,7 @@ status = "cc0_component_union_source_level_review"
 
 [acquisition.source_rules.un_arabic_english_filtered]
 target = 20000
+quota_key = "un_arabic_english_filtered"
 languages = ["ar"]
 status = "include_cc_by_4_0_attribution_and_provenance"
 
