@@ -8,6 +8,7 @@ on:
       - "src/langid32/merge.py"
       - "tests/test_dgt_tmx_stage.py"
       - "pyproject.toml"
+      - "scripts/emit_runtime_config.py"
       - ".github/workflows/dgt-tmx-ingest.yml"
   workflow_dispatch:
 
@@ -20,9 +21,11 @@ jobs:
     timeout-minutes: 240
     steps:
       - uses: actions/checkout@v4
+      - id: runtime
+        run: python3 scripts/emit_runtime_config.py
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ steps.runtime.outputs.python_version }}
       - name: Install project and test dependency
         run: |
           python -m pip install --no-deps -e .
@@ -55,5 +58,5 @@ jobs:
           path: |
             reports/dgt-tm-2021-staged.jsonl
             reports/dgt-tm-2021-staged.manifest.json
-          retention-days: 30
+          retention-days: ${{ steps.runtime.outputs.artifact_retention_days }}
           if-no-files-found: error
