@@ -911,6 +911,7 @@ def main():
         incomplete_tasks = [item for item in task_status if not item["complete"]]
         report = {
             "source_group": args.source,
+            "acquisition_policy_digest": policy_digest,
             "downloads": downloads,
             "source_revisions": revisions,
             "counts": {"|".join(key): value for key, value in sorted(counts.items())},
