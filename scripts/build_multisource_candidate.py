@@ -90,7 +90,9 @@ def normalize_file(source_path: Path, destination: Path, *, config=None, source_
                 raise ValueError(f"{source_path}:{line_number}: missing {', '.join(missing)}")
             if not isinstance(row.get("provenance"), dict):
                 raise ValueError(f"{source_path}:{line_number}: provenance object is required")
-            row["provenance"], removed_metadata = sanitize_provenance(row["provenance"])
+            row, removed_top_metadata = sanitize_provenance(row)
+            row["provenance"], removed_provenance_metadata = sanitize_provenance(row["provenance"])
+            removed_metadata = set(removed_top_metadata) | set(removed_provenance_metadata)
             if removed_metadata:
                 filtered["personal_metadata_fields_removed"] += len(removed_metadata)
             text_rules = config["acquisition"]["text"]
