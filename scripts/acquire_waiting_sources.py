@@ -423,7 +423,11 @@ def main():
             failed = False
             for logical_filename in planned_files:
                 check_global_deadline()
-                filename, expected_hash = logical_filename.rsplit("#sha256=", 1)
+                if "#sha256=" in logical_filename:
+                    filename, expected_hash = logical_filename.rsplit("#sha256=", 1)
+                else:  # migrate an interrupted batch created by the pre-versioned workflow
+                    filename = logical_filename
+                    expected_hash = file_versions.get(filename)
                 path = Path(filename)
                 if not path.is_file():
                     failed = True
