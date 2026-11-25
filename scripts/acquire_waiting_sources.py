@@ -334,12 +334,14 @@ def main():
 
     def scan_one_file(path, root, language, source, bucket_key):
         relative = path.name if root.is_file() else path.relative_to(root).as_posix()
+        quota_stopped = False
         try:
             if path.name.endswith(".jsonl") or path.name.endswith(".jsonl.gz"):
                 opener = gzip.open if path.name.endswith(".gz") else open
                 with opener(path, "rt", encoding="utf-8", errors="replace") as stream:
                     for index, line in enumerate(stream, 1):
                         if quota_reached(bucket_key):
+                            quota_stopped = True
                             break
                         try:
                             item = json.loads(line)
@@ -394,6 +396,7 @@ def main():
                         alignment_index = first.index("alignment_score") if "alignment_score" in first else None
                         for index, row in enumerate(reader, 2):
                             if quota_reached(bucket_key):
+                                quota_stopped = True
                                 break
                             if len(row) <= text_index:
                                 continue
@@ -428,6 +431,9 @@ def main():
             notes.append(f"{path}: {type(exc).__name__}: {exc}")
             return False
 
+        if quota_stopped:
+            notes.append(f"Quota reached before end of {path}; batch left resumable for a later target increase.")
+            return False
         return True
 
     def scan(root, language, source):
