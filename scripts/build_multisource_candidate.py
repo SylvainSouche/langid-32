@@ -12,7 +12,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from langid32.settings import load_config, acquisition_target
+from langid32.settings import load_config, acquisition_target, source_quota_key
 
 FAMILY_PREFIXES = (
     "temu_cc0",
@@ -54,12 +54,14 @@ def source_family(raw_source: str) -> tuple[str, str | None]:
     return raw_source, None
 
 
-def normalize_file(source_path: Path, destination: Path, *, config, filter_superseded=False):
+def normalize_file(source_path: Path, destination: Path, *, config, source_language_counts=None, filter_superseded=False):
     rows_in = 0
     rows_out = 0
     filtered = Counter()
     source_counts = Counter()
     raw_source_counts = Counter()
+    if source_language_counts is None:
+        source_language_counts = Counter()
     with source_path.open("r", encoding="utf-8") as source, destination.open(
         "w", encoding="utf-8", newline="\n"
     ) as output:
@@ -89,11 +91,13 @@ def normalize_file(source_path: Path, destination: Path, *, config, filter_super
                 reason = "source_excluded_by_policy" if "excluded by source policy" in str(exc) else "source_language_not_approved"
                 filtered[reason] += 1
                 continue
-            source_language_key = (raw_source, language)
-            if raw_source_counts[source_language_key] >= source_limit:
+            quota_key = source_quota_key(config, raw_source)
+            source_language_key = (quota_key, language)
+            if source_language_counts[source_language_key] >= source_limit:
                 filtered["configured_source_target_reached"] += 1
                 continue
-            raw_source_counts[source_language_key] += 1
+            source_language_counts[source_language_key] += 1
+            raw_source_counts[(raw_source, language)] += 1
             family, component = source_family(raw_source)
             provenance = row["provenance"]
             provenance["source_original_name"] = raw_source
@@ -207,9 +211,10 @@ def main():
 
     reports = []
     merge_inputs = []
+    source_language_counts = Counter()
     for label, path, filter_superseded in sources:
         destination = normalized_dir / f"{label}.jsonl"
-        reports.append(normalize_file(path, destination, config=cfg, filter_superseded=filter_superseded))
+        reports.append(normalize_file(path, destination, config=cfg, source_language_counts=source_language_counts, filter_superseded=filter_superseded))
         if destination.stat().st_size:
             merge_inputs.append(destination)
 
@@ -242,6 +247,7 @@ def main():
         },
         "inputs": reports,
         "normalized_input_count": len(merge_inputs),
+        "source_language_acquisition_counts": {f"{source}:{language}": count for (source, language), count in sorted(source_language_counts.items())},
         "normalized_inputs": [str(path) for path in merge_inputs],
         "merge_input": str(combined_path),
         "preselection": {"status": "disabled"},
