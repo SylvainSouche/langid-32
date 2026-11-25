@@ -26,6 +26,12 @@ LOCALES = {
 }
 def now():
     return datetime.now(timezone.utc).isoformat()
+def digest_file(path):
+    digest=hashlib.sha256()
+    with path.open("rb") as stream:
+        for block in iter(lambda: stream.read(1024*1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
 def fetch(locale, revision, destination, attempts=3):
     url = f"{BASE}/{revision}/transcript/{locale}/validated_sentences.tsv"
     last = None
@@ -109,7 +115,7 @@ def main():
             try:
                 row=previous_results.get(locale)
                 if row and dest.is_file():
-                    digest=hashlib.sha256(dest.read_bytes()).hexdigest()
+                    digest=digest_file(dest)
                     if dest.stat().st_size != row.get("bytes") or digest != row.get("sha256"):
                         row=None
                 else:
