@@ -82,19 +82,19 @@ def test_waiting_source_privacy_regexes_are_active():
     assert clean(base + " reference number 123456789012", "en", rules) is None
 
 
-def test_common_voice_is_blocked_until_each_locale_is_accepted(tmp_path):
-    import subprocess
-    import sys
+def test_common_voice_hf_acquisition_is_enabled_for_configured_locales():
     config = load_config(ROOT / "config/langid32.toml")
     rule = config["acquisition"]["source_rules"]["common_voice_v22"]
-    assert rule["languages"] == []
-    assert rule["proposed_languages"] == ["fi", "el", "mt", "sl", "is"]
-    script = ROOT / "scripts/download_common_voice_hf.py"
-    result = subprocess.run(
-        [sys.executable, str(script), "--output-dir", str(tmp_path)],
-        capture_output=True, text=True,
-    )
-    assert result.returncode != 0
-    assert "individual locale terms acceptance is pending" in result.stderr
+    assert rule["target"] == 20000
+    assert rule["languages"] == ["fi", "el", "mt", "sl", "is"]
+    assert "proposed_languages" not in rule
+    assert "status" not in rule
+
+    downloader = (ROOT / "scripts/download_common_voice_hf.py").read_text()
+    assert "individual locale terms acceptance" not in downloader
+    assert "lack recorded individual terms acceptance" not in downloader
+    assert 'BASE = f"https://huggingface.co/datasets/{REPO}/resolve"' in downloader
+
     workflow = (ROOT / ".github/workflows/langid32-pipeline.yml").read_text()
-    assert "common-voice:\n    if: false" in workflow
+    assert "common-voice:\n    if: github.ref == 'refs/heads/main'" in workflow
+    assert "if: false # Disabled until individual Common Voice locale terms" not in workflow
