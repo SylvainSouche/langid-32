@@ -804,6 +804,9 @@ def main():
                             dataset.load_state_dict(saved["state"])
                             processed = int(saved.get("processed", 0))
                     def persist_arabic_stream_state():
+                        # Commit accepted rows before advancing the stream cursor;
+                        # replay after interruption is then idempotent, never lossy.
+                        state_db.commit()
                         if not hasattr(dataset, "state_dict"):
                             raise RuntimeError("Installed datasets version cannot checkpoint iterable stream state")
                         snapshot = {
