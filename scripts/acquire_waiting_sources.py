@@ -683,6 +683,11 @@ def main():
             for filename in files:
                 if quota_reached(bucket_key):
                     break
+                remote_batch = begin_remote_file(
+                    bucket_key, "HuggingFaceFW/fineweb-2", revisions["fineweb2"], filename
+                )
+                if remote_batch is None:
+                    continue
                 url = hf_hub_url(
                     repo_id="HuggingFaceFW/fineweb-2", filename=filename,
                     repo_type="dataset", revision=revisions["fineweb2"]
@@ -719,6 +724,7 @@ def main():
                             processed += 1
                         if quota_reached(bucket_key):
                             break
+                finish_remote_file(bucket_key, remote_batch)
                 if processed and processed % 100000 == 0:
                     print(f"{config}: read {processed}; retained {len(retained[bucket_key])}", flush=True)
             if not quota_reached(bucket_key):
