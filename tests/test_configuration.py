@@ -18,6 +18,10 @@ def test_source_and_language_overrides_are_explicit_and_inherit_defaults():
     assert acquisition_target(config, "fineweb2:hrv_Latn", "hr") == 12345
     assert acquisition_target(config, "macocu_hr_2.0", "hr") == 20000
     assert acquisition_target(config, "parlamint_is", "is") == 20000
+    assert acquisition_target(config, "greynir_copper", "is") == 20000
+    assert acquisition_target(config, "greynir_silver", "is") == 20000
+    with pytest.raises(ValueError):
+        acquisition_target(config, "greynir_gold_dev_test", "is")
     with pytest.raises(ValueError):
         acquisition_target(config, "fineweb2:cat_Latn", "ca")
     with pytest.raises(ValueError):
