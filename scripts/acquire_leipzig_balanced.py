@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Acquire balanced Leipzig news + Wikipedia samples for the 34 langid-32 labels."""
+"""Stream up to 20,000 eligible unique entries per Leipzig source and language."""
 from __future__ import annotations
 import argparse, hashlib, heapq, json, re, tarfile, time
 from pathlib import Path
@@ -63,7 +63,7 @@ def sample(archive,data_id,label,family,quota,seed):
  return rows,{"eligible_sentences":eligible,"rejected_digit_sentences":digits,"selected":len(rows),
   "source_mapping_rows":len(invmap),"source_metadata_rows":len(sources),"has_inverse_source_member":bool(inv),"has_sources_member":bool(src)}
 def main():
- ap=argparse.ArgumentParser();ap.add_argument("--out",required=True);ap.add_argument("--quota",type=int,default=3000)
+ ap=argparse.ArgumentParser();ap.add_argument("--out",required=True);ap.add_argument("--quota",type=int,default=20000)
  ap.add_argument("--seed",default="langid-32-leipzig-2026-11-18");ap.add_argument("--pause",type=float,default=1);ap.add_argument("--labels",default="",help="Comma-separated target labels; default is all 34")
  a=ap.parse_args();out=Path(a.out);ar=out/"archives";sm=out/"samples";ar.mkdir(parents=True,exist_ok=True);sm.mkdir(parents=True,exist_ok=True)
  s=requests.Session();idx=out/"links.parquet";fetch(s,INDEX_URL,idx);idxsha=sha(idx);cat=pq.read_table(idx).to_pylist()
