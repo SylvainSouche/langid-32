@@ -364,7 +364,7 @@ def main():
                                      "source_document_id": None})
 
         except Exception as exc:
-                notes.append(f"{path}: {type(exc).__name__}: {exc}")
+            notes.append(f"{path}: {type(exc).__name__}: {exc}")
             return False
 
         return True
