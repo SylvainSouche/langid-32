@@ -81,20 +81,18 @@ def main() -> None:
         shard_manifest = json.loads((shards / "manifest.json").read_text(encoding="utf-8"))
         assert [item["rows"] for item in shard_manifest["files"]] == [8, 8, 8]
 
+        run("scripts/score_jql_parquet.py", "--input", str(assessment),
+            "--output", str(ratings / "ratings.csv"), "--device", "cpu",
+            "--batch-size", "4", "--max-rows", "24", "--torch-threads", "2")
+        with (ratings / "ratings.csv").open(encoding="utf-8", newline="") as stream:
+            scored = list(csv.DictReader(stream))
+        assert len(scored) == 24
+        for row in scored:
+            scores = json.loads(row["ratings"])
+            assert set(scores) == {"gemma", "mistral", "llama"}
+            assert all(isinstance(value, float) for value in scores.values())
+
         rows = table.to_pylist()
-        with (ratings / "ratings.csv").open("w", encoding="utf-8", newline="") as stream:
-            writer = csv.DictWriter(stream, fieldnames=["id", "language", "ratings"])
-            writer.writeheader()
-            for index, row in enumerate(rows):
-                writer.writerow({
-                    "id": row["id"],
-                    "language": row["lang"],
-                    "ratings": json.dumps({
-                        "gemma": float(index),
-                        "mistral": float(index * 2 + 1),
-                        "llama": float(48 - index),
-                    }),
-                })
         with quality.open("w", encoding="utf-8", newline="") as stream:
             writer = csv.DictWriter(
                 stream, fieldnames=["id", "initial_capitalization", "terminal_punctuation"]
@@ -133,6 +131,7 @@ def main() -> None:
             "duplicate_rejections": 6,
             "privacy_pattern_rejections": 6,
             "assessment_rows": 24,
+            "actual_jql_model_scores": len(scored),
             "shard_rows": [8, 8, 8],
             "jql_pruned": 6,
             "jql_retained": 18,
