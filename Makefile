@@ -3,7 +3,7 @@
 PYTHON ?= python
 OUT ?= out
 LABELS ?=
-QUOTA ?= 3000
+QUOTA ?=
 MIN_CHARS ?= 1
 MAX_CHARS ?= 0
 TARGET_PER_LANGUAGE ?= 30000
@@ -35,7 +35,7 @@ all: score-report
 help:
 	@echo "Pipeline: download -> filter -> anonymize -> count -> assess -> rate -> score-report"
 	@echo "Targets: all download filter anonymize count assess report rate rate-batch score-report summarize jql-pipeline"
-	@echo "Options: LABELS=hr,is QUOTA=3000 DEVICE=auto|mps|cuda|cpu MAX_SECONDS=3600"
+	@echo "Options: LABELS=hr,is QUOTA=<explicit override; default from config> DEVICE=auto|mps|cuda|cpu MAX_SECONDS=3600"
 	@echo "Examples: make all LABELS=hr,is DEVICE=mps; make rate DEVICE=cuda; make download LABELS=hr,is; make -j4 jql-pipeline DEVICE=mps"
 
 install-corpus:
@@ -51,7 +51,7 @@ check-torch:
 	$(PYTHON) -c "import torch; print('torch',torch.__version__,'CUDA',torch.cuda.is_available(),'MPS',bool(getattr(torch.backends,'mps',None) and torch.backends.mps.is_available()))"
 
 $(RAW): scripts/acquire_leipzig_balanced.py
-	$(PYTHON) scripts/acquire_leipzig_balanced.py --out $(LEIPZIG_DIR) --quota $(QUOTA) $(if $(LABELS),--labels $(LABELS),)
+	$(PYTHON) scripts/acquire_leipzig_balanced.py --out $(LEIPZIG_DIR) $(if $(QUOTA),--quota $(QUOTA),) $(if $(LABELS),--labels $(LABELS),)
 
 download: $(RAW)
 
