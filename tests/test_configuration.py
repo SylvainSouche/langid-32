@@ -48,6 +48,10 @@ def test_approved_source_scopes_and_deferred_final_selection_policy():
     assert config["candidate"]["final_selection_status"] == "deferred_pending_user_review"
     assert config["candidate"]["source_balance"]["enabled"] is False
     assert config["jql"]["consensus_disagreement_penalty"] == 0.5
+    assert config["jql"]["embedder_model"] == "Snowflake/snowflake-arctic-embed-m-v2.0"
+    assert config["jql"]["head_repository"] == "JQL-AI/JQL-Edu-Heads"
+    assert set(config["jql"]["head_checkpoints"]) == {"gemma", "mistral", "llama"}
+    assert config["jql"]["score_decimal_places"] == 6
     assert config["jql"]["prune_bottom_quantile"] == 0.25
     assert config["jql"]["pruning_scope"] == "global_all_languages_after_full_corpus_normalization"
     assert config["jql"]["final_selection_requires_user_approval"] is True
