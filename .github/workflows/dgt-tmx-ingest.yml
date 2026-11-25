@@ -1,5 +1,5 @@
 name: Ingest DGT-TM 2021 source sample
-# Refresh run requested 2026-11-17: re-download official DGT-TM 2021 archives and recompute usable counts.
+# First-pass acquisition target: up to 20,000 eligible unique entries per language.
 
 on:
   push:
@@ -8,6 +8,7 @@ on:
       - "src/langid32/merge.py"
       - "tests/test_dgt_tmx_stage.py"
       - "pyproject.toml"
+      - ".github/workflows/dgt-tmx-ingest.yml"
   workflow_dispatch:
 
 permissions:
@@ -16,7 +17,7 @@ permissions:
 jobs:
   ingest:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 240
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -37,7 +38,7 @@ jobs:
           curl --fail --location --retry 3 --output input/dgt-tm-2021/Vol_2020_4.zip https://wt-public.emm4u.eu/Resources/DGT-TM-2021/Vol_2020_4.zip
           curl --fail --location --retry 3 --output input/dgt-tm-2021/Vol_2020_5.zip https://wt-public.emm4u.eu/Resources/DGT-TM-2021/Vol_2020_5.zip
           ls -lh input/dgt-tm-2021/
-      - name: Stage bounded document-balanced multilingual sample
+      - name: Stage up to 20,000 eligible unique entries per language
         run: |
           python -m langid32.dgt_tmx_stage \
             --archive input/dgt-tm-2021/Vol_2020_1.zip \
@@ -45,12 +46,16 @@ jobs:
             --archive input/dgt-tm-2021/Vol_2020_3.zip \
             --archive input/dgt-tm-2021/Vol_2020_4.zip \
             --archive input/dgt-tm-2021/Vol_2020_5.zip \
-            --target-per-language 5000 \
+            --target-per-language 20000 \
             --max-per-document-language 20 \
             --output reports/dgt-tm-2021-staged.jsonl
-      - uses: actions/upload-artifact@v4
+      - name: Upload staged records and complete provenance manifest
+        if: always() && hashFiles('reports/dgt-tm-2021-staged*') != ''
+        uses: actions/upload-artifact@v4
         with:
-          name: dgt-tm-2021-staged-5k
-          path: reports/dgt-tm-2021-staged.manifest.json
-          retention-days: 14
+          name: dgt-tm-2021-first-pass-20k-${{ github.run_id }}
+          path: |
+            reports/dgt-tm-2021-staged.jsonl
+            reports/dgt-tm-2021-staged.manifest.json
+          retention-days: 30
           if-no-files-found: error
