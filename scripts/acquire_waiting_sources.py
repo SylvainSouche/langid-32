@@ -397,12 +397,19 @@ def main():
             # upstream file is therefore a new resumable batch, not silently
             # skipped because its pathname was processed in an earlier run.
             file_versions = {}
+            file_stats = {}
             for filename in batch_files:
+                path = Path(filename)
+                before = path.stat()
                 digest = hashlib.sha256()
-                with Path(filename).open("rb") as stream:
+                with path.open("rb") as stream:
                     for block in iter(lambda: stream.read(EXECUTION["file_copy_chunk_bytes"]), b""):
                         digest.update(block)
+                after = path.stat()
+                if (before.st_size, before.st_mtime_ns) != (after.st_size, after.st_mtime_ns):
+                    raise RuntimeError(f"Source file changed while hashing: {filename}")
                 file_versions[filename] = digest.hexdigest()
+                file_stats[filename] = (after.st_size, after.st_mtime_ns)
             logical_files = [f"{filename}#sha256={file_versions[filename]}" for filename in batch_files]
             plan_file_batches(
                 state_db, bucket_key[1], language, limit_for(*bucket_key),
@@ -426,16 +433,12 @@ def main():
                     if not scan_one_file(path, root, language, source, bucket_key):
                         failed = True
                         break
-                digest = hashlib.sha256()
-                with path.open("rb") as stream:
-                    for block in iter(lambda: stream.read(EXECUTION["file_copy_chunk_bytes"]), b""):
-                        digest.update(block)
-                actual_hash = digest.hexdigest()
-                if actual_hash != expected_hash:
+                after = path.stat()
+                if (after.st_size, after.st_mtime_ns) != file_stats.get(filename):
                     failed = True
                     notes.append(f"Source file changed during processing: {filename}")
                     break
-                hashes[logical_filename] = actual_hash
+                hashes[logical_filename] = expected_hash
             if failed:
                 break
             finish_batch(state_db, bucket_key[1], language, batch_no, hashes)
