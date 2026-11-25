@@ -196,7 +196,7 @@ jobs:
             --output-csv out/jql-consensus-34k.csv \
             --output-parquet out/jql-consensus-34k.parquet \
             --summary out/jql-consensus-34k-summary.json
-      - name: Apply global 25th-percentile quality floor and restore baseline source proportions
+      - name: Select exact final target and preserve baseline source proportions
         run: |
           python scripts/select_jql_consensus.py \
             --consensus out/jql-consensus-34k.parquet \
