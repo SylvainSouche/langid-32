@@ -611,9 +611,12 @@ def merge(args):
             "must be reviewed independently before publication or redistribution."
         ),
         "privacy_note": (
-            "Email, URL and IPv4 matches are excluded in the global merge. "
-            "Phone-like and configured long-numeric sequences are retained with flags. The provenance "
-            "sidecar is internal; full PII review is still required."
+            "The shared deterministic privacy gate runs before per-source acquisition quotas and again "
+            "during global merge. High-confidence email, URL, IPv4/IPv6, phone, long-identifier, "
+            "street-address and contextual personal-name matches are rejected; ambiguous personal-name "
+            "candidates and upstream sensitive-data flags are quarantined. The screen is conservative "
+            "and does not claim perfect multilingual named-entity recognition; human review remains "
+            "necessary before any external release."
         ),
     }
     (output / "manifest.json").write_text(
