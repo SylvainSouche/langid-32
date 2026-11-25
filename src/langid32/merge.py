@@ -359,14 +359,21 @@ def merge(args):
             raise ValueError(f"split-group inconsistency: {row['split_group_id']}")
         selected.append(row)
 
-    preferred_share = getattr(args, "preferred_source_share", 0.30)
-    hard_share = getattr(args, "max_source_share", 0.50)
+    cfg = load_config(getattr(args, "config", None))
+    balance_cfg = cfg["candidate"]["source_balance"]
+    preferred_share = getattr(args, "preferred_source_share", None)
+    preferred_share = preferred_share if preferred_share is not None else balance_cfg["preferred_max_share_per_language_and_split"]
+    hard_share = getattr(args, "max_source_share", None)
+    hard_share = hard_share if hard_share is not None else balance_cfg["hard_max_share_per_language_and_split"]
     if not 0 < preferred_share <= hard_share <= 1:
         raise ValueError("source shares must satisfy 0 < preferred <= maximum <= 1")
 
     if args.max_per_language:
         total_target = args.max_per_language
-        core_target = min(getattr(args, "core_per_language", 20000), total_target)
+        configured_core_target = getattr(args, "core_per_language", None)
+        if configured_core_target is None:
+            configured_core_target = cfg["candidate"]["minimum_candidates_per_language"]
+        core_target = min(configured_core_target, total_target)
         reserve_target = total_target - core_target
         core_caps = {
             "train": max(0, core_target
