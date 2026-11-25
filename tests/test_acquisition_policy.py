@@ -70,3 +70,13 @@ def test_production_workflow_has_central_concurrency_and_deadline_guards():
         assert name in workflow
     assert workflow.count("Enforce shared six-hour workflow budget") == 5
     assert "needs: [config]" in workflow
+
+
+def test_waiting_source_privacy_regexes_are_active():
+    from scripts.acquire_waiting_sources import clean
+    rules = load_config(ROOT / "config/langid32.toml")["acquisition"]["source_rules"]["waiting_sources"]
+    base = "This is a sufficiently long ordinary sentence containing useful words"
+    assert clean(base + " contact person@example.org", "en", rules) is None
+    assert clean(base + " see https://example.org/page", "en", rules) is None
+    assert clean(base + " server address 192.168.1.24", "en", rules) is None
+    assert clean(base + " reference number 123456789012", "en", rules) is None
