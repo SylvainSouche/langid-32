@@ -36,6 +36,20 @@ max_segments_per_tmx_document_language = 20
 target = 20000
 languages = ["fi", "el", "mt", "sl", "is"]
 
+[acquisition.source_rules.common_voice_v22.text]
+min_characters = 12
+max_characters = 500
+max_utf8_bytes = 1500
+exclude_email = true
+exclude_url = true
+exclude_ipv4 = true
+exclude_phone_like = true
+exclude_long_numeric_sequences = true
+phone_min_digits = 9
+phone_max_digits = 15
+phone_min_separators = 2
+long_numeric_min_digits = 9
+
 [acquisition.source_rules.fineweb2]
 target = 20000
 languages = ["hr", "fi", "el", "mt", "sl", "is"]
