@@ -166,6 +166,7 @@ jobs:
             python scripts/checkpoint.py unpack --archive "$f"
           done
       - name: Re-curate preserved Common Voice raw TSVs to the 20k source quota
+        run: python stages/01-acquisition/run.py --target common-voice
       - name: Build candidate corpus
         env:
           PYTHONPATH: src
