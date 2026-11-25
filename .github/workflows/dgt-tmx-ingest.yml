@@ -34,11 +34,11 @@ jobs:
       - name: Download official DGT-TM 2021 ZIP volumes
         run: |
           mkdir -p input/dgt-tm-2021
-          curl --fail --location --retry 3 --output input/dgt-tm-2021/Vol_2020_1.zip https://wt-public.emm4u.eu/Resources/DGT-TM-2021/Vol_2020_1.zip
-          curl --fail --location --retry 3 --output input/dgt-tm-2021/Vol_2020_2.zip https://wt-public.emm4u.eu/Resources/DGT-TM-2021/Vol_2020_2.zip
-          curl --fail --location --retry 3 --output input/dgt-tm-2021/Vol_2020_3.zip https://wt-public.emm4u.eu/Resources/DGT-TM-2021/Vol_2020_3.zip
-          curl --fail --location --retry 3 --output input/dgt-tm-2021/Vol_2020_4.zip https://wt-public.emm4u.eu/Resources/DGT-TM-2021/Vol_2020_4.zip
-          curl --fail --location --retry 3 --output input/dgt-tm-2021/Vol_2020_5.zip https://wt-public.emm4u.eu/Resources/DGT-TM-2021/Vol_2020_5.zip
+          curl --fail --location --retry "${{ steps.runtime.outputs.curl_retry_count }}" --output input/dgt-tm-2021/Vol_2020_1.zip https://wt-public.emm4u.eu/Resources/DGT-TM-2021/Vol_2020_1.zip
+          curl --fail --location --retry "${{ steps.runtime.outputs.curl_retry_count }}" --output input/dgt-tm-2021/Vol_2020_2.zip https://wt-public.emm4u.eu/Resources/DGT-TM-2021/Vol_2020_2.zip
+          curl --fail --location --retry "${{ steps.runtime.outputs.curl_retry_count }}" --output input/dgt-tm-2021/Vol_2020_3.zip https://wt-public.emm4u.eu/Resources/DGT-TM-2021/Vol_2020_3.zip
+          curl --fail --location --retry "${{ steps.runtime.outputs.curl_retry_count }}" --output input/dgt-tm-2021/Vol_2020_4.zip https://wt-public.emm4u.eu/Resources/DGT-TM-2021/Vol_2020_4.zip
+          curl --fail --location --retry "${{ steps.runtime.outputs.curl_retry_count }}" --output input/dgt-tm-2021/Vol_2020_5.zip https://wt-public.emm4u.eu/Resources/DGT-TM-2021/Vol_2020_5.zip
           ls -lh input/dgt-tm-2021/
       - name: Stage up to 20,000 eligible unique entries per language
         run: |
