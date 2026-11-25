@@ -1,0 +1,107 @@
+# langid-32 corpus policy — single operational source of numeric rules.
+# Per-language and per-source overrides belong in the *_overrides tables below.
+# A missing override inherits the corresponding default. Do not copy numeric
+# policy values into workflows or scripts; load this file through langid32.settings.
+schema_version = 1
+
+[project]
+languages = ["bg","hr","cs","da","nl","en","et","fi","fr","de","el","hu","ga","it","lv","lt","mt","pl","pt","ro","sk","sl","es","sv","nb","nn","ru","ja","zh","ko","ar","tr","ca","is"]
+
+[acquisition]
+# First pass: stream up to this many eligible, unique records from EACH
+# individual source for EACH language. This is not a family-wide/candidate cap.
+first_pass_target_per_source_language = 20000
+# No override currently approved. Keys are source identifiers, then language.
+[source_language_overrides]
+# Example: "leipzig_news.hr" = 15000
+# Example: "common_voice_v22.is" = 18000
+
+[acquisition.source_rules]
+leipzig_news = { target = 20000, exclude_unicode_decimal_digits = true }
+leipzig_wikipedia = { target = 20000, exclude_unicode_decimal_digits = false }
+dgt_tm_2021 = { target = 20000, max_segments_per_tmx_document_language = 20 }
+common_voice_v22 = { target = 20000 }
+fineweb2 = { target = 20000 }
+tatoeba_cc0 = { target = 20000 }
+gaois_irish_legislation = { target = 20000 }
+waiting_sources = { target = 20000 }
+
+[acquisition.text]
+min_characters = 12
+max_characters = 500
+max_utf8_bytes = 1500
+exclude_email = true
+exclude_url = true
+exclude_ipv4 = true
+exclude_phone_like = false
+exclude_long_numeric_sequences = false
+# Phone-like and long numeric strings are flagged downstream rather than removed.
+
+[candidate]
+# Minimum intake pool before final production selection; acquire more rather than
+# relaxing final targets or silently redistributing a language shortfall.
+minimum_candidates_per_language = 35000
+# Exact final production corpus target.
+final_sentences_per_language = 25000
+# Per-language overrides; absent keys inherit final_sentences_per_language.
+[ candidate.language_target_overrides ]
+# "is" = 25000
+
+# Candidate-stage balancing only. These are not acquisition caps.
+[candidate.source_balance]
+preferred_max_share_per_language_and_split = 0.30
+hard_max_share_per_language_and_split = 0.50
+# Preserve the existing baseline source proportions independently per language
+# in final production selection.
+final_source_mix = "preserve_baseline_core_proportions"
+# Do not impose another family/source cap after first-pass acquisition.
+max_sentences_per_source_after_acquisition = 0
+
+[candidate.splits]
+validation_fraction = 0.10
+test_fraction = 0.10
+train_fraction = 0.80
+seed = "langid-32-v6-2026-11-18"
+
+[candidate.text]
+min_characters = 12
+max_characters = 500
+max_utf8_bytes = 1500
+
+[jql]
+enabled = true
+judges = ["gemma", "mistral", "llama"]
+score_scale = "raw model regression output; nominal 0-5"
+normalization = "independent_quantile_to_standard_normal"
+normalization_scope = "full_assessment_corpus_per_judge"
+consensus_mean_weight = 1.0
+consensus_disagreement_penalty = 0.5
+disagreement_standard_deviation = "population"
+# JQL-Edu-Heads is QA/diagnostic annotation only. It must not remove, rank,
+# down-rank, or replace corpus records.
+selection_effect = "none"
+apply_quality_floor = false
+# Historical/proposed reference only; inactive while apply_quality_floor=false.
+diagnostic_global_quantile = 0.25
+assessment_sample_per_language = 1000
+assessment_all_candidate_rows = true
+inference_batch_size = 8
+max_token_length = 8192
+cpu_torch_threads = 2
+shard_count = 8
+max_parallel_shards = 4
+
+[quality]
+# Boundary checks are annotations/QA flags, not automatic corpus exclusions.
+initial_capitalization = "record_flag_only"
+terminal_punctuation = "record_flag_only"
+
+[execution]
+# Runtime controls are centralized here too; workflows should reference these.
+python_version = "3.12"
+leipzig_pause_seconds = 1
+leipzig_timeout_minutes = 360
+dgt_timeout_minutes = 240
+candidate_timeout_minutes = 360
+jql_timeout_minutes = 300
+artifact_retention_days = 30
