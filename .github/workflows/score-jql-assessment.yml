@@ -2,7 +2,7 @@ name: Parallel JQL assessment and sentence-quality workflow
 
 on:
   workflow_run:
-    workflows: ["Build full multisource candidate corpus and JQL assessment"]
+    workflows: ["Build candidate corpus and JQL assessment"]
     types: [completed]
   workflow_dispatch:
     inputs:
@@ -10,7 +10,7 @@ on:
         description: "Run ID containing the JQL assessment Parquet artifact"
         required: true
         type: string
-        default: "44563498916"
+        default: ""
       artifact_name:
         description: "Assessment artifact name"
         required: true
@@ -108,7 +108,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: ${{ needs.prepare.outputs.python_version }}
           cache: pip
       - name: Install boundary-check dependency
         run: python -m pip install --upgrade pip pyarrow
@@ -154,13 +154,6 @@ jobs:
           cache: pip
       - name: Install merge dependencies
         run: python -m pip install --upgrade pip pyarrow pandas
-      - name: Download baseline core source proportions
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          mkdir -p baseline
-          gh run download 44942553391 --repo "$GITHUB_REPOSITORY" --name langid-32-jql-assessment-full --dir baseline
-          test -s baseline/candidate/manifest.json
       - name: Download source assessment for ID and language validation
         env:
           GH_TOKEN: ${{ github.token }}
@@ -187,7 +180,7 @@ jobs:
         with:
           name: jql-quality-flags
           path: quality
-      - name: Validate coverage, normalize and calculate consensus
+      - name: Validate coverage, normalize and prune bottom quartile
         run: |
           mkdir -p out
           python scripts/merge_jql_ratings.py \
@@ -196,18 +189,15 @@ jobs:
             --quality quality/sentence-boundary-flags.csv \
             --output-csv out/jql-consensus-full.csv \
             --output-parquet out/jql-consensus-full.parquet \
-            --summary out/jql-consensus-full-summary.json
-      - name: Select exact final target and preserve baseline source proportions
-        run: |
-          python scripts/select_jql_consensus.py \
-            --consensus out/jql-consensus-full.parquet \
-            --baseline-manifest baseline/candidate/manifest.json \
-            --output-dir out/selected \\
-            --config config/langid32.toml
+            --summary out/jql-consensus-full-summary.json \
+            --include-text \
+            --pruned-output-csv out/jql-consensus-pruned.csv \
+            --pruned-output-parquet out/jql-consensus-pruned.parquet \
+            --pruning-summary out/jql-pruning-summary.json
       - name: Upload final assessment outputs
         uses: actions/upload-artifact@v4
         with:
-          name: langid-32-jql-consensus-full
+          name: langid-32-jql-pruned-pool
           path: out/
           if-no-files-found: error
           retention-days: ${{ needs.prepare.outputs.retention_days }}
