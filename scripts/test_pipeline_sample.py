@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import csv
+from collections import Counter
 import json
 import subprocess
 import sys
@@ -60,8 +61,9 @@ def main() -> None:
         assert manifest["retained_rows"] == 24, manifest
         assert len(manifest["retained_by_source_language"]) == 6, manifest
         assert all(item["count"] == 4 for item in manifest["retained_by_source_language"])
-        reasons = {item["reason"]: item["count"]
-                   for item in manifest["rejected_by_source_language_reason"]}
+        reasons = Counter()
+        for item in manifest["rejected_by_source_language_reason"]:
+            reasons[item["reason"]] += item["count"]
         assert reasons.get("duplicate_within_original_source_language") == 6, reasons
         assert reasons.get("email") == 6, reasons
 
