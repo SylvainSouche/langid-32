@@ -84,7 +84,7 @@
       "decision": "include",
       "candidate_ingestion": "approved",
       "release_status": "source terms and provenance must remain attached",
-      "notes": "First-pass acquisition target: stream up to 20,000 eligible unique entries per language. The former 3,000-entry cap is abandoned. Keep Leipzig Wikipedia distinct from Leipzig News."
+      "notes": "First-pass acquisition target and filtering rules are defined in config/langid32.toml; the former 3,000-entry cap is abandoned. Keep Leipzig Wikipedia distinct from Leipzig News."
     },
     {
       "source_family": "tatoeba-cc0",
