@@ -18,6 +18,11 @@ def main() -> None:
         "artifact_retention_days": config["execution"]["artifact_retention_days"],
         "checkpoint_retention_days": config["execution"]["checkpoint_retention_days"],
         "curl_retry_count": config["execution"]["curl_retry_count"],
+        "acquisition_files_per_batch": config["execution"]["acquisition_files_per_batch"],
+        "acquisition_max_parallel_source_tasks": config["execution"]["acquisition_max_parallel_source_tasks"],
+        "acquisition_job_timeout_minutes": config["execution"]["acquisition_job_timeout_minutes"],
+        "acquisition_global_budget_minutes": config["execution"]["acquisition_global_budget_minutes"],
+        "acquisition_safety_margin_minutes": config["execution"]["acquisition_safety_margin_minutes"],
     }
     output = os.environ.get("GITHUB_OUTPUT")
     if not output:
