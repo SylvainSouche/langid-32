@@ -17,7 +17,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from langid32.settings import load_config, acquisition_target, source_quota_key
+from langid32.settings import load_config, acquisition_target
 
 EMAIL = re.compile(r"(?i)(?<![\w.+-])[\w.+-]+@[\w.-]+\.[A-Z]{2,}(?![A-Za-z0-9_.-])")
 URL = re.compile(r"(?i)(?:https?://[^\s<>]+|www\.[^\s<>]+)")
@@ -156,7 +156,7 @@ def main() -> None:
                 if text in seen[key]:
                     rejected[(source, language, "duplicate_within_original_source_language")] += 1
                     continue
-                quota_key = (source_quota_key(cfg, source), language)
+                quota_key = (source, language)
                 if source_counts[quota_key] >= limit:
                     rejected[(source, language, "source_language_cap_reached")] += 1
                     continue
@@ -187,7 +187,7 @@ def main() -> None:
         "policy": {
             "filter_before_quota": True,
             "deduplicate_before_quota": True,
-            "quota_unit": "original source identifier x language (except explicitly declared quota_key)",
+            "quota_unit": "exact original source identifier x language; source-family quota sharing is forbidden",
             "default_cap_per_source_language": int(acq["first_pass_target_per_source_language"]),
             "personal_names_and_addresses": "source privacy flags are enforced; multilingual name/address NER is not yet wired, so absence of a flag is not evidence of absence",
             "uncertain_privacy_action": acq["text"].get("privacy_uncertain_action", "quarantine"),
