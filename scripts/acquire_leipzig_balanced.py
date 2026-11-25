@@ -3,6 +3,10 @@
 from __future__ import annotations
 import argparse, hashlib, heapq, json, re, tarfile, time
 from pathlib import Path
+import sys
+ROOT=Path(__file__).resolve().parents[1]
+sys.path.insert(0,str(ROOT / 'src'))
+from langid32.settings import load_config, acquisition_target
 from urllib.parse import quote
 import requests
 import pyarrow.parquet as pq
@@ -63,16 +67,15 @@ def sample(archive,data_id,label,family,quota,seed):
  return rows,{"eligible_sentences":eligible,"rejected_digit_sentences":digits,"selected":len(rows),
   "source_mapping_rows":len(invmap),"source_metadata_rows":len(sources),"has_inverse_source_member":bool(inv),"has_sources_member":bool(src)}
 def main():
- ap=argparse.ArgumentParser();ap.add_argument("--out",required=True);ap.add_argument("--quota",type=int,default=20000)
- ap.add_argument("--seed",default="langid-32-leipzig-2026-11-18");ap.add_argument("--pause",type=float,default=1);ap.add_argument("--labels",default="",help="Comma-separated target labels; default is all 34")
- a=ap.parse_args();out=Path(a.out);ar=out/"archives";sm=out/"samples";ar.mkdir(parents=True,exist_ok=True);sm.mkdir(parents=True,exist_ok=True)
+ ap=argparse.ArgumentParser();ap.add_argument("--out",required=True);ap.add_argument("--config",type=Path,default=ROOT/"config/langid32.toml");ap.add_argument("--quota",type=int,default=None,help="Explicit emergency override; normally use the central config");
+ ap.add_argument("--seed",default=None);ap.add_argument("--pause",type=float,default=None);ap.add_argument("--labels",default="",help="Comma-separated target labels; default is all configured labels")
+ a=ap.parse_args();cfg=load_config(a.config);a.seed=a.seed or cfg["candidate"]["splits"]["seed"];a.pause=a.pause if a.pause is not None else cfg["execution"]["leipzig_pause_seconds"];out=Path(a.out);ar=out/"archives";sm=out/"samples";ar.mkdir(parents=True,exist_ok=True);sm.mkdir(parents=True,exist_ok=True)
  s=requests.Session();idx=out/"links.parquet";fetch(s,INDEX_URL,idx);idxsha=sha(idx);cat=pq.read_table(idx).to_pylist()
  selected_labels={x.strip() for x in a.labels.split(",") if x.strip()}
  unknown=selected_labels-set(LANGS)
  if unknown:raise SystemExit("Unknown labels: "+", ".join(sorted(unknown)))
  manifest={"collection":"Leipzig Corpora Collection","licence":"CC BY 4.0","licence_url":"https://wortschatz.uni-leipzig.de/en/usage",
-  "index_url":INDEX_URL,"index_sha256":idxsha,"index_rows":len(cat),"quota_per_family":a.quota,
-  "policy":"First-pass acquisition target: up to 20,000 eligible unique entries per source family (news and Wikipedia) and language; Unicode decimal digits excluded from news only","archives":[]}
+  "index_url":INDEX_URL,"index_sha256":idxsha,"index_rows":len(cat),"configuration":str(a.config),"archives":[]}
  todo=[]
  for label,codes in LANGS.items():
   if selected_labels and label not in selected_labels:continue
@@ -90,8 +93,10 @@ def main():
    "language_short":r.get("language_short"),"year":r.get("year"),"nominal_size":r.get("size"),"archive_url":url}
   try:
    fetch(s,url,arc);rec.update({"archive_file":str(arc.relative_to(out)),"archive_bytes":arc.stat().st_size,"archive_sha256":sha(arc)})
-   rows,stats=sample(arc,did,label,fam,a.quota,a.seed);rec["selection"]=stats
-   rec["status"]="sampled" if len(rows)==a.quota else "short_sample"
+   quota=a.quota if a.quota is not None else acquisition_target(cfg,"leipzig_"+fam,label)
+   rec["configured_target"]=quota
+   rows,stats=sample(arc,did,label,fam,quota,a.seed);rec["selection"]=stats
+   rec["status"]="sampled" if len(rows)==quota else "short_sample"
    p=sm/(label+"-"+fam+".jsonl")
    with p.open("w",encoding="utf-8") as f:
     for row in rows:f.write(json.dumps(row,ensure_ascii=False,separators=(",",":"))+"\n")
