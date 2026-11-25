@@ -8,11 +8,15 @@ import hashlib
 import json
 import math
 import statistics
+import sys
 from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+from langid32.settings import load_config
 from statistics import NormalDist
 
-JUDGES = ("gemma", "mistral", "llama")
-PENALTY = 0.5
+JUDGES = tuple(load_config()["jql"]["judges"])
 
 
 def sha256(path: Path) -> str:
@@ -76,7 +80,10 @@ def main() -> None:
     ap.add_argument("--output-parquet", type=Path)
     ap.add_argument("--summary", type=Path)
     ap.add_argument("--include-text", action="store_true", help="Include sentence text in output (avoid for public Actions artifacts)")
+    ap.add_argument("--config", type=Path, default=ROOT / "config/langid32.toml")
     args = ap.parse_args()
+    jql_config = load_config(args.config)["jql"]
+    penalty = float(jql_config["consensus_disagreement_penalty"])
 
     if not args.input.is_file() or not args.quality.is_file():
         raise SystemExit("Input Parquet and quality CSV must both exist")
@@ -121,7 +128,7 @@ def main() -> None:
     z_columns = [f"{judge}_z" for judge in JUDGES]
     frame["jql_mean"] = frame[z_columns].mean(axis=1)
     frame["jql_disagreement"] = frame[z_columns].std(axis=1, ddof=0)
-    frame["jql_consensus"] = frame["jql_mean"] - PENALTY * frame["jql_disagreement"]
+    frame["jql_consensus"] = frame["jql_mean"] - penalty * frame["jql_disagreement"]
 
 
     frame["initial_capitalization"] = frame["id"].map(
@@ -155,7 +162,7 @@ def main() -> None:
         "quantile_normalization": "average ranks mapped through standard-normal inverse CDF; ties share average rank",
         "normalization_scope": "entire assessment corpus, all languages combined, independently per judge",
         "consensus_formula": "mean(gemma_z,mistral_z,llama_z) - 0.5 * population_std(gemma_z,mistral_z,llama_z)",
-        "consensus_penalty": PENALTY,
+        "consensus_penalty": penalty,
         "quality_flags_are_non_filtering": True,
         "sentence_text_included": bool(args.include_text),
         "capitalization": frame["initial_capitalization"].value_counts().to_dict(),
