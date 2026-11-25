@@ -34,7 +34,8 @@ def norm(value: str) -> str:
 
 
 def phone_like(text: str, rules: dict) -> bool:
-    for match in PHONE.finditer(text):
+    pattern = re.compile(r"(?<!\\w)\\+?\\d[\\d -]{" + str(rules["phone_candidate_min_intervening_characters"]) + r",}\\d(?!\\w)")
+    for match in pattern.finditer(text):
         raw = match.group()
         digits = re.sub(r"\D", "", raw)
         if rules["phone_min_digits"] <= len(digits) <= rules["phone_max_digits"] and (raw.count(" ") + raw.count("-") >= rules["phone_min_separators"] or "+" in raw):
