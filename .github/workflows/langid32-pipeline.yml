@@ -120,7 +120,25 @@ jobs:
       fail-fast: false
       max-parallel: ${{ fromJSON(needs.config.outputs.acquisition_max_parallel_source_tasks) }}
       matrix:
-        target: [catalan, icelandic, norwegian, korean, fineweb2, arabic, gaois]
+        include:
+          - target: catalan
+          - target: icelandic
+          - target: norwegian
+          - target: korean
+          - target: fineweb2
+            config: isl_Latn
+          - target: fineweb2
+            config: hrv_Latn
+          - target: fineweb2
+            config: fin_Latn
+          - target: fineweb2
+            config: ell_Grek
+          - target: fineweb2
+            config: mlt_Latn
+          - target: fineweb2
+            config: slv_Latn
+          - target: arabic
+          - target: gaois
     steps:
       - uses: actions/checkout@v4
       - id: runtime
@@ -142,7 +160,7 @@ jobs:
       - name: Acquire waiting-source target
         env:
           LANGID32_ACQUISITION_STARTED_EPOCH: "${{ needs.config.outputs.acquisition_started_epoch }}"
-        run: python stages/01-acquisition/run.py --target "${{ matrix.target }}"
+        run: python stages/01-acquisition/run.py --target "${{ matrix.target }}" ${{ matrix.config && format('--config {0}', matrix.config) || '' }}
       - name: Encrypt acquisition checkpoint
         env:
           LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"
