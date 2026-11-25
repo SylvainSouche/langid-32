@@ -49,3 +49,22 @@ def acquisition_target(config: dict[str, Any], source: str, language: str) -> in
     if key in overrides:
         return int(overrides[key])
     return int(rule.get("target", acquisition["first_pass_target_per_source_language"]))
+
+
+def source_quota_key(config: dict[str, Any], source: str) -> str:
+    """Return an explicit source identity for acquisition quota accounting.
+
+    Components share a quota only when their registered source rule declares
+    quota_key. Otherwise each original source identifier keeps its own quota.
+    """
+    source_rules = config["acquisition"].get("source_rules", {})
+    normalized = source.replace("-", "_")
+    rule = source_rules.get(normalized)
+    if rule is None:
+        matches = [
+            (len(rule_name), candidate)
+            for rule_name, candidate in source_rules.items()
+            if normalized.startswith(rule_name + ":") or normalized.startswith(rule_name + "_")
+        ]
+        rule = max(matches, key=lambda item: item[0])[1] if matches else {}
+    return str(rule.get("quota_key", source))
