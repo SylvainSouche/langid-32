@@ -89,3 +89,22 @@ def test_greek_and_cyrillic_person_name_candidates_are_quarantined():
         assert not result.accepted, text
         assert result.status == "quarantined", text
         assert "ambiguous_proper_name" in result.flags, text
+
+
+def test_provenance_sanitizer_removes_personal_names_but_keeps_source_references():
+    from langid32.privacy import sanitize_provenance
+    cleaned, removed = sanitize_provenance({
+        "author": "Alice Martin",
+        "speaker_name": "Jean Dupont",
+        "title": "Alice Martin interview transcript",
+        "speaker_ref": "SPEAKER_0042",
+        "speaker_role": "member of parliament",
+        "source_url": "https://example.org/document/42",
+    })
+    assert "author" not in cleaned
+    assert "speaker_name" not in cleaned
+    assert "title" not in cleaned
+    assert cleaned["speaker_ref"] == "SPEAKER_0042"
+    assert cleaned["speaker_role"] == "member of parliament"
+    assert cleaned["source_url"] == "https://example.org/document/42"
+    assert {"author", "speaker_name", "title"}.issubset(set(removed))
