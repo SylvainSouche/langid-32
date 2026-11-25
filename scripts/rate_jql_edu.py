@@ -5,8 +5,11 @@ Every input row is preserved. Scores are sidecar annotations only and never
 influence selection, exclusion, ranking, or replacement.
 """
 from __future__ import annotations
-import argparse, json, os, time
+import argparse, json, os, time, sys
 from pathlib import Path
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+from langid32.settings import load_config
 
 import torch
 import torch.nn as nn
@@ -22,7 +25,7 @@ HEADS = {
 }
 
 class RegressionHead(nn.Module):
-    def __init__(self, input_dim: int = 768, hidden_dim: int = 1000):
+    def __init__(self, input_dim: int, hidden_dim: int):
         super().__init__()
         self.layer1 = nn.Linear(input_dim, hidden_dim)
         self.relu = nn.ReLU()
@@ -42,12 +45,19 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--input", required=True)
     ap.add_argument("--output", required=True)
-    ap.add_argument("--max-seconds", type=int, default=3600)
-    ap.add_argument("--batch-size", type=int, default=128)
-    ap.add_argument("--max-rows", type=int, default=0, help="0 means no row cap")
-    ap.add_argument("--max-length", type=int, default=8192)
+    ap.add_argument("--config", type=Path, default=ROOT / "config/langid32.toml")
+    ap.add_argument("--max-seconds", type=int, default=None)
+    ap.add_argument("--batch-size", type=int, default=None)
+    ap.add_argument("--max-rows", type=int, default=None, help="0 means no row cap")
+    ap.add_argument("--max-length", type=int, default=None)
     ap.add_argument("--device", choices=("auto", "cpu", "mps", "cuda"), default="auto")
     a = ap.parse_args()
+    jql_cfg = load_config(a.config)["jql"]
+    a.max_seconds = a.max_seconds if a.max_seconds is not None else jql_cfg["max_seconds"]
+    a.batch_size = a.batch_size if a.batch_size is not None else jql_cfg["inference_batch_size"]
+    a.max_rows = a.max_rows if a.max_rows is not None else jql_cfg["max_rows"]
+    a.max_length = a.max_length if a.max_length is not None else jql_cfg["max_token_length"]
+    torch.set_num_threads(jql_cfg["cpu_torch_threads"])
 
     src, dst = Path(a.input), Path(a.output)
     dst.parent.mkdir(parents=True, exist_ok=True)
@@ -87,7 +97,7 @@ def main():
         checkpoint = hf_hub_download(HEAD_REPO, filename, revision=heads_revision)
         payload = torch.load(checkpoint, map_location="cpu", weights_only=False)
         state = payload.get("state_dict", payload)
-        model = RegressionHead()
+        model = RegressionHead(jql_cfg["embedding_dimension"], jql_cfg["head_hidden_dimension"])
         model.load_state_dict(state, strict=True)
         models[name] = model.to(device=device, dtype=dtype).eval()
 
@@ -99,8 +109,8 @@ def main():
         "embedder_revision": embedder_revision,
         "heads": list(HEADS),
         "head_checkpoints": HEADS,
-        "score_scale": "raw model regression output; nominal 0-5",
-        "selection_effect": "none; annotation only",
+        "score_scale": jql_cfg["score_scale"],
+        "selection_effect": jql_cfg["selection_effect"],
     }
     start = time.monotonic()
     rated = 0
