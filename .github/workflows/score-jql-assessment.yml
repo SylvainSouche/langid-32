@@ -141,7 +141,7 @@ jobs:
           name: jql-quality-flags
           path: quality/sentence-boundary-flags.csv
           if-no-files-found: error
-          retention-days: 2
+          retention-days: ${{ needs.prepare.outputs.short_retention_days }}
 
   merge:
     if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
