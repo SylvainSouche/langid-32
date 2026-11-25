@@ -194,7 +194,7 @@ def main() -> None:
         }
         if args.pruning_summary:
             args.pruning_summary.parent.mkdir(parents=True, exist_ok=True)
-            args.pruning_summary.write_text(json.dumps(pruning_summary, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
+            args.pruning_summary.write_text(json.dumps(pruning_summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
     summary = {
         "rows": len(frame),
