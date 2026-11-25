@@ -22,7 +22,8 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 from langid32.settings import load_config, acquisition_target, source_quota_key
-from langid32.acquisition_batches import open_state, plan_file_batches, next_batch, finish_batch, add_eligible, retained_count, pending_batch_count, mark_exhausted, export_records, task_report\nfrom langid32.privacy import screen_text
+from langid32.acquisition_batches import open_state, plan_file_batches, next_batch, finish_batch, add_eligible, retained_count, pending_batch_count, mark_exhausted, export_records, task_report
+from langid32.privacy import screen_text
 EXECUTION = load_config()["execution"]
 from urllib.request import Request, urlopen
 
@@ -320,7 +321,9 @@ def main():
                             for field_name in ("url", "source_url", "canonical_url", "url_ca", "url_es",
                                         "title", "author", "date", "published", "publisher",
                                         "domain", "doc_hash", "mimetype", "lang", "dataset",
-                                        "segment_id", "alignment_score", "privacy_flags",\n                                        "sensitive_info", "sensitive_information", "personal_data",\n                                        "pii", "is_pii", "has_personal_information"):
+                                        "segment_id", "alignment_score", "privacy_flags",
+                                        "sensitive_info", "sensitive_information", "personal_data",
+                                        "pii", "is_pii", "has_personal_information"): 
                                 field_value = item.get(field_name)
                                 if isinstance(field_value, (str, int, float)) and field_value != "":
                                     provenance[field_name] = field_value
@@ -715,7 +718,11 @@ def main():
                                       for language, source in sorted(initialized_tasks)],
             "stats": dict(stats),
             "total_selected": len(deduplicated),
-            "notes": notes,\n        "privacy_screening": {"counts": dict(sorted(privacy_counts.items())),\n                             "policy": "shared langid32.privacy screen before exact-source quota counting; rejected and uncertain records are not retained"},
+            "notes": notes,
+            "privacy_screening": {
+                "counts": dict(sorted(privacy_counts.items())),
+                "policy": "shared langid32.privacy screen before exact-source quota counting; rejected and uncertain records are not retained",
+            },
             "stats_note": "Source-order scan: retain the first 20,000 unique records passing acquisition screening per source/language, or exhaust the source; no hash-priority sampling. Global merge performs cross-source deduplication.",
             "status": "automated candidate; declared CC BY/CC0 source terms accepted at corpus level; non-CC-BY/CC0 or explicitly unresolved upstream rights remain held",
         }
