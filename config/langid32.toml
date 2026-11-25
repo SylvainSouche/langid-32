@@ -150,6 +150,8 @@ max_token_length = 8192
 cpu_torch_threads = 2
 shard_count = 8
 max_parallel_shards = 4
+python_version = "3.11"
+short_artifact_retention_days = 2
 
 [quality]
 # Boundary checks are annotations/QA flags, not automatic corpus exclusions.
