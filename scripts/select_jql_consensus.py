@@ -129,6 +129,15 @@ def main() -> None:
     selected = selected.sort_values(["lang", "source", "id"], ascending=[True, True, True])
     if len(selected) != sum(target_by_language.values()):
         raise RuntimeError("Final selected row count does not match exact language targets")
+    source_counts = selected.groupby("source").size().to_dict()
+    source_shares = {source: count / len(selected) for source, count in source_counts.items()}
+    source_balance = cfg["candidate"]["source_balance"]
+    hard_global_share = source_balance["hard_max_share_of_total_corpus_per_source"]
+    preferred_global_share = source_balance["preferred_max_share_of_total_corpus_per_source"]
+    hard_violations = {source: share for source, share in source_shares.items() if share > hard_global_share}
+    if hard_violations:
+        raise RuntimeError(f"Final source exceeds authorized total-corpus share {hard_global_share}: {hard_violations}")
+    above_preferred = {source: share for source, share in source_shares.items() if share > preferred_global_share}
     args.output_dir.mkdir(parents=True, exist_ok=True)
     csv_path = args.output_dir / "jql-consensus-selected.csv"
     parquet_path = args.output_dir / "jql-consensus-selected.parquet"
@@ -144,6 +153,11 @@ def main() -> None:
         "selected_rows": int(len(selected)),
         "language_counts": {lang: int(count) for lang, count in selected.groupby("lang").size().items()},
         "baseline_source_mix": "existing baseline core manifest; source proportions preserved independently within each language",
+        "global_source_counts": source_counts,
+        "global_source_shares": source_shares,
+        "preferred_global_source_share": preferred_global_share,
+        "authorized_global_source_share": hard_global_share,
+        "sources_above_preferred_global_share": above_preferred,
         "selection": "JQL scores are non-filtering annotations; deterministic ID order within each language/source cell preserves exact baseline-proportional quotas",
         "quotas": quota_report,
         "files": [csv_path.name, parquet_path.name],
