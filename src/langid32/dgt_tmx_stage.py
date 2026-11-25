@@ -99,12 +99,13 @@ def heap_add(heap, limit: int, priority: int, text_hash: str, record):
 
 
 def stage(args):
-    global SEED
+    global SEED, EU_LANGUAGES
     cfg = load_config(getattr(args, "config", None))
     SEED = cfg["acquisition"].get("seed", SEED)
     target_by_language = {lang: (args.target_per_language or acquisition_target(cfg, "dgt_tm_2021", lang)) for lang in target_languages}
     dgt_rule = cfg["acquisition"]["source_rules"]["dgt_tm_2021"]
     target_languages = tuple(getattr(args, "languages", None) or dgt_rule["languages"])
+    EU_LANGUAGES = set(target_languages)
     args.max_per_document_language = args.max_per_document_language or dgt_rule["max_segments_per_tmx_document_language"]
     args.min_chars = args.min_chars or cfg["acquisition"]["text"]["min_characters"]
     args.max_chars = args.max_chars or cfg["acquisition"]["text"]["max_characters"]
