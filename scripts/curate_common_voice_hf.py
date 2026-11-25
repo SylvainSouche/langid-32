@@ -206,6 +206,7 @@ def main() -> None:
         "dataset_url": "https://huggingface.co/datasets/fsicoli/common_voice_22_0",
         "source_license_claim": "CC0-1.0",
         "revision_resolved": download_manifest.get("revision_resolved"),
+        "acquisition_policy_digest": policy_digest,
         "locale_revisions": {locale: row.get("repo_commit") for locale, row in sorted(locale_metadata.items())},
         "target_languages": list(languages),
         "raw_tsvs_uploaded": False,
