@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Acquire a bounded, deduplicated Irish-side sample from Gaois legislation TMX."""
 from __future__ import annotations
-import argparse, hashlib, heapq, json, sqlite3, tempfile, unicodedata, zipfile
+import argparse, hashlib, heapq, json, re, sqlite3, tempfile, unicodedata, zipfile
 from pathlib import Path
 import sys
 ROOT = Path(__file__).resolve().parents[1]
