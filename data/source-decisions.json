@@ -4,8 +4,8 @@
   "purpose": "Authoritative operational record of source inclusion and exclusion decisions. This file records candidate-ingestion decisions separately from public-release rights clearance.",
   "authority": "This decision register supersedes contradictory historical source-discovery notes and blanket exclusions where a narrower decision is recorded. Source-specific provenance and rights conditions remain binding.",
   "selection_policy": {
-    "first_pass_acquisition_target_per_source_per_language": 20000,
-    "first_pass_method": "stream source records, apply source-specific eligibility/quality filters and deduplication, and retain up to the first 20,000 eligible unique entries per source and language",
+    "first_pass_acquisition_policy_config": "config/langid32.toml",
+    "first_pass_method": "stream source records, apply source-specific eligibility/quality filters and deduplication, and retain up to the configured eligible-unique target per source and language",
     "old_first_pass_quotas_abandoned": {
       "leipzig_news": 3000,
       "leipzig_wikipedia": 3000,
@@ -54,7 +54,7 @@
       "decision": "include",
       "candidate_ingestion": "approved",
       "release_status": "attribution and underlying-document review required",
-      "notes": "First-pass acquisition target: stream up to 20,000 eligible unique entries per language. The former 5,000-entry cap is abandoned. Preserve NumDoc/member provenance and Commission attribution."
+      "notes": "First-pass acquisition target and per-document sampling rules are defined in config/langid32.toml; the former 5,000-entry cap is abandoned. Preserve NumDoc/member provenance and Commission attribution."
     },
     {
       "source_family": "leipzig_news",
@@ -69,7 +69,7 @@
       "decision": "include",
       "candidate_ingestion": "approved",
       "release_status": "source terms and provenance must remain attached",
-      "notes": "First-pass acquisition target: stream up to 20,000 eligible unique entries per language. The former 3,000-entry cap is abandoned. Keep Leipzig News distinct from Leipzig Wikipedia."
+      "notes": "First-pass acquisition target and filtering rules are defined in config/langid32.toml; the former 3,000-entry cap is abandoned. Keep Leipzig News distinct from Leipzig Wikipedia."
     },
     {
       "source_family": "leipzig_wikipedia",
@@ -170,7 +170,7 @@
       "decision": "include",
       "candidate_ingestion": "approved_not_yet_integrated",
       "release_status": "publisher-declared CC BY 4.0; attribute Miðeind ehf.; preserve source-document provenance",
-      "notes": "Full LFS-backed Copper corpus is in scope. No 20,000 family-wide cap is established by this register; the first-pass 20,000 target applies per source as defined in the acquisition plan."
+      "notes": "Full LFS-backed Copper corpus is in scope. No 20,000 family-wide cap is established by this register; the first-pass target applies per source as defined in config/langid32.toml."
     },
     {
       "source_family": "greynir_silver",
@@ -203,5 +203,5 @@
       "notes": "The previous whole-family exclusion is obsolete and conflicts with the Copper/Silver inclusion decision. Do not retain a blanket Greynir exclusion once partition-aware ingestion is in place; until then, prevent Gold/dev/test leakage explicitly."
     }
   ],
-  "current_candidate_gap_note": "The 2026-11-25 candidate diagnostics show MaCoCu-hr, MaCoCu-mt, MaCoCu-sl, ParlaMint-4.0, Greynir Copper and Greynir Silver are absent from candidate inputs. IGC2024 is present only as 1,478 post-filter rows. The approved-but-not-integrated sources must be wired into acquisition and candidate assembly; do not treat their absence as a decision to exclude them. The observed 2,999/2,998 Leipzig News/Wikipedia and 4,988 DGT counts reflect obsolete 3,000/5,000 first-pass caps, not the current decision. Those caps have been explicitly superseded; acquisition defaults are now 20,000 per source/language."
+  "current_candidate_gap_note": "The 2026-11-25 candidate diagnostics show MaCoCu-hr, MaCoCu-mt, MaCoCu-sl, ParlaMint-4.0, Greynir Copper and Greynir Silver are absent from candidate inputs. IGC2024 is present only as 1,478 post-filter rows. The approved-but-not-integrated sources must be wired into acquisition and candidate assembly; do not treat their absence as a decision to exclude them. The observed 2,999/2,998 Leipzig News/Wikipedia and 4,988 DGT counts reflect obsolete 3,000/5,000 first-pass caps, not the current decision. Those caps have been explicitly superseded; active acquisition defaults are defined only in config/langid32.toml."
 }
