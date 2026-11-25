@@ -22,7 +22,7 @@ jobs:
         run: python scripts/audit_gaois_irish_legislation.py
       - name: Build deterministic Irish-only preview sample
         run: |
-          python scripts/acquire_gaois_irish_legislation.py --out out/candidates.jsonl --max-sample 50000
+          python scripts/acquire_gaois_irish_legislation.py --out out/candidates.jsonl
           rm -f out/candidates.jsonl
       - name: Upload audit and candidate manifests only
         uses: actions/upload-artifact@v4
@@ -31,4 +31,4 @@ jobs:
           path: |
             reports/gaois-irish-legislation-tmx-audit.json
             out/manifest.json
-          retention-days: 90
+          retention-days: 30
