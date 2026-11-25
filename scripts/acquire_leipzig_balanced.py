@@ -69,7 +69,9 @@ def sample(archive,data_id,label,family,quota,seed,exclude_unicode_decimal_digit
 def main():
  ap=argparse.ArgumentParser();ap.add_argument("--out",required=True);ap.add_argument("--config",type=Path,default=ROOT/"config/langid32.toml");ap.add_argument("--quota",type=int,default=None,help="Explicit emergency override; normally use the central config");
  ap.add_argument("--seed",default=None);ap.add_argument("--pause",type=float,default=None);ap.add_argument("--labels",default="",help="Comma-separated target labels; default is all configured labels")
- a=ap.parse_args();cfg=load_config(a.config);a.seed=a.seed or cfg["acquisition"]["seed"];a.pause=a.pause if a.pause is not None else cfg["execution"]["leipzig_pause_seconds"];out=Path(a.out);\n execution=cfg["execution"];chunk_bytes=execution["download_chunk_bytes"];connect_timeout=execution["http_connect_timeout_seconds"];read_timeout=execution["http_read_timeout_seconds"]ar=out/"archives";sm=out/"samples";ar.mkdir(parents=True,exist_ok=True);sm.mkdir(parents=True,exist_ok=True)
+ a=ap.parse_args();cfg=load_config(a.config);a.seed=a.seed or cfg["acquisition"]["seed"];a.pause=a.pause if a.pause is not None else cfg["execution"]["leipzig_pause_seconds"];out=Path(a.out)
+ execution=cfg["execution"];chunk_bytes=execution["download_chunk_bytes"];connect_timeout=execution["http_connect_timeout_seconds"];read_timeout=execution["http_read_timeout_seconds"]
+ ar=out/"archives";sm=out/"samples";ar.mkdir(parents=True,exist_ok=True);sm.mkdir(parents=True,exist_ok=True)
  s=requests.Session();idx=out/"links.parquet";fetch(s,INDEX_URL,idx,connect_timeout,read_timeout,chunk_bytes);idxsha=sha(idx,chunk_bytes);cat=pq.read_table(idx).to_pylist()
  selected_labels={x.strip() for x in a.labels.split(",") if x.strip()}
  if not selected_labels:
