@@ -18,17 +18,14 @@ jobs:
       fail-fast: false
       max-parallel: 10
       matrix:
+        # Retry only the five failed configurations. Reuse the five
+        # encrypted checkpoints already produced by run 45502098212.
         config:
-          - cat_Latn
           - isl_Latn
           - nob_Latn
-          - nno_Latn
-          - arb_Arab
           - hrv_Latn
           - fin_Latn
           - ell_Grek
-          - mlt_Latn
-          - slv_Latn
     steps:
       - uses: actions/checkout@v4
       - name: Validate checkpoint key before acquisition
@@ -101,12 +98,52 @@ jobs:
           run-id: "45413806910"
           name: recovery-icelandic
           path: checkpoints/repaired-icelandic
-      - name: Download all parallel FineWeb-2 batches
+      - name: Reuse successful Catalan FineWeb-2 checkpoint
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: "45502098212"
+          name: recovery-fineweb2-cat_Latn
+          path: checkpoints/repaired-fineweb2
+      - name: Reuse successful Arabic FineWeb-2 checkpoint
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: "45502098212"
+          name: recovery-fineweb2-arb_Arab
+          path: checkpoints/repaired-fineweb2
+      - name: Reuse successful Nynorsk FineWeb-2 checkpoint
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: "45502098212"
+          name: recovery-fineweb2-nno_Latn
+          path: checkpoints/repaired-fineweb2
+      - name: Reuse successful Slovenian FineWeb-2 checkpoint
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: "45502098212"
+          name: recovery-fineweb2-slv_Latn
+          path: checkpoints/repaired-fineweb2
+      - name: Reuse successful Maltese FineWeb-2 checkpoint
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: "45502098212"
+          name: recovery-fineweb2-mlt_Latn
+          path: checkpoints/repaired-fineweb2
+      - name: Download retried FineWeb-2 batches from this run
         uses: actions/download-artifact@v4
         with:
           pattern: recovery-fineweb2-*
           merge-multiple: true
-          path: checkpoints/repaired-fineweb2
+          path: checkpoints/retried-fineweb2
       - uses: actions/download-artifact@v4
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -133,7 +170,7 @@ jobs:
         env:
           LANGID32_CHECKPOINT_KEY: ${{ secrets.LANGID32_CHECKPOINT_KEY }}
         run: |
-          find checkpoints -name checkpoint.bin -print0 | while IFS= read -r -d '' f; do
+          find checkpoints -name '*.bin' -print0 | while IFS= read -r -d '' f; do
             python scripts/checkpoint.py unpack --archive "$f"
           done
       - name: Re-curate preserved Common Voice raw TSVs to the 20k source quota
