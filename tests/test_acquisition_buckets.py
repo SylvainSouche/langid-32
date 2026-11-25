@@ -15,3 +15,6 @@ def test_acquisition_quota_keys_preserve_individual_source_identity():
     )
     for source in sources:
         assert MODULE.source_bucket(source) == source
+    assert MODULE.source_bucket("fineweb2:hrv_Latn") == "fineweb2"
+    assert MODULE.source_bucket("maalfrid2026:nb") == "maalfrid2026"
+    assert MODULE.source_bucket("un_arabic_english_filtered:text_ar") == "un_arabic_english_filtered"
