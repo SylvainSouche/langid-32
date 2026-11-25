@@ -8,6 +8,8 @@ on:
       - "src/langid32/merge.py"
       - "tests/test_dgt_tmx_stage.py"
       - "pyproject.toml"
+      - "config/langid32.toml"
+      - "src/langid32/settings.py"
       - ".github/workflows/dgt-tmx-ingest.yml"
   workflow_dispatch:
 
