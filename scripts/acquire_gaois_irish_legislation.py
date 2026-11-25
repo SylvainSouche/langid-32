@@ -56,7 +56,7 @@ def main():
     args = parser.parse_args()
     cfg = load_config(args.config)
     args.max_sample = args.max_sample if args.max_sample is not None else acquisition_target(cfg, "gaois_irish_legislation", "ga")
-    args.seed = args.seed or cfg["candidate"]["splits"]["seed"]
+    args.seed = args.seed or cfg["acquisition"]["seed"]
     args.out.parent.mkdir(parents=True, exist_ok=True)
     temp = Path(tempfile.mkdtemp(prefix="gaois-stage-"))
     db = sqlite3.connect(temp / "dedup.sqlite")
