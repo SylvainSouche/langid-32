@@ -72,6 +72,16 @@ target = 20000
 languages = ["ga"]
 status = "include_cc_by_4_0_derivative_original_legislation_rights_review"
 
+[acquisition.source_rules.gaois_irish_legislation.text]
+min_characters = 40
+max_characters = 12000
+min_alpha_characters = 25
+min_alpha_ratio = 0.45
+exclude_email = true
+exclude_url = true
+exclude_long_numeric = true
+exclude_ipv4 = true
+
 [acquisition.source_rules.bsc_legal]
 target = 20000
 languages = ["ca"]
