@@ -8,6 +8,7 @@ on:
       - "scripts/curate_common_voice_hf.py"
       - "config/langid32.toml"
       - "src/langid32/settings.py"
+      - "scripts/emit_runtime_config.py"
       - ".github/workflows/common-voice-cc0-hf.yml"
   workflow_dispatch:
 
@@ -27,10 +28,13 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
+      - id: runtime
+        run: python3 scripts/emit_runtime_config.py
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ steps.runtime.outputs.python_version }}
 
       - name: Fetch transcript TSVs from the HF-hosted CC0 dataset
         id: download
@@ -55,7 +59,7 @@ jobs:
           name: common-voice-hf-cc0-metadata
           path: /tmp/common-voice-artifact/
           if-no-files-found: warn
-          retention-days: 14
+          retention-days: ${{ steps.runtime.outputs.artifact_retention_days }}
 
       - name: Remove source TSVs and candidate text from runner
         if: always()
