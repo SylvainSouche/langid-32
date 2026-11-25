@@ -168,7 +168,6 @@ jobs:
             python scripts/checkpoint.py unpack --archive "$f"
           done
       - name: Re-curate preserved Common Voice raw TSVs to the 20k source quota
-        run: python scripts/curate_common_voice_hf.py --input-root input/common-voice/source --output input/common-voice --per-language-cap 20000
       - name: Build candidate corpus
         env:
           PYTHONPATH: src
