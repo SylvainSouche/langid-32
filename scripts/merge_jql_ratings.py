@@ -49,7 +49,7 @@ def read_rating_files(directory: Path) -> dict[str, dict]:
     return merged
 
 
-def quantile_normalize(values: list[float]) -> list[float]:
+def quantile_normalize(values: list[float], epsilon: float) -> list[float]:
     """Map average ranks to standard-normal quantiles; ties receive the same score."""
     n = len(values)
     if n == 0:
@@ -64,7 +64,7 @@ def quantile_normalize(values: list[float]) -> list[float]:
             end += 1
         average_rank = ((pos + 1) + end) / 2.0  # 1-based ranks
         probability = (average_rank - 0.5) / n
-        z = normal.inv_cdf(min(1.0 - 1e-15, max(1e-15, probability)))
+        z = normal.inv_cdf(min(1.0 - epsilon, max(epsilon, probability)))
         for k in range(pos, end):
             result[order[k]] = z
         pos = end
