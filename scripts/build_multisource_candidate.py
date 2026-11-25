@@ -14,7 +14,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 from langid32.settings import load_config, acquisition_target, source_quota_key
-from langid32.privacy import screen_record
+from langid32.privacy import screen_record, sanitize_provenance
 
 FAMILY_PREFIXES = (
     "temu_cc0",
@@ -90,6 +90,9 @@ def normalize_file(source_path: Path, destination: Path, *, config=None, source_
                 raise ValueError(f"{source_path}:{line_number}: missing {', '.join(missing)}")
             if not isinstance(row.get("provenance"), dict):
                 raise ValueError(f"{source_path}:{line_number}: provenance object is required")
+            row["provenance"], removed_metadata = sanitize_provenance(row["provenance"])
+            if removed_metadata:
+                filtered["personal_metadata_fields_removed"] += len(removed_metadata)
             text_rules = config["acquisition"]["text"]
             normalized_text = unicodedata.normalize("NFC", " ".join(str(row["text"]).split()))
             row["text"] = normalized_text
