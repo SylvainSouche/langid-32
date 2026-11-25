@@ -121,7 +121,8 @@ def main() -> None:
         assert len(pruned) == 18
         assert report["input_rows"] == 24 and report["pruned_rows"] == 6
         assert report["retained_rows"] == 18
-        assert {row["language"] for row in report["retained_by_language_source"]} == set(LANGUAGES)
+        assert sum(row["count"] for row in report["retained_by_language_source"]) == 18
+        assert set(full["lang"]) == set(LANGUAGES)
         assert set(full["source"]) == {"leipzig_news"}
         print(json.dumps({
             "status": "PASS",
