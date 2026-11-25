@@ -14,6 +14,8 @@ import zipfile
 from collections import Counter, defaultdict
 from pathlib import Path, PurePosixPath
 
+from langid32.settings import load_config, acquisition_target
+
 from langid32.merge import (
     EMAIL_RE, HTTP_FRAGMENT_RE, IPV4_RE,
     URL_RE, WEB_FRAGMENT_RE, split_for,
@@ -97,6 +99,15 @@ def heap_add(heap, limit: int, priority: int, text_hash: str, record):
 
 
 def stage(args):
+    global SEED
+    cfg = load_config(args.config)
+    SEED = cfg["acquisition"].get("seed", SEED)
+    args.target_per_language = args.target_per_language or acquisition_target(cfg, "dgt_tm_2021", "default")
+    dgt_rule = cfg["acquisition"]["source_rules"]["dgt_tm_2021"]
+    args.max_per_document_language = args.max_per_document_language or dgt_rule["max_segments_per_tmx_document_language"]
+    args.min_chars = args.min_chars or cfg["acquisition"]["text"]["min_characters"]
+    args.max_chars = args.max_chars or cfg["acquisition"]["text"]["max_characters"]
+    args.max_bytes = args.max_bytes or cfg["acquisition"]["text"]["max_utf8_bytes"]
     for path in args.archives:
         if not path.is_file():
             raise FileNotFoundError(path)
@@ -258,13 +269,14 @@ def main():
     parser.add_argument("--archive", dest="archives", action="append", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--source-release", default="DGT-TM-release-2021")
-    parser.add_argument("--target-per-language", type=int, default=20000)
-    parser.add_argument("--max-per-document-language", type=int, default=20)
-    parser.add_argument("--min-chars", type=int, default=12)
-    parser.add_argument("--max-chars", type=int, default=500)
-    parser.add_argument("--max-bytes", type=int, default=1500)
+    parser.add_argument("--config", type=Path, default=None)
+    parser.add_argument("--target-per-language", type=int, default=None)
+    parser.add_argument("--max-per-document-language", type=int, default=None)
+    parser.add_argument("--min-chars", type=int, default=None)
+    parser.add_argument("--max-chars", type=int, default=None)
+    parser.add_argument("--max-bytes", type=int, default=None)
     args = parser.parse_args()
-    if args.target_per_language < 1 or args.max_per_document_language < 1:
+    if args.target_per_language is not None and args.target_per_language < 1 or args.max_per_document_language is not None and args.max_per_document_language < 1:
         parser.error("target and per-document cap must be positive")
     if args.min_chars < 1 or args.max_chars < args.min_chars or args.max_bytes < 1:
         parser.error("invalid text length limits")
