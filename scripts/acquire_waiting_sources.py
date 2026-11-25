@@ -22,7 +22,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 from langid32.settings import load_config, acquisition_target, source_quota_key
-from langid32.acquisition_batches import open_state, plan_file_batches, add_eligible, retained_count, export_records, task_report
+from langid32.acquisition_batches import open_state, plan_file_batches, next_batch, finish_batch, add_eligible, retained_count, export_records, task_report
 EXECUTION = load_config()["execution"]
 from urllib.request import Request, urlopen
 
@@ -273,105 +273,143 @@ def main():
         inserted = add_eligible(state_db, bucket_key[1], language, [record])
         if inserted:
             retained[bucket_key].append(record)
-            seen[bucket_key].add(text_hash)
+            seen[bu    def scan_one_file(path, root, language, source, bucket_key):
+        relative = path.name if root.is_file() else path.relative_to(root).as_posix()
+        try:
+            if path.name.endswith(".jsonl") or path.name.endswith(".jsonl.gz"):
+                opener = gzip.open if path.name.endswith(".gz") else open
+                with opener(path, "rt", encoding="utf-8", errors="replace") as stream:
+                    for index, line in enumerate(stream, 1):
+                        if quota_reached(bucket_key):
+                            break
+                        try:
+                            item = json.loads(line)
+                        except json.JSONDecodeError:
+                            continue
+                        if isinstance(item, dict):
+                            values = []
+                            for field_name in ("fulltext", "text", "content", "sentence", "body", "ca", "ca_text", "text_ar"):
+                                value = item.get(field_name)
+                                if isinstance(value, str):
+                                    values.append(value)
+                                elif isinstance(value, list):
+                                    values.extend(part for part in value if isinstance(part, str))
+                            if not values:
+                                values = [value for value in item.values()
+                                          if isinstance(value, str) and len(value) > 60]
+                            document_id = (item.get("doc_id") or item.get("doc_hash")
+                                           or item.get("document_id") or item.get("id")
+                                           or f"{relative}:line:{index}")
+                            provenance = {
+                                "source_file": relative,
+                                "source_record_index": index,
+                                "source_document_id": str(document_id),
+                            }
+                            for field_name in ("url", "source_url", "canonical_url", "url_ca", "url_es",
+                                        "title", "author", "date", "published", "publisher",
+                                        "domain", "doc_hash", "mimetype", "lang", "dataset",
+                                        "segment_id", "alignment_score"):
+                                field_value = item.get(field_name)
+                                if isinstance(field_value, (str, int, float)) and field_value != "":
+                                    provenance[field_name] = field_value
+                            source_url = (item.get("source_url") or item.get("url")
+                                          or item.get("canonical_url") or item.get("url_ca"))
+                            if source_url:
+                                provenance["source_url"] = source_url
+                            for value in values:
+                                add(language, source, value, str(document_id), provenance)
+                        elif isinstance(item, str):
+                            add(language, source, item, f"{relative}:line:{index}",
+                                {"source_file": relative, "source_record_index": index})
+            elif path.suffix.lower() in (".txt", ".tsv", ".csv"):
+                delimiter = "\t" if path.suffix.lower() == ".tsv" else ","
+                with path.open(encoding="utf-8", errors="replace", newline="") as stream:
+                    reader = csv.reader(stream, delimiter=delimiter)
+                    first = next(reader, None)
+                    if first and "ca_text" in first:
+                        text_index = first.index("ca_text")
+                        dataset_index = first.index("dataset") if "dataset" in first else None
+                        segment_index = first.index("segment_id") if "segment_id" in first else None
+                        alignment_index = first.index("alignment_score") if "alignment_score" in first else None
+                        for index, row in enumerate(reader, 2):
+                            if quota_reached(bucket_key):
+                                break
+                            if len(row) <= text_index:
+                                continue
+                            value = row[text_index]
+                            dataset = row[dataset_index] if dataset_index is not None and len(row) > dataset_index else ""
+                            segment = row[segment_index] if segment_index is not None and len(row) > segment_index else str(index)
+                            group = f"{dataset}:{segment}" if dataset else f"{relative}:row:{index}"
+                            provenance = {
+                                "source_file": relative,
+                                "source_record_index": index,
+                                "source_document_id": segment,
+                                "dataset": dataset,
+                                "segment_id": segment,
+                            }
+                            if alignment_index is not None and len(row) > alignment_index:
+                                provenance["alignment_score"] = row[alignment_index]
+                            add(language, source, value, group, provenance)
+                    else:
+                        if first and first[0].strip().lower() not in {"text"}:
+                            add(language, source, first[0], f"{relative}:row:1",
+                                {"source_file": relative, "source_record_index": 1,
+                                 "source_document_id": None})
+                        for index, row in enumerate(reader, 2):
+                            if quota_reached(bucket_key):
+                                break
+                            if row:
+                                add(language, source, row[0], f"{relative}:row:{index}",
+                                    {"source_file": relative, "source_record_index": index,
+                                     "source_document_id": None})
+
+        except Exception as exc:
+                notes.append(f"{path}: {type(exc).__name__}: {exc}")
+            return False
+
+        return True
 
     def scan(root, language, source):
         bucket_key = (language, source_bucket(source))
-        for path in sorted([root] if root.is_file() else root.rglob("*")):
+        paths = sorted([root] if root.is_file() else root.rglob("*"))
+        files = [str(path.resolve()) for path in paths if path.is_file()]
+        batch_size = int(EXECUTION["acquisition_files_per_batch"])
+        for offset in range(0, len(files), batch_size):
             if quota_reached(bucket_key):
                 break
-            if not path.is_file():
+            batch_files = files[offset:offset + batch_size]
+            plan_file_batches(
+                state_db, bucket_key[1], language, limit_for(*bucket_key),
+                batch_files, batch_size,
+            )
+            batch = next_batch(state_db, bucket_key[1], language)
+            if batch is None:
                 continue
-            relative = path.name if root.is_file() else path.relative_to(root).as_posix()
-            try:
-                if path.name.endswith(".jsonl") or path.name.endswith(".jsonl.gz"):
-                    opener = gzip.open if path.name.endswith(".gz") else open
-                    with opener(path, "rt", encoding="utf-8", errors="replace") as stream:
-                        for index, line in enumerate(stream, 1):
-                            if quota_reached(bucket_key):
-                                break
-                            try:
-                                item = json.loads(line)
-                            except json.JSONDecodeError:
-                                continue
-                            if isinstance(item, dict):
-                                values = []
-                                for field_name in ("fulltext", "text", "content", "sentence", "body", "ca", "ca_text", "text_ar"):
-                                    value = item.get(field_name)
-                                    if isinstance(value, str):
-                                        values.append(value)
-                                    elif isinstance(value, list):
-                                        values.extend(part for part in value if isinstance(part, str))
-                                if not values:
-                                    values = [value for value in item.values()
-                                              if isinstance(value, str) and len(value) > 60]
-                                document_id = (item.get("doc_id") or item.get("doc_hash")
-                                               or item.get("document_id") or item.get("id")
-                                               or f"{relative}:line:{index}")
-                                provenance = {
-                                    "source_file": relative,
-                                    "source_record_index": index,
-                                    "source_document_id": str(document_id),
-                                }
-                                for field_name in ("url", "source_url", "canonical_url", "url_ca", "url_es",
-                                            "title", "author", "date", "published", "publisher",
-                                            "domain", "doc_hash", "mimetype", "lang", "dataset",
-                                            "segment_id", "alignment_score"):
-                                    field_value = item.get(field_name)
-                                    if isinstance(field_value, (str, int, float)) and field_value != "":
-                                        provenance[field_name] = field_value
-                                source_url = (item.get("source_url") or item.get("url")
-                                              or item.get("canonical_url") or item.get("url_ca"))
-                                if source_url:
-                                    provenance["source_url"] = source_url
-                                for value in values:
-                                    add(language, source, value, str(document_id), provenance)
-                            elif isinstance(item, str):
-                                add(language, source, item, f"{relative}:line:{index}",
-                                    {"source_file": relative, "source_record_index": index})
-                elif path.suffix.lower() in (".txt", ".tsv", ".csv"):
-                    delimiter = "\t" if path.suffix.lower() == ".tsv" else ","
-                    with path.open(encoding="utf-8", errors="replace", newline="") as stream:
-                        reader = csv.reader(stream, delimiter=delimiter)
-                        first = next(reader, None)
-                        if first and "ca_text" in first:
-                            text_index = first.index("ca_text")
-                            dataset_index = first.index("dataset") if "dataset" in first else None
-                            segment_index = first.index("segment_id") if "segment_id" in first else None
-                            alignment_index = first.index("alignment_score") if "alignment_score" in first else None
-                            for index, row in enumerate(reader, 2):
-                                if quota_reached(bucket_key):
-                                    break
-                                if len(row) <= text_index:
-                                    continue
-                                value = row[text_index]
-                                dataset = row[dataset_index] if dataset_index is not None and len(row) > dataset_index else ""
-                                segment = row[segment_index] if segment_index is not None and len(row) > segment_index else str(index)
-                                group = f"{dataset}:{segment}" if dataset else f"{relative}:row:{index}"
-                                provenance = {
-                                    "source_file": relative,
-                                    "source_record_index": index,
-                                    "source_document_id": segment,
-                                    "dataset": dataset,
-                                    "segment_id": segment,
-                                }
-                                if alignment_index is not None and len(row) > alignment_index:
-                                    provenance["alignment_score"] = row[alignment_index]
-                                add(language, source, value, group, provenance)
-                        else:
-                            if first and first[0].strip().lower() not in {"text"}:
-                                add(language, source, first[0], f"{relative}:row:1",
-                                    {"source_file": relative, "source_record_index": 1,
-                                     "source_document_id": None})
-                            for index, row in enumerate(reader, 2):
-                                if quota_reached(bucket_key):
-                                    break
-                                if row:
-                                    add(language, source, row[0], f"{relative}:row:{index}",
-                                        {"source_file": relative, "source_record_index": index,
-                                         "source_document_id": None})
-            except Exception as exc:
-                notes.append(f"{path}: {type(exc).__name__}: {exc}")
+            batch_no, planned_files = batch
+            hashes = {}
+            failed = False
+            for filename in planned_files:
+                check_global_deadline()
+                path = Path(filename)
+                if not path.is_file():
+                    failed = True
+                    notes.append(f"Planned source file disappeared before processing: {filename}")
+                    break
+                if not quota_reached(bucket_key):
+                    if not scan_one_file(path, root, language, source, bucket_key):
+                        failed = True
+                        break
+                digest = hashlib.sha256()
+                with path.open("rb") as stream:
+                    for block in iter(lambda: stream.read(EXECUTION["file_copy_chunk_bytes"]), b""):
+                        digest.update(block)
+                hashes[filename] = digest.hexdigest()
+            if failed:
+                break
+            finish_batch(state_db, bucket_key[1], language, batch_no, hashes)
+            if quota_reached(bucket_key):
+                break
+e(exc).__name__}: {exc}")
 
     try:
         if args.source == "catalan":
