@@ -84,6 +84,12 @@ def main() -> None:
                     if len(text) < text_rules["min_characters"] or len(text) > text_rules["max_characters"] or len(text.encode("utf-8")) > text_rules["max_utf8_bytes"]:
                         counts[f"{language}:length_rejected"] += 1
                         continue
+                    global_text_rules = cfg["acquisition"]["text"]
+                    letters = sum(char.isalpha() for char in text)
+                    if (letters < global_text_rules["min_letter_characters"]
+                            or letters / max(len(text), 1) < global_text_rules["min_letter_ratio"]):
+                        counts[f"{language}:letter_quality_rejected"] += 1
+                        continue
                     privacy = screen_text(text, uncertain_action=cfg["acquisition"]["text"]["privacy_uncertain_action"])
                     if not privacy.accepted:
                         counts[f"{language}:privacy_{privacy.status}"] += 1
