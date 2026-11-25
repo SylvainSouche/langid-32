@@ -36,12 +36,8 @@ SOURCE_FAMILIES = (
 
 
 def source_bucket(source):
-    """Return the quota bucket; component filenames stay on individual records."""
-    for family in SOURCE_FAMILIES:
-        if source.startswith(family + ":"):
-            return family
+    """Keep acquisition quotas keyed to each individual source, never its family."""
     return source
-
 
 def clean(value, language, rules=None):
     if rules is None:
@@ -147,7 +143,7 @@ def main():
     retained = defaultdict(list)
     seen = defaultdict(set)
     def limit_for(language, source):
-        return acquisition_target(cfg, source_bucket(source), language)
+        return acquisition_target(cfg, source, language)
 
     def quota_reached(bucket_key):
         return len(retained[bucket_key]) >= limit_for(*bucket_key)
