@@ -88,7 +88,7 @@ def normalize_file(source_path: Path, destination: Path, *, config, source_langu
             try:
                 source_limit = acquisition_target(config, raw_source, language)
             except ValueError as exc:
-                reason = "source_excluded_by_policy" if "excluded by source policy" in str(exc) else "source_language_not_approved"
+                reason = ("source_excluded_by_policy" if "excluded by source policy" in str(exc) else "source_not_registered" if "not registered" in str(exc) else "source_language_not_approved")
                 filtered[reason] += 1
                 continue
             quota_key = source_quota_key(config, raw_source)
