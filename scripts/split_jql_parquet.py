@@ -5,7 +5,12 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import sys
 from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+from langid32.settings import load_config
 
 import pyarrow.parquet as pq
 
@@ -22,8 +27,10 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--input", required=True, type=Path)
     ap.add_argument("--output-dir", required=True, type=Path)
-    ap.add_argument("--shards", type=int, default=8)
+    ap.add_argument("--shards", type=int, default=None)
+    ap.add_argument("--config", type=Path, default=ROOT / "config/langid32.toml")
     args = ap.parse_args()
+    args.shards = args.shards if args.shards is not None else load_config(args.config)["jql"]["shard_count"]
     if args.shards < 1:
         ap.error("--shards must be at least 1")
     if not args.input.is_file():
