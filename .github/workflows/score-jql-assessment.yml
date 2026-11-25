@@ -8,9 +8,8 @@ on:
     inputs:
       source_run_id:
         description: "Run ID containing the JQL assessment Parquet artifact"
-        required: true
+        required: false
         type: string
-        default: ""
       artifact_name:
         description: "Assessment artifact name"
         required: true
@@ -143,7 +142,7 @@ jobs:
 
   merge:
     if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
-    name: Normalize, calculate consensus and publish results
+    name: Normalize, prune bottom quartile and publish reports
     needs: [prepare, score, boundary]
     runs-on: ubuntu-latest
     steps:
