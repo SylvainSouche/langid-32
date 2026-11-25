@@ -78,3 +78,14 @@ def test_east_asian_labelled_personal_names_are_rejected():
         result = screen_text(text)
         assert not result.accepted, text
         assert "person_name_context" in result.flags, text
+
+
+def test_greek_and_cyrillic_person_name_candidates_are_quarantined():
+    for text in (
+        "Αλέξανδρος Παπαδόπουλος joined the committee.",
+        "Анна Иванова joined the committee.",
+    ):
+        result = screen_text(text)
+        assert not result.accepted, text
+        assert result.status == "quarantined", text
+        assert "ambiguous_proper_name" in result.flags, text
