@@ -57,7 +57,7 @@ def clean(value, language, rules=None):
             or (rules["exclude_ipv4"] and IPV4.search(text))
             or (rules["exclude_long_numeric_sequences"] and long_number)):
         return None
-    if language == "ar" and sum("\\u0600" <= char <= "\\u06ff" for char in text) < max(rules["arabic_min_script_characters"], letters * rules["arabic_min_script_ratio"]):
+    if language == "ar" and sum(rules["arabic_unicode_start"] <= ord(char) <= rules["arabic_unicode_end"] for char in text) < max(rules["arabic_min_script_characters"], letters * rules["arabic_min_script_ratio"]):
         return None
     return text
 
