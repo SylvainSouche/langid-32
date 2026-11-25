@@ -21,7 +21,7 @@ source and language**. Leipzig News and Wikipedia are separate sources. DGT,
 Common Voice, FineWeb2, Tatoeba CC0, Gaois and each waiting source follow the
 same default unless an explicit override is recorded. This is an acquisition
 target, not a family-wide cap and not the final candidate quota. Sources with
-fewer eligible records retain all available records and report the shortfall.
+fewer eligible records retain all available records and report the shortfall. Every source identifier must be registered in the TOML; unregistered sources and explicitly excluded sources fail closed. Per-source language scopes are enforced before candidate family normalization. Rights/status fields document technical inclusion versus release clearance.
 
 DGT's per-TMX-document-language sampling ceiling is separately recorded in its
 source rule; it does not replace the per-language source target.
@@ -33,8 +33,10 @@ source rule; it does not replace the per-language source target.
 - Final production target: **exactly 25,000 sentences per language**, with
   explicit per-language overrides only in the TOML table.
 - Candidate-stage source balancing: preferred maximum **30%** and hard maximum
-  **50%** per source, language and split. These are candidate-stage constraints,
-  not acquisition quotas.
+  **50%** per source, language and split. The overall corpus also has a preferred
+  source share ceiling of **30%** and an authorized hard ceiling of **50%**;
+  final selection reports preferred-limit deviations and fails on hard-limit
+  violations. These are candidate-stage constraints, not acquisition quotas.
 - Final source proportions preserve the existing baseline core proportions
   independently within each language.
 - Split ratios are train **80%**, validation **10%**, test **10%**.
