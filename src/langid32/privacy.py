@@ -95,12 +95,17 @@ FLAG_KEYS = (
 PERSONAL_METADATA_KEYS = {
     "author", "author_name", "person_name", "full_name", "contact_name",
     "recipient_name", "speaker_name", "participant_name", "contributor_name",
-    "submitted_by", "created_by", "user_name", "user_id", "client_id",
-    "contributor_id", "author_id", "contact_id", "email", "phone",
-    "ip_address", "street_address", "postal_address", "date_of_birth",
-    "birth_date",
+    "owner_name", "editor_name", "manager_name", "first_name", "last_name",
+    "given_name", "family_name", "submitted_by", "created_by", "user_name",
+    "username", "user_id", "client_id", "contributor_id", "author_id",
+    "contact_id", "email", "email_address", "phone", "phone_number",
+    "telephone", "address", "ip_address", "street_address", "postal_address",
+    "date_of_birth", "birth_date",
 }
-TEXTUAL_IDENTITY_METADATA_KEYS = {"title", "publisher", "creator", "contributor", "speaker", "name"}
+TEXTUAL_IDENTITY_METADATA_KEYS = {
+    "title", "publisher", "creator", "contributor", "speaker", "name",
+    "contact", "owner", "maintainer", "editor", "manager",
+}
 
 
 @dataclass(frozen=True)
