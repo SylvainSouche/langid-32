@@ -20,7 +20,10 @@ from pathlib import Path
 
 from langid32.settings import load_config
 
-LANGUAGES = tuple(load_config()["project"]["languages"])
+CONFIG = load_config()
+LANGUAGES = tuple(CONFIG["project"]["languages"])
+TEXT_RULES = CONFIG["acquisition"]["text"]
+PRIVACY_RULES = CONFIG["candidate"]["privacy"]
 SPLITS = ("train", "validation", "test")
 EMAIL_RE = re.compile(r"(?i)(?<![\w.+-])[\w.+-]+@[\w.-]+\.[A-Z]{2,}(?![A-Za-z0-9_.-])")
 URL_RE = re.compile(
@@ -32,17 +35,17 @@ IPV4_RE = re.compile(
     r"\b(?:(?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\.){3}"
     r"(?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\b"
 )
-PHONE_CANDIDATE_RE = re.compile(r"(?<!\w)\+?\d[\d -]{7,}\d(?!\w)")
-LONG_NUMBER_RE = re.compile(r"\d{9,}")
+PHONE_CANDIDATE_RE = re.compile(rf"(?<!\\w)\\+?\\d[\\d -]{{{PRIVACY_RULES["phone_candidate_min_intervening_characters"]},}}\\d(?!\\w)")
+LONG_NUMBER_RE = re.compile(rf"\\d{{{PRIVACY_RULES["long_numeric_min_digits"]},}}")
 
 
 def has_phone_like(text: str) -> bool:
     for match in PHONE_CANDIDATE_RE.finditer(text):
         value = match.group()
         digits = re.sub(r"\D", "", value)
-        if not 9 <= len(digits) <= 15:
+        if not PRIVACY_RULES["phone_min_digits"] <= len(digits) <= PRIVACY_RULES["phone_max_digits"]:
             continue
-        if value.count(" ") + value.count("-") < 2 and "+" not in value:
+        if value.count(" ") + value.count("-") < PRIVACY_RULES["phone_min_separators"] and "+" not in value:
             continue
         if re.fullmatch(r"\d{4}[-/]\d{1,2}[-/]\d{1,2}", value):
             continue
@@ -191,13 +194,13 @@ def read_inputs(paths: list[Path], args):
                 if len(text.encode("utf-8")) > args.max_bytes:
                     rejected["outside_byte_limit"] += 1
                     continue
-                if EMAIL_RE.search(text):
+                if TEXT_RULES["exclude_email"] and EMAIL_RE.search(text):
                     rejected["email_excluded"] += 1
                     continue
-                if URL_RE.search(text) or WEB_FRAGMENT_RE.search(text) or HTTP_FRAGMENT_RE.search(text):
+                if TEXT_RULES["exclude_url"] and (URL_RE.search(text) or WEB_FRAGMENT_RE.search(text) or HTTP_FRAGMENT_RE.search(text)):
                     rejected["url_excluded"] += 1
                     continue
-                if IPV4_RE.search(text):
+                if TEXT_RULES["exclude_ipv4"] and IPV4_RE.search(text):
                     rejected["ipv4_excluded"] += 1
                     continue
                 provenance = row.get("provenance", {})
