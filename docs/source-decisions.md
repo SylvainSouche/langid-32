@@ -6,9 +6,9 @@ This document records the operational decisions on source inclusion and first-pa
 
 ## First-pass acquisition rule
 
-**Stream up to 20,000 eligible, unique entries from each source for each language.**
+**Stream up to the eligible-unique target configured for each individual source and language in [`config/langid32.toml`](../config/langid32.toml).**
 
-This is a first-pass acquisition target, not a final corpus quota and not a candidate-selection quota. Read each source as a stream, apply its source-specific eligibility/quality filters and deduplication, and retain up to 20,000 eligible unique entries. Do not downsample a source to 3,000 or 5,000 at acquisition.
+This is a first-pass acquisition target, not a final corpus quota and not a candidate-selection quota. Read each source as a stream, apply its source-specific eligibility/quality filters and deduplication, and retain up to its configured eligible-unique target. Do not downsample a source to the abandoned smaller historical limits at acquisition.
 
 The following old limits are explicitly abandoned:
 
@@ -18,7 +18,7 @@ The following old limits are explicitly abandoned:
 | Leipzig Wikipedia | 3,000 / language | **20,000 / language** |
 | DGT-TM | 5,000 / language | **20,000 / language** |
 
-Leipzig News and Leipzig Wikipedia are separate sources and each gets its own 20,000-entry stream target. DGT-TM gets 20,000. The 20,000 target is not a family-wide cap and must not be interpreted as one. No general source-family cap is established by this register.
+Leipzig News and Leipzig Wikipedia are separate sources and each gets its own configured stream target. DGT-TM has its own configured target. The per-source target is not a family-wide cap and must not be interpreted as one. No general source-family cap is established by this register.
 
 Candidate construction happens later. Its per-language targets, source-balance policy and split allocation must not be pushed backwards into acquisition as smaller scraping limits. In particular, do not use candidate preferred-share/hard-share values to decide how many rows to scrape from an upstream source.
 
@@ -26,8 +26,8 @@ Candidate construction happens later. Its per-language targets, source-balance p
 
 | Language | Include in first-pass acquisition | Explicitly unavailable / excluded / held |
 |---|---|---|
-| Croatian (`hr`) | DGT-TM 2021 (20k); Leipzig News (20k); Leipzig Wikipedia (20k); FineWeb2 (`hrv_Latn`, technical only); **MaCoCu-hr 2.0** | Common Voice has no Croatian locale. FineWeb2 remains on underlying-text rights hold for release. |
-| Finnish (`fi`) | Common Voice 22; DGT-TM 2021 (20k); Leipzig News (20k); Leipzig Wikipedia (20k); Tatoeba CC0; FineWeb2 (`fin_Latn`, technical only) | FineWeb2 remains on underlying-text rights hold for release. |
+| Croatian (`hr`) | DGT-TM 2021; Leipzig News; Leipzig Wikipedia; FineWeb2 (`hrv_Latn`, technical only); **MaCoCu-hr 2.0** | Common Voice has no Croatian locale. FineWeb2 remains on underlying-text rights hold for release. |
+| Finnish (`fi`) | Common Voice 22; DGT-TM 2021 (20k); Leipzig News; Leipzig Wikipedia; Tatoeba CC0; FineWeb2 (`fin_Latn`, technical only) | FineWeb2 remains on underlying-text rights hold for release. |
 | Greek (`el`) | Common Voice 22; DGT-TM 2021 (20k); Leipzig News (20k); Leipzig Wikipedia (20k); FineWeb2 (`ell_Grek`, technical only) | FineWeb2 remains on underlying-text rights hold for release. |
 | Maltese (`mt`) | Common Voice 22; DGT-TM 2021 (20k); Leipzig News (20k); Leipzig Wikipedia (20k); FineWeb2 (`mlt_Latn`, technical only); **MaCoCu-mt 2.0** | FineWeb2 remains on underlying-text rights hold for release. Korpus Malti is not a substitute for MaCoCu-mt. |
 | Slovenian (`sl`) | Common Voice 22; DGT-TM 2021 (20k); Leipzig News (20k); Leipzig Wikipedia (20k); FineWeb2 (`slv_Latn`, technical only); **MaCoCu-sl 2.0**; **ParlaMint 4.0** | FineWeb2 remains on underlying-text rights hold for release. Do not double-count MaCoCu derivatives or overlapping parliamentary corpora as independent sources. |
