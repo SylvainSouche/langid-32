@@ -168,7 +168,12 @@ def main():
     output_root.mkdir(parents=True, exist_ok=True)
     temp_root = output_root / ".work"
     temp_root.mkdir(parents=True, exist_ok=True)
-    state_path = args.state_db or (output_root / "acquisition-state.sqlite")
+    policy_digest = hashlib.sha256(
+        Path(__file__).read_bytes()
+        + (ROOT / "src/langid32/privacy.py").read_bytes()
+        + args.config.read_bytes()
+    ).hexdigest()[:12]
+    state_path = args.state_db or (output_root / f"acquisition-state-{policy_digest}.sqlite")
     state_path.parent.mkdir(parents=True, exist_ok=True)
     state_db = open_state(state_path)
     retained = defaultdict(list)
@@ -789,7 +794,7 @@ def main():
                         "ymoslem/UN-Arabic-English-Filtered", split="train",
                         streaming=True, revision=revisions["un_arabic"],
                     )
-                    state_path = temp_root / f"un-arabic-stream-state-{revisions['un_arabic'][:12]}.json"
+                    state_path = temp_root / f"un-arabic-stream-state-{revisions['un_arabic'][:12]}-{policy_digest}.json"
                     processed = 0
                     if state_path.is_file():
                         saved = json.loads(state_path.read_text(encoding="utf-8"))
