@@ -21,7 +21,7 @@ jobs:
       - id: runtime
         run: python3 scripts/emit_runtime_config.py
   historical:
-    if: github.ref == 'refs/heads/main'
+    if: false # Disabled until individual Common Voice locale terms are accepted and recorded.
     needs: [config]
     runs-on: ubuntu-latest
     timeout-minutes: ${{ fromJSON(needs.config.outputs.acquisition_job_timeout_minutes) }}
@@ -172,7 +172,7 @@ jobs:
           retention-days: ${{ steps.runtime.outputs.checkpoint_retention_days }}
   candidate:
     if: github.ref == 'refs/heads/main'
-    needs: [config, historical, common-voice, waiting-source]
+    needs: [config, historical, waiting-source]
     runs-on: ubuntu-latest
     timeout-minutes: ${{ fromJSON(needs.config.outputs.acquisition_job_timeout_minutes) }}
     steps:
