@@ -124,3 +124,27 @@ def test_new_file_version_reopens_previously_exhausted_task(tmp_path):
     assert plan_file_batches(db, "source-A", "fi", 3, ["new#sha256=" + "b" * 64], 1) == 1
     assert not task_complete(db, "source-A", "fi")
     assert next_batch(db, "source-A", "fi")[1] == ["new#sha256=" + "b" * 64]
+
+
+def test_interrupted_batch_rolls_back_uncommitted_rows_for_safe_replay(tmp_path):
+    import sqlite3
+    path = tmp_path / "state.sqlite"
+    db = open_state(path)
+    plan_file_batches(db, "source-A", "fi", 2, ["one-file"], 1)
+    batch_no, _ = next_batch(db, "source-A", "fi")
+    assert add_eligible(db, "source-A", "fi", [{
+        "text": "one durable sentence", "source": "source-A", "language": "fi"
+    }]) == 1
+    observer = sqlite3.connect(path)
+    assert observer.execute("SELECT COUNT(*) FROM sentence").fetchone()[0] == 0
+    observer.close()
+    db.close()  # simulates interruption before finish_batch
+    db = open_state(path)
+    assert retained_count(db, "source-A", "fi") == 0
+    resumed_no, resumed_files = next_batch(db, "source-A", "fi")
+    assert (resumed_no, resumed_files) == (batch_no, ["one-file"])
+    add_eligible(db, "source-A", "fi", [{
+        "text": "one durable sentence", "source": "source-A", "language": "fi"
+    }])
+    finish_batch(db, "source-A", "fi", batch_no, {"one-file": "a" * 64})
+    assert retained_count(db, "source-A", "fi") == 1
