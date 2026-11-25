@@ -1,3 +1,5 @@
+import pytest
+
 from langid32.settings import acquisition_target, language_target, load_config
 
 
@@ -11,6 +13,9 @@ def test_central_config_has_34_unique_target_languages():
 def test_source_and_language_overrides_are_explicit_and_inherit_defaults():
     config = load_config()
     assert acquisition_target(config, "leipzig_news", "hr") == 20000
+    assert acquisition_target(config, "fineweb2:hrv_Latn", "hr") == 20000
+    with pytest.raises(ValueError):
+        acquisition_target(config, "fineweb2:cat_Latn", "ca")
     config["acquisition"]["source_language_overrides"]["leipzig_news.hr"] = 12345
     assert acquisition_target(config, "leipzig_news", "hr") == 12345
     assert language_target(config, "is") == 25000
