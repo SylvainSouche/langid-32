@@ -48,11 +48,16 @@ def clean(value, language, rules=None):
         rules = load_config()["acquisition"]["source_rules"]["waiting_sources"]
     text = " ".join(unicodedata.normalize("NFC", str(value or "")).split())
     letters = sum(char.isalpha() for char in text)
-    if (len(text) < rules["min_characters"] or len(text) > rules["max_characters"] or letters < rules["min_letters"]
+    long_number = re.search("[0-9]{" + str(rules["long_numeric_min_digits"]) + ",}", text)
+    if (len(text) < rules["min_characters"] or len(text) > rules["max_characters"]
+            or letters < rules["min_letters"]
+            or letters / max(len(text), 1) < rules["min_letter_ratio"]
             or (rules["exclude_email"] and EMAIL.search(text))
             or (rules["exclude_url"] and URL.search(text))
+            or (rules["exclude_ipv4"] and IPV4.search(text))
+            or (rules["exclude_long_numeric_sequences"] and long_number)):
         return None
-    if language == "ar" and sum("\u0600" <= char <= "\u06ff" for char in text) < max(rules["arabic_min_script_characters"], letters * rules["arabic_min_script_ratio"]):
+    if language == "ar" and sum("\\u0600" <= char <= "\\u06ff" for char in text) < max(rules["arabic_min_script_characters"], letters * rules["arabic_min_script_ratio"]):
         return None
     return text
 
