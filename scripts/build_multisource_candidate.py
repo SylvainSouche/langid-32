@@ -12,7 +12,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from langid32.settings import load_config, acquisition_target, source_quota_key
+from langid32.settings import load_config, acquisition_target, source_quota_key\nfrom langid32.privacy import screen_record
 
 FAMILY_PREFIXES = (
     "temu_cc0",
