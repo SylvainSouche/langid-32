@@ -494,7 +494,7 @@ def main():
                 path = Path(filename)
                 if not path.is_file():
                     failed = True
-                    message = f"Planned source file disappeared before processing: {filename}".replace("$","")
+                    message = f"Planned source file disappeared before processing: {filename}"
                     notes.append(message)
                     failures.append(message)
                     break
@@ -509,16 +509,16 @@ def main():
                     after_hash = path.stat()
                     if (before.st_size, before.st_mtime_ns) != (after_hash.st_size, after_hash.st_mtime_ns):
                         failed = True
-                        message = f"Source file changed while validating resumed batch: {filename}".replace("$","")
-                    notes.append(message)
-                    failures.append(message)
+                        message = f"Source file changed while validating resumed batch: {filename}"
+                        notes.append(message)
+                        failures.append(message)
                         break
                     actual_hash = digest.hexdigest()
                     if expected_hash and actual_hash != expected_hash:
                         failed = True
-                        message = f"Source file content no longer matches planned batch: {filename}".replace("$","")
-                    notes.append(message)
-                    failures.append(message)
+                        message = f"Source file content no longer matches planned batch: {filename}"
+                        notes.append(message)
+                        failures.append(message)
                         break
                     expected_hash = actual_hash
                     file_stats[filename] = (after_hash.st_size, after_hash.st_mtime_ns)
