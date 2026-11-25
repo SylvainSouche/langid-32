@@ -112,6 +112,70 @@
       "notes": "The configs are hrv_Latn, fin_Latn, ell_Grek, mlt_Latn, slv_Latn and isl_Latn. Preserve this distinction: technical candidate inclusion is not release eligibility."
     },
     {
+      "source_family": "fineweb",
+      "languages": ["en"],
+      "decision": "exclude",
+      "candidate_ingestion": "forbidden",
+      "release_status": "HOLD — ODC-BY covers the compilation, not individual web-page excerpts",
+      "notes": "Do not use FineWeb v1 excerpts in the candidate. FineWeb2 is a separate, technical-candidate-only decision for its explicitly configured language scope."
+    },
+    {
+      "source_family": "bsc_legal",
+      "languages": ["ca"],
+      "decision": "include_technical_candidate_only",
+      "candidate_ingestion": "provisional",
+      "release_status": "HOLD pending file- and constituent-level terms",
+      "notes": "Keep constituent file provenance. Repository-level CC BY metadata is not blanket clearance for DOGC, APDCAT and other underlying sources."
+    },
+    {
+      "source_family": "korean_wikipedia_20231101",
+      "languages": ["ko"],
+      "decision": "include_technical_candidate_only",
+      "candidate_ingestion": "provisional",
+      "release_status": "HOLD pending share-alike compatibility review",
+      "notes": "Preserve page IDs/URLs and attribution. Do not treat CC BY-SA/GFDL as equivalent to CC BY or CC0."
+    },
+    {
+      "source_family": "maalfrid2026",
+      "languages": ["nb", "nn"],
+      "decision": "include_technical_candidate_only",
+      "candidate_ingestion": "provisional",
+      "release_status": "HOLD pending database and third-party content review",
+      "notes": "Preserve language-specific archive and source provenance; do not infer excerpt-level rights from database terms."
+    },
+    {
+      "source_family": "temu_cc0",
+      "languages": ["ca"],
+      "decision": "include",
+      "candidate_ingestion": "approved_component_union",
+      "release_status": "CC0 component union measured; source-level review remains",
+      "notes": "Include only README-scoped CC0/waived constituents. Keep constituent files separate for acquisition quotas and provenance; do not include permission-only or unresolved files."
+    },
+    {
+      "source_family": "gaois_irish_legislation",
+      "languages": ["ga"],
+      "decision": "include",
+      "candidate_ingestion": "approved",
+      "release_status": "CC BY 4.0 derivative; preserve DCU/Gaois attribution and review original legislation rights",
+      "notes": "Use Irish-side segments only, retain source file and translation-unit provenance, and deduplicate across the six files."
+    },
+    {
+      "source_family": "un_arabic_english_filtered",
+      "languages": ["ar"],
+      "decision": "include",
+      "candidate_ingestion": "approved",
+      "release_status": "CC BY 4.0; UN acknowledgement and attribution required",
+      "notes": "Retain derivative dataset credit and mandatory UN acknowledgement/citations. Do not misrepresent row indices as source-document IDs."
+    },
+    {
+      "source_family": "catalan_dpo_v2",
+      "languages": ["ca"],
+      "decision": "exclude",
+      "candidate_ingestion": "forbidden",
+      "release_status": "HOLD pending Catalan-only, source-traceable rights review",
+      "notes": "Do not include the assistant-dialogue dataset in candidate construction until the rights and source traceability issue is resolved."
+    },
+    {
       "source_family": "igc2024_filtered1",
       "languages": [
         "is"
