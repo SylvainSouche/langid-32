@@ -77,10 +77,10 @@ def _metadata_flags(record: dict | None) -> list[str]:
 def screen_text(value: str, *, record: dict | None = None,
                 uncertain_action: str = "quarantine") -> PrivacyResult:
     text = unicodedata.normalize("NFC", " ".join(str(value or "").split()))
-    flags = _metadata_flags(record)
+    metadata_flags = _metadata_flags(record)
     if not text:
         return PrivacyResult(False, "rejected", ("empty_text",))
-    checks = (
+    high_confidence = (
         ("email", EMAIL.search(text)),
         ("url", URL.search(text)),
         ("ipv4", IPV4.search(text)),
@@ -88,15 +88,16 @@ def screen_text(value: str, *, record: dict | None = None,
         ("street_address", STREET.search(text) and HOUSE_NUMBER.search(text)),
         ("person_name_honorific", HONORIFIC.search(text)),
         ("person_name_context", PERSON_CONTEXT.search(text)),
-        ("ambiguous_proper_name", AMBIGUOUS_PROPER_NAME.search(text)),
     )
-    flags.extend(name for name, matched in checks if matched)
-    if flags:
-        return PrivacyResult(False, "rejected", tuple(sorted(set(flags))))
-    # If upstream metadata signals a privacy concern not covered by a pattern,
-    # never infer that the record is clean.
-    if uncertain_action == "quarantine" and _metadata_flags(record):
-        return PrivacyResult(False, "quarantined", tuple(sorted(set(_metadata_flags(record)))))
+    rejected = [name for name, matched in high_confidence if matched]
+    if rejected:
+        return PrivacyResult(False, "rejected", tuple(sorted(set(rejected))))
+    uncertain = list(metadata_flags)
+    if AMBIGUOUS_PROPER_NAME.search(text):
+        uncertain.append("ambiguous_proper_name")
+    if uncertain:
+        status = "quarantined" if uncertain_action == "quarantine" else "rejected"
+        return PrivacyResult(False, status, tuple(sorted(set(uncertain))))
     return PrivacyResult(True, "clean", ())
 
 
