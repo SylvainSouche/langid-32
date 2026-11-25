@@ -10,6 +10,9 @@ jobs:
     outputs:
       acquisition_max_parallel_source_tasks: ${{ steps.runtime.outputs.acquisition_max_parallel_source_tasks }}
       acquisition_job_timeout_minutes: ${{ steps.runtime.outputs.acquisition_job_timeout_minutes }}
+      acquisition_global_budget_minutes: ${{ steps.runtime.outputs.acquisition_global_budget_minutes }}
+      acquisition_safety_margin_minutes: ${{ steps.runtime.outputs.acquisition_safety_margin_minutes }}
+      acquisition_started_epoch: ${{ steps.runtime.outputs.acquisition_started_epoch }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -18,11 +21,18 @@ jobs:
         run: python3 scripts/emit_runtime_config.py
   historical:
     if: github.ref == 'refs/heads/main'
+    needs: [config]
     runs-on: ubuntu-latest
+    timeout-minutes: ${{ fromJSON(needs.config.outputs.acquisition_job_timeout_minutes) }}
     steps:
       - uses: actions/checkout@v4
       - id: runtime
-        run: python3 scripts/emit_runtime_config.py
+        run: python3 scripts/emit_runtime_config.py      - name: Enforce shared six-hour workflow budget
+        run: >-
+          python3 scripts/check_runtime_budget.py
+          --started-epoch "${{ needs.config.outputs.acquisition_started_epoch }}"
+          --budget-minutes "${{ needs.config.outputs.acquisition_global_budget_minutes }}"
+          --safety-margin-minutes "${{ needs.config.outputs.acquisition_safety_margin_minutes }}"
       - name: Validate checkpoint key before acquisition
         env: {LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"}
         run: python -c 'import os,sys; k=os.environ.get("LANGID32_CHECKPOINT_KEY",""); sys.exit(0 if len(k)>=32 else "LANGID32_CHECKPOINT_KEY is missing or shorter than 32 characters")'
@@ -46,11 +56,18 @@ jobs:
         with: {name: acquisition-historical, path: checkpoint.bin, retention-days: "${{ steps.runtime.outputs.checkpoint_retention_days }}"}
   common-voice:
     if: github.ref == 'refs/heads/main'
+    needs: [config]
     runs-on: ubuntu-latest
+    timeout-minutes: ${{ fromJSON(needs.config.outputs.acquisition_job_timeout_minutes) }}
     steps:
       - uses: actions/checkout@v4
       - id: runtime
-        run: python3 scripts/emit_runtime_config.py
+        run: python3 scripts/emit_runtime_config.py      - name: Enforce shared six-hour workflow budget
+        run: >-
+          python3 scripts/check_runtime_budget.py
+          --started-epoch "${{ needs.config.outputs.acquisition_started_epoch }}"
+          --budget-minutes "${{ needs.config.outputs.acquisition_global_budget_minutes }}"
+          --safety-margin-minutes "${{ needs.config.outputs.acquisition_safety_margin_minutes }}"
       - name: Validate checkpoint key before acquisition
         env: {LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"}
         run: python -c 'import os,sys; k=os.environ.get("LANGID32_CHECKPOINT_KEY",""); sys.exit(0 if len(k)>=32 else "LANGID32_CHECKPOINT_KEY is missing or shorter than 32 characters")'
@@ -76,7 +93,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - id: runtime
-        run: python3 scripts/emit_runtime_config.py
+        run: python3 scripts/emit_runtime_config.py      - name: Enforce shared six-hour workflow budget
+        run: >-
+          python3 scripts/check_runtime_budget.py
+          --started-epoch "${{ needs.config.outputs.acquisition_started_epoch }}"
+          --budget-minutes "${{ needs.config.outputs.acquisition_global_budget_minutes }}"
+          --safety-margin-minutes "${{ needs.config.outputs.acquisition_safety_margin_minutes }}"
       - name: Validate checkpoint key before acquisition
         env: {LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"}
         run: python -c 'import os,sys; k=os.environ.get("LANGID32_CHECKPOINT_KEY",""); sys.exit(0 if len(k)>=32 else "LANGID32_CHECKPOINT_KEY is missing or shorter than 32 characters")'
@@ -94,12 +116,18 @@ jobs:
           retention-days: ${{ steps.runtime.outputs.checkpoint_retention_days }}
   candidate:
     if: github.ref == 'refs/heads/main'
-    needs: [historical, common-voice, waiting-source]
+    needs: [config, historical, common-voice, waiting-source]
     runs-on: ubuntu-latest
+    timeout-minutes: ${{ fromJSON(needs.config.outputs.acquisition_job_timeout_minutes) }}
     steps:
       - uses: actions/checkout@v4
       - id: runtime
-        run: python3 scripts/emit_runtime_config.py
+        run: python3 scripts/emit_runtime_config.py      - name: Enforce shared six-hour workflow budget
+        run: >-
+          python3 scripts/check_runtime_budget.py
+          --started-epoch "${{ needs.config.outputs.acquisition_started_epoch }}"
+          --budget-minutes "${{ needs.config.outputs.acquisition_global_budget_minutes }}"
+          --safety-margin-minutes "${{ needs.config.outputs.acquisition_safety_margin_minutes }}"
       - name: Validate checkpoint key before restore
         env: {LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"}
         run: python -c 'import os,sys; k=os.environ.get("LANGID32_CHECKPOINT_KEY",""); sys.exit(0 if len(k)>=32 else "LANGID32_CHECKPOINT_KEY is missing or shorter than 32 characters")'
@@ -124,12 +152,18 @@ jobs:
         with: {name: candidate-checkpoint, path: candidate.bin, retention-days: ${{ steps.runtime.outputs.checkpoint_retention_days }}}
   jql:
     if: github.ref == 'refs/heads/main'
-    needs: [candidate]
+    needs: [config, candidate]
     runs-on: ubuntu-latest
+    timeout-minutes: ${{ fromJSON(needs.config.outputs.acquisition_job_timeout_minutes) }}
     steps:
       - uses: actions/checkout@v4
       - id: runtime
-        run: python3 scripts/emit_runtime_config.py
+        run: python3 scripts/emit_runtime_config.py      - name: Enforce shared six-hour workflow budget
+        run: >-
+          python3 scripts/check_runtime_budget.py
+          --started-epoch "${{ needs.config.outputs.acquisition_started_epoch }}"
+          --budget-minutes "${{ needs.config.outputs.acquisition_global_budget_minutes }}"
+          --safety-margin-minutes "${{ needs.config.outputs.acquisition_safety_margin_minutes }}"
       - name: Validate checkpoint key before restore
         env: {LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"}
         run: python -c 'import os,sys; k=os.environ.get("LANGID32_CHECKPOINT_KEY",""); sys.exit(0 if len(k)>=32 else "LANGID32_CHECKPOINT_KEY is missing or shorter than 32 characters")'
