@@ -7,11 +7,7 @@ on:
       - "src/langid32/dgt_tmx_stage.py"
       - "src/langid32/merge.py"
       - "tests/test_dgt_tmx_stage.py"
-      - "tests/test_acquisition_buckets.py"
-      - "scripts/acquire_waiting_sources.py"
       - "pyproject.toml"
-      - "config/langid32.toml"
-      - "src/langid32/settings.py"
       - ".github/workflows/dgt-tmx-ingest.yml"
   workflow_dispatch:
 
