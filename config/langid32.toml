@@ -67,11 +67,11 @@ languages = ["ga"]
 target = 20000
 languages = ["is"]
 
-[acquisition.source_rules.macocu_2_0]
+[acquisition.source_rules.macocu]
 target = 20000
 languages = ["hr", "mt", "sl"]
 
-[acquisition.source_rules.parlamint_4_0]
+[acquisition.source_rules.parlamint]
 target = 20000
 languages = ["is", "sl"]
 
