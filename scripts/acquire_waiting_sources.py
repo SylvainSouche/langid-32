@@ -616,11 +616,6 @@ def main():
             for filename in files:
                 if quota_reached(korean_bucket):
                     break
-                remote_batch = begin_remote_file(
-                    korean_bucket, "wikimedia/wikipedia", revisions["wikipedia"], filename
-                )
-                if remote_batch is None:
-                    continue
                 local_path = hf_hub_download(
                     repo_id="wikimedia/wikipedia", repo_type="dataset",
                     filename=filename, revision=revisions["wikipedia"]
@@ -631,30 +626,46 @@ def main():
                 if not required.issubset(columns):
                     raise RuntimeError(f"Unexpected Wikipedia Parquet schema in {filename}: {sorted(columns)}")
                 selected_columns = [name for name in ("id", "url", "title", "text") if name in columns]
-                for batch in parquet.iter_batches(batch_size=512, columns=selected_columns):
-                    for item in batch.to_pylist():
-                        if quota_reached(("ko", "korean_wikipedia_20231101")):
+                stopped_mid_row_group = False
+                for row_group in range(parquet.metadata.num_row_groups):
+                    if quota_reached(korean_bucket):
+                        break
+                    remote_batch = begin_remote_file(
+                        korean_bucket, "wikimedia/wikipedia", revisions["wikipedia"],
+                        f"{filename}#rowgroup={row_group}",
+                    )
+                    if remote_batch is None:
+                        continue
+                    row_group_complete = True
+                    for batch in parquet.iter_batches(
+                            batch_size=512, columns=selected_columns, row_groups=[row_group]):
+                        for item in batch.to_pylist():
+                            if quota_reached(korean_bucket):
+                                row_group_complete = False
+                                stopped_mid_row_group = True
+                                break
+                            page_id = str(item.get("id") or processed)
+                            provenance = {
+                                "dataset_repo": "wikimedia/wikipedia",
+                                "repo_commit": revisions["wikipedia"],
+                                "page_id": page_id,
+                                "source_file": filename,
+                            }
+                            for key in ("url", "title"):
+                                if item.get(key):
+                                    provenance[key] = item[key]
+                            for paragraph in re.split(r"(?<=[.!?。！？])\s+|\n+", item.get("text", "")):
+                                add("ko", "korean_wikipedia_20231101", paragraph, page_id, provenance)
+                            processed += 1
+                        if not row_group_complete:
                             break
-                        page_id = str(item.get("id") or processed)
-                        provenance = {
-                            "dataset_repo": "wikimedia/wikipedia",
-                            "repo_commit": revisions["wikipedia"],
-                            "page_id": page_id,
-                            "source_file": filename,
-                        }
-                        for key in ("url", "title"):
-                            if item.get(key):
-                                provenance[key] = item[key]
-                        for paragraph in re.split(r"(?<=[.!?。！？])\s+|\n+", item.get("text", "")):
-                            add("ko", "korean_wikipedia_20231101", paragraph, page_id, provenance)
-                        processed += 1
-                        if quota_reached(("ko", "korean_wikipedia_20231101")):
-                            break
-                    if quota_reached(("ko", "korean_wikipedia_20231101")):
+                    if row_group_complete:
+                        finish_remote_file(korean_bucket, remote_batch)
+                    else:
+                        notes.append(f"Korean Wikipedia {filename} row group {row_group} paused at quota; checkpoint remains resumable.")
                         break
                 Path(local_path).unlink(missing_ok=True)
-                finish_remote_file(korean_bucket, remote_batch)
-                if quota_reached(korean_bucket):
+                if stopped_mid_row_group or quota_reached(korean_bucket):
                     break
             if not processed:
                 raise RuntimeError("Pinned Korean Wikipedia Parquet shards contained no rows")
