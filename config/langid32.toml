@@ -64,7 +64,7 @@ languages = ["fi"]
 target = 20000
 languages = ["ga"]
 
-[acquisition.source_rules.igc2024_filtered_1]
+[acquisition.source_rules.igc]
 target = 20000
 languages = ["is"]
 
