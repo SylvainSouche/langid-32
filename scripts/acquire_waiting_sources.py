@@ -325,7 +325,7 @@ def main():
                                         "sensitive_info", "sensitive_information", "personal_data",
                                         "pii", "is_pii", "has_personal_information"): 
                                 field_value = item.get(field_name)
-                                if isinstance(field_value, (str, int, float)) and field_value != "":
+                                if isinstance(field_value, (str, int, float, list, tuple, bool)) and field_value != "":
                                     provenance[field_name] = field_value
                             source_url = (item.get("source_url") or item.get("url")
                                           or item.get("canonical_url") or item.get("url_ca"))
