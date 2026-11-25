@@ -1,0 +1,27 @@
+name: LEGACY — Probe FineWeb2 bounded row-group sampling
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install DuckDB
+        run: python -m pip install --disable-pip-version-check duckdb
+      - name: Probe row-group sampling
+        run: python scripts/probe_fineweb2_sampling.py --output reports/fineweb2-sampling-probe.json --rows-per-shard 5000
+      - name: Upload probe report
+        uses: actions/upload-artifact@v4
+        with:
+          name: fineweb2-sampling-probe
+          path: reports/fineweb2-sampling-probe.json
+          if-no-files-found: error

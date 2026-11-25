@@ -1,0 +1,54 @@
+name: Ingest DGT-TM 2021 source sample
+# Per-source language targets and sampling rules are read from config/langid32.toml.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ingest:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: runtime
+        run: python3 scripts/emit_runtime_config.py
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ steps.runtime.outputs.python_version }}
+      - name: Install project and test dependency
+        run: |
+          python -m pip install --no-deps -e .
+          python -m pip install pytest
+      - name: Run corpus tests
+        run: python -m pytest -q
+      - name: Download official DGT-TM 2021 ZIP volumes
+        run: |
+          mkdir -p input/dgt-tm-2021
+          curl --fail --location --retry "${{ steps.runtime.outputs.curl_retry_count }}" --output input/dgt-tm-2021/Vol_2020_1.zip https://wt-public.emm4u.eu/Resources/DGT-TM-2021/Vol_2020_1.zip
+          curl --fail --location --retry "${{ steps.runtime.outputs.curl_retry_count }}" --output input/dgt-tm-2021/Vol_2020_2.zip https://wt-public.emm4u.eu/Resources/DGT-TM-2021/Vol_2020_2.zip
+          curl --fail --location --retry "${{ steps.runtime.outputs.curl_retry_count }}" --output input/dgt-tm-2021/Vol_2020_3.zip https://wt-public.emm4u.eu/Resources/DGT-TM-2021/Vol_2020_3.zip
+          curl --fail --location --retry "${{ steps.runtime.outputs.curl_retry_count }}" --output input/dgt-tm-2021/Vol_2020_4.zip https://wt-public.emm4u.eu/Resources/DGT-TM-2021/Vol_2020_4.zip
+          curl --fail --location --retry "${{ steps.runtime.outputs.curl_retry_count }}" --output input/dgt-tm-2021/Vol_2020_5.zip https://wt-public.emm4u.eu/Resources/DGT-TM-2021/Vol_2020_5.zip
+          ls -lh input/dgt-tm-2021/
+      - name: Stage DGT using central per-language acquisition targets
+        run: |
+          python -m langid32.dgt_tmx_stage \
+            --archive input/dgt-tm-2021/Vol_2020_1.zip \
+            --archive input/dgt-tm-2021/Vol_2020_2.zip \
+            --archive input/dgt-tm-2021/Vol_2020_3.zip \
+            --archive input/dgt-tm-2021/Vol_2020_4.zip \
+            --archive input/dgt-tm-2021/Vol_2020_5.zip \
+            --output reports/dgt-tm-2021-staged.jsonl
+      - name: Upload staged records and complete provenance manifest
+        if: always() && hashFiles('reports/dgt-tm-2021-staged*') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: dgt-tm-2021-first-pass-${{ github.run_id }}
+          path: |
+            reports/dgt-tm-2021-staged.jsonl
+            reports/dgt-tm-2021-staged.manifest.json
+          retention-days: ${{ steps.runtime.outputs.artifact_retention_days }}
+          if-no-files-found: error

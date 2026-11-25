@@ -1,0 +1,8 @@
+# Install a platform-appropriate PyTorch build separately first.
+transformers==4.44.2
+huggingface_hub>=0.24
+safetensors>=0.4
+sentencepiece>=0.2
+einops>=0.7
+pandas>=2.2
+pyarrow>=16

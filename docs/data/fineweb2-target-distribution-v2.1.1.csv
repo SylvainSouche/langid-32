@@ -1,0 +1,94 @@
+subset,split,code,script,name,family,words,documents,utf8_bytes,utf8_bytes_human,parquet_bytes,parquet_bytes_human,bible_ratio,wiki_ratio
+arb_Arab,train,arb,Arab,Standard Arabic,Afro-Asiatic,32812858120,61977525,315241517028,293.59GB,105963830058,98.69GB,-,-
+arb_Arab,test,arb,Arab,Standard Arabic,Afro-Asiatic,22556610,42080,216802619,206.76MB,75444408,71.95MB,-,-
+arb_Arab_removed,train,arb,Arab,Standard Arabic,Afro-Asiatic,-,91914349,424346694398,395.20GB,119783382369,111.56GB,-,-
+bul_Cyrl,train,bul,Cyrl,Bulgarian,Indo-European,16074326712,25994731,156496753428,145.75GB,49044014988,45.68GB,-,-
+bul_Cyrl,test,bul,Cyrl,Bulgarian,Indo-European,22891017,36933,222955917,212.63MB,71265514,67.96MB,-,-
+bul_Cyrl_removed,train,bul,Cyrl,Bulgarian,Indo-European,-,41123060,131483040729,122.45GB,40657276410,37.87GB,-,-
+ces_Latn,train,ces,Latn,Czech,Indo-European,35479428809,66067904,221544258565,206.33GB,109931759576,102.38GB,-,-
+ces_Latn,test,ces,Latn,Czech,Indo-European,15060829,28051,94101962,89.74MB,48052080,45.83MB,-,-
+ces_Latn_removed,train,ces,Latn,Czech,Indo-European,-,173004746,367581444862,342.34GB,161697364523,150.59GB,-,-
+cmn_Hani,train,cmn,Hani,Mandarin Chinese,Sino-Tibetan,543543038750,636058984,2665362545414,2.42TB,1621984299196,1.48TB,-,-
+cmn_Hani,test,cmn,Hani,Mandarin Chinese,Sino-Tibetan,28350861,33296,139153923,132.71MB,86798945,82.78MB,-,-
+cmn_Hani_removed,train,cmn,Hani,Mandarin Chinese,Sino-Tibetan,-,849717131,3541235424467,3.22TB,1680811118640,1.53TB,-,-
+dan_Latn,train,dan,Latn,Danish,Indo-European,28055948840,45391655,161837584891,150.72GB,70588804915,65.74GB,-,-
+dan_Latn,test,dan,Latn,Danish,Indo-European,17349911,27945,100476484,95.82MB,45439828,43.33MB,-,-
+dan_Latn_removed,train,dan,Latn,Danish,Indo-European,-,102791820,182598230161,170.06GB,79040987959,73.61GB,-,-
+deu_Latn,train,deu,Latn,German,Indo-European,262271052199,495964485,1654784757688,1.51TB,772108850771,719.08GB,-,-
+deu_Latn,test,deu,Latn,German,Indo-European,34575067,65176,218086872,207.98MB,104264728,99.43MB,-,-
+deu_Latn_removed,train,deu,Latn,German,Indo-European,-,558814393,1271096761528,1.16TB,536302180899,499.47GB,-,-
+ekk_Latn,train,ekk,Latn,Standard Estonian,Uralic,6564292000,10218587,43834195267,40.82GB,19704343263,18.35GB,-,-
+ekk_Latn,test,ekk,Latn,Standard Estonian,Uralic,16252367,25786,108205903,103.19MB,49932831,47.62MB,-,-
+ekk_Latn_removed,train,ekk,Latn,Standard Estonian,Uralic,-,29308204,41864590718,38.99GB,18706435266,17.42GB,-,-
+ell_Grek,train,ell,Grek,Modern Greek (1453-),Indo-European,22827957288,47421073,238423993714,222.05GB,78555662908,73.16GB,-,-
+ell_Grek,test,ell,Grek,Modern Greek (1453-),Indo-European,16047490,32936,167421084,159.67MB,56274823,53.67MB,-,-
+ell_Grek_removed,train,ell,Grek,Modern Greek (1453-),Indo-European,-,97358213,309428468430,288.18GB,100719043719,93.80GB,-,-
+fin_Latn,train,fin,Latn,Finnish,Uralic,20343096672,36710816,153578789445,143.03GB,66505424415,61.94GB,-,-
+fin_Latn,test,fin,Latn,Finnish,Uralic,16678284,30398,125911361,120.08MB,57195191,54.55MB,-,-
+fin_Latn_removed,train,fin,Latn,Finnish,Uralic,-,78978641,157658848015,146.83GB,67258162979,62.64GB,-,-
+fra_Latn,train,fra,Latn,French,Indo-European,220662584640,360058973,1220202265605,1.11TB,539897427722,502.82GB,-,-
+fra_Latn,test,fra,Latn,French,Indo-European,26793655,44245,148212029,141.35MB,67031593,63.93MB,-,-
+fra_Latn_removed,train,fra,Latn,French,Indo-European,-,596844583,1537626728505,1.40TB,630893792280,587.57GB,-,-
+gle_Latn,train,gle,Latn,Irish,Indo-European,415191949,646842,2330152361,2.17GB,980691197,935.26MB,0.001,0.038
+gle_Latn,test,gle,Latn,Irish,Indo-European,4404536,6881,24685940,23.54MB,10667220,10.17MB,-,-
+gle_Latn_removed,train,gle,Latn,Irish,Indo-European,-,2058553,2464845797,2.30GB,1101583818,1.03GB,-,-
+hrv_Latn,train,hrv,Latn,Croatian,Indo-European,6609299440,6195824,38555062999,35.91GB,17568992943,16.36GB,-,-
+hrv_Latn,test,hrv,Latn,Croatian,Indo-European,9822990,9248,57298820,54.64MB,26464241,25.24MB,-,-
+hrv_Latn_removed,train,hrv,Latn,Croatian,Indo-European,-,54157365,108785211925,101.31GB,51729800496,48.18GB,-,-
+hun_Latn,train,hun,Latn,Hungarian,Uralic,30919839164,49935986,214420647030,199.69GB,98497079849,91.73GB,-,-
+hun_Latn,test,hun,Latn,Hungarian,Uralic,21474220,34779,149052651,142.15MB,69992198,66.75MB,-,-
+hun_Latn_removed,train,hun,Latn,Hungarian,Uralic,-,92953013,212270357058,197.69GB,89426629213,83.29GB,-,-
+ita_Latn,train,ita,Latn,Italian,Indo-European,139116026491,238984437,793750885035,739.24GB,356987031446,332.47GB,-,-
+ita_Latn,test,ita,Latn,Italian,Indo-European,24116206,41029,137654577,131.28MB,63821346,60.86MB,-,-
+ita_Latn_removed,train,ita,Latn,Italian,Indo-European,-,301144649,613194079479,571.08GB,264434204030,246.27GB,-,-
+jpn_Jpan,train,jpn,Jpan,Japanese,Japonic,331144301801,400138563,1650248456871,1.50TB,716653211753,667.44GB,-,-
+jpn_Jpan,test,jpn,Jpan,Japanese,Japonic,21935016,25889,109203833,104.14MB,48225826,45.99MB,-,-
+jpn_Jpan_removed,train,jpn,Jpan,Japanese,Japonic,-,874205291,3344917983018,3.04TB,1292056687898,1.18TB,-,-
+kor_Hang,train,kor,Hang,Korean,Koreanic,48613120582,60874355,229164863492,213.43GB,105767105257,98.50GB,-,-
+kor_Hang,test,kor,Hang,Korean,Koreanic,24109396,30074,113675298,108.41MB,54028075,51.53MB,-,-
+kor_Hang_removed,train,kor,Hang,Korean,Koreanic,-,136937698,440226583489,409.99GB,166194919077,154.78GB,-,-
+lit_Latn,train,lit,Latn,Lithuanian,Indo-European,9132828961,13471965,60666590655,56.50GB,27650973813,25.75GB,-,-
+lit_Latn,test,lit,Latn,Lithuanian,Indo-European,18610359,27694,123598322,117.87MB,57479868,54.82MB,-,-
+lit_Latn_removed,train,lit,Latn,Lithuanian,Indo-European,-,32411196,60805771992,56.63GB,25601527126,23.84GB,-,-
+lvs_Latn,train,lvs,Latn,Standard Latvian,Indo-European,5371151279,8030316,35823658462,33.36GB,15786398599,14.70GB,-,-
+lvs_Latn,test,lvs,Latn,Standard Latvian,Indo-European,15139347,22185,101326706,96.63MB,45672154,43.56MB,-,-
+lvs_Latn_removed,train,lvs,Latn,Standard Latvian,Indo-European,-,26626345,39570725734,36.85GB,17311720568,16.12GB,-,-
+mlt_Latn,train,mlt,Latn,Maltese,Afro-Asiatic,286548586,489190,1642185804,1.53GB,733570632,699.59MB,0.002,0.003
+mlt_Latn,test,mlt,Latn,Maltese,Afro-Asiatic,3093925,5193,17714725,16.89MB,8136189,7.76MB,-,-
+mlt_Latn_removed,train,mlt,Latn,Maltese,Afro-Asiatic,-,9634147,11596518252,10.80GB,5362588985,4.99GB,-,-
+nld_Latn,train,nld,Latn,Dutch,Indo-European,74634633118,147301270,426818652448,397.51GB,190027236277,176.98GB,-,-
+nld_Latn,test,nld,Latn,Dutch,Indo-European,16566230,33283,94629220,90.25MB,43884680,41.85MB,-,-
+nld_Latn_removed,train,nld,Latn,Dutch,Indo-European,-,308913360,568437766569,529.40GB,243421483486,226.70GB,-,-
+nno_Latn,train,nno,Latn,Norwegian Nynorsk,Indo-European,522740774,1214870,2882129938,2.68GB,1396085164,1.30GB,-,-
+nno_Latn,test,nno,Latn,Norwegian Nynorsk,Indo-European,5385385,12227,29631902,28.26MB,14573280,13.90MB,-,-
+nno_Latn_removed,train,nno,Latn,Norwegian Nynorsk,Indo-European,-,9502099,6476580285,6.03GB,3258186220,3.03GB,-,-
+nob_Latn,train,nob,Latn,Norwegian Bokmål,Indo-European,32008904934,38144343,184736905731,172.05GB,84016343532,78.25GB,-,-
+nob_Latn,test,nob,Latn,Norwegian Bokmål,Indo-European,36320436,43396,209563660,199.86MB,97886412,93.35MB,-,-
+nob_Latn_removed,train,nob,Latn,Norwegian Bokmål,Indo-European,-,50578775,115370334644,107.45GB,48122186709,44.82GB,-,-
+pol_Latn,train,pol,Latn,Polish,Indo-European,73119437217,151966724,463862082709,432.01GB,225858675350,210.35GB,-,-
+pol_Latn,test,pol,Latn,Polish,Indo-European,17759659,36574,112664541,107.45MB,56463099,53.85MB,-,-
+pol_Latn_removed,train,pol,Latn,Polish,Indo-European,-,300919585,622394712018,579.65GB,273588887059,254.80GB,-,-
+por_Latn,train,por,Latn,Portuguese,Indo-European,109536087117,199737979,611213407211,569.24GB,275864696856,256.92GB,-,-
+por_Latn,test,por,Latn,Portuguese,Indo-European,18843962,33846,105077458,100.21MB,48754285,46.50MB,-,-
+por_Latn_removed,train,por,Latn,Portuguese,Indo-European,-,417908539,873138979889,813.17GB,361854626039,337.00GB,-,-
+ron_Latn,train,ron,Latn,Romanian,Indo-European,35017893659,58303671,199920561455,186.19GB,91670592103,85.37GB,-,-
+ron_Latn,test,ron,Latn,Romanian,Indo-European,27993729,45783,159852183,152.45MB,75137198,71.66MB,-,-
+ron_Latn_removed,train,ron,Latn,Romanian,Indo-European,-,80240241,184254038213,171.60GB,76750315433,71.48GB,-,-
+rus_Cyrl,train,rus,Cyrl,Russian,Indo-European,588579493780,699083579,6400108560340,5.82TB,1987554520397,1.81TB,-,-
+rus_Cyrl,test,rus,Cyrl,Russian,Indo-European,30512906,34714,332728985,317.32MB,104147671,99.32MB,-,-
+rus_Cyrl_removed,train,rus,Cyrl,Russian,Indo-European,-,1319563371,5966723059692,5.43TB,1764778762366,1.61TB,-,-
+slk_Latn,train,slk,Latn,Slovak,Indo-European,14808010769,29991521,91733828860,85.43GB,46171266091,43.00GB,-,-
+slk_Latn,test,slk,Latn,Slovak,Indo-European,16208466,32557,100648277,95.99MB,51796934,49.40MB,-,-
+slk_Latn_removed,train,slk,Latn,Slovak,Indo-European,-,61993626,104894928029,97.69GB,46215661448,43.04GB,-,-
+slv_Latn,train,slv,Latn,Slovenian,Indo-European,7688373264,12059130,44878788376,41.80GB,20637664326,19.22GB,-,-
+slv_Latn,test,slv,Latn,Slovenian,Indo-European,21262672,32447,124216959,118.46MB,58171683,55.48MB,-,-
+slv_Latn_removed,train,slv,Latn,Slovenian,Indo-European,-,24025208,46162477271,42.99GB,20035882636,18.66GB,-,-
+spa_Latn,train,spa,Latn,Spanish,Indo-European,261523749595,441287261,1447166708770,1.32TB,637611323581,593.82GB,-,-
+spa_Latn,test,spa,Latn,Spanish,Indo-European,23741874,40970,131498727,125.41MB,59698497,56.93MB,-,-
+spa_Latn_removed,train,spa,Latn,Spanish,Indo-European,-,638414763,1598546038272,1.45TB,666747381321,620.96GB,-,-
+swe_Latn,train,swe,Latn,Swedish,Indo-European,35745969364,59485306,217929329252,202.96GB,95169288203,88.63GB,-,-
+swe_Latn,test,swe,Latn,Swedish,Indo-European,14987645,24692,91520290,87.28MB,41144759,39.24MB,-,-
+swe_Latn_removed,train,swe,Latn,Swedish,Indo-European,-,152608135,337231082663,314.07GB,146952704198,136.86GB,-,-
+tur_Latn,train,tur,Latn,Turkish,Turkic,41933799420,95129129,305497429770,284.52GB,134789283815,125.53GB,-,-
+tur_Latn,test,tur,Latn,Turkish,Turkic,15870837,36146,115590478,110.24MB,52871101,50.42MB,-,-
+tur_Latn_removed,train,tur,Latn,Turkish,Turkic,-,165382292,340733240752,317.33GB,147301785437,137.19GB,-,-

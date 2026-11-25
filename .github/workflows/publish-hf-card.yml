@@ -1,0 +1,63 @@
+name: Publish Hugging Face dataset card
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "huggingface/README.md"
+      - ".github/workflows/publish-hf-card.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-huggingface-card
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Hugging Face Hub client
+        run: python -m pip install --upgrade huggingface_hub
+
+      - name: Publish dataset card
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          from huggingface_hub import HfApi
+
+          token = os.environ.get("HF_TOKEN")
+          if not token:
+              raise SystemExit(
+                  "Missing GitHub Actions secret HF_TOKEN. "
+                  "Add the Hugging Face write token under Settings > Secrets and variables > Actions."
+              )
+
+          card = Path("huggingface/README.md")
+          if not card.is_file():
+              raise SystemExit(f"Dataset card not found: {card}")
+
+          api = HfApi(token=token)
+          api.upload_file(
+              path_or_fileobj=str(card),
+              path_in_repo="README.md",
+              repo_id="SylvainSouche/langid-32",
+              repo_type="dataset",
+              commit_message="Sync dataset card from GitHub",
+          )
+          print("Published huggingface/README.md to SylvainSouche/langid-32")
+          PY

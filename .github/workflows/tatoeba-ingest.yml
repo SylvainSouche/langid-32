@@ -1,0 +1,49 @@
+name: Ingest Tatoeba CC0 source
+# Refresh run requested 2026-11-17: re-download official CC0 export and recompute usable counts.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ingest:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: runtime
+        run: python3 scripts/emit_runtime_config.py
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ steps.runtime.outputs.python_version }}
+      - name: Install project and test dependency
+        run: |
+          python -m pip install --no-deps -e .
+          python -m pip install pytest
+      - name: Run tests
+        run: python -m pytest -q
+      - name: Download official weekly CC0 and base exports
+        run: |
+          mkdir -p input/tatoeba
+          curl --fail --location --retry "${{ steps.runtime.outputs.curl_retry_count }}" --output input/tatoeba/sentences_CC0.tar.bz2 https://downloads.tatoeba.org/exports/sentences_CC0.tar.bz2
+          curl --fail --location --retry "${{ steps.runtime.outputs.curl_retry_count }}" --output input/tatoeba/sentences_base.tar.bz2 https://downloads.tatoeba.org/exports/sentences_base.tar.bz2
+          tar -xjf input/tatoeba/sentences_CC0.tar.bz2 -C input/tatoeba
+          tar -xjf input/tatoeba/sentences_base.tar.bz2 -C input/tatoeba
+          find input/tatoeba -maxdepth 2 -type f -printf '%p %s bytes\n'
+      - name: Stage CC0 sentences with translation grouping
+        run: |
+          python scripts/stage_tatoeba.py \
+            --sentences-cc0 input/tatoeba/sentences_CC0.csv \
+            --sentences-base input/tatoeba/sentences_base.csv \
+            --source-release weekly-2026-11-14 \
+            --output reports/tatoeba-cc0-staged.jsonl
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tatoeba-cc0-staged-${{ github.run_id }}
+          path: |
+            reports/tatoeba-cc0-staged.jsonl
+            reports/tatoeba-cc0-staged.manifest.json
+          retention-days: ${{ steps.runtime.outputs.artifact_retention_days }}
+          if-no-files-found: error

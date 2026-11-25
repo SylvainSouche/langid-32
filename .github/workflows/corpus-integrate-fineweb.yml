@@ -1,0 +1,87 @@
+name: Build global 32-language corpus candidate v5
+
+on:
+  workflow_run:
+    workflows: ["Extract bounded English FineWeb sample"]
+    types: [completed]
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  integrate:
+    if: >-
+      ${{ github.event.workflow_run.conclusion == 'success' &&
+          github.event.workflow_run.head_sha == 'f2a87c4ea1c33ec13096a7a29a2d9fa859234069' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install project and test dependency
+        run: |
+          python -m pip install --no-deps -e .
+          python -m pip install pytest
+      - name: Run corpus tests
+        run: python -m pytest -q
+      - name: Download English FineWeb sample
+        uses: actions/download-artifact@v4
+        with:
+          name: fineweb-en-20000-v1.4.0
+          path: input/fineweb-en
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ github.event.workflow_run.id }}
+      - name: Download FineWeb2 20,100-per-language buffer
+        uses: actions/download-artifact@v4
+        with:
+          name: fineweb2-31x20100-buffer-v2.1.0
+          path: input/fineweb2
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 43932999222
+      - name: Download Tatoeba CC0 staging
+        uses: actions/download-artifact@v4
+        with:
+          name: tatoeba-cc0-staged-weekly-2026-11-14
+          path: input/tatoeba
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 43935243979
+      - name: Download DGT-TM 2021 staging
+        uses: actions/download-artifact@v4
+        with:
+          name: dgt-tm-2021-staged-5k
+          path: input/dgt-tm-2021
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 43935397129
+      - name: Normalize web-crawl sources
+        run: |
+          python scripts/stage_fineweb2.py --input input/fineweb2 --output reports/fineweb2-staged.jsonl
+          python scripts/stage_fineweb.py --input input/fineweb-en --output reports/fineweb-en-staged.jsonl
+      - name: Global normalization, privacy filtering, cross-source deduplication and split audit
+        run: |
+          python -m langid32.merge \
+            --input reports/fineweb2-staged.jsonl \
+            --input reports/fineweb-en-staged.jsonl \
+            --input input/tatoeba/tatoeba-cc0-staged.jsonl \
+            --input input/dgt-tm-2021/dgt-tm-2021-staged.jsonl \
+            --output reports/multisource-candidate-v5-fineweb-en \
+            --max-per-language 20000 \
+            --require-exact-counts
+          cp input/fineweb2/manifest.json reports/multisource-candidate-v5-fineweb-en/source-manifest-fineweb2.json
+          cp input/fineweb-en/manifest.json reports/multisource-candidate-v5-fineweb-en/source-manifest-fineweb.json
+          cp input/tatoeba/tatoeba-cc0-staged.manifest.json reports/multisource-candidate-v5-fineweb-en/source-manifest-tatoeba.json
+          cp input/dgt-tm-2021/dgt-tm-2021-staged.manifest.json reports/multisource-candidate-v5-fineweb-en/source-manifest-dgt-tm-2021.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: multisource-candidate-v5-fineweb-en
+          path: |
+            reports/multisource-candidate-v5-fineweb-en/manifest.json
+            reports/multisource-candidate-v5-fineweb-en/source-manifest-*.json
+          retention-days: 14
+          if-no-files-found: error

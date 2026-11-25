@@ -1,0 +1,40 @@
+name: LEGACY — Assemble historical FineWeb2 640k corpus
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: fineweb2-31x20000-v2.1.0-4shards
+          path: input/base
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: 43926783433
+      - uses: actions/download-artifact@v4
+        with:
+          name: fineweb2-hr-ga-mt-nn-topup-v2.1.0
+          path: input/topup
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: 43928656525
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Assemble and verify
+        run: python scripts/assemble_fineweb2_sample.py --base input/base --topup input/topup --output reports/fineweb2-640k
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fineweb2-640k-v2.1.0
+          path: reports/fineweb2-640k/manifest.json
+          retention-days: 14
+          if-no-files-found: error

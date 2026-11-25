@@ -1,0 +1,22 @@
+2026-11-19: rebuild 34-label candidate including the 201k balanced Leipzig news/Wikipedia acquisition, then export exactly 1,000 source-balanced sentences per language for JQL assessment. Remove all other candidate/source text from runner after artifact creation.
+
+Retry after fixing the Parquet CLI invocation and artifact upload paths (2026-11-19T15:00Z).
+artifact-upload-fix-2026-11-19
+2026-11-21: trigger full-corpus candidate export and all-row JQL scoring; three-head ratings plus sentence-boundary flags, global quantile normalization, consensus.
+
+2026-11-22: rebuild 35,000 candidate sentences per language; globally retain candidates above the 25th-percentile JQL consensus floor and select 25,000 per language using the existing core source proportions.
+
+
+2026-11-22 correction: the 35k candidate-stage build does not impose source-share caps. Source proportions are enforced only at final selection against the existing 30k core baseline. Arabic UN-derived acquisition is skipped while upstream reuse terms remain unverified. Icelandic Greynir acquisition is skipped while its source-dataset exclusion remains active. Final selection target is 25,000 per language.
+
+2026-11-23: rebuild candidate pool with Gaois Irish legislation TMX source; CC BY 4.0 derivative-only terms, 50k deterministic Irish candidate sample, per-TU provenance and 30% preferred/50% hard source-share policy retained.
+
+2026-11-23 retry: resumable Range download for multi-GB Målfrid archives; disable HF Xet/transfer extensions to avoid Python 3.12 streaming shutdown crash in Korean Wikipedia and FineWeb-2 acquisition.
+
+Retry Korean Wikipedia with pinned Parquet and synchronous PyArrow acquisition; 2026-11-23.
+
+Source-first intake: 20k screened unique rows per source, then global deduplication and 35k language-level source-balanced selection. Preselection disabled.
+
+Diagnostics: report screened per-source intake before global deduplication.
+
+Fix source bucket ordering and emit explicit unexpected-key diagnostics.

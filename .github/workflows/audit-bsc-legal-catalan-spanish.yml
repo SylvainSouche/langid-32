@@ -1,0 +1,27 @@
+name: Audit BSC Legal Catalan–Spanish corpus
+on:
+  push:
+    paths:
+      - "scripts/audit_bsc_legal_catalan_spanish.py"
+      - ".github/workflows/audit-bsc-legal-catalan-spanish.yml"
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install HTTP client
+        run: python -m pip install --disable-pip-version-check requests
+      - name: Download and audit upstream corpus
+        run: python scripts/audit_bsc_legal_catalan_spanish.py
+      - name: Upload aggregate audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: bsc-legal-catalan-spanish-audit-${{ github.run_id }}
+          path: reports/bsc-legal-catalan-spanish-audit.json
+          retention-days: 90

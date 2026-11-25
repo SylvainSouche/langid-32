@@ -1,0 +1,3 @@
+{"scope":"source-dataset","source":"catalan_dpo_v2:chosen","reason_code":"mixed_language_mislabelled","case_id":"DPO-QUARANTINE-2026-11-18","effective_at":"2026-11-18","status":"active"}
+{"scope":"source-dataset","source":"catalan_dpo_v2:messages","reason_code":"mixed_language_mislabelled","case_id":"DPO-QUARANTINE-2026-11-18","effective_at":"2026-11-18","status":"active"}
+{"scope":"source-dataset","source":"greynir","reason_code":"quality_hold_nonrepresentative_gold_dev_sample","case_id":"GREYNIR-GOLDDEV-2026-11-18","effective_at":"2026-11-18","status":"active"}

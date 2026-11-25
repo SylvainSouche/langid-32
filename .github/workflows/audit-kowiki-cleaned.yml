@@ -1,0 +1,27 @@
+name: Audit cleaned Korean Wikipedia 2026-07-01
+on:
+  push:
+    paths:
+      - "scripts/audit_kowiki_cleaned.py"
+      - ".github/workflows/audit-kowiki-cleaned.yml"
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Parquet reader and HTTP client
+        run: python -m pip install --disable-pip-version-check requests pyarrow
+      - name: Download and audit all Korean Wikipedia shards
+        run: python scripts/audit_kowiki_cleaned.py
+      - name: Upload audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: kowiki-cleaned-audit-${{ github.run_id }}
+          path: reports/kowiki-cleaned-070126-audit.json
+          retention-days: 90

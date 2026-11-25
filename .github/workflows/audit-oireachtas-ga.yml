@@ -1,0 +1,27 @@
+name: Audit Oireachtas Irish debate XML pilot
+on:
+  push:
+    paths:
+      - "scripts/audit_oireachtas_ga.py"
+      - ".github/workflows/audit-oireachtas-ga.yml"
+permissions:
+  contents: read
+jobs:
+  pilot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install HTTP client
+        run: python -m pip install --disable-pip-version-check requests
+      - name: Inspect official debate XML
+        run: python scripts/audit_oireachtas_ga.py
+      - name: Upload metadata-only report
+        uses: actions/upload-artifact@v4
+        with:
+          name: oireachtas-ga-pilot
+          path: reports/oireachtas-ga-pilot.json
+          retention-days: 90

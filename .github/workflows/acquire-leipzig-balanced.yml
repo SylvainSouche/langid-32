@@ -1,0 +1,29 @@
+name: Acquire Leipzig news + Wikipedia first pass
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+jobs:
+  acquire:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: runtime
+        run: python3 scripts/emit_runtime_config.py
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ steps.runtime.outputs.python_version }}
+      - name: Install acquisition dependencies
+        run: python -m pip install --disable-pip-version-check requests pyarrow
+      - name: Acquire up to 20,000 eligible unique entries per source and language
+        run: python scripts/acquire_leipzig_balanced.py --out out/leipzig
+      - name: Upload samples, provenance, manifests and original archives
+        if: always() && hashFiles('out/leipzig/**') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: leipzig-first-pass-${{ github.run_id }}
+          path: out/leipzig/
+          retention-days: ${{ steps.runtime.outputs.artifact_retention_days }}
+          if-no-files-found: error

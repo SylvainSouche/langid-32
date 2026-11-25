@@ -1,0 +1,45 @@
+name: Prepare Hugging Face dataset metadata package
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/huggingface-dataset-card.md"
+      - "docs/huggingface-licensing.md"
+      - "docs/source-register.md"
+      - "docs/source-attribution-register.md"
+      - ".github/workflows/prepare-hf-dataset.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Assemble metadata-only package
+        run: |
+          mkdir -p /tmp/langid32-hf-metadata
+          cp docs/huggingface-dataset-card.md /tmp/langid32-hf-metadata/README.md
+          cp docs/huggingface-licensing.md /tmp/langid32-hf-metadata/LICENSING.md
+          cp docs/source-register.md /tmp/langid32-hf-metadata/SOURCE_REGISTER.md
+          cp docs/source-attribution-register.md /tmp/langid32-hf-metadata/ATTRIBUTION_AND_CITATION.md
+          cat > /tmp/langid32-hf-metadata/STATUS.md <<'EOF'
+          Metadata-only preparation. No corpus text, Parquet, source archives or private provenance are included.
+          No Hugging Face publication is configured or authorised by this workflow.
+          EOF
+
+      - name: Upload documentation metadata only (no dataset text)
+        uses: actions/upload-artifact@v4
+        with:
+          name: langid-32-hf-metadata-package
+          path: /tmp/langid32-hf-metadata/
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Confirm no Hugging Face publication
+        run: echo "Documentation package only. No dataset upload has been performed."

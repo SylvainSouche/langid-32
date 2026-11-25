@@ -1,0 +1,36 @@
+name: LEGACY — FineWeb2 short-subset top-up
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install project package
+        run: python -m pip install --no-deps -e .
+      - name: Install DuckDB
+        run: python -m pip install --disable-pip-version-check duckdb
+      - name: Extract short-subset top-ups
+        run: >-
+          python scripts/extract_fineweb2_sample.py
+          --languages hr ga mt nn
+          --target-per-language 20000
+          --shards-per-language 4
+          --max-row-groups 3
+          --output-dir reports/fineweb2-topup
+      - name: Upload metadata manifest only (public repository; no candidate text)
+        uses: actions/upload-artifact@v4
+        with:
+          name: fineweb2-hr-ga-mt-nn-topup-v2.1.0
+          path: reports/fineweb2-topup/manifest.json
+          retention-days: 7
+          if-no-files-found: error
