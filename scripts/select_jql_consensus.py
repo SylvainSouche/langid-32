@@ -58,6 +58,8 @@ def main() -> None:
     args = ap.parse_args()
     cfg = load_config(args.config)
     jql_cfg = cfg["jql"]
+    if jql_cfg["selection_effect"] != "none" or jql_cfg["apply_quality_floor"]:
+        ap.error("JQL is annotation-only; selection and quality-floor filtering are disabled by policy")
     target_by_language = {lang: (args.target_per_language if args.target_per_language is not None else language_target(cfg, lang)) for lang in LANGUAGES}
     args.minimum_candidate_per_language = args.minimum_candidate_per_language or cfg["candidate"]["minimum_candidates_per_language"]
     args.global_quantile = args.global_quantile if args.global_quantile is not None else jql_cfg["diagnostic_global_quantile"]
