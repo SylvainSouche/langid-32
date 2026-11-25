@@ -238,7 +238,7 @@ def main():
     def scan(root, language, source):
         bucket_key = (language, source_bucket(source))
         for path in sorted([root] if root.is_file() else root.rglob("*")):
-            if len(retained[bucket_key]) >= max_per_source:
+            if quota_reached(bucket_key):
                 break
             if not path.is_file():
                 continue
@@ -436,7 +436,7 @@ def main():
                 selected_columns = [name for name in ("id", "url", "title", "text") if name in columns]
                 for batch in parquet.iter_batches(batch_size=512, columns=selected_columns):
                     for item in batch.to_pylist():
-                        if len(retained[("ko", "korean_wikipedia_20231101")]) >= max_per_source:
+                        if quota_reached(("ko", "korean_wikipedia_20231101")):
                             break
                         page_id = str(item.get("id") or processed)
                         provenance = {
