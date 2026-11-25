@@ -28,8 +28,8 @@ def _row(source, language, index):
 def test_normalization_applies_source_language_scope_and_per_source_caps(tmp_path):
     config = load_config()
     config["acquisition"]["source_language_overrides"].update({
-        "temu_cc0:component_a.hr": 1,
-        "temu_cc0:component_b.hr": 1,
+        "temu_cc0:component_a.ca": 1,
+        "temu_cc0:component_b.ca": 1,
         "fineweb2:hrv_Latn.hr": 1,
         "fineweb2.hr": 1,
     })
@@ -38,10 +38,10 @@ def test_normalization_applies_source_language_scope_and_per_source_caps(tmp_pat
     rows = [
         _row("fineweb2:hrv_Latn", "hr", 1),
         _row("fineweb2:cat_Latn", "ca", 2),
-        _row("temu_cc0:component_a", "hr", 3),
-        _row("temu_cc0:component_a", "hr", 4),
-        _row("temu_cc0:component_b", "hr", 5),
-        _row("temu_cc0:component_b", "hr", 6),
+        _row("temu_cc0:component_a", "ca", 3),
+        _row("temu_cc0:component_a", "ca", 4),
+        _row("temu_cc0:component_b", "ca", 5),
+        _row("temu_cc0:component_b", "ca", 6),
     ]
     source.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
 
@@ -65,8 +65,8 @@ def test_declared_quota_identity_is_shared_across_files_but_not_across_other_com
     config["acquisition"]["source_language_overrides"].update({
         "fineweb2:hrv_Latn.hr": 1,
         "fineweb2.hr": 1,
-        "temu_cc0:component_a.hr": 1,
-        "temu_cc0:component_b.hr": 1,
+        "temu_cc0:component_a.ca": 1,
+        "temu_cc0:component_b.ca": 1,
     })
     shared_counts = Counter()
     first_source = tmp_path / "fineweb2-component.jsonl"
