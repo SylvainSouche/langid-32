@@ -22,6 +22,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 from langid32.settings import load_config, acquisition_target, source_quota_key
+from langid32.acquisition_batches import open_state, plan_file_batches, add_eligible, retained_count, export_records
 EXECUTION = load_config()["execution"]
 from urllib.request import Request, urlopen
 
@@ -140,6 +141,7 @@ def main():
     parser.add_argument("--out", required=True)
     parser.add_argument("--fineweb2-config")
     parser.add_argument("--config", type=Path, default=ROOT / "config/langid32.toml")
+    parser.add_argument("--state-db", type=Path, help="Durable SQLite acquisition state (defaults inside --out)")
     args = parser.parse_args()
     cfg = load_config(args.config)
     waiting_text_rules = cfg["acquisition"]["source_rules"]["waiting_sources"]
@@ -155,14 +157,36 @@ def main():
     temp_root = Path(tempfile.mkdtemp())
     output_root = Path(args.out)
     output_root.mkdir(parents=True, exist_ok=True)
+    state_path = args.state_db or (output_root / "acquisition-state.sqlite")
+    state_path.parent.mkdir(parents=True, exist_ok=True)
+    state_db = open_state(state_path)
     retained = defaultdict(list)
     seen = defaultdict(set)
+    initialized_tasks = set()
     def limit_for(language, source):
         return acquisition_target(cfg, source, language)
 
+    def initialize_task(bucket_key):
+        if bucket_key in initialized_tasks:
+            return
+        language, source = bucket_key
+        target = limit_for(language, source)
+        plan_file_batches(
+            state_db, source, language, target, [],
+            int(EXECUTION["acquisition_files_per_batch"]),
+        )
+        existing = export_records(state_db, source, language)
+        retained[bucket_key].extend(existing)
+        seen[bucket_key].update(
+            hashlib.sha256(item["text"].encode("utf-8")).hexdigest()
+            for item in existing
+        )
+        initialized_tasks.add(bucket_key)
+
     def quota_reached(bucket_key):
         check_global_deadline()
-        return len(retained[bucket_key]) >= limit_for(*bucket_key)
+        initialize_task(bucket_key)
+        return retained_count(state_db, bucket_key[1], bucket_key[0]) >= limit_for(*bucket_key)
     downloads = []
     notes = []
     scanned = Counter()
@@ -223,6 +247,7 @@ def main():
         if not text:
             return
         bucket_key = (language, source_bucket(source))
+        initialize_task(bucket_key)
         text_hash = hashlib.sha256(text.encode("utf-8")).hexdigest()
         scanned[bucket_key] += 1
         if text_hash in seen[bucket_key] or quota_reached(bucket_key):
@@ -245,8 +270,10 @@ def main():
             "text_origin": origin,
             "provenance": prov,
         }
-        retained[bucket_key].append(record)
-        seen[bucket_key].add(text_hash)
+        inserted = add_eligible(state_db, bucket_key[1], language, [record])
+        if inserted:
+            retained[bucket_key].append(record)
+            seen[bucket_key].add(text_hash)
 
     def scan(root, language, source):
         bucket_key = (language, source_bucket(source))
@@ -635,6 +662,7 @@ def main():
         )
         print(json.dumps(report, ensure_ascii=False, indent=2))
     finally:
+        state_db.close()
         shutil.rmtree(temp_root, ignore_errors=True)
 
 
