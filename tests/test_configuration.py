@@ -30,12 +30,12 @@ def test_source_and_language_overrides_are_explicit_and_inherit_defaults():
         acquisition_target(config, "unregistered_source", "hr")
     config["acquisition"]["source_language_overrides"]["leipzig_news.hr"] = 12345
     assert acquisition_target(config, "leipzig_news", "hr") == 12345
-    assert language_target(config, "is") == 25000
+    assert language_target(config, "is") == 30000
     config["candidate"]["language_target_overrides"]["is"] = 24000
     assert language_target(config, "is") == 24000
 
 
-def test_approved_source_language_scopes_and_jql_non_filtering_policy():
+def test_approved_source_scopes_and_deferred_final_selection_policy():
     config = load_config()
     assert set(config["acquisition"]["source_rules"]["leipzig_news"]["languages"]) == {
         "hr", "fi", "el", "mt", "sl", "is"
@@ -43,10 +43,13 @@ def test_approved_source_language_scopes_and_jql_non_filtering_policy():
     assert set(config["acquisition"]["source_rules"]["dgt_tm_2021"]["languages"]) == {
         "hr", "fi", "el", "mt", "sl"
     }
-    assert config["candidate"]["final_sentences_per_language"] == 25000
-    assert config["candidate"]["minimum_candidates_per_language"] == 35000
+    assert config["acquisition"]["first_pass_target_per_source_language"] == 20000
+    assert config["candidate"]["final_sentences_per_language"] == 30000
+    assert config["candidate"]["final_selection_status"] == "deferred_pending_user_review"
+    assert config["candidate"]["source_balance"]["enabled"] is False
     assert config["jql"]["consensus_disagreement_penalty"] == 0.5
-    assert config["jql"]["apply_quality_floor"] is False
-    assert config["jql"]["selection_effect"] == "none"
-    assert config["candidate"]["source_balance"]["preferred_max_share_of_total_corpus_per_source"] == 0.30
-    assert config["candidate"]["source_balance"]["hard_max_share_of_total_corpus_per_source"] == 0.50
+    assert config["jql"]["prune_bottom_quantile"] == 0.25
+    assert config["jql"]["pruning_scope"] == "global_all_languages_after_full_corpus_normalization"
+    assert config["jql"]["final_selection_requires_user_approval"] is True
+    assert config["quality"]["initial_capitalization"] == "record_flag_only"
+    assert config["quality"]["terminal_punctuation"] == "record_flag_only"
