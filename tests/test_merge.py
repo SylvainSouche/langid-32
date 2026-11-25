@@ -62,12 +62,12 @@ def test_merge_excludes_obvious_pii_and_flags_numeric_sequences(tmp_path):
     args = _args(tmp_path, [source])
     merge(args)
     manifest = json.loads((args.output / "manifest.json").read_text())
-    assert manifest["rejected"]["email_excluded"] == 1
-    assert manifest["rejected"]["url_excluded"] == 1
-    assert manifest["rejected"]["ipv4_excluded"] == 1
+    assert manifest["rejected"]["privacy_flag_email"] == 1
+    assert manifest["rejected"]["privacy_flag_url"] == 1
+    assert manifest["rejected"]["privacy_flag_ipv4"] == 1
+    assert manifest["rejected"]["privacy_flag_phone_or_long_identifier"] == 1
     internal = [json.loads(line) for line in (args.output / "records.jsonl").read_text().splitlines()]
-    assert len(internal) == 1
-    assert "phone_like" in internal[0]["provenance"]["privacy_flags"]
+    assert internal == []
 
 
 def test_privacy_patterns_do_not_treat_legal_numbers_as_ip_or_phone():
