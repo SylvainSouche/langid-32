@@ -7,7 +7,6 @@ permissions:
 jobs:
   fineweb2:
     runs-on: ubuntu-latest
-    timeout-minutes: 360
     strategy:
       fail-fast: false
       max-parallel: 5
@@ -44,7 +43,6 @@ jobs:
   candidate:
     needs: [fineweb2]
     runs-on: ubuntu-latest
-    timeout-minutes: 360
     steps:
       - uses: actions/checkout@v4
       - name: Validate checkpoint key before restore
@@ -192,7 +190,6 @@ jobs:
   jql:
     needs: [candidate]
     runs-on: ubuntu-latest
-    timeout-minutes: 180
     steps:
       - uses: actions/checkout@v4
       - name: Validate checkpoint key before restore
