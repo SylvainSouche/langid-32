@@ -59,3 +59,15 @@ def test_ipv6_and_trailing_number_street_addresses_are_rejected():
 def test_malformed_dotted_number_is_not_classified_as_ipv4():
     from langid32.privacy import _has_ipv4
     assert not _has_ipv4("The version marker 999.999.999.999 is malformed and not an IP address.")
+
+
+def test_east_asian_postal_and_street_addresses_are_rejected():
+    for text in (
+        "The correspondence address is 東京都千代田区千代田1-1.",
+        "Please deliver to 北京市朝阳区建国路88号.",
+        "The office is at 서울특별시 강남구 테헤란로 123.",
+        "Mail to 〒100-0001.",
+    ):
+        result = screen_text(text)
+        assert not result.accepted, text
+        assert "street_address" in result.flags, text
