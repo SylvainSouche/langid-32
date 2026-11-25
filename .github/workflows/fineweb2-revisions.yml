@@ -1,9 +1,6 @@
-name: Inspect FineWeb2 historical shards
+name: LEGACY — FineWeb2 revision inventory
 
 on:
-  push:
-    paths:
-      - "scripts/inspect_fineweb2_revisions.py"
   workflow_dispatch:
 
 permissions:
