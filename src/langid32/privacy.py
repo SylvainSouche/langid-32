@@ -1,8 +1,9 @@
 """Conservative multilingual PII screening shared by all acquisition adapters.
 
-This is a deterministic first-pass privacy gate, not a claim of perfect NER.
-High-confidence identifiers are rejected; ambiguous person/address indicators
-are quarantined and never enter the candidate pool.
+High-confidence identifiers are rejected. Ambiguous person-name candidates and
+source-provided privacy flags are quarantined before any acquisition quota.
+This deterministic screen is intentionally conservative, not a claim of
+perfect multilingual named-entity recognition.
 """
 from __future__ import annotations
 
@@ -13,24 +14,20 @@ from dataclasses import dataclass
 EMAIL = re.compile(r"(?i)(?<![\w.+-])[\w.+-]+@[\w.-]+\.[A-Z]{2,}(?![A-Za-z0-9_.-])")
 URL = re.compile(r"(?i)(?:https?://|www\.)\S+")
 IPV4 = re.compile(r"(?<![\w.])(?:\d{1,3}\.){3}\d{1,3}(?![\w.])")
-LONG_NUMBER = re.compile(r"(?<!\w)\+?\d(?:[\d\s()./-]{6,}\d)?(?!\w)")
-# Street/address indicators across the target European languages.
+LONG_NUMBER = re.compile(r"(?<!\w)\d{9,}(?!\w)")
+PHONE_CANDIDATE = re.compile(r"(?<!\w)\+?\d[\d\s()./-]{6,}\d(?!\w)")
+
 STREET = re.compile(
     r"(?i)\b(?:street|st\.?|road|rd\.?|avenue|ave\.?|boulevard|blvd\.?|"
-    r"lane|drive|way|strasse|straße|platz|rue|avenue|chemin|route|"
-    r"calle|carrer|via|viale|ulica|ul\.?|cesta|ulice|utca|"
-    r"gata|gatan|veg(?:en)?|gade|kadun|tie|katu|"
-    r"ulica|ul\.?|улица|проспект|شارع)\b"
+    r"lane|drive|way|strasse|straße|platz|rue|chemin|route|calle|carrer|"
+    r"via|viale|ulica|ul\.?|cesta|ulice|utca|gata|gatan|veg(?:en)?|"
+    r"gade|kadun|tie|katu|улица|проспект|شارع)\b"
 )
 HOUSE_NUMBER = re.compile(
-    r"(?i)\\b\\d{1,5}\\s+(?:[\\wÀ-ž.'’-]+\\s+){0,4}"
-    r"(?:street|st\\.?|road|rd\\.?|avenue|ave\\.?|boulevard|blvd\\.?|lane|drive|way|"
-    r"strasse|straße|platz|rue|chemin|route|calle|carrer|via|viale|ulica|ul\\.?|"
-    r"cesta|ulice|utca|gata|gatan|veg(?:en)?|gade|kadun|tie|katu|улица|проспект|شارع)\\b"
-)
-AMBIGUOUS_PROPER_NAME = re.compile(
-    r"(?<![.!?]\\s)(?<!^)\\b[A-ZÀ-ÖØ-Þ][\\wÀ-ÖØ-öø-ÿ'’-]+"
-    r"\\s+[A-ZÀ-ÖØ-Þ][\\wÀ-ÖØ-öø-ÿ'’-]+\\b"
+    r"(?i)\b\d{1,5}\s+(?:[\wÀ-ž.'’-]+\s+){0,4}"
+    r"(?:street|st\.?|road|rd\.?|avenue|ave\.?|boulevard|blvd\.?|lane|drive|way|"
+    r"strasse|straße|platz|rue|chemin|route|calle|carrer|via|viale|ulica|ul\.?|"
+    r"cesta|ulice|utca|gata|gatan|veg(?:en)?|gade|kadun|tie|katu|улица|проспект|شارع)\b"
 )
 HONORIFIC = re.compile(
     r"(?i)\b(?:mr|mrs|ms|miss|dr|prof|professor|herr|frau|monsieur|"
@@ -43,9 +40,14 @@ PERSON_CONTEXT = re.compile(
     r"patient|customer|employee|recipient)\s*[:,-]?\s*"
     r"([A-ZÀ-ÖØ-Þ][\wÀ-ÖØ-öø-ÿ'’-]+(?:\s+[A-ZÀ-ÖØ-Þ][\wÀ-ÖØ-öø-ÿ'’-]+){0,2})"
 )
-# Source metadata may explicitly carry privacy/sensitive flags.
-FLAG_KEYS = ("privacy_flags", "sensitive_info", "sensitive_information",
-             "personal_data", "pii", "is_pii", "has_personal_information")
+AMBIGUOUS_PROPER_NAME = re.compile(
+    r"(?<![.!?]\s)(?<!^)\b[A-ZÀ-ÖØ-Þ][\wÀ-ÖØ-öø-ÿ'’-]+"
+    r"\s+[A-ZÀ-ÖØ-Þ][\wÀ-ÖØ-öø-ÿ'’-]+\b"
+)
+FLAG_KEYS = (
+    "privacy_flags", "sensitive_info", "sensitive_information",
+    "personal_data", "pii", "is_pii", "has_personal_information",
+)
 
 
 @dataclass(frozen=True)
@@ -77,7 +79,7 @@ def _metadata_flags(record: dict | None) -> list[str]:
 def _has_phone_like(text: str) -> bool:
     for match in PHONE_CANDIDATE.finditer(text):
         raw = match.group()
-        digits = re.sub(r"\\D", "", raw)
+        digits = re.sub(r"\D", "", raw)
         separators = sum(raw.count(char) for char in " -()./")
         if 9 <= len(digits) <= 15 and (separators >= 2 or "+" in raw):
             return True
