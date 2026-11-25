@@ -27,13 +27,13 @@ Candidate construction happens later. Its per-language targets, source-balance p
 | Language | Include in first-pass acquisition | Explicitly unavailable / excluded / held |
 |---|---|---|
 | Croatian (`hr`) | DGT-TM 2021; Leipzig News; Leipzig Wikipedia; FineWeb2 (`hrv_Latn`, technical only); **MaCoCu-hr 2.0** | Common Voice has no Croatian locale. FineWeb2 remains on underlying-text rights hold for release. |
-| Finnish (`fi`) | Common Voice 22; DGT-TM 2021 (20k); Leipzig News; Leipzig Wikipedia; Tatoeba CC0; FineWeb2 (`fin_Latn`, technical only) | FineWeb2 remains on underlying-text rights hold for release. |
-| Greek (`el`) | Common Voice 22; DGT-TM 2021 (20k); Leipzig News (20k); Leipzig Wikipedia (20k); FineWeb2 (`ell_Grek`, technical only) | FineWeb2 remains on underlying-text rights hold for release. |
+| Finnish (`fi`) | Common Voice 22; DGT-TM 2021; Leipzig News; Leipzig Wikipedia; Tatoeba CC0; FineWeb2 (`fin_Latn`, technical only) | FineWeb2 remains on underlying-text rights hold for release. |
+| Greek (`el`) | Common Voice 22; DGT-TM 2021 (20k); Leipzig News; Leipzig Wikipedia; FineWeb2 (`ell_Grek`, technical only) | FineWeb2 remains on underlying-text rights hold for release. |
 | Maltese (`mt`) | Common Voice 22; DGT-TM 2021 (20k); Leipzig News (20k); Leipzig Wikipedia (20k); FineWeb2 (`mlt_Latn`, technical only); **MaCoCu-mt 2.0** | FineWeb2 remains on underlying-text rights hold for release. Korpus Malti is not a substitute for MaCoCu-mt. |
 | Slovenian (`sl`) | Common Voice 22; DGT-TM 2021 (20k); Leipzig News (20k); Leipzig Wikipedia (20k); FineWeb2 (`slv_Latn`, technical only); **MaCoCu-sl 2.0**; **ParlaMint 4.0** | FineWeb2 remains on underlying-text rights hold for release. Do not double-count MaCoCu derivatives or overlapping parliamentary corpora as independent sources. |
 | Icelandic (`is`) | Common Voice 22; IGC2024 Filtered-1; Leipzig News (20k); Leipzig Wikipedia (20k); FineWeb2 (`isl_Latn`, technical only); **ParlaMint 4.0**; **Greynir Copper and Silver** | IGC Filtered-2 is excluded under its custom terms. **Greynir Gold development/test is excluded; Copper/Silver are included.** FineWeb2 remains on underlying-text rights hold for release. |
 
-The 20,000 target means "up to 20,000 eligible unique entries"; if a source contains fewer qualifying records, retain the available qualifying records and report the shortfall. It is not permission to fabricate or duplicate rows.
+The configured target means "up to the eligible unique entry count"; if a source contains fewer qualifying records, retain the available qualifying records and report the shortfall. It is not permission to fabricate or duplicate rows.
 
 ## Important Greynir correction
 
@@ -41,7 +41,7 @@ The previous active rule excluding source family `greynir` wholesale is too broa
 
 - Include the full LFS-backed **Copper** and **Silver** corpora.
 - Exclude only the **Gold development/test** partition.
-- Do not invent a shared family-wide 20,000 cap for Copper and Silver.
+- Do not invent a shared family-wide cap for Copper and Silver.
 
 ## Rights and provenance remain separate
 
@@ -54,6 +54,6 @@ The previous active rule excluding source family `greynir` wholesale is too broa
 
 ## Current pipeline discrepancy
 
-The latest diagnostics show Leipzig News and Wikipedia at approximately 3,000 each and DGT at approximately 5,000. Those figures are the obsolete acquisition caps, not the current sourcing decision. The acquisition scripts have been corrected to default to 20,000. Existing archived inputs/checkpoints still contain the old smaller samples and must be reacquired before candidate construction can reflect the current decision. Other approved but missing sources (MaCoCu, ParlaMint, Greynir Copper/Silver) remain separate integration tasks.
+The latest pre-refresh diagnostics show Leipzig News and Wikipedia at approximately 3,000 each and DGT at approximately 5,000. Those figures are obsolete historical caps, not the current sourcing decision. The acquisition scripts now read active targets from config/langid32.toml. Existing archived inputs/checkpoints still contain the old smaller samples and must be reacquired before candidate construction can reflect the current decision. Other approved but missing sources (MaCoCu, ParlaMint, Greynir Copper/Silver) remain separate integration tasks.
 
 Never encode source decisions only in a workflow matrix, script default or historical report. Update this register first, then make the acquisition implementation conform to it.
