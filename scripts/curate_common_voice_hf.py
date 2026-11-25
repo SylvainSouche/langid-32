@@ -26,11 +26,6 @@ URL = re.compile(r"(?i)(?:https?://[^\s<>]+|www\.[^\s<>]+)")
 IPV4 = re.compile(r"(?<![\d.])(?:\d{1,3}\.){3}\d{1,3}(?![\d.])")
 LONG_NUMBER = re.compile(r"\d{9,}")
 PHONE = re.compile(r"(?<!\w)\+?\d[\d -]{7,}\d(?!\w)")
-LANGUAGES = tuple(load_config()["acquisition"]["source_rules"]["common_voice_v22"]["languages"])
-if not LANGUAGES:
-    raise RuntimeError("Common Voice acquisition is disabled pending individual locale terms acceptance.")
-
-
 def norm(value: str) -> str:
     return " ".join(unicodedata.normalize("NFC", value).split())
 
@@ -57,6 +52,9 @@ def main() -> None:
     parser.add_argument("--config", type=Path, default=ROOT / "config/langid32.toml")
     args = parser.parse_args()
     cfg = load_config(args.config)
+    languages = tuple(cfg["acquisition"]["source_rules"]["common_voice_v22"]["languages"])
+    if not languages:
+        raise SystemExit("No Common Voice target languages are configured.")
     text_rules = cfg["acquisition"]["source_rules"]["common_voice_v22"]["text"]
     download_manifest_path = args.input_root / "hf-common-voice-download-manifest.json"
     if not download_manifest_path.is_file():
@@ -65,7 +63,7 @@ def main() -> None:
     locale_metadata = {row["locale"]: row for row in download_manifest.get("results", [])}
     candidates = defaultdict(dict)
     counts = Counter()
-    for language in LANGUAGES:
+    for language in languages:
         path = args.input_root / language / "validated_sentences.tsv"
         if not path.is_file():
             counts[f"{language}:missing_file"] += 1
@@ -126,7 +124,7 @@ def main() -> None:
         for text in rows:
             owners[text].add(language)
     collisions = {text for text, langs in owners.items() if len(langs) > 1}
-    for language in LANGUAGES:
+    for language in languages:
         for text in collisions:
             if text in candidates[language]:
                 del candidates[language][text]
@@ -136,7 +134,7 @@ def main() -> None:
     output_path = args.output / "common_voice_candidates.jsonl"
     final_counts = {}
     with output_path.open("w", encoding="utf-8", newline="\n") as out:
-        for language in LANGUAGES:
+        for language in languages:
             items = list(candidates[language].items())
             before = len(items)
             cap = args.per_language_cap if args.per_language_cap is not None else acquisition_target(cfg, "common_voice_v22", language)
@@ -163,7 +161,7 @@ def main() -> None:
         "source_license_claim": "CC0-1.0",
         "revision_resolved": download_manifest.get("revision_resolved"),
         "locale_revisions": {locale: row.get("repo_commit") for locale, row in sorted(locale_metadata.items())},
-        "target_languages": list(LANGUAGES),
+        "target_languages": list(languages),
         "raw_tsvs_uploaded": False,
         "audio_saved": False,
         "selection": {"validated_sentences_tsv": True, "require_is_used_true_when_present": True, "text_rules": text_rules, "within_language_deduplication": True, "all_language_collision_removal": True, "deterministic_cap": True},
