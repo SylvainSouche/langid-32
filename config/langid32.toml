@@ -11,6 +11,7 @@ languages = ["bg","hr","cs","da","nl","en","et","fi","fr","de","el","hu","ga","i
 # First pass: stream up to this many eligible, unique records from EACH
 # individual source for EACH language. This is not a family-wide/candidate cap.
 first_pass_target_per_source_language = 20000
+reject_unregistered_sources = true
 seed = "langid-32-fineweb2-v1"
 # No override currently approved. Keys are source identifiers, then language.
 [acquisition.source_language_overrides]
