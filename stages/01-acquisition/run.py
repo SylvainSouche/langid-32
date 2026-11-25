@@ -12,11 +12,15 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--target", required=True)
     parser.add_argument("--root", default=".")
+    parser.add_argument("--config", help="Optional adapter-specific configuration")
     args = parser.parse_args()
     script = TARGETS / f"{args.target}.py"
     if not script.is_file():
         raise SystemExit(f"Unknown acquisition target: {args.target}")
-    subprocess.run([sys.executable, str(script), "--root", str(Path(args.root).resolve())], check=True)
+    command = [sys.executable, str(script), "--root", str(Path(args.root).resolve())]
+    if args.config:
+        command.extend(["--config", args.config])
+    subprocess.run(command, check=True)
 
 if __name__ == "__main__":
     main()
