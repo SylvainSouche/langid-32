@@ -91,9 +91,7 @@ jobs:
             --input "shards/${{ matrix.file }}" \
             --output "ratings/shard-${{ matrix.index }}.csv" \
             --device cpu \
-            --batch-size 8 \
-            --max-length 8192 \
-            --torch-threads 2
+            --config config/langid32.toml
       - name: Upload shard ratings
         uses: actions/upload-artifact@v4
         with:
@@ -199,22 +197,19 @@ jobs:
             --input assessment.parquet \
             --ratings-dir ratings \
             --quality quality/sentence-boundary-flags.csv \
-            --output-csv out/jql-consensus-34k.csv \
-            --output-parquet out/jql-consensus-34k.parquet \
+            --output-csv out/jql-consensus-full.csv \
+            --output-parquet out/jql-consensus-full.parquet \
             --summary out/jql-consensus-full-summary.json
       - name: Select exact final target and preserve baseline source proportions
         run: |
           python scripts/select_jql_consensus.py \
-            --consensus out/jql-consensus-34k.parquet \
+            --consensus out/jql-consensus-full.parquet \
             --baseline-manifest baseline/candidate/manifest.json \
             --output-dir out/selected \
-            --target-per-language 25000 \
-            --minimum-candidate-per-language 35000 \
-            --global-quantile 0.25
       - name: Upload final assessment outputs
         uses: actions/upload-artifact@v4
         with:
-          name: langid-32-jql-consensus-34k
+          name: langid-32-jql-consensus-full
           path: out/
           if-no-files-found: error
           retention-days: 30
