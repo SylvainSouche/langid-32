@@ -7,6 +7,7 @@ perfect multilingual named-entity recognition.
 """
 from __future__ import annotations
 
+import ipaddress
 import re
 import unicodedata
 from dataclasses import dataclass
@@ -14,6 +15,7 @@ from dataclasses import dataclass
 EMAIL = re.compile(r"(?i)(?<![\w.+-])[\w.+-]+@[\w.-]+\.[A-Z]{2,}(?![A-Za-z0-9_.-])")
 URL = re.compile(r"(?i)(?:https?://|www\.)\S+")
 IPV4 = re.compile(r"(?<![\w.])(?:\d{1,3}\.){3}\d{1,3}(?![\w.])")
+IPV6_CANDIDATE = re.compile(r"(?<![\w:])(?:[0-9A-Fa-f]{0,4}:){2,7}[0-9A-Fa-f]{0,4}(?![\w:])")
 LONG_NUMBER = re.compile(r"(?<!\w)\d{9,}(?!\w)")
 PHONE_CANDIDATE = re.compile(r"(?<!\w)\+?\d[\d\s()./-]{6,}\d(?!\w)")
 
@@ -28,6 +30,11 @@ HOUSE_NUMBER = re.compile(
     r"(?:street|st\.?|road|rd\.?|avenue|ave\.?|boulevard|blvd\.?|lane|drive|way|"
     r"strasse|straße|platz|rue|chemin|route|calle|carrer|via|viale|ulica|ul\.?|"
     r"cesta|ulice|utca|gata|gatan|veg(?:en)?|gade|kadun|tie|katu|улица|проспект|شارع)\b"
+)
+STREET_TRAILING_NUMBER = re.compile(
+    r"(?i)\b(?:street|road|avenue|boulevard|lane|drive|rue|chemin|route|calle|"
+    r"carrer|via|viale|ulica|ul\.?|cesta|utca|gata|gatan|veg(?:en)?|gade|"
+    r"kadun|tie|katu|улица|проспект|شارع)\s+(?:[\wÀ-ž.'’-]+\s+){0,4}\d{1,5}\b"
 )
 HONORIFIC = re.compile(
     r"(?i)\b(?:mr|mrs|ms|miss|dr|prof|professor|herr|frau|monsieur|"
@@ -86,6 +93,16 @@ def _metadata_flags(record: dict | None) -> list[str]:
     return found
 
 
+def _has_ipv6(text: str) -> bool:
+    for match in IPV6_CANDIDATE.finditer(text):
+        try:
+            if ipaddress.ip_address(match.group()).version == 6:
+                return True
+        except ValueError:
+            continue
+    return False
+
+
 def _has_phone_like(text: str) -> bool:
     for match in PHONE_CANDIDATE.finditer(text):
         raw = match.group()
@@ -114,9 +131,9 @@ def screen_text(value: str, *, record: dict | None = None,
     high_confidence = (
         ("email", EMAIL.search(text)),
         ("url", URL.search(text)),
-        ("ipv4", IPV4.search(text)),
+        ("ipv4", IPV4.search(text) or _has_ipv6(text)),
         ("phone_or_long_identifier", _has_phone_like(text) or LONG_NUMBER.search(text)),
-        ("street_address", STREET.search(text) and HOUSE_NUMBER.search(text)),
+        ("street_address", STREET.search(text) and (HOUSE_NUMBER.search(text) or STREET_TRAILING_NUMBER.search(text))),
         ("person_name_honorific", HONORIFIC.search(text)),
         ("person_name_context", PERSON_CONTEXT.search(text)),
     )
