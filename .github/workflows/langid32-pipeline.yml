@@ -1,130 +1,218 @@
 name: langid-32 staged corpus pipeline
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - "stages/**"
-      - "scripts/checkpoint.py"
-      - ".github/workflows/langid32-pipeline.yml"
 permissions:
   actions: read
   contents: read
 jobs:
-  historical:
+  config:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    outputs:
+      acquisition_max_parallel_source_tasks: "${{  steps.runtime.outputs.acquisition_max_parallel_source_tasks  }}"
+      acquisition_job_timeout_minutes: "${{  steps.runtime.outputs.acquisition_job_timeout_minutes  }}"
+      acquisition_global_budget_minutes: "${{  steps.runtime.outputs.acquisition_global_budget_minutes  }}"
+      acquisition_safety_margin_minutes: "${{  steps.runtime.outputs.acquisition_safety_margin_minutes  }}"
+      acquisition_started_epoch: "${{  steps.runtime.outputs.acquisition_started_epoch  }}"
     steps:
       - uses: actions/checkout@v4
-      - name: Validate checkpoint key before acquisition
-        env: {LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"}
-        run: python -c 'import os,sys; k=os.environ.get("LANGID32_CHECKPOINT_KEY",""); sys.exit(0 if len(k)>=32 else "LANGID32_CHECKPOINT_KEY is missing or shorter than 32 characters")'
-      - uses: actions/download-artifact@v4
-        with: {github-token: "${{ secrets.GITHUB_TOKEN }}", repository: "${{ github.repository }}", run-id: "43950037392", path: input/v5}
-      - uses: actions/download-artifact@v4
-        with: {github-token: "${{ secrets.GITHUB_TOKEN }}", repository: "${{ github.repository }}", run-id: "44361364340", path: input/leipzig}
-      - uses: actions/download-artifact@v4
-        with: {github-token: "${{ secrets.GITHUB_TOKEN }}", repository: "${{ github.repository }}", run-id: "44121162591", path: input/tatoeba}
-      - uses: actions/download-artifact@v4
-        with: {github-token: "${{ secrets.GITHUB_TOKEN }}", repository: "${{ github.repository }}", run-id: "44291075180", path: input/dgt}
-      - name: Validate historical target
-        run: python stages/01-acquisition/run.py --target historical
+        with:
+          ref: recovery/fix-acquisition-20261124
       - uses: actions/setup-python@v5
-        with: {python-version: "3.12"}
-      - run: python -m pip install cryptography
-      - name: Encrypt acquisition checkpoint
-        env: {LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"}
-        run: python scripts/checkpoint.py pack --archive checkpoint.bin
-      - uses: actions/upload-artifact@v4
-        with: {name: acquisition-historical, path: checkpoint.bin, retention-days: 7}
+        with:
+          python-version: "3.12"
+      - id: runtime
+        run: python3 scripts/emit_runtime_config.py
   common-voice:
+    needs: [config]
     runs-on: ubuntu-latest
-    timeout-minutes: 180
+    timeout-minutes: ${{ fromJSON(needs.config.outputs.acquisition_job_timeout_minutes) }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: recovery/fix-acquisition-20261124
+      - id: runtime
+        run: python3 scripts/emit_runtime_config.py
+      - name: Enforce shared six-hour workflow budget
+        run: >-
+          python3 scripts/check_runtime_budget.py
+          --started-epoch "${{ needs.config.outputs.acquisition_started_epoch }}"
+          --budget-minutes "${{ needs.config.outputs.acquisition_global_budget_minutes }}"
+          --safety-margin-minutes "${{ needs.config.outputs.acquisition_safety_margin_minutes }}"
       - name: Validate checkpoint key before acquisition
-        env: {LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"}
+        env:
+          LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"
         run: python -c 'import os,sys; k=os.environ.get("LANGID32_CHECKPOINT_KEY",""); sys.exit(0 if len(k)>=32 else "LANGID32_CHECKPOINT_KEY is missing or shorter than 32 characters")'
       - uses: actions/setup-python@v5
-        with: {python-version: "3.12"}
-      - run: python stages/01-acquisition/run.py --target common-voice
+        with:
+          python-version: "${{ steps.runtime.outputs.python_version }}"
       - run: python -m pip install cryptography
-      - name: Encrypt acquisition checkpoint
-        env: {LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"}
+      - name: Acquire Common Voice HF text
+        id: acquire
+        run: python stages/01-acquisition/run.py --target common-voice
+      - name: Encrypt Common Voice checkpoint, including partial progress on failure
+        id: checkpoint
+        if: always() && steps.acquire.outcome != 'skipped'
+        env:
+          LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"
         run: python scripts/checkpoint.py pack --archive checkpoint.bin
       - uses: actions/upload-artifact@v4
-        with: {name: acquisition-common-voice, path: checkpoint.bin, retention-days: 7}
+        if: always() && steps.checkpoint.outcome == 'success'
+        with:
+          name: acquisition-common-voice
+          path: checkpoint.bin
+          retention-days: "${{ steps.runtime.outputs.checkpoint_retention_days }}"
   waiting-source:
+    needs: [config]
     runs-on: ubuntu-latest
-    timeout-minutes: 360
+    timeout-minutes: ${{ fromJSON(needs.config.outputs.acquisition_job_timeout_minutes) }}
     strategy:
       fail-fast: false
+      max-parallel: ${{ fromJSON(needs.config.outputs.acquisition_max_parallel_source_tasks) }}
       matrix:
-        target: [catalan, icelandic, norwegian, korean, fineweb2, arabic, gaois]
+        include:
+          - target: catalan
+          - target: icelandic
+          - target: norwegian
+          - target: korean
+          - target: fineweb2
+            config: isl_Latn
+          - target: fineweb2
+            config: hrv_Latn
+          - target: fineweb2
+            config: fin_Latn
+          - target: fineweb2
+            config: ell_Grek
+          - target: fineweb2
+            config: mlt_Latn
+          - target: fineweb2
+            config: slv_Latn
+          - target: arabic
+          - target: gaois
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: recovery/fix-acquisition-20261124
+      - id: runtime
+        run: python3 scripts/emit_runtime_config.py
+      - name: Enforce shared six-hour workflow budget
+        run: >-
+          python3 scripts/check_runtime_budget.py
+          --started-epoch "${{ needs.config.outputs.acquisition_started_epoch }}"
+          --budget-minutes "${{ needs.config.outputs.acquisition_global_budget_minutes }}"
+          --safety-margin-minutes "${{ needs.config.outputs.acquisition_safety_margin_minutes }}"
       - name: Validate checkpoint key before acquisition
-        env: {LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"}
+        env:
+          LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"
         run: python -c 'import os,sys; k=os.environ.get("LANGID32_CHECKPOINT_KEY",""); sys.exit(0 if len(k)>=32 else "LANGID32_CHECKPOINT_KEY is missing or shorter than 32 characters")'
       - uses: actions/setup-python@v5
-        with: {python-version: "3.12"}
+        with:
+          python-version: "${{ steps.runtime.outputs.python_version }}"
       - run: python -m pip install datasets huggingface_hub pyarrow fasttext-wheel cryptography
-      - run: python stages/01-acquisition/run.py --target "${{ matrix.target }}"
-      - name: Encrypt acquisition checkpoint
-        env: {LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"}
+      - name: Acquire waiting-source target
+        id: acquire
+        env:
+          LANGID32_ACQUISITION_STARTED_EPOCH: "${{ needs.config.outputs.acquisition_started_epoch }}"
+        run: python stages/01-acquisition/run.py --target "${{ matrix.target }}" ${{ matrix.config && format('--config {0}', matrix.config) || '' }}
+      - name: Encrypt acquisition checkpoint, including partial progress on failure
+        id: checkpoint
+        if: always() && steps.acquire.outcome != 'skipped'
+        env:
+          LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"
         run: python scripts/checkpoint.py pack --archive checkpoint.bin
       - uses: actions/upload-artifact@v4
+        if: always() && steps.checkpoint.outcome == 'success'
         with:
-          name: acquisition-${{ matrix.target }}
+          name: acquisition-${{ matrix.target }}-${{ matrix.config || 'default' }}
           path: checkpoint.bin
-          retention-days: 7
+          retention-days: ${{ steps.runtime.outputs.checkpoint_retention_days }}
   candidate:
-    needs: [historical, common-voice, waiting-source]
+    needs: [config, common-voice, waiting-source]
     runs-on: ubuntu-latest
-    timeout-minutes: 360
+    timeout-minutes: ${{ fromJSON(needs.config.outputs.acquisition_job_timeout_minutes) }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: recovery/fix-acquisition-20261124
+      - id: runtime
+        run: python3 scripts/emit_runtime_config.py
+      - name: Enforce shared six-hour workflow budget
+        run: >-
+          python3 scripts/check_runtime_budget.py
+          --started-epoch "${{ needs.config.outputs.acquisition_started_epoch }}"
+          --budget-minutes "${{ needs.config.outputs.acquisition_global_budget_minutes }}"
+          --safety-margin-minutes "${{ needs.config.outputs.acquisition_safety_margin_minutes }}"
       - name: Validate checkpoint key before restore
-        env: {LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"}
+        env:
+          LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"
         run: python -c 'import os,sys; k=os.environ.get("LANGID32_CHECKPOINT_KEY",""); sys.exit(0 if len(k)>=32 else "LANGID32_CHECKPOINT_KEY is missing or shorter than 32 characters")'
       - uses: actions/setup-python@v5
-        with: {python-version: "3.12"}
+        with:
+          python-version: "${{ steps.runtime.outputs.python_version }}"
       - run: python -m pip install cryptography pyarrow
       - uses: actions/download-artifact@v4
-        with: {pattern: "acquisition-*", path: checkpoints, merge-multiple: false}
+        with:
+          pattern: "acquisition-*"
+          path: checkpoints
+          merge-multiple: false
       - name: Restore acquisition checkpoints
-        env: {LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"}
+        env:
+          LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"
         run: |
           find checkpoints -name checkpoint.bin -print0 | while IFS= read -r -d '' f; do
             python scripts/checkpoint.py unpack --archive "$f"
           done
       - name: Build candidate corpus
-        env: {PYTHONPATH: src}
+        env:
+          PYTHONPATH: src
         run: python stages/02-candidate/run.py
       - name: Encrypt candidate checkpoint
-        env: {LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"}
+        env:
+          LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"
         run: python scripts/checkpoint.py pack --archive candidate.bin
       - uses: actions/upload-artifact@v4
-        with: {name: candidate-checkpoint, path: candidate.bin, retention-days: 7}
+        with:
+          name: candidate-checkpoint
+          path: candidate.bin
+          retention-days: "${{ steps.runtime.outputs.checkpoint_retention_days }}"
   jql:
-    needs: [candidate]
+    needs: [config, candidate]
     runs-on: ubuntu-latest
-    timeout-minutes: 180
+    timeout-minutes: ${{ fromJSON(needs.config.outputs.acquisition_job_timeout_minutes) }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: recovery/fix-acquisition-20261124
+      - id: runtime
+        run: python3 scripts/emit_runtime_config.py
+      - name: Enforce shared six-hour workflow budget
+        run: >-
+          python3 scripts/check_runtime_budget.py
+          --started-epoch "${{ needs.config.outputs.acquisition_started_epoch }}"
+          --budget-minutes "${{ needs.config.outputs.acquisition_global_budget_minutes }}"
+          --safety-margin-minutes "${{ needs.config.outputs.acquisition_safety_margin_minutes }}"
       - name: Validate checkpoint key before restore
-        env: {LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"}
+        env:
+          LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"
         run: python -c 'import os,sys; k=os.environ.get("LANGID32_CHECKPOINT_KEY",""); sys.exit(0 if len(k)>=32 else "LANGID32_CHECKPOINT_KEY is missing or shorter than 32 characters")'
       - uses: actions/setup-python@v5
-        with: {python-version: "3.12"}
+        with:
+          python-version: "${{ steps.runtime.outputs.python_version }}"
       - run: python -m pip install cryptography pyarrow
       - uses: actions/download-artifact@v4
-        with: {name: candidate-checkpoint, path: checkpoint}
+        with:
+          name: candidate-checkpoint
+          path: checkpoint
       - name: Restore candidate checkpoint
-        env: {LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"}
+        env:
+          LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"
         run: python scripts/checkpoint.py unpack --archive checkpoint/candidate.bin
       - run: python stages/03-jql/run.py
       - name: Encrypt final assessment
-        env: {LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"}
+        env:
+          LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"
         run: python scripts/checkpoint.py pack --archive final.bin
       - uses: actions/upload-artifact@v4
-        with: {name: langid-32-jql-assessment-full-encrypted, path: final.bin, retention-days: 30}
+        with:
+          name: langid-32-jql-assessment-full-encrypted
+          path: final.bin
+          retention-days: "${{ steps.runtime.outputs.artifact_retention_days }}"
