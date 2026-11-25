@@ -200,6 +200,7 @@ def main():
         return retained_count(state_db, bucket_key[1], bucket_key[0]) >= limit_for(*bucket_key)
     downloads = []
     notes = []
+    privacy_counts = Counter()
     scanned = Counter()
     revisions = {}
 
@@ -256,6 +257,25 @@ def main():
     def add(language, source, value, group_id="", provenance=None):
         text = clean(value, language, waiting_text_rules)
         if not text:
+            privacy_counts["source_quality_rejected"] += 1
+            return
+        global_text_rules = cfg["acquisition"]["text"]
+        letters = sum(char.isalpha() for char in text)
+        if (len(text) < global_text_rules["min_characters"]
+                or len(text) > global_text_rules["max_characters"]
+                or len(text.encode("utf-8")) > global_text_rules["max_utf8_bytes"]
+                or letters < global_text_rules["min_letter_characters"]
+                or letters / max(len(text), 1) < global_text_rules["min_letter_ratio"]):
+            privacy_counts["global_quality_rejected"] += 1
+            return
+        privacy = screen_text(
+            text, record=provenance or {},
+            uncertain_action=global_text_rules["privacy_uncertain_action"],
+        )
+        if not privacy.accepted:
+            privacy_counts[privacy.status] += 1
+            for flag in privacy.flags:
+                privacy_counts["flag:" + flag] += 1
             return
         bucket_key = (language, source_bucket(source))
         initialize_task(bucket_key)
