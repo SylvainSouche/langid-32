@@ -3,6 +3,10 @@
 from __future__ import annotations
 import argparse, hashlib, heapq, json, re, sqlite3, tempfile, unicodedata, zipfile
 from pathlib import Path
+import sys
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+from langid32.settings import load_config, acquisition_target
 from urllib.request import Request, urlopen
 from xml.etree.ElementTree import iterparse
 
@@ -46,9 +50,13 @@ def download(url, path):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", type=Path, required=True)
-    parser.add_argument("--max-sample", type=int, default=50000)
-    parser.add_argument("--seed", default="langid-32-gaois-2026-11-23")
+    parser.add_argument("--max-sample", type=int, default=None)
+    parser.add_argument("--seed", default=None)
+    parser.add_argument("--config", type=Path, default=ROOT / "config/langid32.toml")
     args = parser.parse_args()
+    cfg = load_config(args.config)
+    args.max_sample = args.max_sample if args.max_sample is not None else acquisition_target(cfg, "gaois_irish_legislation", "ga")
+    args.seed = args.seed or cfg["candidate"]["splits"]["seed"]
     args.out.parent.mkdir(parents=True, exist_ok=True)
     temp = Path(tempfile.mkdtemp(prefix="gaois-stage-"))
     db = sqlite3.connect(temp / "dedup.sqlite")
