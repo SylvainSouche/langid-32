@@ -205,7 +205,8 @@ jobs:
           python scripts/select_jql_consensus.py \
             --consensus out/jql-consensus-full.parquet \
             --baseline-manifest baseline/candidate/manifest.json \
-            --output-dir out/selected \
+            --output-dir out/selected \\
+            --config config/langid32.toml
       - name: Upload final assessment outputs
         uses: actions/upload-artifact@v4
         with:
