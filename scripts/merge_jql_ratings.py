@@ -50,9 +50,9 @@ def read_rating_files(directory: Path) -> dict[str, dict]:
 
 
 def quantile_normalize(values: list[float], epsilon: float | None = None) -> list[float]:
+    """Map average ranks to standard-normal quantiles; ties receive the same score."""
     if epsilon is None:
         epsilon = load_config()["jql"]["quantile_epsilon"]
-    """Map average ranks to standard-normal quantiles; ties receive the same score."""
     n = len(values)
     if n == 0:
         return []
