@@ -239,6 +239,7 @@ def main():
     reports = []
     merge_inputs = []
     source_language_counts = Counter()
+    source_language_seen = defaultdict(set)
     for label, path, filter_superseded in sources:
         destination = normalized_dir / f"{label}.jsonl"
         reports.append(normalize_file(path, destination, config=cfg, source_language_counts=source_language_counts, source_language_seen=source_language_seen, filter_superseded=filter_superseded))
