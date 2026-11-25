@@ -72,7 +72,7 @@ def main():
  if unknown:raise SystemExit("Unknown labels: "+", ".join(sorted(unknown)))
  manifest={"collection":"Leipzig Corpora Collection","licence":"CC BY 4.0","licence_url":"https://wortschatz.uni-leipzig.de/en/usage",
   "index_url":INDEX_URL,"index_sha256":idxsha,"index_rows":len(cat),"quota_per_family":a.quota,
-  "policy":"3,000 news + 3,000 Wikipedia per language; Unicode decimal digits excluded from news only","archives":[]}
+  "policy":"First-pass acquisition target: up to 20,000 eligible unique entries per source family (news and Wikipedia) and language; Unicode decimal digits excluded from news only","archives":[]}
  todo=[]
  for label,codes in LANGS.items():
   if selected_labels and label not in selected_labels:continue
