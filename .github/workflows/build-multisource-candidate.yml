@@ -1,4 +1,4 @@
-name: Build source-first 35k candidate corpus and JQL assessment
+name: Build candidate corpus and JQL assessment
 
 on:
   workflow_dispatch:
