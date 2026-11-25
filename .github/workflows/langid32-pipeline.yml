@@ -1,11 +1,6 @@
 name: langid-32 staged corpus pipeline
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - "stages/**"
-      - "scripts/checkpoint.py"
-      - ".github/workflows/langid32-pipeline.yml"
 permissions:
   actions: read
   contents: read
