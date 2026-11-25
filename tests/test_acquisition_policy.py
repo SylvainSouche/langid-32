@@ -65,7 +65,7 @@ def test_shared_runtime_budget_guard_respects_safety_reserve():
 
 def test_production_workflow_has_central_concurrency_and_deadline_guards():
     workflow = (ROOT / ".github/workflows/langid32-pipeline.yml").read_text()
-    assert 'max-parallel: "${{ fromJSON(needs.config.outputs.acquisition_max_parallel_source_tasks) }}"' in workflow
+    assert "max-parallel: ${{ fromJSON(needs.config.outputs.acquisition_max_parallel_source_tasks) }}" in workflow
     for name in ("historical:", "common-voice:", "waiting-source:", "candidate:", "jql:"):
         assert name in workflow
     assert workflow.count("Enforce shared six-hour workflow budget") == 5
