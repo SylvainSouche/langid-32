@@ -19,7 +19,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 from langid32.settings import load_config, acquisition_target
 from langid32.privacy import screen_text
-from langid32.acquisition_batches import open_state, plan_file_batches, next_batch, finish_batch, add_eligible, export_records, task_report, retained_count, mark_exhausted
+from langid32.acquisition_batches import open_state, plan_file_batches, next_batch, finish_batch, add_eligible, export_records, task_report, retained_count, pending_batch_count, mark_exhausted
 
 def norm(value: str) -> str:
     return " ".join(unicodedata.normalize("NFC", value).split())
@@ -121,8 +121,9 @@ def main() -> None:
                 for chunk in iter(lambda: raw.read(1024 * 1024), b""):
                     digest.update(chunk)
             finish_batch(state_db, source_key, language, batch_no, {resolved_path: digest.hexdigest()})
-            if retained_count(state_db, source_key, language) < cap:
-                mark_exhausted(state_db, source_key, language)
+        if (retained_count(state_db, source_key, language) < cap
+                and pending_batch_count(state_db, source_key, language) == 0):
+            mark_exhausted(state_db, source_key, language)
         stored = export_records(state_db, source_key, language)
         for record in stored:
             candidates[language][record["text"]] = {
