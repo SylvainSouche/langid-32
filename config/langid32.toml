@@ -59,7 +59,6 @@ long_numeric_min_digits = 9
 
 [acquisition.source_rules.fineweb2]
 target = 20000
-quota_key = "fineweb2"
 languages = ["hr", "fi", "el", "mt", "sl", "is"]
 
 [acquisition.source_rules.tatoeba_cc0]
@@ -98,7 +97,6 @@ status = "technical_candidate_only_share_alike_compatibility_hold"
 
 [acquisition.source_rules.maalfrid2026]
 target = 20000
-quota_key = "maalfrid2026"
 languages = ["nb", "nn"]
 status = "technical_candidate_only_database_and_third_party_rights_hold"
 
@@ -109,7 +107,6 @@ status = "cc0_component_union_source_level_review"
 
 [acquisition.source_rules.un_arabic_english_filtered]
 target = 20000
-quota_key = "un_arabic_english_filtered"
 languages = ["ar"]
 status = "include_cc_by_4_0_attribution_and_provenance"
 
@@ -256,6 +253,14 @@ initial_capitalization = "record_flag_only"
 terminal_punctuation = "record_flag_only"
 
 [execution]
+# Acquisition is scheduled in bounded file batches. Counts are post-filter, post-dedup.
+acquisition_files_per_batch = 8
+acquisition_max_parallel_source_tasks = 4
+acquisition_job_timeout_minutes = 300
+acquisition_global_budget_minutes = 330
+acquisition_safety_margin_minutes = 30
+acquisition_retry_attempts = 3
+acquisition_checkpoint_every_files = 1
 # Runtime controls are centralized here too; workflows should reference these.
 python_version = "3.12"
 leipzig_pause_seconds = 1
