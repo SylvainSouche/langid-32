@@ -1,5 +1,5 @@
 name: Ingest DGT-TM 2021 source sample
-# First-pass acquisition target: up to 20,000 eligible unique entries per language.
+# Per-source language targets and sampling rules are read from config/langid32.toml.
 
 on:
   workflow_dispatch:
@@ -33,7 +33,7 @@ jobs:
           curl --fail --location --retry "${{ steps.runtime.outputs.curl_retry_count }}" --output input/dgt-tm-2021/Vol_2020_4.zip https://wt-public.emm4u.eu/Resources/DGT-TM-2021/Vol_2020_4.zip
           curl --fail --location --retry "${{ steps.runtime.outputs.curl_retry_count }}" --output input/dgt-tm-2021/Vol_2020_5.zip https://wt-public.emm4u.eu/Resources/DGT-TM-2021/Vol_2020_5.zip
           ls -lh input/dgt-tm-2021/
-      - name: Stage up to 20,000 eligible unique entries per language
+      - name: Stage DGT using central per-language acquisition targets
         run: |
           python -m langid32.dgt_tmx_stage \
             --archive input/dgt-tm-2021/Vol_2020_1.zip \
