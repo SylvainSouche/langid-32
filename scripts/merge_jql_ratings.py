@@ -19,10 +19,10 @@ from statistics import NormalDist
 JUDGES = tuple(load_config()["jql"]["judges"])
 
 
-def sha256(path: Path) -> str:
+def sha256(path: Path, chunk_bytes: int) -> str:
     h = hashlib.sha256()
     with path.open("rb") as stream:
-        for block in iter(lambda: stream.read(1024 * 1024), b""):
+        for block in iter(lambda: stream.read(chunk_bytes), b""):
             h.update(block)
     return h.hexdigest()
 
@@ -84,7 +84,9 @@ def main() -> None:
     ap.add_argument("--include-text", action="store_true", help="Include sentence text in output (avoid for public Actions artifacts)")
     ap.add_argument("--config", type=Path, default=ROOT / "config/langid32.toml")
     args = ap.parse_args()
-    jql_config = load_config(args.config)["jql"]
+    full_config = load_config(args.config)
+    jql_config = full_config["jql"]
+    chunk_bytes = full_config["execution"]["download_chunk_bytes"]
     penalty = float(jql_config["consensus_disagreement_penalty"])
     mean_weight = float(jql_config["consensus_mean_weight"])
 
@@ -159,7 +161,7 @@ def main() -> None:
 
     summary = {
         "rows": len(frame),
-        "input_sha256": sha256(args.input),
+        "input_sha256": sha256(args.input, chunk_bytes),
         "ratings_files": [p.name for p in sorted(args.ratings_dir.glob("*.csv"))],
         "ratings_rows": len(ratings),
         "quantile_normalization": "average ranks mapped through standard-normal inverse CDF; ties share average rank",
