@@ -26,11 +26,22 @@ def language_target(config: dict[str, Any], language: str) -> int:
 
 
 def acquisition_target(config: dict[str, Any], source: str, language: str) -> int:
-    overrides = config.get("acquisition", {}).get("source_language_overrides", {})
+    acquisition = config["acquisition"]
+    overrides = acquisition.get("source_language_overrides", {})
     key = f"{source}.{language}"
     if key in overrides:
         return int(overrides[key])
-    source_rules = config["acquisition"].get("source_rules", {})
+    source_rules = acquisition.get("source_rules", {})
     normalized = source.replace("-", "_")
-    rule = source_rules.get(normalized, {})
-    return int(rule.get("target", config["acquisition"]["first_pass_target_per_source_language"]))
+    rule = source_rules.get(normalized)
+    if rule is None:
+        matches = [
+            (len(rule_name), candidate)
+            for rule_name, candidate in source_rules.items()
+            if normalized.startswith(rule_name + ":") or normalized.startswith(rule_name + "_")
+        ]
+        rule = max(matches, key=lambda item: item[0])[1] if matches else {}
+    allowed_languages = rule.get("languages")
+    if allowed_languages is not None and language not in allowed_languages:
+        raise ValueError(f"{source} is not approved for language {language}")
+    return int(rule.get("target", acquisition["first_pass_target_per_source_language"]))
