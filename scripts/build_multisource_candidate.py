@@ -10,6 +10,10 @@ import sys
 from collections import Counter
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+from langid32.settings import load_config
+
 FAMILY_PREFIXES = (
     "temu_cc0",
     "catalan_dpo_v2",
@@ -149,15 +153,22 @@ def main():
     parser.add_argument("--dgt-dir", type=Path, required=True)
     parser.add_argument("--waiting-dir", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--config", type=Path, default=ROOT / "config/langid32.toml")
     parser.add_argument("--exclusions", type=Path, default=Path("data/source-exclusions.jsonl"))
-    parser.add_argument("--max-per-language", type=int, default=35000)
-    parser.add_argument("--core-per-language", type=int, default=35000)
-    parser.add_argument("--preferred-source-share", type=float, default=0.30)
-    parser.add_argument("--max-source-share", type=float, default=0.50)
-    parser.add_argument("--seed", default="langid-32-v6-2026-11-18")
+    parser.add_argument("--max-per-language", type=int, default=None)
+    parser.add_argument("--core-per-language", type=int, default=None)
+    parser.add_argument("--preferred-source-share", type=float, default=None)
+    parser.add_argument("--max-source-share", type=float, default=None)
+    parser.add_argument("--seed", default=None)
     parser.add_argument("--require-exact-counts", action="store_true",
                         help="Fail unless every language reaches every core split target")
     args = parser.parse_args()
+    cfg = load_config(args.config)
+    args.max_per_language = args.max_per_language if args.max_per_language is not None else cfg["candidate"]["minimum_candidates_per_language"]
+    args.core_per_language = args.core_per_language if args.core_per_language is not None else cfg["candidate"]["minimum_candidates_per_language"]
+    args.preferred_source_share = args.preferred_source_share if args.preferred_source_share is not None else cfg["candidate"]["source_balance"]["preferred_max_share_per_language_and_split"]
+    args.max_source_share = args.max_source_share if args.max_source_share is not None else cfg["candidate"]["source_balance"]["hard_max_share_per_language_and_split"]
+    args.seed = args.seed or cfg["candidate"]["splits"]["seed"]
 
     v5_records = find_one(args.v5_dir, "records.jsonl")
     cv_records = find_one(args.common_voice_dir, "common_voice_candidates.jsonl")
@@ -231,8 +242,8 @@ def main():
     command = [
         sys.executable, "-m", "langid32.merge",
         "--output", str(args.output / "candidate"),
+        "--config", str(args.config),
         "--exclusions", str(args.exclusions),
-        "--max-sentences-per-source", "20000",
         "--max-per-language", str(args.max_per_language),
         "--core-per-language", str(args.core_per_language),
         "--preferred-source-share", str(args.preferred_source_share),
