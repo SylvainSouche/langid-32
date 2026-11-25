@@ -40,9 +40,11 @@ def test_ambiguous_proper_name_is_quarantined_but_year_is_not_pii():
     assert ambiguous.status == "rejected"  # contextual author attribution is high confidence
     ordinary = screen_text("The 2024 report was published after the annual meeting.")
     assert ordinary.accepted
-    uncertain = screen_text("The team visited New York during the conference.")
+    uncertain = screen_text("Alice Martin joined the committee during the conference.")
     assert not uncertain.accepted
     assert uncertain.status == "quarantined"
+    place = screen_text("The team visited New York during the conference.")
+    assert place.accepted
 
 
 def test_ipv6_and_trailing_number_street_addresses_are_rejected():
