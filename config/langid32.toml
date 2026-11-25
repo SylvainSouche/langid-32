@@ -13,7 +13,7 @@ languages = ["bg","hr","cs","da","nl","en","et","fi","fr","de","el","hu","ga","i
 first_pass_target_per_source_language = 20000
 seed = "langid-32-fineweb2-v1"
 # No override currently approved. Keys are source identifiers, then language.
-[source_language_overrides]
+[acquisition.source_language_overrides]
 # Example: "leipzig_news.hr" = 15000
 # Example: "common_voice_v22.is" = 18000
 
