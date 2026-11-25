@@ -26,24 +26,29 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.config.outputs.matrix }}
+      max_parallel: ${{ steps.config.outputs.max_parallel }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - id: config
+        run: python scripts/emit_jql_matrix.py
+
   score:
+    needs: prepare
     if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     name: Score shard ${{ matrix.index }}
     runs-on: ubuntu-latest
     timeout-minutes: 300
     strategy:
       fail-fast: false
-      max-parallel: 4
-      matrix:
-        include:
-          - { index: 0, file: shard-00.parquet }
-          - { index: 1, file: shard-01.parquet }
-          - { index: 2, file: shard-02.parquet }
-          - { index: 3, file: shard-03.parquet }
-          - { index: 4, file: shard-04.parquet }
-          - { index: 5, file: shard-05.parquet }
-          - { index: 6, file: shard-06.parquet }
-          - { index: 7, file: shard-07.parquet }
+      max-parallel: ${{ fromJSON(needs.prepare.outputs.max_parallel) }}
+      matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
     env:
       HF_HOME: ${{ github.workspace }}/.cache/huggingface
       HF_HUB_DISABLE_TELEMETRY: "1"
@@ -78,7 +83,7 @@ jobs:
             exit 1
           fi
           cp "${parquet_files[0]}" assessment.parquet
-          python scripts/split_jql_parquet.py --input assessment.parquet --output-dir shards --shards 8
+          python scripts/split_jql_parquet.py --input assessment.parquet --output-dir shards --config config/langid32.toml
       - name: Score all three JQL heads for this shard
         run: |
           mkdir -p ratings
@@ -98,6 +103,7 @@ jobs:
           retention-days: 2
 
   boundary:
+    needs: prepare
     if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     name: Sentence-boundary checks
     runs-on: ubuntu-latest
