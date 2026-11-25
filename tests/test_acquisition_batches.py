@@ -110,7 +110,7 @@ def test_waiting_source_adapter_uses_durable_file_batches_and_reports_shortfalls
     assert '"acquisition_failures": failures' in worker
     assert "dataset.load_state_dict(saved[\"state\"])" in worker
     assert "persist_arabic_stream_state()" in worker
-    assert '"source_language_status": [task_report' in worker
+    assert '"source_language_status": task_status' in worker
     assert "inspect source_language_status for exact retained counts and shortfalls" in worker
 
 
