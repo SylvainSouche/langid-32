@@ -198,6 +198,32 @@ def main():
         check_global_deadline()
         initialize_task(bucket_key)
         return retained_count(state_db, bucket_key[1], bucket_key[0]) >= limit_for(*bucket_key)
+
+    def begin_remote_file(bucket_key, repository, revision, filename):
+        """Create a revision-pinned, resumable one-shard acquisition batch."""
+        language, source = bucket_key
+        locator = f"hf://{repository}@{revision}/{filename}"
+        locator_hash = hashlib.sha256(locator.encode("utf-8")).hexdigest()
+        logical_file = f"{locator}#sha256={locator_hash}"
+        plan_file_batches(
+            state_db, source, language, limit_for(*bucket_key), [logical_file], 1
+        )
+        batch = next_batch(state_db, source, language)
+        if batch is None:
+            return None
+        batch_no, planned = batch
+        if planned != [logical_file]:
+            raise RuntimeError(f"Unexpected pending remote batch for {source}/{language}: {planned}")
+        return batch_no, logical_file, locator_hash
+
+    def finish_remote_file(bucket_key, batch):
+        if batch is not None:
+            batch_no, logical_file, locator_hash = batch
+            finish_batch(
+                state_db, bucket_key[1], bucket_key[0], batch_no,
+                {logical_file: locator_hash},
+            )
+
     downloads = []
     notes = []
     privacy_counts = Counter()
