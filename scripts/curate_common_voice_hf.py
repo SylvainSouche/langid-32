@@ -21,6 +21,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 from langid32.settings import load_config, acquisition_target
 from langid32.privacy import screen_text
+from langid32.acquisition_batches import open_state, plan_file_batches, next_batch, finish_batch, add_eligible, export_records, task_report
 
 EMAIL = re.compile(r"(?i)(?<![\w.+-])[\w.+-]+@[\w.-]+\.[A-Z]{2,}(?![A-Za-z0-9_.-])")
 URL = re.compile(r"(?i)(?:https?://[^\s<>]+|www\.[^\s<>]+)")
@@ -64,66 +65,98 @@ def main() -> None:
     locale_metadata = {row["locale"]: row for row in download_manifest.get("results", [])}
     candidates = defaultdict(dict)
     counts = Counter()
+    args.output.mkdir(parents=True, exist_ok=True)
+    state_db = open_state(args.output / "common-voice-acquisition.sqlite")
+    acquisition_status = []
     for language in languages:
         path = args.input_root / language / "validated_sentences.tsv"
         if not path.is_file():
             counts[f"{language}:missing_file"] += 1
             continue
-        with path.open(encoding="utf-8-sig", newline="") as stream:
-            reader = csv.DictReader(stream, delimiter="\t")
-            if not {"sentence_id", "sentence"}.issubset(reader.fieldnames or []):
-                raise ValueError(f"{path}: unexpected TSV columns")
-            for row in reader:
-                counts[f"{language}:rows"] += 1
-                if "is_used" in row and (row.get("is_used") or "").strip().lower() not in {"true", "1", "yes"}:
-                    counts[f"{language}:not_validated_or_inactive"] += 1
-                    continue
-                text = norm(row.get("sentence") or "")
-                if not text:
-                    counts[f"{language}:empty"] += 1
-                    continue
-                if len(text) < text_rules["min_characters"] or len(text) > text_rules["max_characters"] or len(text.encode("utf-8")) > text_rules["max_utf8_bytes"]:
-                    counts[f"{language}:length_rejected"] += 1
-                    continue
-                if (text_rules["exclude_email"] and EMAIL.search(text)) or (text_rules["exclude_url"] and URL.search(text)):
-                    counts[f"{language}:email_or_url_rejected"] += 1
-                    continue
-                if text_rules["exclude_ipv4"] and IPV4.search(text):
-                    counts[f"{language}:ipv4_rejected"] += 1
-                    continue
-                if ((text_rules["exclude_phone_like"] and phone_like(text, text_rules))
-                        or (text_rules["exclude_long_numeric_sequences"]
-                            and re.search("[0-9]{" + str(text_rules["long_numeric_min_digits"]) + ",}", text))):
-                    counts[f"{language}:numeric_identifier_rejected"] += 1
-                    continue
-                privacy = screen_text(text, uncertain_action=cfg["acquisition"]["text"]["privacy_uncertain_action"])
-                if not privacy.accepted:
-                    counts[f"{language}:privacy_{privacy.status}"] += 1
-                    for flag in privacy.flags:
-                        counts[f"{language}:privacy_flag_{flag}"] += 1
-                    continue
-                if text in candidates[language]:
-                    counts[f"{language}:within_language_duplicate"] += 1
-                    continue
-                sid = (row.get("sentence_id") or "").strip()
-                locale = (row.get("source_locale") or "").strip()
-                if not sid or not locale:
-                    raise ValueError(f"{path}: row is missing sentence_id or source_locale")
-                source_meta = locale_metadata.get(locale)
-                if not source_meta or not source_meta.get("repo_commit"):
-                    raise ValueError(f"{path}: no immutable source revision recorded for locale {locale}")
-                group = f"common_voice_v22:{locale}:{sid}"
-                provenance = {
-                    "dataset_repo": download_manifest.get("source"),
-                    "source_locale": locale,
-                    "sentence_id": sid,
-                    "repo_commit": source_meta["repo_commit"],
-                    "source_tsv_sha256": source_meta["sha256"],
-                    "source_tsv_bytes": source_meta["bytes"],
-                    "privacy_flags": [],
-                }
-                candidates[language][text] = {"group_id": group, "provenance": provenance,
-                                              "source_release": f"Common Voice Corpus 22.0@{source_meta['repo_commit']}"}
+        cap = args.per_language_cap if args.per_language_cap is not None else acquisition_target(cfg, "common_voice_v22", language)
+        source_key = "common_voice_v22"
+        resolved_path = str(path.resolve())
+        plan_file_batches(state_db, source_key, language, cap, [resolved_path], 1)
+        batch = next_batch(state_db, source_key, language)
+        if batch is not None:
+            batch_no, planned_files = batch
+            if planned_files != [resolved_path]:
+                raise RuntimeError(f"{language}: unexpected Common Voice checkpoint batch {planned_files}")
+            with path.open(encoding="utf-8-sig", newline="") as stream:
+                reader = csv.DictReader(stream, delimiter="\t")
+                if not {"sentence_id", "sentence"}.issubset(reader.fieldnames or []):
+                    raise ValueError(f"{path}: unexpected TSV columns")
+                for row in reader:
+                    counts[f"{language}:rows"] += 1
+                    if "is_used" in row and (row.get("is_used") or "").strip().lower() not in {"true", "1", "yes"}:
+                        counts[f"{language}:not_validated_or_inactive"] += 1
+                        continue
+                    text = norm(row.get("sentence") or "")
+                    if not text:
+                        counts[f"{language}:empty"] += 1
+                        continue
+                    if len(text) < text_rules["min_characters"] or len(text) > text_rules["max_characters"] or len(text.encode("utf-8")) > text_rules["max_utf8_bytes"]:
+                        counts[f"{language}:length_rejected"] += 1
+                        continue
+                    if (text_rules["exclude_email"] and EMAIL.search(text)) or (text_rules["exclude_url"] and URL.search(text)):
+                        counts[f"{language}:email_or_url_rejected"] += 1
+                        continue
+                    if text_rules["exclude_ipv4"] and IPV4.search(text):
+                        counts[f"{language}:ipv4_rejected"] += 1
+                        continue
+                    if ((text_rules["exclude_phone_like"] and phone_like(text, text_rules))
+                            or (text_rules["exclude_long_numeric_sequences"]
+                                and re.search("[0-9]{" + str(text_rules["long_numeric_min_digits"]) + ",}", text))):
+                        counts[f"{language}:numeric_identifier_rejected"] += 1
+                        continue
+                    privacy = screen_text(text, uncertain_action=cfg["acquisition"]["text"]["privacy_uncertain_action"])
+                    if not privacy.accepted:
+                        counts[f"{language}:privacy_{privacy.status}"] += 1
+                        for flag in privacy.flags:
+                            counts[f"{language}:privacy_flag_{flag}"] += 1
+                        continue
+                    if text in candidates[language]:
+                        counts[f"{language}:within_language_duplicate"] += 1
+                        continue
+                    sid = (row.get("sentence_id") or "").strip()
+                    locale = (row.get("source_locale") or "").strip()
+                    if not sid or not locale:
+                        raise ValueError(f"{path}: row is missing sentence_id or source_locale")
+                    source_meta = locale_metadata.get(locale)
+                    if not source_meta or not source_meta.get("repo_commit"):
+                        raise ValueError(f"{path}: no immutable source revision recorded for locale {locale}")
+                    group = f"common_voice_v22:{locale}:{sid}"
+                    provenance = {
+                        "dataset_repo": download_manifest.get("source"),
+                        "source_locale": locale,
+                        "sentence_id": sid,
+                        "repo_commit": source_meta["repo_commit"],
+                        "source_tsv_sha256": source_meta["sha256"],
+                        "source_tsv_bytes": source_meta["bytes"],
+                        "privacy_flags": [],
+                    }
+                    record = {
+                        "text": text, "language": language, "source": source_key,
+                        "source_release": f"Common Voice Corpus 22.0@{source_meta['repo_commit']}",
+                        "group_id": group, "licence_id": "CC0-1.0",
+                        "text_origin": "CC0-1.0 Common Voice 22.0 text via the Hugging Face dataset fsicoli/common_voice_22_0; transcript-only selection",
+                        "provenance": provenance,
+                    }
+                    add_eligible(state_db, source_key, language, [record])
+
+            digest = hashlib.sha256()
+            with path.open("rb") as raw:
+                for chunk in iter(lambda: raw.read(1024 * 1024), b""):
+                    digest.update(chunk)
+            finish_batch(state_db, source_key, language, batch_no, {resolved_path: digest.hexdigest()})
+        stored = export_records(state_db, source_key, language)
+        for record in stored:
+            candidates[language][record["text"]] = {
+                "group_id": record["group_id"],
+                "provenance": record["provenance"],
+                "source_release": record["source_release"],
+            }
+        acquisition_status.append(task_report(state_db, source_key, language))
 
     # Remove every occurrence of any normalized string shared by language labels.
     owners = defaultdict(set)
@@ -137,7 +170,6 @@ def main() -> None:
                 del candidates[language][text]
                 counts[f"{language}:cross_language_collision_removed"] += 1
 
-    args.output.mkdir(parents=True, exist_ok=True)
     output_path = args.output / "common_voice_candidates.jsonl"
     final_counts = {}
     with output_path.open("w", encoding="utf-8", newline="\n") as out:
@@ -174,6 +206,7 @@ def main() -> None:
         "selection": {"validated_sentences_tsv": True, "require_is_used_true_when_present": True, "text_rules": text_rules, "within_language_deduplication": True, "all_language_collision_removal": True, "deterministic_cap": True},
         "cross_language_collision_strings_removed": len(collisions),
         "per_language": final_counts,
+        "acquisition_state": acquisition_status,
         "counts": dict(sorted(counts.items())),
         "candidate_file_sha256": hashlib.sha256(output_path.read_bytes()).hexdigest(),
         "note": "Text-only candidates selected from the HF-hosted dataset card-declared CC0-1.0 Common Voice 22.0 conversion. Croatian is intentionally absent pending an alternative source.",
@@ -182,6 +215,7 @@ def main() -> None:
         json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
     print(json.dumps(report, ensure_ascii=False, indent=2))
+    state_db.close()
 
 
 if __name__ == "__main__":
