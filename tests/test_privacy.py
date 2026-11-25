@@ -71,3 +71,10 @@ def test_east_asian_postal_and_street_addresses_are_rejected():
         result = screen_text(text)
         assert not result.accepted, text
         assert "street_address" in result.flags, text
+
+
+def test_east_asian_labelled_personal_names_are_rejected():
+    for text in ("担当者: 山田太郎", "联系人：张伟", "담당자: 김민수"):
+        result = screen_text(text)
+        assert not result.accepted, text
+        assert "person_name_context" in result.flags, text
