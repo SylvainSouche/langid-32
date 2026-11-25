@@ -54,3 +54,8 @@ def test_ipv6_and_trailing_number_street_addresses_are_rejected():
     address = screen_text("The meeting is at Rue de Rivoli 12 in Paris.")
     assert not address.accepted
     assert "street_address" in address.flags
+
+
+def test_malformed_dotted_number_is_not_classified_as_ipv4():
+    result = screen_text("The version marker 999.999.999.999 is malformed and not an IP address.")
+    assert result.accepted
