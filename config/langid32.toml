@@ -225,7 +225,7 @@ disagreement_standard_deviation = "population"
 # Normalize each judge over the full filtered assessment pool, then prune the
 # bottom quarter by normalized consensus. Final 30k/source selection is deferred.
 selection_effect = "bottom_quantile_pruning"
-apply_quality_floor = true
+apply_quality_floor = false
 prune_bottom_quantile = 0.25
 pruning_scope = "global_all_languages_after_full_corpus_normalization"
 diagnostic_global_quantile = 0.25
