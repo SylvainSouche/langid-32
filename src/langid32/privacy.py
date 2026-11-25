@@ -108,6 +108,16 @@ def _metadata_flags(record: dict | None) -> list[str]:
     return found
 
 
+def _has_ipv4(text: str) -> bool:
+    for match in IPV4.finditer(text):
+        try:
+            if ipaddress.ip_address(match.group()).version == 4:
+                return True
+        except ValueError:
+            continue
+    return False
+
+
 def _has_ipv6(text: str) -> bool:
     for match in IPV6_CANDIDATE.finditer(text):
         try:
@@ -143,7 +153,7 @@ def screen_text(value: str, *, record: dict | None = None,
     high_confidence = (
         ("email", EMAIL.search(text)),
         ("url", URL.search(text)),
-        ("ipv4", IPV4.search(text)),
+        ("ipv4", _has_ipv4(text)),
         ("ipv6", _has_ipv6(text)),
         ("phone_or_long_identifier", _has_phone_like(text) or LONG_NUMBER.search(text)),
         ("street_address", STREET.search(text) and (HOUSE_NUMBER.search(text) or STREET_TRAILING_NUMBER.search(text))),
