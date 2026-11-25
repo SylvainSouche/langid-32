@@ -9,7 +9,12 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import sys
 from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+from langid32.settings import load_config
 
 import pandas as pd
 import torch
@@ -51,13 +56,18 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--input", required=True, type=Path, help="Input Parquet")
     ap.add_argument("--output", required=True, type=Path, help="Output CSV")
-    ap.add_argument("--batch-size", type=int, default=32)
-    ap.add_argument("--max-length", type=int, default=8192)
+    ap.add_argument("--batch-size", type=int, default=None)
+    ap.add_argument("--max-length", type=int, default=None)
     ap.add_argument("--device", choices=("auto", "cpu", "mps", "cuda"), default="auto")
     ap.add_argument("--max-rows", type=int, default=0, help="Optional smoke-test row limit")
-    ap.add_argument("--torch-threads", type=int, default=2, help="CPU intra-op threads")
+    ap.add_argument("--torch-threads", type=int, default=None, help="CPU intra-op threads")
+    ap.add_argument("--config", type=Path, default=ROOT / "config/langid32.toml")
     ap.add_argument("--head-repo", default=HEAD_REPO)
     args = ap.parse_args()
+    jql_cfg = load_config(args.config)["jql"]
+    args.batch_size = args.batch_size if args.batch_size is not None else jql_cfg["inference_batch_size"]
+    args.max_length = args.max_length if args.max_length is not None else jql_cfg["max_token_length"]
+    args.torch_threads = args.torch_threads if args.torch_threads is not None else jql_cfg["cpu_torch_threads"]
 
     if args.batch_size < 1:
         raise SystemExit("--batch-size must be positive")
