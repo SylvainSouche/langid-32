@@ -1,6 +1,6 @@
 # Source register — canonical status
 
-**Last reconciled: 23 November 2026.** This is the canonical index of every dataset/source family actually acquired, staged, sampled, investigated, rejected, or retired for langid-32. It supersedes the source-discovery and acquisition-priority narrative in older inventory documents. Historical audit reports remain available but are not current source-status statements.
+**Last reconciled: 23 November 2026.** This is the descriptive index of every dataset/source family actually acquired, staged, sampled, investigated, rejected, or retired for langid-32. Operational include/exclude decisions are governed by the [source decision register](source-decisions.md) and its machine-readable [JSON source of truth](../data/source-decisions.json), which supersede contradictory historical notes or blanket exclusions. Historical audit reports remain available but are not current source-status statements.
 
 Status vocabulary:
 - **STAGED** — an acquisition or sample artifact exists; this does not mean the source is legally cleared.
