@@ -8,8 +8,9 @@ MODULE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(MODULE)
 
 
-def test_component_files_share_one_source_family_quota():
-    assert MODULE.source_bucket("temu_cc0:datasets_sentences.tsv") == "temu_cc0"
+def test_acquisition_quota_keys_preserve_individual_source_identity():
+    assert MODULE.source_bucket("temu_cc0:datasets_sentences.tsv") == "temu_cc0:datasets_sentences.tsv"
+    assert MODULE.source_bucket("temu_cc0:another_component.tsv") == "temu_cc0:another_component.tsv"
     assert MODULE.source_bucket("temu_cc0:literatura.txt") == "temu_cc0"
     assert MODULE.source_bucket("bsc_legal:dogc_ca-es.tsv") == "bsc_legal"
     assert MODULE.source_bucket("fineweb2:arb_Arab") == "fineweb2"
