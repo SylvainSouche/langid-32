@@ -115,7 +115,7 @@ def task_complete(db: sqlite3.Connection, source: str, language: str) -> bool:
 
 def add_eligible(db: sqlite3.Connection, source: str, language: str,
                  records: Iterable[Mapping]) -> int:
-    """Insert already-screened records, deduplicated within exact source/language."""
+    """Insert screened records; the enclosing file/row-group batch commits them."""
     task = db.execute("SELECT target FROM task WHERE source=? AND language=?",
                       (source, language)).fetchone()
     if task is None:
@@ -139,7 +139,8 @@ def add_eligible(db: sqlite3.Connection, source: str, language: str,
         if cursor.rowcount:
             inserted += 1
             count += 1
-    db.commit()
+    # Deliberately do not commit here. finish_batch commits the complete
+    # file/row-group transaction; interrupted batches roll back and replay.
     return inserted
 
 
