@@ -174,4 +174,5 @@ dgt_timeout_minutes = 240
 candidate_timeout_minutes = 360
 jql_timeout_minutes = 300
 artifact_retention_days = 30
+checkpoint_retention_days = 7
 max_download_attempts = 12
