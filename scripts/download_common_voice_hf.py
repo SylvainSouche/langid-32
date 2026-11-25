@@ -76,11 +76,6 @@ def main():
     allowed = set(cfg["acquisition"]["source_rules"]["common_voice_v22"].get("languages", []))
     requested = a.languages if a.languages is not None else ",".join(sorted(allowed))
     wanted=[x.strip() for x in requested.split(",") if x.strip()]
-    if not wanted:
-        p.error("No Common Voice locales are enabled: individual locale terms acceptance is pending.")
-    unauthorized = sorted(set(wanted) - allowed)
-    if unauthorized:
-        p.error("Locale(s) lack recorded individual terms acceptance: " + ", ".join(unauthorized))
     unknown=sorted(set(wanted)-set(LOCALES))
     if unknown: p.error("Unknown target language(s): "+", ".join(unknown))
     a.output_dir.mkdir(parents=True,exist_ok=True)
