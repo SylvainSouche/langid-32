@@ -50,8 +50,6 @@ jobs:
             --archive input/dgt-tm-2021/Vol_2020_3.zip \
             --archive input/dgt-tm-2021/Vol_2020_4.zip \
             --archive input/dgt-tm-2021/Vol_2020_5.zip \
-            --target-per-language 20000 \
-            --max-per-document-language 20 \
             --output reports/dgt-tm-2021-staged.jsonl
       - name: Upload staged records and complete provenance manifest
         if: always() && hashFiles('reports/dgt-tm-2021-staged*') != ''
