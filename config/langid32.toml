@@ -131,6 +131,10 @@ status = "exclude_generic_partition_unspecified"
 exclude = true
 status = "exclude_development_test_partition"
 
+[acquisition.source_rules.greynir_gold_dev_test]
+exclude = true
+status = "exclude_development_test_partition"
+
 [acquisition.source_rules.waiting_sources]
 target = 20000
 min_characters = 40
