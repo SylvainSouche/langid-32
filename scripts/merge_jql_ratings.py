@@ -81,7 +81,10 @@ def main() -> None:
     ap.add_argument("--output-csv", required=True, type=Path)
     ap.add_argument("--output-parquet", type=Path)
     ap.add_argument("--summary", type=Path)
-    ap.add_argument("--include-text", action="store_true", help="Include sentence text in output (avoid for public Actions artifacts)")
+    ap.add_argument("--include-text", action="store_true", help="Include sentence text in output")
+    ap.add_argument("--pruned-output-csv", type=Path)
+    ap.add_argument("--pruned-output-parquet", type=Path)
+    ap.add_argument("--pruning-summary", type=Path)
     ap.add_argument("--config", type=Path, default=ROOT / "config/langid32.toml")
     args = ap.parse_args()
     full_config = load_config(args.config)
@@ -159,6 +162,40 @@ def main() -> None:
         args.output_parquet.parent.mkdir(parents=True, exist_ok=True)
         frame.to_parquet(args.output_parquet, index=False, compression="zstd")
 
+    pruning_summary = None
+    if args.pruned_output_csv or args.pruned_output_parquet or args.pruning_summary:
+        quantile = float(jql_config["prune_bottom_quantile"])
+        if not 0.0 <= quantile < 1.0:
+            raise SystemExit(f"Invalid prune_bottom_quantile: {quantile}")
+        prune_count = int(len(frame) * quantile)
+        ordered = frame.sort_values(["jql_consensus", "id"], ascending=[True, True])
+        pruned_ids = set(ordered.head(prune_count)["id"].astype(str))
+        retained = frame.loc[~frame["id"].astype(str).isin(pruned_ids)].copy()
+        retained = retained.sort_values(["lang", "jql_consensus", "id"], ascending=[True, False, True])
+        if args.pruned_output_csv:
+            args.pruned_output_csv.parent.mkdir(parents=True, exist_ok=True)
+            retained.to_csv(args.pruned_output_csv, index=False, quoting=csv.QUOTE_MINIMAL)
+        if args.pruned_output_parquet:
+            args.pruned_output_parquet.parent.mkdir(parents=True, exist_ok=True)
+            retained.to_parquet(args.pruned_output_parquet, index=False, compression="zstd")
+        def grouped_counts(data):
+            grouped = data.groupby(["lang", "source-variant"], dropna=False).size()
+            return [{"language": str(lang), "source": str(source), "count": int(count)}
+                    for (lang, source), count in grouped.items()]
+        pruning_summary = {
+            "scope": "global_all_languages_after_full_corpus_normalization",
+            "quantile": quantile, "input_rows": int(len(frame)),
+            "pruned_rows": int(prune_count), "retained_rows": int(len(retained)),
+            "pruned_by_language_source": grouped_counts(frame.loc[frame["id"].astype(str).isin(pruned_ids)]),
+            "retained_by_language_source": grouped_counts(retained),
+            "source_field": "source-variant (original source identifier)",
+            "tie_break": "consensus ascending then id ascending; exact deterministic row count",
+            "final_30k_selection": "deferred_pending_user_review",
+        }
+        if args.pruning_summary:
+            args.pruning_summary.parent.mkdir(parents=True, exist_ok=True)
+            args.pruning_summary.write_text(json.dumps(pruning_summary, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
+
     summary = {
         "rows": len(frame),
         "input_sha256": sha256(args.input, chunk_bytes),
@@ -179,6 +216,7 @@ def main() -> None:
             for col in z_columns + ["jql_mean", "jql_disagreement", "jql_consensus"]
         },
         "selection_note": "Corpus-relative ranking only; recalculate normalization when the reference corpus changes.",
+        "pruning": pruning_summary,
     }
     if args.summary:
         args.summary.parent.mkdir(parents=True, exist_ok=True)
