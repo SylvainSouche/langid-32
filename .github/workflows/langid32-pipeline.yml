@@ -55,8 +55,10 @@ jobs:
   waiting-source:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    timeout-minutes: ${{ fromJSON(steps.runtime.outputs.acquisition_job_timeout_minutes) }}
     strategy:
       fail-fast: false
+      max-parallel: ${{ fromJSON(steps.runtime.outputs.acquisition_max_parallel_source_tasks) }}
       matrix:
         target: [catalan, icelandic, norwegian, korean, fineweb2, arabic, gaois]
     steps:
