@@ -62,11 +62,12 @@ def clean(value, language, rules=None):
     return text
 
 
-def fetch(url, destination):
+def fetch(url, destination, max_attempts=None):
     """Download with resumable byte ranges; verify the complete payload hash."""
+    max_attempts = max_attempts or load_config()["execution"]["max_download_attempts"]
     last_error = None
     expected = 0
-    for attempt in range(12):
+    for attempt in range(max_attempts):
         try:
             if not expected:
                 head = Request(url, method="HEAD", headers={"User-Agent": "langid-32-source-audit/1"})
@@ -105,7 +106,7 @@ def fetch(url, destination):
             return {"url": url, "bytes": size, "sha256": digest.hexdigest()}
         except Exception as exc:
             last_error = exc
-            if attempt < 11:
+            if attempt < max_attempts - 1:
                 time.sleep(min(60, 3 * (attempt + 1)))
     raise last_error
 
@@ -571,7 +572,7 @@ def main():
         actual_languages = {language for (language, _bucket), items in retained.items() if items}
         missing_languages = sorted(expected_languages.get(args.source, set()) - actual_languages)
         total_retained = sum(len(items) for items in retained.values())
-        if missing_languages or total_retained < 1000:
+        if missing_languages or total_retained < cfg["acquisition"]["source_rules"]["waiting_sources"]["minimum_retained_records"]:
             raise RuntimeError(
                 f"{args.source} acquisition incomplete: missing_languages={missing_languages}, "
                 f"total_retained={total_retained}; inspect scan notes and source schema"
