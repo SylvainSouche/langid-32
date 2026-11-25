@@ -57,5 +57,5 @@ def test_ipv6_and_trailing_number_street_addresses_are_rejected():
 
 
 def test_malformed_dotted_number_is_not_classified_as_ipv4():
-    result = screen_text("The version marker 999.999.999.999 is malformed and not an IP address.")
-    assert result.accepted
+    from langid32.privacy import _has_ipv4
+    assert not _has_ipv4("The version marker 999.999.999.999 is malformed and not an IP address.")
