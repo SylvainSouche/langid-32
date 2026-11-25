@@ -287,7 +287,7 @@ def read_inputs(paths: list[Path], args):
 
 
 def _select_source_balanced(bucket, target, preferred_share, hard_share):
-    """Select a split bucket with a preferred 30% source share and hard ceiling."""
+    """Select a split bucket using configured preferred and hard source-share ceilings."""
     if target is None:
         return list(bucket), Counter()
     if target <= 0:
@@ -605,7 +605,7 @@ def merge(args):
         ),
         "privacy_note": (
             "Email, URL and IPv4 matches are excluded in the global merge. "
-            "Phone-like and 9+ digit sequences are retained with flags. The provenance "
+            "Phone-like and configured long-numeric sequences are retained with flags. The provenance "
             "sidecar is internal; full PII review is still required."
         ),
     }
