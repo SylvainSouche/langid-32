@@ -11,58 +11,65 @@ Branch: `recovery/fix-acquisition-20261124`
 | DGT-TM 2021 | hr, fi, el, mt, sl | 100,000 | Run [45600139292](https://github.com/SylvainSouche/langid-32/actions/runs/45600139292), artifact `dgt-tm-2021-first-pass-45600139292` |
 | Tatoeba CC0 | fi | 1,545 | Refreshed in run [45600118583](https://github.com/SylvainSouche/langid-32/actions/runs/45600118583); artifact contains JSONL and manifest |
 
-**340,000 newly acquired Leipzig and DGT records.** Tatoeba was re-staged with the same 1,545 Finnish rows already present in the previous intake; this refresh fixes the artifact to include the actual JSONL as well as the manifest. The Leipzig manifest confirms 12/12 source-language slots, 20,000 per slot and no missing archives. The DGT manifest confirms 20,000 per language across the five approved languages, with 16,000 train, 2,000 validation and 2,000 test records per language. The DGT artifact contains both the staged JSONL and its provenance manifest.
+**340,000 newly acquired Leipzig and DGT records.** Tatoeba was re-staged with the same 1,545 Finnish rows already present in the previous intake; the refresh fixes the artifact to include the actual JSONL as well as the manifest.
 
-## Current per-language source intake
+The Leipzig manifest confirms all 12 source-language slots completed, with 20,000 rows per slot and no missing archives. The DGT manifest confirms 20,000 rows per language across the five approved languages, with 16,000 train, 2,000 validation and 2,000 test records per language. The DGT artifact contains both staged JSONL and provenance manifest.
 
-The table below is a reconciled *pre-global-dedup source-intake count*, not a final corpus count. It starts from source-intake diagnostics in candidate run 45581250730, removes the obsolete Leipzig and DGT samples, and substitutes the newly verified 240,000 Leipzig and 100,000 DGT rows. It is an exact arithmetic reconciliation of the reported intake manifests; the candidate inputs have not yet been rebuilt with the new artifacts.
+## Reconciled per-language intake
 
-| Language | Retained source rows | Gap to 35k candidate pool |
-|---|---:|---:|
-| Arabic (ar) | 59,715 | 0 |
-| Bulgarian (bg) | 36,001 | 0 |
-| Catalan (ca) | 61,656 | 0 |
-| Czech (cs) | 36,000 | 0 |
-| Danish (da) | 34,814 | 186 |
-| German (de) | 36,015 | 0 |
-| Greek (el) | 84,754 | 0 |
-| English (en) | 45,968 | 0 |
-| Spanish (es) | 36,069 | 0 |
-| Estonian (et) | 26,664 | 8,336 |
-| Finnish (fi) | 83,235 | 0 |
-| French (fr) | 44,433 | 0 |
-| Irish (ga) | 37,474 | 0 |
-| Croatian (hr) | 76,532 | 0 |
-| Hungarian (hu) | 35,993 | 0 |
-| Icelandic (is) | 48,926 | 0 |
-| Italian (it) | 35,982 | 0 |
-| Japanese (ja) | 37,488 | 0 |
-| Korean (ko) | 33,761 | 1,239 |
-| Lithuanian (lt) | 36,054 | 0 |
-| Latvian (lv) | 35,990 | 0 |
-| Maltese (mt) | 82,600 | 0 |
-| Norwegian Bokmål (nb) | 40,230 | 0 |
-| Norwegian Nynorsk (nn) | 43,950 | 0 |
-| Dutch (nl) | 35,989 | 0 |
-| Polish (pl) | 36,021 | 0 |
-| Portuguese (pt) | 36,037 | 0 |
-| Romanian (ro) | 29,755 | 5,245 |
-| Russian (ru) | 49,418 | 0 |
-| Slovak (sk) | 30,263 | 4,737 |
-| Slovenian (sl) | 82,185 | 0 |
-| Swedish (sv) | 36,097 | 0 |
-| Turkish (tr) | 40,000 | 0 |
-| Chinese (zh) | 40,000 | 0 |
-| **Total** | **1,546,069** | — |
+This is a *provisional pre-global-dedup source-intake count*, not a final corpus count. It starts from source-intake diagnostics in candidate run 45581250730 and applies the current source decisions:
 
-- 29 languages meet the configured 35,000 candidate-pool floor in this reconciled intake.
-- Five remain below it: Danish, Estonian, Korean, Romanian and Slovak.
-- All 34 currently exceed the configured final target in *raw intake count*, but this does not establish that they will still meet it after cross-source deduplication, source-share constraints and quality checks.
-- The global deduplicated count must be regenerated from the reconciled inputs. The prior 1,525,786 post-dedup count belongs to the obsolete source snapshot and is no longer current.
+- remove obsolete Leipzig samples outside the six approved Leipzig languages, then substitute the new 240,000-row Leipzig acquisition;
+- remove obsolete DGT samples outside the five approved DGT languages, then substitute the new 100,000-row DGT acquisition;
+- retain FineWeb2 only for its six approved technical-candidate languages (hr, fi, el, mt, sl, is);
+- retain the approved Tatoeba CC0 Finnish source.
 
-## Still missing from the integrated candidate inputs
+The candidate inputs have not yet been rebuilt from these reconciled sources. Counts below are therefore an exact arithmetic reconciliation of the previous intake diagnostics and verified acquisition manifests, before cross-source deduplication.
 
-Approved sources not yet wired into candidate construction:
+| Language | Raw source rows | Gap to final 25k | Gap to candidate pool 35k |
+|---|---:|---:|---:|
+| Arabic (ar) | 39,715 | 0 | 0 |
+| Bulgarian (bg) | 20,000 | 5,000 | 15,000 |
+| Catalan (ca) | 59,144 | 0 | 0 |
+| Czech (cs) | 20,004 | 4,996 | 14,996 |
+| Danish (da) | 18,801 | 6,199 | 16,199 |
+| German (de) | 20,045 | 4,955 | 14,955 |
+| Greek (el) | 84,754 | 0 | 0 |
+| English (en) | 45,968 | 0 | 0 |
+| Spanish (es) | 20,036 | 4,964 | 14,964 |
+| Estonian (et) | 10,662 | 14,338 | 24,338 |
+| Finnish (fi) | 83,235 | 0 | 0 |
+| French (fr) | 34,182 | 0 | 818 |
+| Irish (ga) | 21,450 | 3,550 | 13,550 |
+| Croatian (hr) | 76,532 | 0 | 0 |
+| Hungarian (hu) | 20,001 | 4,999 | 14,999 |
+| Icelandic (is) | 48,926 | 0 | 0 |
+| Italian (it) | 20,019 | 4,981 | 14,981 |
+| Japanese (ja) | 17,490 | 7,510 | 17,510 |
+| Korean (ko) | 13,761 | 11,239 | 21,239 |
+| Lithuanian (lt) | 20,000 | 5,000 | 15,000 |
+| Latvian (lv) | 20,000 | 5,000 | 15,000 |
+| Maltese (mt) | 82,600 | 0 | 0 |
+| Norwegian Bokmål (nb) | 20,230 | 4,770 | 14,770 |
+| Norwegian Nynorsk (nn) | 23,950 | 1,050 | 11,050 |
+| Dutch (nl) | 20,049 | 4,951 | 14,951 |
+| Polish (pl) | 20,057 | 4,943 | 14,943 |
+| Portuguese (pt) | 20,016 | 4,984 | 14,984 |
+| Romanian (ro) | 13,753 | 11,247 | 21,247 |
+| Russian (ru) | 40,000 | 0 | 0 |
+| Slovak (sk) | 14,264 | 10,736 | 20,736 |
+| Slovenian (sl) | 82,185 | 0 | 0 |
+| Swedish (sv) | 20,208 | 4,792 | 14,792 |
+| Turkish (tr) | 20,000 | 5,000 | 15,000 |
+| Chinese (zh) | 20,001 | 4,999 | 14,999 |
+| **Total** | **1,112,038** | — | — |
+
+- Only **11 languages** currently reach the configured final target in raw intake.
+- Only **10 languages** reach the configured candidate-pool floor.
+- **23 languages remain below the final target** even before global deduplication and source-share constraints. Their gaps are shown above.
+- The old post-global-dedup count of 1,525,786 belongs to the obsolete source snapshot and is not a current unique count. The reconciled inputs must be globally deduplicated again before a definitive unique total can be reported.
+
+## Approved sources still missing from integrated candidate inputs
 
 - MaCoCu-hr 2.0
 - MaCoCu-mt 2.0
@@ -70,12 +77,14 @@ Approved sources not yet wired into candidate construction:
 - ParlaMint 4.0 for Icelandic and Slovenian
 - Greynir Copper and Silver for Icelandic
 
-FineWeb2 remains technical-candidate-only while underlying web-text rights are unresolved. Do not treat technical acquisition as release clearance.
+These sources are already registered in the central configuration with their approved language scopes and first-pass targets, but their adapters/intake are not yet integrated.
+
+FineWeb2 remains technical-candidate-only while underlying web-text rights are unresolved. Technical acquisition does not imply release clearance. FineWeb2 rows outside its approved six-language scope are now filtered before candidate source-family normalization.
 
 ## Pipeline sequencing
 
-- Leipzig and DGT acquisitions are verified.
+- Leipzig and DGT first-pass acquisitions are verified.
+- Tatoeba CC0 refresh is verified and now retains both JSONL and manifest.
 - Candidate construction has **not** been rerun on the reconciled inputs.
 - JQL remains pending; when run, it annotates/diagnoses only and cannot filter, rank or remove sentences.
-- The recovery and candidate-build workflows have been switched to manual dispatch to prevent source-code/config edits from launching downstream stages prematurely.
-- The next task is to integrate the approved missing sources, then rebuild and globally deduplicate the candidate pool. No full end-to-end run has been started.
+- Candidate construction and the full production pipeline are manual-only until the missing approved sources are integrated and the intake review is complete.
