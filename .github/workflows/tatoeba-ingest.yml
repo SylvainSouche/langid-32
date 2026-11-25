@@ -7,8 +7,6 @@ on:
       - ".github/workflows/tatoeba-ingest.yml"
       - "scripts/stage_tatoeba.py"
       - "tests/test_tatoeba_stage.py"
-      - "config/langid32.toml"
-      - "src/langid32/settings.py"
       - "scripts/emit_runtime_config.py"
   workflow_dispatch:
 
