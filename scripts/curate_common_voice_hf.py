@@ -61,7 +61,14 @@ def main() -> None:
     resolved_revision = str(download_manifest.get("revision_resolved") or "")
     if not resolved_revision:
         raise SystemExit("Common Voice manifest has no immutable dataset revision.")
-    state_db = open_state(args.output / f"common-voice-acquisition-{resolved_revision[:12]}.sqlite")
+    policy_digest = hashlib.sha256(
+        Path(__file__).read_bytes()
+        + (ROOT / "src/langid32/privacy.py").read_bytes()
+        + args.config.read_bytes()
+    ).hexdigest()[:12]
+    state_db = open_state(
+        args.output / f"common-voice-acquisition-{resolved_revision[:12]}-{policy_digest}.sqlite"
+    )
     acquisition_status = []
     for language in languages:
         path = args.input_root / language / "validated_sentences.tsv"
