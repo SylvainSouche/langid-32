@@ -1,5 +1,7 @@
 name: langid-32 staged corpus pipeline
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 permissions:
   actions: read
