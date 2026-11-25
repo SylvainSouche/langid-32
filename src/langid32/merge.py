@@ -482,7 +482,35 @@ def merge(args):
             if counts[f"{language}:{split}"] != core_caps[split]
         }
         if shortfalls:
-            raise ValueError(f"exact per-language core split target not met: {shortfalls}")
+            available_by_source = defaultdict(Counter)
+            for (language, split), bucket in by_bucket.items():
+                for row in bucket:
+                    available_by_source[f"{language}:{split}"][row["source"]] += 1
+            diagnostic = {
+                "status": "candidate_incomplete",
+                "exact_split_shortfalls": shortfalls,
+                "available_after_global_dedup_by_language_split_source": {
+                    key: dict(sorted(value.items()))
+                    for key, value in sorted(available_by_source.items())
+                },
+                "selected_core_and_reserve_by_source": dict(sorted(source_counts.items())),
+                "source_intake_counts_before_global_dedup": {
+                    f"{language}:{source}": count
+                    for (language, source), count in sorted(source_intake_counts.items())
+                },
+                "rejected": dict(sorted(rejected.items())),
+                "cross_language_collision_strings_removed": len(cross_language_texts),
+                "source_quota_shortfalls": source_quota_shortfalls,
+            }
+            diagnostic_path = output / "candidate-diagnostics.json"
+            diagnostic_path.write_text(
+                json.dumps(diagnostic, ensure_ascii=False, indent=2) + "\\n",
+                encoding="utf-8",
+            )
+            print(json.dumps(diagnostic, ensure_ascii=False, indent=2), flush=True)
+            raise ValueError(
+                f"exact per-language core split target not met; diagnostics: {diagnostic_path}"
+            )
 
     internal_path = output / "records.jsonl"
     with internal_path.open("w", encoding="utf-8", newline="\n") as stream:
