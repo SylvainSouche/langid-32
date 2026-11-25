@@ -1,3 +1,0 @@
-revision,language,subset,shard,remote_file_bytes,range_status,range_content_bytes,range_supported,duckdb_schema_ok,duckdb_limit1_ok,sample_text_length,sample_id_length
-v2.1.0,es,spa_Latn,data/spa_Latn/train/000_00000.parquet,4846280144,206,1024,true,true,true,1769,47
-v2.1.0,tr,tur_Latn,data/tur_Latn/train/000_00000.parquet,4845225746,206,1024,true,true,true,485,47

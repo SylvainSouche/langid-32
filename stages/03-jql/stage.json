@@ -1,1 +1,0 @@
-{"id":"jql","purpose":"Create the complete JQL assessment Parquet from candidate records.","targets":["all"],"inputs":["02-candidate/out/candidate/records.jsonl"],"outputs":["out/jql-assessment-full.parquet","out/jql-assessment-full-summary.json"],"retry":"Retry JQL only; do not repeat acquisition or candidate construction."}

@@ -1,1 +1,0 @@
-{"id":"candidate","purpose":"Normalize, merge, apply the 20k per-language/per-source intake cap, globally deduplicate and select 35k candidates per language.","targets":["all"],"inputs":["01-acquisition/*"],"outputs":["out/candidate/records.jsonl","out/candidate/manifest.json"],"retry":"Retry candidate only; acquisition checkpoints remain untouched."}

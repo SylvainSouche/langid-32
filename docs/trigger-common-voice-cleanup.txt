@@ -1,1 +1,0 @@
-2026-11-18: delete retired Common Voice artifacts 14319841407, 14332474956 and 14423311681. These are the Croatian subset, mixed pilot and mixed-source metadata artifact; no other corpus artifacts are targeted.
