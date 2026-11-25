@@ -1,9 +1,6 @@
-name: Extract FineWeb2 privacy buffer for global corpus
+name: LEGACY — FineWeb2 privacy buffer extraction
 
 on:
-  push:
-    paths:
-      - "scripts/extract_fineweb2_sample.py"
   workflow_dispatch:
 
 permissions:
