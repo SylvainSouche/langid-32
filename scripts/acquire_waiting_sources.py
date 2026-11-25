@@ -43,14 +43,16 @@ def source_bucket(source):
     return source
 
 
-def clean(value, language, rules):
+def clean(value, language, rules=None):
+    if rules is None:
+        rules = load_config()["acquisition"]["source_rules"]["waiting_sources"]
     text = " ".join(unicodedata.normalize("NFC", str(value or "")).split())
     letters = sum(char.isalpha() for char in text)
     if (len(text) < rules["min_characters"] or len(text) > rules["max_characters"] or letters < rules["min_letters"]
             or letters / max(len(text), 1) < rules["min_letter_ratio"] or EMAIL.search(text)
             or URL.search(text) or NUMBER.search(text) or IPV4.search(text)):
         return None
-    if language == "ar" and sum("\u0600" <= char <= "\u06ff" for char in text) < max(10, letters * 0.35):
+    if language == "ar" and sum("\u0600" <= char <= "\u06ff" for char in text) < max(rules["arabic_min_script_characters"], letters * rules["arabic_min_script_ratio"]):
         return None
     return text
 
