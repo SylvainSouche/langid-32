@@ -216,6 +216,7 @@ long_numeric_min_digits = 9
 [jql]
 enabled = true
 judges = ["gemma", "mistral", "llama"]
+quantile_epsilon = 0.000001
 score_scale = "raw model regression output; nominal 0-5"
 normalization = "independent_quantile_to_standard_normal"
 normalization_scope = "full_assessment_corpus_per_judge"
