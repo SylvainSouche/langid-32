@@ -44,6 +44,16 @@ AMBIGUOUS_PROPER_NAME = re.compile(
     r"(?<![.!?]\s)(?<!^)\b[A-ZÀ-ÖØ-Þ][\wÀ-ÖØ-öø-ÿ'’-]+"
     r"\s+[A-ZÀ-ÖØ-Þ][\wÀ-ÖØ-öø-ÿ'’-]+\b"
 )
+SENTENCE_INITIAL_PAIR = re.compile(
+    r"(?:^|(?<=[.!?]\s))([A-ZÀ-ÖØ-Þ][\wÀ-ÖØ-öø-ÿ'’-]+)"
+    r"\s+([A-ZÀ-ÖØ-Þ][\wÀ-ÖØ-öø-ÿ'’-]+)\b"
+)
+SENTENCE_START_STOPWORDS = {
+    "a", "an", "and", "as", "at", "but", "by", "for", "from", "he",
+    "here", "i", "if", "in", "it", "of", "on", "or", "she", "that",
+    "the", "their", "there", "these", "they", "this", "those", "to",
+    "we", "when", "where", "while", "who", "you",
+}
 FLAG_KEYS = (
     "privacy_flags", "sensitive_info", "sensitive_information",
     "personal_data", "pii", "is_pii", "has_personal_information",
@@ -84,6 +94,15 @@ def _has_phone_like(text: str) -> bool:
         if 9 <= len(digits) <= 15 and (separators >= 2 or "+" in raw):
             return True
     return False
+
+
+def _has_ambiguous_name(text: str) -> bool:
+    if _has_ambiguous_name(text):
+        return True
+    return any(
+        match.group(1).casefold() not in SENTENCE_START_STOPWORDS
+        for match in SENTENCE_INITIAL_PAIR.finditer(text)
+    )
 
 
 def screen_text(value: str, *, record: dict | None = None,
