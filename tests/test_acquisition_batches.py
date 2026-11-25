@@ -102,3 +102,15 @@ def test_waiting_source_adapter_uses_durable_file_batches_and_reports_shortfalls
     assert "finish_batch(state_db" in worker
     assert '"source_language_status": [task_report' in worker
     assert "inspect source_language_status for exact retained counts and shortfalls" in worker
+
+
+def test_new_file_version_reopens_previously_exhausted_task(tmp_path):
+    db = open_state(tmp_path / "state.sqlite")
+    plan_file_batches(db, "source-A", "fi", 3, ["old#sha256=" + "a" * 64], 1)
+    batch_no, files = next_batch(db, "source-A", "fi")
+    finish_batch(db, "source-A", "fi", batch_no, {files[0]: "a" * 64})
+    assert mark_exhausted(db, "source-A", "fi") == 3
+    assert task_complete(db, "source-A", "fi")
+    assert plan_file_batches(db, "source-A", "fi", 3, ["new#sha256=" + "b" * 64], 1) == 1
+    assert not task_complete(db, "source-A", "fi")
+    assert next_batch(db, "source-A", "fi")[1] == ["new#sha256=" + "b" * 64]
