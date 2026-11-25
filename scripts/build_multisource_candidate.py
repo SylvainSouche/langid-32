@@ -7,7 +7,8 @@ import hashlib
 import json
 import subprocess
 import sys
-from collections import Counter
+import unicodedata
+from collections import Counter, defaultdict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -55,7 +56,7 @@ def source_family(raw_source: str) -> tuple[str, str | None]:
     return raw_source, None
 
 
-def normalize_file(source_path: Path, destination: Path, *, config=None, source_language_counts=None, filter_superseded=False):
+def normalize_file(source_path: Path, destination: Path, *, config=None, source_language_counts=None, source_language_seen=None, filter_superseded=False):
     if config is None:
         config = load_config()
     rows_in = 0
@@ -65,6 +66,9 @@ def normalize_file(source_path: Path, destination: Path, *, config=None, source_
     raw_source_counts = Counter()
     if source_language_counts is None:
         source_language_counts = Counter()
+    source_language_seen = defaultdict(set)
+    if source_language_seen is None:
+        source_language_seen = defaultdict(set)
     with source_path.open("r", encoding="utf-8") as source, destination.open(
         "w", encoding="utf-8", newline="\n"
     ) as output:
@@ -87,6 +91,25 @@ def normalize_file(source_path: Path, destination: Path, *, config=None, source_
                 raise ValueError(f"{source_path}:{line_number}: missing {', '.join(missing)}")
             if not isinstance(row.get("provenance"), dict):
                 raise ValueError(f"{source_path}:{line_number}: provenance object is required")
+            text_rules = config["acquisition"]["text"]
+            normalized_text = unicodedata.normalize("NFC", " ".join(str(row["text"]).split()))
+            row["text"] = normalized_text
+            if (len(normalized_text) < text_rules["min_characters"]
+                    or len(normalized_text) > text_rules["max_characters"]
+                    or len(normalized_text.encode("utf-8")) > text_rules["max_utf8_bytes"]):
+                filtered["text_length_or_bytes"] += 1
+                continue
+            letter_count = sum(char.isalpha() for char in normalized_text)
+            if (letter_count < text_rules["min_letter_characters"]
+                    or letter_count / max(len(normalized_text), 1) < text_rules["min_letter_ratio"]):
+                filtered["text_letter_quality"] += 1
+                continue
+            privacy = screen_record(row, uncertain_action=text_rules["privacy_uncertain_action"])
+            if not privacy.accepted:
+                filtered["privacy_" + privacy.status] += 1
+                for flag in privacy.flags:
+                    filtered["privacy_flag_" + flag] += 1
+                continue
             language = str(row["language"])
             try:
                 source_limit = acquisition_target(config, raw_source, language)
@@ -96,9 +119,13 @@ def normalize_file(source_path: Path, destination: Path, *, config=None, source_
                 continue
             quota_key = source_quota_key(config, raw_source)
             source_language_key = (quota_key, language)
+            if normalized_text in source_language_seen[source_language_key]:
+                filtered["duplicate_within_exact_source_language"] += 1
+                continue
             if source_language_counts[source_language_key] >= source_limit:
                 filtered["configured_source_target_reached"] += 1
                 continue
+            source_language_seen[source_language_key].add(normalized_text)
             source_language_counts[source_language_key] += 1
             raw_source_counts[(raw_source, language)] += 1
             family, component = source_family(raw_source)
@@ -215,7 +242,7 @@ def main():
     source_language_counts = Counter()
     for label, path, filter_superseded in sources:
         destination = normalized_dir / f"{label}.jsonl"
-        reports.append(normalize_file(path, destination, config=cfg, source_language_counts=source_language_counts, filter_superseded=filter_superseded))
+        reports.append(normalize_file(path, destination, config=cfg, source_language_counts=source_language_counts, source_language_seen=source_language_seen, filter_superseded=filter_superseded))
         if destination.stat().st_size:
             merge_inputs.append(destination)
 
