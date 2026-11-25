@@ -190,10 +190,6 @@ terminal_punctuation = "record_flag_only"
 # Runtime controls are centralized here too; workflows should reference these.
 python_version = "3.12"
 leipzig_pause_seconds = 1
-leipzig_timeout_minutes = 360
-dgt_timeout_minutes = 240
-candidate_timeout_minutes = 360
-jql_timeout_minutes = 300
 artifact_retention_days = 30
 checkpoint_retention_days = 7
 max_download_attempts = 12
