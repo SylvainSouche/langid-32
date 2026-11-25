@@ -7,6 +7,7 @@ on:
       - "scripts/acquire_waiting_sources.py"
       - ".github/workflows/langid32-recovery.yml"
       - "stages/01-acquisition/**"
+      - "src/langid32/merge.py"
 permissions:
   actions: read
   contents: read
@@ -179,6 +180,14 @@ jobs:
         env:
           PYTHONPATH: src
         run: python stages/02-candidate/run.py
+      - name: Preserve candidate failure diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: candidate-diagnostics
+          path: out/candidate/candidate-diagnostics.json
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Encrypt candidate checkpoint
         env:
           LANGID32_CHECKPOINT_KEY: ${{ secrets.LANGID32_CHECKPOINT_KEY }}
