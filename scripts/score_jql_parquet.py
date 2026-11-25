@@ -150,7 +150,7 @@ def main():
                 ids[start:start + len(batch_texts)],
                 languages[start:start + len(batch_texts)],
             )):
-                ratings = {name: round(float(batch_scores[name][offset]), 6)
+                ratings = {name: round(float(batch_scores[name][offset]), jql_cfg["score_decimal_places"])
                            for name in jql_cfg["judges"]}
                 writer.writerow({
                     "id": row_id,
