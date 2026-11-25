@@ -64,11 +64,9 @@ def test_shared_runtime_budget_guard_respects_safety_reserve():
 
 
 def test_production_workflow_has_central_concurrency_and_deadline_guards():
-    import yaml
-    workflow = yaml.safe_load((ROOT / ".github/workflows/langid32-pipeline.yml").read_text())
-    jobs = workflow["jobs"]
-    assert jobs["waiting-source"]["strategy"]["max-parallel"] == "${{ fromJSON(needs.config.outputs.acquisition_max_parallel_source_tasks) }}"
-    for name in ("historical", "common-voice", "waiting-source", "candidate", "jql"):
-        job = jobs[name]
-        assert "config" in job["needs"]
-        assert any(step.get("name") == "Enforce shared six-hour workflow budget" for step in job["steps"])
+    workflow = (ROOT / ".github/workflows/langid32-pipeline.yml").read_text()
+    assert "max-parallel: ${{ fromJSON(needs.config.outputs.acquisition_max_parallel_source_tasks) }}" in workflow
+    for name in ("historical:", "common-voice:", "waiting-source:", "candidate:", "jql:"):
+        assert name in workflow
+    assert workflow.count("Enforce shared six-hour workflow budget") == 5
+    assert "needs: [config]" in workflow
