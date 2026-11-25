@@ -12,7 +12,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from langid32.settings import load_config
+from langid32.settings import load_config, language_target
 
 LANGUAGES = tuple(load_config()["project"]["languages"])
 
@@ -58,13 +58,13 @@ def main() -> None:
     args = ap.parse_args()
     cfg = load_config(args.config)
     jql_cfg = cfg["jql"]
-    args.target_per_language = args.target_per_language or cfg["candidate"]["final_sentences_per_language"]
+    target_by_language = {lang: (args.target_per_language if args.target_per_language is not None else language_target(cfg, lang)) for lang in LANGUAGES}
     args.minimum_candidate_per_language = args.minimum_candidate_per_language or cfg["candidate"]["minimum_candidates_per_language"]
     args.global_quantile = args.global_quantile if args.global_quantile is not None else jql_cfg["diagnostic_global_quantile"]
     if not 0 < args.global_quantile < 1:
         ap.error("--global-quantile must be between 0 and 1")
-    if args.target_per_language < 1:
-        ap.error("--target-per-language must be positive")
+    if any(target < 1 for target in target_by_language.values()):
+        ap.error("all configured per-language final targets must be positive")
 
     import pandas as pd
 
@@ -99,8 +99,9 @@ def main() -> None:
     selected_parts = []
     quota_report = {}
     for lang in LANGUAGES:
+        target = target_by_language[lang]
         lang_rows = eligible.loc[eligible["lang"] == lang]
-        quotas = allocate(baseline[lang], args.target_per_language)
+        quotas = allocate(baseline[lang], target)
         available = lang_rows.groupby("source").size().to_dict()
         shortages = {
             source: {"required": quota, "available_above_global_cutoff": int(available.get(source, 0))}
@@ -118,7 +119,7 @@ def main() -> None:
                 raise RuntimeError(f"Selection count mismatch for {lang}/{source}")
             selected_parts.append(chosen)
         quota_report[lang] = {
-            "target": args.target_per_language,
+            "target": target,
             "baseline_source_counts": dict(sorted(baseline[lang].items())),
             "selected_source_counts": dict(sorted(quotas.items())),
             "eligible_for_selection": int(len(lang_rows)),
@@ -126,7 +127,7 @@ def main() -> None:
 
     selected = pd.concat(selected_parts, ignore_index=True)
     selected = selected.sort_values(["lang", "source", "id"], ascending=[True, True, True])
-    if len(selected) != len(LANGUAGES) * args.target_per_language:
+    if len(selected) != sum(target_by_language.values()):
         raise RuntimeError("Final selected row count does not match exact language targets")
     args.output_dir.mkdir(parents=True, exist_ok=True)
     csv_path = args.output_dir / "jql-consensus-selected.csv"
@@ -139,7 +140,7 @@ def main() -> None:
         "quality_floor_applied": bool(jql_cfg["apply_quality_floor"]),
         "global_jql_consensus_cutoff": cutoff,
         "rows_eligible_for_selection": int(len(eligible)),
-        "target_per_language": args.target_per_language,
+        "target_per_language": target_by_language,
         "selected_rows": int(len(selected)),
         "language_counts": {lang: int(count) for lang, count in selected.groupby("lang").size().items()},
         "baseline_source_mix": "existing baseline core manifest; source proportions preserved independently within each language",
@@ -156,7 +157,7 @@ def main() -> None:
         "diagnostic_quantile": args.global_quantile,
         "eligible_rows": len(eligible),
         "selected_rows": len(selected),
-        "per_language": args.target_per_language,
+        "per_language": target_by_language,
     }, ensure_ascii=False, indent=2))
 
 
