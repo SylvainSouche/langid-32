@@ -1,0 +1,201 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-11-25",
+  "purpose": "Authoritative operational record of source inclusion and exclusion decisions. This file records candidate-ingestion decisions separately from public-release rights clearance.",
+  "authority": "This decision register supersedes contradictory historical source-discovery notes and blanket exclusions where a narrower decision is recorded. Source-specific provenance and rights conditions remain binding.",
+  "selection_policy": {
+    "per_language_source_family_cap": 20000,
+    "source_family_components_share_one_cap": true,
+    "preferred_source_share": 0.3,
+    "hard_source_share": 0.5,
+    "candidate_ingestion_and_release_clearance_are_separate": true,
+    "do_not_silently_exclude_approved_sources": true
+  },
+  "decisions": [
+    {
+      "source_family": "common_voice_v22",
+      "languages": [
+        "fi",
+        "el",
+        "mt",
+        "sl",
+        "is"
+      ],
+      "decision": "include",
+      "candidate_ingestion": "approved",
+      "release_status": "publisher-declared CC0-1.0; retain dataset revision, locale/sentence IDs and citation",
+      "notes": "Transcript text only. Croatian has no locale in this dataset; this is a source gap, not a discretionary exclusion."
+    },
+    {
+      "source_family": "common_voice_v22",
+      "languages": [
+        "hr"
+      ],
+      "decision": "unavailable",
+      "candidate_ingestion": "not_applicable",
+      "release_status": "not_applicable",
+      "notes": "No Croatian source is present in the selected HF-hosted Common Voice 22 dataset."
+    },
+    {
+      "source_family": "dgt-tm-2021",
+      "languages": [
+        "hr",
+        "fi",
+        "el",
+        "mt",
+        "sl"
+      ],
+      "decision": "include",
+      "candidate_ingestion": "approved",
+      "release_status": "attribution and underlying-document review required",
+      "notes": "Keep NumDoc/member provenance and Commission attribution. Candidate inclusion does not imply blanket rights clearance of every underlying work."
+    },
+    {
+      "source_family": "leipzig_news",
+      "languages": [
+        "hr",
+        "fi",
+        "el",
+        "mt",
+        "sl",
+        "is"
+      ],
+      "decision": "include",
+      "candidate_ingestion": "approved",
+      "release_status": "source terms and provenance must remain attached",
+      "notes": "Keep separate from Leipzig Wikipedia for reporting; count source-family caps independently only where source independence is real."
+    },
+    {
+      "source_family": "leipzig_wikipedia",
+      "languages": [
+        "hr",
+        "fi",
+        "el",
+        "mt",
+        "sl",
+        "is"
+      ],
+      "decision": "include",
+      "candidate_ingestion": "approved",
+      "release_status": "source terms and provenance must remain attached",
+      "notes": "Keep separate from Leipzig News for reporting."
+    },
+    {
+      "source_family": "tatoeba-cc0",
+      "languages": [
+        "fi"
+      ],
+      "decision": "include_when_available",
+      "candidate_ingestion": "approved",
+      "release_status": "CC0-1.0 export only",
+      "notes": "Use only the dedicated sentences_CC0 export, never the general Tatoeba export as CC0."
+    },
+    {
+      "source_family": "fineweb2",
+      "languages": [
+        "hr",
+        "fi",
+        "el",
+        "mt",
+        "sl",
+        "is"
+      ],
+      "decision": "include_technical_candidate_only",
+      "candidate_ingestion": "approved",
+      "release_status": "HOLD — underlying web-text rights unresolved",
+      "notes": "The configs are hrv_Latn, fin_Latn, ell_Grek, mlt_Latn, slv_Latn and isl_Latn. Preserve this distinction: technical candidate inclusion is not release eligibility."
+    },
+    {
+      "source_family": "igc2024_filtered1",
+      "languages": [
+        "is"
+      ],
+      "decision": "include",
+      "candidate_ingestion": "approved",
+      "release_status": "CC BY 4.0; attribution and TEI/source provenance required",
+      "notes": "Filtered-1 open-access portion only. Filtered-2 remains excluded because its custom terms prohibit raw-text republication."
+    },
+    {
+      "source_family": "macocu_hr_2",
+      "languages": [
+        "hr"
+      ],
+      "decision": "include",
+      "candidate_ingestion": "approved_not_yet_integrated",
+      "release_status": "CLARIN.SI declares CC0-1.0; preserve document URLs and paragraph quality/sensitive-information/language/heading flags",
+      "notes": "Do not substitute CLASSLA-web.hr or count derivatives of the same MaCoCu crawl as independent sources."
+    },
+    {
+      "source_family": "macocu_mt_2",
+      "languages": [
+        "mt"
+      ],
+      "decision": "include",
+      "candidate_ingestion": "approved_not_yet_integrated",
+      "release_status": "CLARIN.SI declares CC0-1.0; preserve document URLs and paragraph quality/sensitive-information/language/heading flags",
+      "notes": "Distinct from Korpus Malti, which is not an interchangeable CC0 source."
+    },
+    {
+      "source_family": "macocu_sl_2",
+      "languages": [
+        "sl"
+      ],
+      "decision": "include",
+      "candidate_ingestion": "approved_not_yet_integrated",
+      "release_status": "CLARIN.SI declares CC0-1.0; preserve document URLs and paragraph quality/fluency/sensitive-information flags",
+      "notes": "Same MaCoCu web-crawl family as MaCoCu-hr/mt; do not count derivatives as independent sources."
+    },
+    {
+      "source_family": "parlamint_4",
+      "languages": [
+        "is",
+        "sl"
+      ],
+      "decision": "include",
+      "candidate_ingestion": "approved_not_yet_integrated",
+      "release_status": "CLARIN.SI declares CC BY 4.0; attribution and speaker/session provenance required",
+      "notes": "Use original session TEI; preserve speaker refs/roles, session/document IDs, dates and party metadata. Deduplicate overlaps with other parliamentary corpora."
+    },
+    {
+      "source_family": "greynir_copper",
+      "languages": [
+        "is"
+      ],
+      "decision": "include",
+      "candidate_ingestion": "approved_not_yet_integrated",
+      "release_status": "publisher-declared CC BY 4.0; attribute Miðeind ehf.; preserve source-document provenance",
+      "notes": "Full LFS-backed Copper corpus is in scope, subject to the 20,000 Greynir family cap."
+    },
+    {
+      "source_family": "greynir_silver",
+      "languages": [
+        "is"
+      ],
+      "decision": "include",
+      "candidate_ingestion": "approved_not_yet_integrated",
+      "release_status": "publisher-declared CC BY 4.0; attribute Miðeind ehf.; preserve source-document provenance",
+      "notes": "Full LFS-backed Silver corpus is in scope and shares the 20,000 Greynir family cap with Copper."
+    },
+    {
+      "source_family": "greynir_gold_dev_test",
+      "languages": [
+        "is"
+      ],
+      "decision": "exclude",
+      "candidate_ingestion": "forbidden",
+      "release_status": "not applicable",
+      "notes": "Gold development/test material is an evaluation set, not training/candidate source material. This is the only Greynir partition exclusion."
+    },
+    {
+      "source_family": "greynir",
+      "languages": [
+        "is"
+      ],
+      "decision": "superseded_blanket_exclusion",
+      "candidate_ingestion": "must_be_replaced_by_partition_rules",
+      "release_status": "see Copper/Silver and Gold decisions above",
+      "notes": "The previous whole-family exclusion is obsolete and conflicts with the Copper/Silver inclusion decision. Do not retain a blanket Greynir exclusion once partition-aware ingestion is in place; until then, prevent Gold/dev/test leakage explicitly."
+    }
+  ],
+  "current_candidate_gap_note": "The 2026-11-25 candidate diagnostics show MaCoCu-hr, MaCoCu-mt, MaCoCu-sl, ParlaMint-4.0, Greynir Copper and Greynir Silver are absent from candidate inputs. IGC2024 is present only as 1,478 post-filter rows. The approved-but-not-integrated sources must be wired into acquisition and candidate assembly; do not treat their absence as a decision to exclude them."
+}
