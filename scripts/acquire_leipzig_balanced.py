@@ -34,7 +34,7 @@ def tsv(tf,m):
   for raw in f:
    line=raw.decode("utf-8","replace").rstrip("\r\n")
    if line:yield line.split("\t")
-def sample(archive,data_id,label,family,quota,seed):
+def sample(archive,data_id,label,family,quota,seed,exclude_unicode_decimal_digits):
  with tarfile.open(archive,"r:gz") as tf:
   ms=[m for m in tf.getmembers() if m.isfile()]
   sent=next((m for m in ms if m.name.endswith("-sentences.txt")),None)
@@ -48,7 +48,7 @@ def sample(archive,data_id,label,family,quota,seed):
    if len(p)<2:continue
    sid=p[0];text="\t".join(p[1:]).strip()
    if not text:continue
-   if family=="news" and any(c.isdecimal() for c in text):digits+=1;continue
+   if exclude_unicode_decimal_digits and any(c.isdecimal() for c in text):digits+=1;continue
    eligible+=1;rank=int(hashlib.sha256((seed+"\0"+label+"\0"+family+"\0"+sid+"\0"+text).encode()).hexdigest(),16)
    item=(-rank,sid,text)
    if len(heap)<quota:heapq.heappush(heap,item)
@@ -69,7 +69,7 @@ def sample(archive,data_id,label,family,quota,seed):
 def main():
  ap=argparse.ArgumentParser();ap.add_argument("--out",required=True);ap.add_argument("--config",type=Path,default=ROOT/"config/langid32.toml");ap.add_argument("--quota",type=int,default=None,help="Explicit emergency override; normally use the central config");
  ap.add_argument("--seed",default=None);ap.add_argument("--pause",type=float,default=None);ap.add_argument("--labels",default="",help="Comma-separated target labels; default is all configured labels")
- a=ap.parse_args();cfg=load_config(a.config);a.seed=a.seed or cfg["candidate"]["splits"]["seed"];a.pause=a.pause if a.pause is not None else cfg["execution"]["leipzig_pause_seconds"];out=Path(a.out);ar=out/"archives";sm=out/"samples";ar.mkdir(parents=True,exist_ok=True);sm.mkdir(parents=True,exist_ok=True)
+ a=ap.parse_args();cfg=load_config(a.config);a.seed=a.seed or cfg["acquisition"]["seed"];a.pause=a.pause if a.pause is not None else cfg["execution"]["leipzig_pause_seconds"];out=Path(a.out);ar=out/"archives";sm=out/"samples";ar.mkdir(parents=True,exist_ok=True);sm.mkdir(parents=True,exist_ok=True)
  s=requests.Session();idx=out/"links.parquet";fetch(s,INDEX_URL,idx);idxsha=sha(idx);cat=pq.read_table(idx).to_pylist()
  selected_labels={x.strip() for x in a.labels.split(",") if x.strip()}
  if not selected_labels:
@@ -98,9 +98,10 @@ def main():
    "language_short":r.get("language_short"),"year":r.get("year"),"nominal_size":r.get("size"),"archive_url":url}
   try:
    fetch(s,url,arc);rec.update({"archive_file":str(arc.relative_to(out)),"archive_bytes":arc.stat().st_size,"archive_sha256":sha(arc)})
+   source_rule=cfg["acquisition"]["source_rules"]["leipzig_"+fam]
    quota=a.quota if a.quota is not None else acquisition_target(cfg,"leipzig_"+fam,label)
    rec["configured_target"]=quota
-   rows,stats=sample(arc,did,label,fam,quota,a.seed);rec["selection"]=stats
+   rows,stats=sample(arc,did,label,fam,quota,a.seed,source_rule["exclude_unicode_decimal_digits"]);rec["selection"]=stats
    rec["status"]="sampled" if len(rows)==quota else "short_sample"
    p=sm/(label+"-"+fam+".jsonl")
    with p.open("w",encoding="utf-8") as f:
