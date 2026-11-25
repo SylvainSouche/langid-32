@@ -18,7 +18,8 @@ from urllib.parse import urlparse
 from collections import Counter, defaultdict
 from pathlib import Path
 
-from langid32.settings import load_config\nfrom langid32.privacy import screen_record
+from langid32.settings import load_config
+from langid32.privacy import screen_record
 
 CONFIG = load_config()
 LANGUAGES = tuple(CONFIG["project"]["languages"])
@@ -180,7 +181,13 @@ def read_inputs(paths: list[Path], args):
                 missing = [key for key in required if not row.get(key)]
                 if missing:
                     raise ValueError(f"{path}:{line_number}: missing {', '.join(missing)}")
-                privacy_result = screen_record(row, uncertain_action=cfg["acquisition"]["text"]["privacy_uncertain_action"])\n                if not privacy_result.accepted:\n                    rejected["privacy_" + privacy_result.status] += 1\n                    for flag in privacy_result.flags:\n                        rejected["privacy_flag_" + flag] += 1\n                    continue\n                language = str(row["language"]).lower()
+                privacy_result = screen_record(row, uncertain_action=CONFIG["acquisition"]["text"]["privacy_uncertain_action"])
+                if not privacy_result.accepted:
+                    rejected["privacy_" + privacy_result.status] += 1
+                    for flag in privacy_result.flags:
+                        rejected["privacy_flag_" + flag] += 1
+                    continue
+                language = str(row["language"]).lower()
                 if language not in LANGUAGES:
                     rejected["language_not_in_target_set"] += 1
                     continue
