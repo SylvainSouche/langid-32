@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import sys
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -23,10 +24,12 @@ def main() -> None:
         "acquisition_job_timeout_minutes": config["execution"]["acquisition_job_timeout_minutes"],
         "acquisition_global_budget_minutes": config["execution"]["acquisition_global_budget_minutes"],
         "acquisition_safety_margin_minutes": config["execution"]["acquisition_safety_margin_minutes"],
+        "acquisition_started_epoch": int(time.time()),
     }
     output = os.environ.get("GITHUB_OUTPUT")
     if not output:
         raise SystemExit("GITHUB_OUTPUT is required")
+    values["acquisition_deadline_epoch"] = values["acquisition_started_epoch"] + values["acquisition_global_budget_minutes"] * 60
     with open(output, "a", encoding="utf-8") as stream:
         for key, value in values.items():
             stream.write(f"{key}={value}" + chr(10))
