@@ -2,7 +2,7 @@
 
 **Updated: 25 November 2026**
 
-This document records the operational decisions on source inclusion and first-pass acquisition. The machine-readable register is [`data/source-decisions.json`](../data/source-decisions.json). It is authoritative and takes precedence over contradictory historical notes and obsolete sampling defaults. The descriptive [source register](source-register.md) remains useful for audit measurements and rights/provenance detail.
+This document and [`data/source-decisions.json`](../data/source-decisions.json) are authoritative for source inclusion/exclusion. Numeric targets and thresholds are defined only in [`config/langid32.toml`](../config/langid32.toml). The descriptive [source register](source-register.md) remains useful for audit measurements and rights/provenance detail.
 
 ## First-pass acquisition rule
 
@@ -12,11 +12,11 @@ This is a first-pass acquisition target, not a final corpus quota and not a cand
 
 The following old limits are explicitly abandoned:
 
-| Source | Old first-pass limit | Current first-pass target |
-|---|---:|---:|
-| Leipzig News | 3,000 / language | **20,000 / language** |
-| Leipzig Wikipedia | 3,000 / language | **20,000 / language** |
-| DGT-TM | 5,000 / language | **20,000 / language** |
+| Source | Abandoned historical limit | Active target |
+|---|---:|---|
+| Leipzig News | 3,000 / language | See central config |
+| Leipzig Wikipedia | 3,000 / language | See central config |
+| DGT-TM | 5,000 / language | See central config |
 
 Leipzig News and Leipzig Wikipedia are separate sources and each gets its own configured stream target. DGT-TM has its own configured target. The per-source target is not a family-wide cap and must not be interpreted as one. No general source-family cap is established by this register.
 
@@ -28,8 +28,8 @@ Candidate construction happens later. Its per-language targets, source-balance p
 |---|---|---|
 | Croatian (`hr`) | DGT-TM 2021; Leipzig News; Leipzig Wikipedia; FineWeb2 (`hrv_Latn`, technical only); **MaCoCu-hr 2.0** | Common Voice has no Croatian locale. FineWeb2 remains on underlying-text rights hold for release. |
 | Finnish (`fi`) | Common Voice 22; DGT-TM 2021; Leipzig News; Leipzig Wikipedia; Tatoeba CC0; FineWeb2 (`fin_Latn`, technical only) | FineWeb2 remains on underlying-text rights hold for release. |
-| Greek (`el`) | Common Voice 22; DGT-TM 2021 (20k); Leipzig News; Leipzig Wikipedia; FineWeb2 (`ell_Grek`, technical only) | FineWeb2 remains on underlying-text rights hold for release. |
-| Maltese (`mt`) | Common Voice 22; DGT-TM 2021 (20k); Leipzig News (20k); Leipzig Wikipedia (20k); FineWeb2 (`mlt_Latn`, technical only); **MaCoCu-mt 2.0** | FineWeb2 remains on underlying-text rights hold for release. Korpus Malti is not a substitute for MaCoCu-mt. |
+| Greek (`el`) | Common Voice 22; DGT-TM 2021; Leipzig News; Leipzig Wikipedia; FineWeb2 (`ell_Grek`, technical only) | FineWeb2 remains on underlying-text rights hold for release. |
+| Maltese (`mt`) | Common Voice 22; DGT-TM 2021 (20k); Leipzig News; Leipzig Wikipedia; FineWeb2 (`mlt_Latn`, technical only); **MaCoCu-mt 2.0** | FineWeb2 remains on underlying-text rights hold for release. Korpus Malti is not a substitute for MaCoCu-mt. |
 | Slovenian (`sl`) | Common Voice 22; DGT-TM 2021 (20k); Leipzig News (20k); Leipzig Wikipedia (20k); FineWeb2 (`slv_Latn`, technical only); **MaCoCu-sl 2.0**; **ParlaMint 4.0** | FineWeb2 remains on underlying-text rights hold for release. Do not double-count MaCoCu derivatives or overlapping parliamentary corpora as independent sources. |
 | Icelandic (`is`) | Common Voice 22; IGC2024 Filtered-1; Leipzig News (20k); Leipzig Wikipedia (20k); FineWeb2 (`isl_Latn`, technical only); **ParlaMint 4.0**; **Greynir Copper and Silver** | IGC Filtered-2 is excluded under its custom terms. **Greynir Gold development/test is excluded; Copper/Silver are included.** FineWeb2 remains on underlying-text rights hold for release. |
 
