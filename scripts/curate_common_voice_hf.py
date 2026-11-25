@@ -26,18 +26,18 @@ URL = re.compile(r"(?i)(?:https?://[^\s<>]+|www\.[^\s<>]+)")
 IPV4 = re.compile(r"(?<![\d.])(?:\d{1,3}\.){3}\d{1,3}(?![\d.])")
 LONG_NUMBER = re.compile(r"\d{9,}")
 PHONE = re.compile(r"(?<!\w)\+?\d[\d -]{7,}\d(?!\w)")
-LANGUAGES = ("bg", "hr", "is", "ca", "cs", "da", "nl", "en", "et", "fi", "fr", "de", "el", "hu", "ga", "it", "lv", "lt", "mt", "pl", "pt", "ro", "sk", "sl", "es", "sv", "nb", "nn", "ru", "ja", "zh", "ko", "ar", "tr")
+LANGUAGES = tuple(load_config()["acquisition"]["source_rules"]["common_voice_v22"]["languages"])
 
 
 def norm(value: str) -> str:
     return " ".join(unicodedata.normalize("NFC", value).split())
 
 
-def phone_like(text: str) -> bool:
+def phone_like(text: str, rules: dict) -> bool:
     for match in PHONE.finditer(text):
         raw = match.group()
         digits = re.sub(r"\D", "", raw)
-        if 9 <= len(digits) <= 15 and (raw.count(" ") + raw.count("-") >= 2 or "+" in raw):
+        if rules["phone_min_digits"] <= len(digits) <= rules["phone_max_digits"] and (raw.count(" ") + raw.count("-") >= rules["phone_min_separators"] or "+" in raw):
             return True
     return False
 
@@ -54,6 +54,7 @@ def main() -> None:
     parser.add_argument("--config", type=Path, default=ROOT / "config/langid32.toml")
     args = parser.parse_args()
     cfg = load_config(args.config)
+    text_rules = cfg["acquisition"]["source_rules"]["common_voice_v22"]["text"]
     download_manifest_path = args.input_root / "hf-common-voice-download-manifest.json"
     if not download_manifest_path.is_file():
         raise SystemExit("Common Voice download manifest is required for immutable provenance.")
@@ -79,16 +80,18 @@ def main() -> None:
                 if not text:
                     counts[f"{language}:empty"] += 1
                     continue
-                if len(text) < 12 or len(text) > 500 or len(text.encode("utf-8")) > 1500:
+                if len(text) < text_rules["min_characters"] or len(text) > text_rules["max_characters"] or len(text.encode("utf-8")) > text_rules["max_utf8_bytes"]:
                     counts[f"{language}:length_rejected"] += 1
                     continue
-                if EMAIL.search(text) or URL.search(text):
+                if (text_rules["exclude_email"] and EMAIL.search(text)) or (text_rules["exclude_url"] and URL.search(text)):
                     counts[f"{language}:email_or_url_rejected"] += 1
                     continue
-                if IPV4.search(text):
+                if text_rules["exclude_ipv4"] and IPV4.search(text):
                     counts[f"{language}:ipv4_rejected"] += 1
                     continue
-                if phone_like(text) or LONG_NUMBER.search(text):
+                if ((text_rules["exclude_phone_like"] and phone_like(text, text_rules))
+                        or (text_rules["exclude_long_numeric_sequences"]
+                            and re.search(r"\\d{" + str(text_rules["long_numeric_min_digits"]) + r",}", text))):
                     counts[f"{language}:numeric_identifier_rejected"] += 1
                     continue
                 if text in candidates[language]:
@@ -160,7 +163,7 @@ def main() -> None:
         "target_languages": list(LANGUAGES),
         "raw_tsvs_uploaded": False,
         "audio_saved": False,
-        "selection": "validated_sentences.tsv; if is_used exists require true; NFC/whitespace normalization; 12-500 chars; <=1500 UTF-8 bytes; conservative PII/identifier exclusions; within-language deduplication; all-label collision removal; deterministic cap",
+        "selection": {"validated_sentences_tsv": True, "require_is_used_true_when_present": True, "text_rules": text_rules, "within_language_deduplication": True, "all_language_collision_removal": True, "deterministic_cap": True},
         "cross_language_collision_strings_removed": len(collisions),
         "per_language": final_counts,
         "counts": dict(sorted(counts.items())),
