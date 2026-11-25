@@ -19,27 +19,33 @@ seed = "langid-32-fineweb2-v1"
 
 [acquisition.source_rules.leipzig_news]
 target = 20000
+languages = ["hr", "fi", "el", "mt", "sl", "is"]
 exclude_unicode_decimal_digits = true
 
 [acquisition.source_rules.leipzig_wikipedia]
 target = 20000
+languages = ["hr", "fi", "el", "mt", "sl", "is"]
 exclude_unicode_decimal_digits = false
 
 [acquisition.source_rules.dgt_tm_2021]
 target = 20000
+languages = ["hr", "fi", "el", "mt", "sl"]
 max_segments_per_tmx_document_language = 20
 
 [acquisition.source_rules.common_voice_v22]
 target = 20000
+languages = ["fi", "el", "mt", "sl", "is"]
 
 [acquisition.source_rules.fineweb2]
 target = 20000
+languages = ["hr", "fi", "el", "mt", "sl", "is"]
 
 [acquisition.source_rules.tatoeba_cc0]
 target = 20000
 
 [acquisition.source_rules.gaois_irish_legislation]
 target = 20000
+languages = ["ga"]
 
 [acquisition.source_rules.waiting_sources]
 target = 20000
