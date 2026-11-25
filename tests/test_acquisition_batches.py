@@ -3,7 +3,7 @@ import sqlite3
 
 from langid32.acquisition_batches import (
     add_eligible, finish_batch, mark_exhausted, next_batch, open_state,
-    plan_file_batches, retained_count, task_complete,
+    plan_file_batches, retained_count, task_complete, task_report,
 )
 
 
@@ -70,3 +70,23 @@ def test_invalid_file_digest_cannot_complete_batch(tmp_path):
     batch_no, _ = next_batch(db, "source-A", "fi")
     with pytest.raises(ValueError, match="valid SHA-256"):
         finish_batch(db, "source-A", "fi", batch_no, {"a": "not-a-hash"})
+
+
+
+def test_running_batch_resumes_after_database_reopen(tmp_path):
+    path = tmp_path / "state.sqlite"
+    db = open_state(path)
+    plan_file_batches(db, "source-A", "fi", 2, ["b", "a", "a"], 1)
+    batch_no, files = next_batch(db, "source-A", "fi")
+    assert files == ["a"]
+    db.close()
+
+    db = open_state(path)
+    resumed_no, resumed_files = next_batch(db, "source-A", "fi")
+    assert (resumed_no, resumed_files) == (batch_no, ["a"])
+    add_eligible(db, "source-A", "fi", [{"text": "first", "source": "source-A", "language": "fi"}])
+    finish_batch(db, "source-A", "fi", batch_no, {"a": "a".ljust(64, "0")})
+    report = task_report(db, "source-A", "fi")
+    assert report["retained_unique_post_filter"] == 1
+    assert report["shortfall"] == 1
+    assert report["incomplete_file_batches"] == 1
