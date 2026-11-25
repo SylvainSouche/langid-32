@@ -24,7 +24,7 @@ def test_upstream_sensitive_flags_fail_closed():
     }
     result = screen_record(row)
     assert not result.accepted
-    assert result.status == "rejected"
+    assert result.status == "quarantined"
     assert "personal_name" in result.flags
 
 
@@ -32,3 +32,14 @@ def test_normal_sentence_is_not_rejected_by_shared_gate():
     result = screen_text("The weather changed during the afternoon and the road became wet.")
     assert result.accepted
     assert result.status == "clean"
+
+
+def test_ambiguous_proper_name_is_quarantined_but_year_is_not_pii():
+    ambiguous = screen_text("The report was prepared by Alice Martin for the committee.")
+    assert not ambiguous.accepted
+    assert ambiguous.status == "rejected"  # contextual author attribution is high confidence
+    ordinary = screen_text("The 2024 report was published after the annual meeting.")
+    assert ordinary.accepted
+    uncertain = screen_text("The team visited New York during the conference.")
+    assert not uncertain.accepted
+    assert uncertain.status == "quarantined"
