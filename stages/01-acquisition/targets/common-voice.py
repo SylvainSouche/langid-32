@@ -15,7 +15,7 @@ def main():
     if not manifest.is_file():
         subprocess.run([sys.executable, "scripts/download_common_voice_hf.py", "--output-dir", str(source)], check=True)
     subprocess.run([sys.executable, "scripts/curate_common_voice_hf.py", "--input-root", str(source),
-                    "--output", str(output), "--per-language-cap", "20000"], check=True)
+                    "--output", str(output)], check=True)
 
 if __name__ == "__main__":
     main()
