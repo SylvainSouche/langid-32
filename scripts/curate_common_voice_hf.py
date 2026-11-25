@@ -27,6 +27,8 @@ IPV4 = re.compile(r"(?<![\d.])(?:\d{1,3}\.){3}\d{1,3}(?![\d.])")
 LONG_NUMBER = re.compile(r"\d{9,}")
 PHONE = re.compile(r"(?<!\w)\+?\d[\d -]{7,}\d(?!\w)")
 LANGUAGES = tuple(load_config()["acquisition"]["source_rules"]["common_voice_v22"]["languages"])
+if not LANGUAGES:
+    raise RuntimeError("Common Voice acquisition is disabled pending individual locale terms acceptance.")
 
 
 def norm(value: str) -> str:
