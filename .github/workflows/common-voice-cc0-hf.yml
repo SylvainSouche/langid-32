@@ -1,13 +1,6 @@
 name: HF-hosted CC0 Common Voice text-only ingestion
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "scripts/download_common_voice_hf.py"
-      - "scripts/curate_common_voice_hf.py"
-      - "scripts/emit_runtime_config.py"
-      - ".github/workflows/common-voice-cc0-hf.yml"
   workflow_dispatch:
 
 permissions:
