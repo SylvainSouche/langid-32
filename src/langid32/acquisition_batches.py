@@ -68,6 +68,13 @@ def plan_file_batches(db: sqlite3.Connection, source: str, language: str,
                    (source, language, next_no, json.dumps(group, ensure_ascii=False)))
         next_no += 1
         created += 1
+    # A previously exhausted source can acquire new immutable file versions
+    # after upstream refresh. New planned work must reopen that task.
+    if created:
+        db.execute(
+            "UPDATE task SET exhausted=0 WHERE source=? AND language=?",
+            (source, language),
+        )
     db.commit()
     return created
 
