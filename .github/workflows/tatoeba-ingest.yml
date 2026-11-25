@@ -4,6 +4,7 @@ name: Ingest Tatoeba CC0 source
 on:
   push:
     paths:
+      - ".github/workflows/tatoeba-ingest.yml"
       - "scripts/stage_tatoeba.py"
       - "tests/test_tatoeba_stage.py"
       - "config/langid32.toml"
