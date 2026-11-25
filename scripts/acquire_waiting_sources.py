@@ -22,7 +22,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 from langid32.settings import load_config, acquisition_target, source_quota_key
-from langid32.acquisition_batches import open_state, plan_file_batches, add_eligible, retained_count, export_records
+from langid32.acquisition_batches import open_state, plan_file_batches, add_eligible, retained_count, export_records, task_report
 EXECUTION = load_config()["execution"]
 from urllib.request import Request, urlopen
 
@@ -651,6 +651,8 @@ def main():
             "downloads": downloads,
             "source_revisions": revisions,
             "counts": {"|".join(key): value for key, value in sorted(counts.items())},
+            "source_language_status": [task_report(state_db, source, language)
+                                      for language, source in sorted(initialized_tasks)],
             "stats": dict(stats),
             "total_selected": len(deduplicated),
             "notes": notes,
