@@ -101,7 +101,8 @@ def fetch(url, destination, max_attempts=None):
             request = Request(url, headers=headers)
             with urlopen(request, timeout=EXECUTION["http_read_timeout_seconds"]) as response:
                 if offset and response.status != 206:
-                    raise IOError(f"server did not honour Range at byte {offset}: HTTP {response.status}")
+                    destination.unlink(missing_ok=True)
+                    raise IOError(f"server did not honour Range at byte {offset}: HTTP {response.status}; restarting download")
                 if offset:
                     content_range = response.headers.get("Content-Range", "")
                     if not content_range.startswith(f"bytes {offset}-"):
@@ -124,6 +125,8 @@ def fetch(url, destination, max_attempts=None):
             return {"url": url, "bytes": size, "sha256": digest.hexdigest()}
         except Exception as exc:
             last_error = exc
+            if getattr(exc, "code", None) == 416 and destination.exists():
+                destination.unlink()
             if attempt < max_attempts - 1:
                 time.sleep(min(60, 3 * (attempt + 1)))
     raise last_error
