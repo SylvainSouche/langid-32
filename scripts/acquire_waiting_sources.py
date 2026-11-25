@@ -283,7 +283,9 @@ def main():
         inserted = add_eligible(state_db, bucket_key[1], language, [record])
         if inserted:
             retained[bucket_key].append(record)
-            seen[bu    def scan_one_file(path, root, language, source, bucket_key):
+            seen[bucket_key].add(text_hash)
+
+    def scan_one_file(path, root, language, source, bucket_key):
         relative = path.name if root.is_file() else path.relative_to(root).as_posix()
         try:
             if path.name.endswith(".jsonl") or path.name.endswith(".jsonl.gz"):
@@ -419,7 +421,7 @@ def main():
             finish_batch(state_db, bucket_key[1], language, batch_no, hashes)
             if quota_reached(bucket_key):
                 break
-e(exc).__name__}: {exc}")
+
 
     try:
         if args.source == "catalan":
