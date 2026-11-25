@@ -446,27 +446,72 @@ def main():
 
         elif args.source == "fineweb2":
             revisions["fineweb2"] = resolve_hf_revision("HuggingFaceFW/fineweb-2")
-            from datasets import load_dataset
+            # Avoid datasets' threaded streaming reader: it can abort hosted
+            # runners during interpreter teardown after an early quota stop
+            # (Errno 9 / PyGILState_Release). Read pinned Parquet shards via
+            # synchronous HTTP range requests instead of downloading 4.8GB
+            # shards in full or leaving reader worker threads behind.
+            from huggingface_hub import HfApi, hf_hub_url
+            import fsspec
+            import pyarrow.parquet as pq
+
             config = args.fineweb2_config
             language = fineweb2_languages[config]
-            dataset = load_dataset("HuggingFaceFW/fineweb-2", config, split="train",
-                                   streaming=True, revision=revisions["fineweb2"])
             source = "fineweb2:" + config
             bucket_key = (language, source_bucket(source))
-            for index, item in enumerate(dataset):
+            api = HfApi()
+            files = sorted(
+                name for name in api.list_repo_files(
+                    "HuggingFaceFW/fineweb-2", repo_type="dataset",
+                    revision=revisions["fineweb2"]
+                )
+                if name.startswith(f"data/{config}/train/") and name.endswith(".parquet")
+            )
+            if not files:
+                raise RuntimeError(f"No FineWeb-2 train Parquet shards found for {config} at pinned revision")
+            http = fsspec.filesystem("https")
+            processed = 0
+            for filename in files:
                 if len(retained[bucket_key]) >= max_per_source:
                     break
-                document_id = str(item.get("id") or item.get("url") or index)
-                provenance = {"dataset_repo": "HuggingFaceFW/fineweb-2",
-                              "repo_commit": revisions["fineweb2"],
-                              "document_id": document_id,
-                              "fineweb2_config": config}
-                for key in ("url", "date", "dump", "language_score"):
-                    if item.get(key) is not None:
-                        provenance[key] = item[key]
-                add(language, source, item.get("text"), document_id, provenance)
-                if (index + 1) % 100000 == 0:
-                    print(f"{config}: streamed {index + 1}; retained {len(retained[bucket_key])}", flush=True)
+                url = hf_hub_url(
+                    repo_id="HuggingFaceFW/fineweb-2", filename=filename,
+                    repo_type="dataset", revision=revisions["fineweb2"]
+                )
+                with http.open(url, "rb", block_size=4 * 1024 * 1024,
+                               cache_type="readahead") as remote_file:
+                    parquet = pq.ParquetFile(remote_file)
+                    columns = set(parquet.schema_arrow.names)
+                    if "text" not in columns:
+                        raise RuntimeError(
+                            f"Unexpected FineWeb-2 Parquet schema in {filename}: {sorted(columns)}"
+                        )
+                    selected_columns = [
+                        name for name in ("text", "id", "url", "date", "dump", "language_score")
+                        if name in columns
+                    ]
+                    for batch in parquet.iter_batches(batch_size=512, columns=selected_columns):
+                        for item in batch.to_pylist():
+                            if len(retained[bucket_key]) >= max_per_source:
+                                break
+                            document_id = str(item.get("id") or item.get("url") or processed)
+                            provenance = {
+                                "dataset_repo": "HuggingFaceFW/fineweb-2",
+                                "repo_commit": revisions["fineweb2"],
+                                "document_id": document_id,
+                                "fineweb2_config": config,
+                                "source_file": filename,
+                                "source_record_index": processed,
+                            }
+                            for key in ("url", "date", "dump", "language_score"):
+                                if item.get(key) is not None:
+                                    provenance[key] = item[key]
+                            add(language, source, item.get("text"), document_id, provenance)
+                            processed += 1
+                        if len(retained[bucket_key]) >= max_per_source:
+                            break
+                if processed and processed % 100000 == 0:
+                    print(f"{config}: read {processed}; retained {len(retained[bucket_key])}", flush=True)
             if len(retained[bucket_key]) < max_per_source:
                 notes.append(f"{config}: source exhausted at {len(retained[bucket_key])} retained records.")
             else:
