@@ -9,8 +9,9 @@ Branch: `recovery/fix-acquisition-20261124`
 | Leipzig News | hr, fi, el, mt, sl, is | 120,000 | Run [45597142577](https://github.com/SylvainSouche/langid-32/actions/runs/45597142577), artifact `leipzig-first-pass-45597142577` |
 | Leipzig Wikipedia | hr, fi, el, mt, sl, is | 120,000 | Same run; 20,000 each language |
 | DGT-TM 2021 | hr, fi, el, mt, sl | 100,000 | Run [45597160644](https://github.com/SylvainSouche/langid-32/actions/runs/45597160644), artifact `dgt-tm-2021-first-pass-45597160644` |
+| Tatoeba CC0 | fi | 1,545 | Refreshed in run [45600118583](https://github.com/SylvainSouche/langid-32/actions/runs/45600118583); artifact contains JSONL and manifest |
 
-**340,000 newly acquired records.** The Leipzig manifest confirms 12/12 source-language slots, 20,000 per slot and no missing archives. The DGT manifest confirms 20,000 per language across the five approved languages, with 16,000 train, 2,000 validation and 2,000 test records per language. The DGT artifact contains both the staged JSONL and its provenance manifest.
+**340,000 newly acquired Leipzig and DGT records.** Tatoeba was re-staged with the same 1,545 Finnish rows already present in the previous intake; this refresh fixes the artifact to include the actual JSONL as well as the manifest. The Leipzig manifest confirms 12/12 source-language slots, 20,000 per slot and no missing archives. The DGT manifest confirms 20,000 per language across the five approved languages, with 16,000 train, 2,000 validation and 2,000 test records per language. The DGT artifact contains both the staged JSONL and its provenance manifest.
 
 ## Current per-language source intake
 
