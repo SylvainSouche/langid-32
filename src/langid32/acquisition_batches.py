@@ -72,6 +72,27 @@ def plan_file_batches(db: sqlite3.Connection, source: str, language: str,
     return created
 
 
+def next_batch(db: sqlite3.Connection, source: str, language: str):
+    """Return and mark the next incomplete batch; interrupted running batches are retryable."""
+    row = db.execute(
+        "SELECT batch_no,files_json FROM file_batch "
+        "WHERE source=? AND language=? AND status IN ('pending','running') "
+        "ORDER BY batch_no LIMIT 1", (source, language)).fetchone()
+    if row is None:
+        return None
+    db.execute(
+        "UPDATE file_batch SET status='running' WHERE source=? AND language=? AND batch_no=?",
+        (source, language, row[0]))
+    db.commit()
+    return row[0], json.loads(row[1])
+
+
+def pending_batch_count(db: sqlite3.Connection, source: str, language: str) -> int:
+    return db.execute(
+        "SELECT COUNT(*) FROM file_batch WHERE source=? AND language=? AND status!='complete'",
+        (source, language)).fetchone()[0]
+
+
 def retained_count(db: sqlite3.Connection, source: str, language: str) -> int:
     return db.execute("SELECT COUNT(*) FROM sentence WHERE source=? AND language=?",
                       (source, language)).fetchone()[0]
