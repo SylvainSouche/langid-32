@@ -25,6 +25,15 @@ def norm(value: str) -> str:
     return " ".join(unicodedata.normalize("NFC", value).split())
 
 
+def script_ratio(text: str, script: str) -> float:
+    letters = [char for char in text if char.isalpha()]
+    if not letters:
+        return 0.0
+    prefix = script.upper() + " "
+    matched = sum(unicodedata.name(char, "").startswith(prefix) for char in letters)
+    return matched / len(letters)
+
+
 def priority(language: str, text: str) -> str:
     return hashlib.sha256(f"langid-32-cv-v1\0{language}\0{text}".encode()).hexdigest()
 
@@ -89,6 +98,13 @@ def main() -> None:
                     if (letters < global_text_rules["min_letter_characters"]
                             or letters / max(len(text), 1) < global_text_rules["min_letter_ratio"]):
                         counts[f"{language}:letter_quality_rejected"] += 1
+                        continue
+                    script_rules = cfg["acquisition"]["source_rules"]["common_voice_v22"]["script"]
+                    expected_script = script_rules["by_language"].get(language)
+                    if not expected_script:
+                        raise ValueError(f"No expected script configured for Common Voice language {language}")
+                    if script_ratio(text, expected_script) < script_rules["minimum_ratio"]:
+                        counts[f"{language}:wrong_or_mixed_script_rejected"] += 1
                         continue
                     privacy = screen_text(text, uncertain_action=cfg["acquisition"]["text"]["privacy_uncertain_action"])
                     if not privacy.accepted:
@@ -187,7 +203,7 @@ def main() -> None:
         "target_languages": list(languages),
         "raw_tsvs_uploaded": False,
         "audio_saved": False,
-        "selection": {"validated_sentences_tsv": True, "require_is_used_true_when_present": True, "text_rules": text_rules, "within_language_deduplication": True, "all_language_collision_removal": True, "deterministic_cap": True},
+        "selection": {"validated_sentences_tsv": True, "require_is_used_true_when_present": True, "text_rules": text_rules, "within_language_deduplication": True, "expected_script_by_language": script_rules["by_language"], "minimum_expected_script_ratio": script_rules["minimum_ratio"], "all_language_collision_removal": True, "deterministic_cap": True},
         "cross_language_collision_strings_removed": len(collisions),
         "per_language": final_counts,
         "acquisition_state": acquisition_status,
