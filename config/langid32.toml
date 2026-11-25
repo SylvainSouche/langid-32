@@ -102,6 +102,8 @@ final_sentences_per_language = 25000
 
 # Candidate-stage balancing only. These are not acquisition caps.
 [candidate.source_balance]
+preferred_max_share_of_total_corpus_per_source = 0.30
+hard_max_share_of_total_corpus_per_source = 0.50
 preferred_max_share_per_language_and_split = 0.30
 hard_max_share_per_language_and_split = 0.50
 # Preserve the existing baseline source proportions independently per language
