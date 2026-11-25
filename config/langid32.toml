@@ -11,6 +11,10 @@ languages = ["bg","hr","cs","da","nl","en","et","fi","fr","de","el","hu","ga","i
 # First pass: stream up to this many eligible, unique records from EACH
 # individual source for EACH language. This is not a family-wide/candidate cap.
 first_pass_target_per_source_language = 20000
+# Retain all eligible unique sentences up to this cap per original source/language.
+# Underfilled cells stay underfilled; never top up from another source.
+filter_before_quota = true
+privacy_filter_before_quota = true
 reject_unregistered_sources = true
 seed = "langid-32-fineweb2-v1"
 # No override currently approved. Keys are source identifiers, then language.
@@ -163,37 +167,32 @@ exclude_long_numeric_sequences = true
 long_numeric_min_digits = 9
 
 [acquisition.text]
+# Applied before source/language cap and before JQL.
 min_characters = 12
 max_characters = 500
 max_utf8_bytes = 1500
+min_letter_characters = 8
+min_letter_ratio = 0.45
 exclude_email = true
 exclude_url = true
 exclude_ipv4 = true
-exclude_phone_like = false
-exclude_long_numeric_sequences = false
-# Phone-like and long numeric strings are flagged downstream rather than removed.
+exclude_phone_like = true
+exclude_long_numeric_sequences = true
+exclude_personal_names = true
+exclude_personal_addresses = true
+# Source privacy flags and deterministic patterns/NER must be applied; uncertain matches are quarantined.
+privacy_uncertain_action = "quarantine"
 
 [candidate]
-# Minimum intake pool before final production selection; acquire more rather than
-# relaxing final targets or silently redistributing a language shortfall.
-minimum_candidates_per_language = 35000
-# Exact final production corpus target.
-final_sentences_per_language = 25000
-# Per-language overrides; absent keys inherit final_sentences_per_language.
+# Final corpus size and source mix are deferred until the post-JQL pool is reported.
+final_sentences_per_language = 30000
+final_source_target_per_language = 10000
+final_selection_status = "deferred_pending_user_review"
 [candidate.language_target_overrides]
-# "is" = 25000
+# Set overrides only after reviewing post-pruning per-language/source availability.
 
-# Candidate-stage balancing only. These are not acquisition caps.
 [candidate.source_balance]
-preferred_max_share_of_total_corpus_per_source = 0.30
-hard_max_share_of_total_corpus_per_source = 0.50
-preferred_max_share_per_language_and_split = 0.30
-hard_max_share_per_language_and_split = 0.50
-# Preserve the existing baseline source proportions independently per language
-# in final production selection.
-final_source_mix = "preserve_baseline_core_proportions"
-# Do not impose another family/source cap after first-pass acquisition.
-max_sentences_per_source_after_acquisition = 0
+enabled = false
 
 [candidate.splits]
 validation_fraction = 0.10
@@ -223,12 +222,15 @@ normalization_scope = "full_assessment_corpus_per_judge"
 consensus_mean_weight = 1.0
 consensus_disagreement_penalty = 0.5
 disagreement_standard_deviation = "population"
-# JQL-Edu-Heads is QA/diagnostic annotation only. It must not remove, rank,
-# down-rank, or replace corpus records.
-selection_effect = "none"
-apply_quality_floor = false
-# Historical/proposed reference only; inactive while apply_quality_floor=false.
+# Normalize each judge over the full filtered assessment pool, then prune the
+# bottom quarter by normalized consensus. Final 30k/source selection is deferred.
+selection_effect = "bottom_quantile_pruning"
+apply_quality_floor = true
+prune_bottom_quantile = 0.25
+pruning_scope = "global_all_languages_after_full_corpus_normalization"
 diagnostic_global_quantile = 0.25
+publish_post_pruning_report = true
+final_selection_requires_user_approval = true
 assessment_sample_per_language = 1000
 assessment_all_candidate_rows = true
 assessment_seed = "langid-32-jql-assessment-2026-11-19"
