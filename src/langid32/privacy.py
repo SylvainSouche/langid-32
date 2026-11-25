@@ -6,7 +6,6 @@ are quarantined and never enter the candidate pool.
 """
 from __future__ import annotations
 
-import ipaddress
 import re
 import unicodedata
 from dataclasses import dataclass
@@ -23,7 +22,16 @@ STREET = re.compile(
     r"gata|gatan|veg(?:en)?|gade|kadun|tie|katu|"
     r"ulica|ul\.?|улица|проспект|شارع)\b"
 )
-HOUSE_NUMBER = re.compile(r"(?<!\w)\d{1,5}\s+[\wÀ-ž.'’-]+(?:\s+[\wÀ-ž.'’-]+){0,3}\s+(?:" + STREET.pattern.split(r"\b",2)[-1] + r")", re.I)
+HOUSE_NUMBER = re.compile(
+    r"(?i)\\b\\d{1,5}\\s+(?:[\\wÀ-ž.'’-]+\\s+){0,4}"
+    r"(?:street|st\\.?|road|rd\\.?|avenue|ave\\.?|boulevard|blvd\\.?|lane|drive|way|"
+    r"strasse|straße|platz|rue|chemin|route|calle|carrer|via|viale|ulica|ul\\.?|"
+    r"cesta|ulice|utca|gata|gatan|veg(?:en)?|gade|kadun|tie|katu|улица|проспект|شارع)\\b"
+)
+AMBIGUOUS_PROPER_NAME = re.compile(
+    r"(?<![.!?]\\s)(?<!^)\\b[A-ZÀ-ÖØ-Þ][\\wÀ-ÖØ-öø-ÿ'’-]+"
+    r"\\s+[A-ZÀ-ÖØ-Þ][\\wÀ-ÖØ-öø-ÿ'’-]+\\b"
+)
 HONORIFIC = re.compile(
     r"(?i)\b(?:mr|mrs|ms|miss|dr|prof|professor|herr|frau|monsieur|"
     r"madame|signor|signora|señor|señora|señorita|sir|dame)\.?\s+"
@@ -80,6 +88,7 @@ def screen_text(value: str, *, record: dict | None = None,
         ("street_address", STREET.search(text) and HOUSE_NUMBER.search(text)),
         ("person_name_honorific", HONORIFIC.search(text)),
         ("person_name_context", PERSON_CONTEXT.search(text)),
+        ("ambiguous_proper_name", AMBIGUOUS_PROPER_NAME.search(text)),
     )
     flags.extend(name for name, matched in checks if matched)
     if flags:
