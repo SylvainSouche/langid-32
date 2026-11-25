@@ -37,6 +37,8 @@ def acquisition_target(config: dict[str, Any], source: str, language: str) -> in
             if normalized.startswith(rule_name + ":") or normalized.startswith(rule_name + "_")
         ]
         rule = max(matches, key=lambda item: item[0])[1] if matches else {}
+    if not rule and acquisition.get("reject_unregistered_sources", False):
+        raise ValueError(f"{source} is not registered in source policy")
     if rule.get("exclude", False):
         raise ValueError(f"{source} is excluded by source policy")
     allowed_languages = rule.get("languages")
