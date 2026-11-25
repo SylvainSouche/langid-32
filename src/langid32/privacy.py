@@ -48,7 +48,7 @@ PERSON_CONTEXT = re.compile(
     r"([A-ZÀ-ÖØ-Þ][\wÀ-ÖØ-öø-ÿ'’-]+(?:\s+[A-ZÀ-ÖØ-Þ][\wÀ-ÖØ-öø-ÿ'’-]+){0,2})"
 )
 CAPITALIZED_PAIR = re.compile(
-    r"\\b([A-ZÀ-ÖØ-Þ][\\wÀ-ÖØ-öø-ÿ'’-]+)\\s+"
+    r"\\b([A-ZÀ-ÖØ-ÞΑ-ΩΆΈΉΊΌΎΏА-ЯЁ][\\wÀ-ÖØ-öø-ÿ'’-]+)\\s+"
     r"([A-ZÀ-ÖØ-Þ][\\wÀ-ÖØ-öø-ÿ'’-]+)\\b"
 )
 # Compact multilingual given-name lexicon; contextual and source-provided flags
