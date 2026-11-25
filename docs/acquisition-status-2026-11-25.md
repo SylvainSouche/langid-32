@@ -21,7 +21,7 @@ This is a *provisional pre-global-dedup source-intake count*, not a final corpus
 
 - remove obsolete Leipzig samples outside the six approved Leipzig languages, then substitute the new 240,000-row Leipzig acquisition;
 - remove obsolete DGT samples outside the five approved DGT languages, then substitute the new 100,000-row DGT acquisition;
-- retain FineWeb2 only for its six approved technical-candidate languages (hr, fi, el, mt, sl, is);
+- retain FineWeb2 only for its six approved technical-candidate languages (hr, fi, el, mt, sl, is), and exclude the separate FineWeb v1 source under its legal hold;
 - retain the approved Tatoeba CC0 Finnish source.
 
 The candidate inputs have not yet been rebuilt from these reconciled sources. Counts below are therefore an exact arithmetic reconciliation of the previous intake diagnostics and verified acquisition manifests, before cross-source deduplication.
@@ -35,7 +35,7 @@ The candidate inputs have not yet been rebuilt from these reconciled sources. Co
 | Danish (da) | 18,801 | 6,199 | 16,199 |
 | German (de) | 20,045 | 4,955 | 14,955 |
 | Greek (el) | 84,754 | 0 | 0 |
-| English (en) | 45,968 | 0 | 0 |
+| English (en) | 40,000 | 0 | 0 |
 | Spanish (es) | 20,036 | 4,964 | 14,964 |
 | Estonian (et) | 10,662 | 14,338 | 24,338 |
 | Finnish (fi) | 83,235 | 0 | 0 |
@@ -62,7 +62,7 @@ The candidate inputs have not yet been rebuilt from these reconciled sources. Co
 | Swedish (sv) | 20,208 | 4,792 | 14,792 |
 | Turkish (tr) | 20,000 | 5,000 | 15,000 |
 | Chinese (zh) | 20,001 | 4,999 | 14,999 |
-| **Total** | **1,112,038** | — | — |
+| **Total** | **1,106,070** | — | — |
 
 - Only **11 languages** currently reach the configured final target in raw intake.
 - Only **10 languages** reach the configured candidate-pool floor.
@@ -79,7 +79,7 @@ The candidate inputs have not yet been rebuilt from these reconciled sources. Co
 
 These sources are already registered in the central configuration with their approved language scopes and first-pass targets, but their adapters/intake are not yet integrated.
 
-FineWeb2 remains technical-candidate-only while underlying web-text rights are unresolved. Technical acquisition does not imply release clearance. FineWeb2 rows outside its approved six-language scope are now filtered before candidate source-family normalization.
+FineWeb2 remains technical-candidate-only for its approved six-language scope while underlying web-text rights are unresolved. The separate FineWeb v1 source is excluded under its legal hold. Technical acquisition does not imply release clearance. FineWeb2 rows outside its approved six-language scope are filtered before candidate source-family normalization. BSC Legal and Korean Wikipedia remain provisional technical inputs with constituent-terms and share-alike compatibility holds respectively.
 
 ## Pipeline sequencing
 
