@@ -20,6 +20,8 @@ def test_source_and_language_overrides_are_explicit_and_inherit_defaults():
         acquisition_target(config, "fineweb2:cat_Latn", "ca")
     with pytest.raises(ValueError):
         acquisition_target(config, "fineweb", "en")
+    with pytest.raises(ValueError):
+        acquisition_target(config, "unregistered_source", "hr")
     config["acquisition"]["source_language_overrides"]["leipzig_news.hr"] = 12345
     assert acquisition_target(config, "leipzig_news", "hr") == 12345
     assert language_target(config, "is") == 25000
