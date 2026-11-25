@@ -258,7 +258,7 @@ def main():
     parser.add_argument("--archive", dest="archives", action="append", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--source-release", default="DGT-TM-release-2021")
-    parser.add_argument("--target-per-language", type=int, default=5000)
+    parser.add_argument("--target-per-language", type=int, default=20000)
     parser.add_argument("--max-per-document-language", type=int, default=20)
     parser.add_argument("--min-chars", type=int, default=12)
     parser.add_argument("--max-chars", type=int, default=500)
