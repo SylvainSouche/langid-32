@@ -15,12 +15,12 @@ def test_target_counts_only_unique_eligible_records_and_continues(tmp_path):
     assert add_eligible(db, "source-A", "fi", [
         {"text": "one"}, {"text": "one"}, {"text": "two"}
     ]) == 2
-    finish_batch(db, "source-A", "fi", batch_no, {"a": "sha-a"})
+    finish_batch(db, "source-A", "fi", batch_no, {"a": "a".ljust(64, "0")})
     assert not task_complete(db, "source-A", "fi")
     batch_no, files = next_batch(db, "source-A", "fi")
     assert files == ["b"]
     assert add_eligible(db, "source-A", "fi", [{"text": "three"}, {"text": "four"}]) == 1
-    finish_batch(db, "source-A", "fi", batch_no, {"b": "sha-b"})
+    finish_batch(db, "source-A", "fi", batch_no, {"b": "b".ljust(64, "0")})
     assert retained_count(db, "source-A", "fi") == 3
     assert task_complete(db, "source-A", "fi")
     assert next_batch(db, "source-A", "fi") is None
@@ -28,8 +28,8 @@ def test_target_counts_only_unique_eligible_records_and_continues(tmp_path):
 
 def test_exhaustion_reports_exact_shortfall_and_source_isolation(tmp_path):
     db = open_state(tmp_path / "state.sqlite")
-    plan_file_batches(db, "source-A", "fi", 5, ["a"], 1)
-    plan_file_batches(db, "source-B", "fi", 5, ["b"], 1)
+    plan_file_batches(db, "source-A", "fi", 5, [], 1)
+    plan_file_batches(db, "source-B", "fi", 5, [], 1)
     add_eligible(db, "source-A", "fi", [{"text": "same"}])
     assert mark_exhausted(db, "source-A", "fi") == 4
     assert task_complete(db, "source-A", "fi")
@@ -44,3 +44,29 @@ def test_completed_files_are_not_replanned(tmp_path):
     finish_batch(db, "source-A", "is", batch_no, {"a": "sha-a"})
     # Existing planned file paths are not duplicated when discovery is repeated.
     assert plan_file_batches(db, "source-A", "is", 2, ["a", "b", "c"], 1) == 1
+
+
+
+def test_incomplete_batches_cannot_be_declared_exhausted(tmp_path):
+    import pytest
+    db = open_state(tmp_path / "state.sqlite")
+    plan_file_batches(db, "source-A", "fi", 5, ["not-yet-processed"], 1)
+    with pytest.raises(RuntimeError, match="incomplete batches"):
+        mark_exhausted(db, "source-A", "fi")
+
+
+def test_record_cannot_cross_source_or_language_task(tmp_path):
+    import pytest
+    db = open_state(tmp_path / "state.sqlite")
+    plan_file_batches(db, "source-A", "fi", 5, [], 1)
+    with pytest.raises(ValueError, match="does not match"):
+        add_eligible(db, "source-A", "fi", [{"text": "wrong task", "source": "source-B"}])
+
+
+def test_invalid_file_digest_cannot_complete_batch(tmp_path):
+    import pytest
+    db = open_state(tmp_path / "state.sqlite")
+    plan_file_batches(db, "source-A", "fi", 5, ["a"], 1)
+    batch_no, _ = next_batch(db, "source-A", "fi")
+    with pytest.raises(ValueError, match="valid SHA-256"):
+        finish_batch(db, "source-A", "fi", batch_no, {"a": "not-a-hash"})
