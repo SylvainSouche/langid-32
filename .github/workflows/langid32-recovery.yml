@@ -1,13 +1,6 @@
 name: langid-32 acquisition repair and downstream stages
 on:
-  push:
-    branches:
-      - "recovery/fix-acquisition-20261124"
-    paths:
-      - "scripts/acquire_waiting_sources.py"
-      - ".github/workflows/langid32-recovery.yml"
-      - "stages/01-acquisition/**"
-      - "src/langid32/merge.py"
+  workflow_dispatch:
 permissions:
   actions: read
   contents: read
