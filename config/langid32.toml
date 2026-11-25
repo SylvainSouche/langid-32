@@ -40,9 +40,7 @@ clear_body_every_translation_units = 1000
 
 [acquisition.source_rules.common_voice_v22]
 target = 20000
-languages = []
-proposed_languages = ["fi", "el", "mt", "sl", "is"]
-status = "hold_pending_individual_locale_terms_acceptance"
+languages = ["fi", "el", "mt", "sl", "is"]
 
 [acquisition.source_rules.common_voice_v22.text]
 min_characters = 12
