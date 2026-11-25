@@ -201,7 +201,7 @@ jobs:
             --quality quality/sentence-boundary-flags.csv \
             --output-csv out/jql-consensus-34k.csv \
             --output-parquet out/jql-consensus-34k.parquet \
-            --summary out/jql-consensus-34k-summary.json
+            --summary out/jql-consensus-full-summary.json
       - name: Select exact final target and preserve baseline source proportions
         run: |
           python scripts/select_jql_consensus.py \
