@@ -74,6 +74,16 @@ def _metadata_flags(record: dict | None) -> list[str]:
     return found
 
 
+def _has_phone_like(text: str) -> bool:
+    for match in PHONE_CANDIDATE.finditer(text):
+        raw = match.group()
+        digits = re.sub(r"\\D", "", raw)
+        separators = sum(raw.count(char) for char in " -()./")
+        if 9 <= len(digits) <= 15 and (separators >= 2 or "+" in raw):
+            return True
+    return False
+
+
 def screen_text(value: str, *, record: dict | None = None,
                 uncertain_action: str = "quarantine") -> PrivacyResult:
     text = unicodedata.normalize("NFC", " ".join(str(value or "").split()))
@@ -84,7 +94,7 @@ def screen_text(value: str, *, record: dict | None = None,
         ("email", EMAIL.search(text)),
         ("url", URL.search(text)),
         ("ipv4", IPV4.search(text)),
-        ("phone_or_long_identifier", LONG_NUMBER.search(text)),
+        ("phone_or_long_identifier", _has_phone_like(text) or LONG_NUMBER.search(text)),
         ("street_address", STREET.search(text) and HOUSE_NUMBER.search(text)),
         ("person_name_honorific", HONORIFIC.search(text)),
         ("person_name_context", PERSON_CONTEXT.search(text)),
