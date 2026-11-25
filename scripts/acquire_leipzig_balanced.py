@@ -14,18 +14,18 @@ import pyarrow.parquet as pq
 INDEX_URL="https://huggingface.co/datasets/imvladikon/leipzig_corpora_collection/resolve/refs%2Fconvert%2Fparquet/links/train/0000.parquet"
 BASE="https://downloads.wortschatz-leipzig.de/corpora/"
 LANGS={"ar":["ara"],"bg":["bul"],"ca":["cat"],"hr":["hrv"],"cs":["ces","cze"],"da":["dan"],"nl":["nld","dut"],"en":["eng"],"et":["est"],"fi":["fin"],"fr":["fra","fre"],"de":["deu","ger"],"el":["ell","gre"],"hu":["hun"],"is":["isl"],"ga":["gle"],"it":["ita"],"ja":["jpn"],"ko":["kor"],"lv":["lav"],"lt":["lit"],"mt":["mlt"],"nb":["nob"],"nn":["nno"],"pl":["pol"],"pt":["por"],"ro":["ron","rum"],"ru":["rus"],"sk":["slk","slo"],"sl":["slv"],"es":["spa"],"sv":["swe"],"tr":["tur"],"zh":["zho","chi"]}
-def sha(p):
+def sha(p,chunk_bytes):
  h=hashlib.sha256()
  with p.open("rb") as f:
-  for b in iter(lambda:f.read(1048576),b""): h.update(b)
+  for b in iter(lambda:f.read(chunk_bytes),b""): h.update(b)
  return h.hexdigest()
-def fetch(s,u,p):
+def fetch(s,u,p,connect_timeout,read_timeout,chunk_bytes):
  if p.exists() and p.stat().st_size:return
  p.parent.mkdir(parents=True,exist_ok=True);tmp=p.with_suffix(p.suffix+".part")
- with s.get(u,stream=True,timeout=(30,300),headers={"User-Agent":"langid-32 corpus acquisition/1.0"}) as r:
+ with s.get(u,stream=True,timeout=(connect_timeout,read_timeout),headers={"User-Agent":"langid-32 corpus acquisition/1.0"}) as r:
   r.raise_for_status()
   with tmp.open("wb") as f:
-   for b in r.iter_content(1048576):
+   for b in r.iter_content(chunk_bytes):
     if b:f.write(b)
  tmp.replace(p)
 def tsv(tf,m):
@@ -34,7 +34,7 @@ def tsv(tf,m):
   for raw in f:
    line=raw.decode("utf-8","replace").rstrip("\r\n")
    if line:yield line.split("\t")
-def sample(archive,data_id,label,family,quota,seed,exclude_unicode_decimal_digits):
+def sample(archive,data_id,label,family,quota,seed,exclude_unicode_decimal_digits,chunk_bytes):
  with tarfile.open(archive,"r:gz") as tf:
   ms=[m for m in tf.getmembers() if m.isfile()]
   sent=next((m for m in ms if m.name.endswith("-sentences.txt")),None)
@@ -43,7 +43,7 @@ def sample(archive,data_id,label,family,quota,seed,exclude_unicode_decimal_digit
   if not sent:raise RuntimeError("missing sentences member")
   invmap={p[0]:p[1] for p in tsv(tf,inv) if len(p)>1} if inv else {}
   sources={p[0]:{"url":p[1],"timestamp":p[2] if len(p)>2 else ""} for p in tsv(tf,src) if len(p)>1} if src else {}
-  archive_sha=sha(archive);heap=[];eligible=digits=0
+  archive_sha=sha(archive,chunk_bytes);heap=[];eligible=digits=0
   for p in tsv(tf,sent):
    if len(p)<2:continue
    sid=p[0];text="\t".join(p[1:]).strip()
@@ -69,8 +69,8 @@ def sample(archive,data_id,label,family,quota,seed,exclude_unicode_decimal_digit
 def main():
  ap=argparse.ArgumentParser();ap.add_argument("--out",required=True);ap.add_argument("--config",type=Path,default=ROOT/"config/langid32.toml");ap.add_argument("--quota",type=int,default=None,help="Explicit emergency override; normally use the central config");
  ap.add_argument("--seed",default=None);ap.add_argument("--pause",type=float,default=None);ap.add_argument("--labels",default="",help="Comma-separated target labels; default is all configured labels")
- a=ap.parse_args();cfg=load_config(a.config);a.seed=a.seed or cfg["acquisition"]["seed"];a.pause=a.pause if a.pause is not None else cfg["execution"]["leipzig_pause_seconds"];out=Path(a.out);ar=out/"archives";sm=out/"samples";ar.mkdir(parents=True,exist_ok=True);sm.mkdir(parents=True,exist_ok=True)
- s=requests.Session();idx=out/"links.parquet";fetch(s,INDEX_URL,idx);idxsha=sha(idx);cat=pq.read_table(idx).to_pylist()
+ a=ap.parse_args();cfg=load_config(a.config);a.seed=a.seed or cfg["acquisition"]["seed"];a.pause=a.pause if a.pause is not None else cfg["execution"]["leipzig_pause_seconds"];out=Path(a.out);\n execution=cfg["execution"];chunk_bytes=execution["download_chunk_bytes"];connect_timeout=execution["http_connect_timeout_seconds"];read_timeout=execution["http_read_timeout_seconds"]ar=out/"archives";sm=out/"samples";ar.mkdir(parents=True,exist_ok=True);sm.mkdir(parents=True,exist_ok=True)
+ s=requests.Session();idx=out/"links.parquet";fetch(s,INDEX_URL,idx,connect_timeout,read_timeout,chunk_bytes);idxsha=sha(idx,chunk_bytes);cat=pq.read_table(idx).to_pylist()
  selected_labels={x.strip() for x in a.labels.split(",") if x.strip()}
  if not selected_labels:
   approved=set()
@@ -97,16 +97,16 @@ def main():
   rec={"label":label,"family":fam,"data_id":did,"catalogue_language":r.get("language"),
    "language_short":r.get("language_short"),"year":r.get("year"),"nominal_size":r.get("size"),"archive_url":url}
   try:
-   fetch(s,url,arc);rec.update({"archive_file":str(arc.relative_to(out)),"archive_bytes":arc.stat().st_size,"archive_sha256":sha(arc)})
+   fetch(s,url,arc,connect_timeout,read_timeout,chunk_bytes);rec.update({"archive_file":str(arc.relative_to(out)),"archive_bytes":arc.stat().st_size,"archive_sha256":sha(arc,chunk_bytes)})
    source_rule=cfg["acquisition"]["source_rules"]["leipzig_"+fam]
    quota=a.quota if a.quota is not None else acquisition_target(cfg,"leipzig_"+fam,label)
    rec["configured_target"]=quota
-   rows,stats=sample(arc,did,label,fam,quota,a.seed,source_rule["exclude_unicode_decimal_digits"]);rec["selection"]=stats
+   rows,stats=sample(arc,did,label,fam,quota,a.seed,source_rule["exclude_unicode_decimal_digits"],chunk_bytes);rec["selection"]=stats
    rec["status"]="sampled" if len(rows)==quota else "short_sample"
    p=sm/(label+"-"+fam+".jsonl")
    with p.open("w",encoding="utf-8") as f:
     for row in rows:f.write(json.dumps(row,ensure_ascii=False,separators=(",",":"))+"\n")
-   rec["sample_file"]=str(p.relative_to(out));rec["sample_sha256"]=sha(p)
+   rec["sample_file"]=str(p.relative_to(out));rec["sample_sha256"]=sha(p,chunk_bytes)
    print(f"{i}/{len(todo)} {label}/{fam} {did}: {len(rows)}/{a.quota}")
   except Exception as e:rec["status"]="error";rec["error"]=repr(e);print(f"{i}/{len(todo)} ERROR {did}: {e}")
   manifest["archives"].append(rec);time.sleep(a.pause)
