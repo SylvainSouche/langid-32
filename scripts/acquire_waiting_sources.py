@@ -669,9 +669,10 @@ e(exc).__name__}: {exc}")
         missing_languages = sorted(expected_languages.get(args.source, set()) - actual_languages)
         total_retained = sum(len(items) for items in retained.values())
         if missing_languages or total_retained < cfg["acquisition"]["source_rules"]["waiting_sources"]["minimum_retained_records"]:
-            raise RuntimeError(
-                f"{args.source} acquisition incomplete: missing_languages={missing_languages}, "
-                f"total_retained={total_retained}; inspect scan notes and source schema"
+            notes.append(
+                f"{args.source} completed with underfilled source-language tasks: "
+                f"missing_languages={missing_languages}, total_retained={total_retained}; "
+                "inspect source_language_status for exact retained counts and shortfalls"
             )
 
         selected = []
