@@ -26,7 +26,7 @@ def language_target(config: dict[str, Any], language: str) -> int:
 
 
 def acquisition_target(config: dict[str, Any], source: str, language: str) -> int:
-    overrides = config.get("source_language_overrides", {})
+    overrides = config.get("acquisition", {}).get("source_language_overrides", {})
     key = f"{source}.{language}"
     if key in overrides:
         return int(overrides[key])
