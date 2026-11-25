@@ -102,8 +102,9 @@ def stage(args):
     global SEED
     cfg = load_config(getattr(args, "config", None))
     SEED = cfg["acquisition"].get("seed", SEED)
-    target_by_language = {lang: (args.target_per_language or acquisition_target(cfg, "dgt_tm_2021", lang)) for lang in EU_LANGUAGES}
+    target_by_language = {lang: (args.target_per_language or acquisition_target(cfg, "dgt_tm_2021", lang)) for lang in target_languages}
     dgt_rule = cfg["acquisition"]["source_rules"]["dgt_tm_2021"]
+    target_languages = tuple(dgt_rule["languages"])
     args.max_per_document_language = args.max_per_document_language or dgt_rule["max_segments_per_tmx_document_language"]
     args.min_chars = args.min_chars or cfg["acquisition"]["text"]["min_characters"]
     args.max_chars = args.max_chars or cfg["acquisition"]["text"]["max_characters"]
@@ -206,7 +207,7 @@ def stage(args):
     output_count = 0
     selected_counts = {}
     with args.output.open("w", encoding="utf-8", newline="\n") as output:
-        for language in sorted(EU_LANGUAGES):
+        for language in sorted(target_languages):
             for split in ("train", "validation", "test"):
                 heap = samples[(language, split)]
                 records = sorted(
@@ -234,7 +235,7 @@ def stage(args):
         "archives": archive_info,
         "output_sha256": sha256_file(args.output),
         "output_records": output_count,
-        "languages": sorted(EU_LANGUAGES),
+        "languages": sorted(target_languages),
         "selection": {
             "seed": SEED,
             "target_per_language_by_language": target_by_language,
