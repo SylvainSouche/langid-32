@@ -12,8 +12,7 @@ def main():
     source = root / "input/common-voice/source"
     output = root / "input/common-voice"
     manifest = source / "hf-common-voice-download-manifest.json"
-    if not manifest.is_file():
-        subprocess.run([sys.executable, "scripts/download_common_voice_hf.py", "--output-dir", str(source)], check=True)
+    subprocess.run([sys.executable, "scripts/download_common_voice_hf.py", "--output-dir", str(source)], check=True)
     subprocess.run([sys.executable, "scripts/curate_common_voice_hf.py", "--input-root", str(source),
                     "--output", str(output)], check=True)
 
