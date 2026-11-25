@@ -1,6 +1,7 @@
 import importlib.util
 import json
 from pathlib import Path
+from collections import Counter
 
 from langid32.settings import load_config
 
@@ -29,6 +30,8 @@ def test_normalization_applies_source_language_scope_and_per_source_caps(tmp_pat
     config["acquisition"]["source_language_overrides"].update({
         "temu_cc0:component_a.hr": 1,
         "temu_cc0:component_b.hr": 1,
+        "fineweb2:hrv_Latn.hr": 1,
+        "fineweb2.hr": 1,
     })
     source = tmp_path / "input.jsonl"
     destination = tmp_path / "normalized.jsonl"
@@ -54,3 +57,28 @@ def test_normalization_applies_source_language_scope_and_per_source_caps(tmp_pat
     assert {row["provenance"]["source_original_name"] for row in retained} == {
         "fineweb2:hrv_Latn", "temu_cc0:component_a", "temu_cc0:component_b"
     }
+
+
+
+def test_declared_quota_identity_is_shared_across_files_but_not_across_other_components(tmp_path):
+    config = load_config()
+    config["acquisition"]["source_language_overrides"].update({
+        "fineweb2:hrv_Latn.hr": 1,
+        "fineweb2.hr": 1,
+        "temu_cc0:component_a.hr": 1,
+        "temu_cc0:component_b.hr": 1,
+    })
+    shared_counts = Counter()
+    first_source = tmp_path / "fineweb2-component.jsonl"
+    second_source = tmp_path / "fineweb2-legacy.jsonl"
+    first_out = tmp_path / "first.jsonl"
+    second_out = tmp_path / "second.jsonl"
+    first_source.write_text(json.dumps(_row("fineweb2:hrv_Latn", "hr", 1)) + "\n", encoding="utf-8")
+    second_source.write_text(json.dumps(_row("fineweb2", "hr", 2)) + "\n", encoding="utf-8")
+
+    first = MODULE.normalize_file(first_source, first_out, config=config, source_language_counts=shared_counts)
+    second = MODULE.normalize_file(second_source, second_out, config=config, source_language_counts=shared_counts)
+
+    assert first["rows_out"] == 1
+    assert second["rows_out"] == 0
+    assert second["filtered_superseded_sources"] == {"configured_source_target_reached": 1}
