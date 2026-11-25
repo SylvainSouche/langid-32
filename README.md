@@ -1,5 +1,7 @@
 # langid-32
 
+**Operational policy:** see [the central corpus configuration](config/langid32.toml) and [its documentation](docs/configuration.md).
+
 A reproducible multilingual language-identification corpus and benchmark project. The historical repository name reflects the original 32-language scope; the current target inventory contains **34 language labels**.
 
 The project compares two compact character-based classifiers with a byte-level Transformer. Corpus construction, source rights, provenance and evaluation are treated as separate, auditable stages.
