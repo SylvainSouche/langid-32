@@ -87,6 +87,7 @@ GIVEN_NAMES = {
     "yann", "zuzana", "Αλέξανδρος", "Γιώργος", "Ελένη", "Μαρία",
     "Николай", "Александр", "Анна", "Мария",
 }
+GIVEN_NAMES = {name.casefold() for name in GIVEN_NAMES}
 FLAG_KEYS = (
     "privacy_flags", "sensitive_info", "sensitive_information",
     "personal_data", "pii", "is_pii", "has_personal_information",
