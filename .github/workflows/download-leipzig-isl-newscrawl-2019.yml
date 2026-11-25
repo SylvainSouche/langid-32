@@ -1,8 +1,6 @@
-name: Download Leipzig Icelandic Newscrawl 2019 300K
+name: LEGACY — Download Leipzig Icelandic Newscrawl 2019
 on:
-  push:
-    paths:
-      - ".github/workflows/download-leipzig-isl-newscrawl-2019.yml"
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
