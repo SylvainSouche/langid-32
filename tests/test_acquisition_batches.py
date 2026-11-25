@@ -105,6 +105,8 @@ def test_waiting_source_adapter_uses_durable_file_batches_and_reports_shortfalls
     assert "row_groups=[row_group]" in worker
     assert "Quota reached before end of" in worker
     assert "stream_exhausted = True" in worker
+    assert "if failures or incomplete_tasks:" in worker
+    assert '"acquisition_failures": failures' in worker
     assert "dataset.load_state_dict(saved[\"state\"])" in worker
     assert "persist_arabic_stream_state()" in worker
     assert '"source_language_status": [task_report' in worker
