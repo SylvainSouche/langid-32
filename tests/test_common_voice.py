@@ -22,3 +22,10 @@ def test_common_voice_script_policy_covers_enabled_locales():
     scripts = cfg["acquisition"]["source_rules"]["common_voice_v22"]["script"]["by_language"]
     assert set(scripts) == languages
     assert cfg["acquisition"]["source_rules"]["common_voice_v22"]["script"]["minimum_ratio"] == 0.70
+
+
+def test_common_voice_checkpoint_is_bound_to_acquisition_policy():
+    source = SCRIPT.read_text(encoding="utf-8")
+    assert "policy_digest = hashlib.sha256(" in source
+    assert "common-voice-acquisition-{resolved_revision[:12]}-{policy_digest}.sqlite" in source
+    assert '"acquisition_policy_digest": policy_digest' in source
