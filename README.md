@@ -64,7 +64,7 @@ The waiting-source artifact contains useful independent candidates, but some cla
 - Korean: the current Wikipedia candidate has CC BY-SA/GFDL obligations; it is not yet approved for the release.
 - Arabic: the UN-derived candidate needs confirmation of the underlying UN source terms; the Hugging Face card alone is not sufficient.
 
-See the [canonical source register](docs/source-register.md) for every source investigated or acquired, its measured status, rights position and retired routes. The [dated corpus status report](docs/corpus-status-2026-11-17.md) and [candidate audits](docs/candidate-audit-v5.md) preserve historical measurements; they are not current acquisition plans. The [v6 corpus policy](docs/corpus-policy-v6.md) defines selection rules.
+See the [source decision register](docs/source-decisions.md) for authoritative inclusion/exclusion decisions and the [source register](docs/source-register.md) for measured audits, provenance, rights position and retired routes. The [dated corpus status report](docs/corpus-status-2026-11-17.md) and [candidate audits](docs/candidate-audit-v5.md) preserve historical measurements; they are not current acquisition plans. The [v6 corpus policy](docs/corpus-policy-v6.md) defines selection rules.
 
 ## Data preparation rules
 
