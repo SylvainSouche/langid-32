@@ -24,7 +24,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     needs: [config]
     runs-on: ubuntu-latest
-    timeout-minutes: "${{  fromJSON(needs.config.outputs.acquisition_job_timeout_minutes)  }}"
+    timeout-minutes: ${{ fromJSON(needs.config.outputs.acquisition_job_timeout_minutes) }}
     steps:
       - uses: actions/checkout@v4
       - id: runtime
@@ -82,7 +82,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     needs: [config]
     runs-on: ubuntu-latest
-    timeout-minutes: "${{  fromJSON(needs.config.outputs.acquisition_job_timeout_minutes)  }}"
+    timeout-minutes: ${{ fromJSON(needs.config.outputs.acquisition_job_timeout_minutes) }}
     steps:
       - uses: actions/checkout@v4
       - id: runtime
@@ -115,10 +115,10 @@ jobs:
     if: github.ref == 'refs/heads/main'
     needs: [config]
     runs-on: ubuntu-latest
-    timeout-minutes: "${{  fromJSON(needs.config.outputs.acquisition_job_timeout_minutes)  }}"
+    timeout-minutes: ${{ fromJSON(needs.config.outputs.acquisition_job_timeout_minutes) }}
     strategy:
       fail-fast: false
-      max-parallel: "${{  fromJSON(needs.config.outputs.acquisition_max_parallel_source_tasks)  }}"
+      max-parallel: ${{ fromJSON(needs.config.outputs.acquisition_max_parallel_source_tasks) }}
       matrix:
         target: [catalan, icelandic, norwegian, korean, fineweb2, arabic, gaois]
     steps:
@@ -151,12 +151,12 @@ jobs:
         with:
           name: acquisition-${{ matrix.target }}
           path: checkpoint.bin
-          retention-days: "${{  steps.runtime.outputs.checkpoint_retention_days  }}"
+          retention-days: ${{ steps.runtime.outputs.checkpoint_retention_days }}
   candidate:
     if: github.ref == 'refs/heads/main'
     needs: [config, historical, common-voice, waiting-source]
     runs-on: ubuntu-latest
-    timeout-minutes: "${{  fromJSON(needs.config.outputs.acquisition_job_timeout_minutes)  }}"
+    timeout-minutes: ${{ fromJSON(needs.config.outputs.acquisition_job_timeout_minutes) }}
     steps:
       - uses: actions/checkout@v4
       - id: runtime
@@ -204,7 +204,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     needs: [config, candidate]
     runs-on: ubuntu-latest
-    timeout-minutes: "${{  fromJSON(needs.config.outputs.acquisition_job_timeout_minutes)  }}"
+    timeout-minutes: ${{ fromJSON(needs.config.outputs.acquisition_job_timeout_minutes) }}
     steps:
       - uses: actions/checkout@v4
       - id: runtime
