@@ -23,7 +23,13 @@ Candidate-stage preferred and hard source-share limits, and the final baseline-p
 
 The project voluntarily does not use the Mozilla Data Collective repository or any data hosted there. We consider its contractual practices abusive. This is a project sourcing decision, not a legal finding about any other dataset.
 
-## Corpus status — 23 November 2026
+## Current acquisition status — 25 November 2026
+
+The latest reconciled source intake is **1,106,070 provisional rows before global deduplication**. This includes **340,000 newly verified Leipzig and DGT records**. Only 11 languages currently reach the configured final target in raw intake and 10 reach the candidate-pool floor; 23 remain below the final target before global deduplication. The exact language-by-language table, acquisition artifacts and exclusions are in the [25 November acquisition status report](docs/acquisition-status-2026-11-25.md).
+
+No globally deduplicated count has been regenerated from the reconciled inputs, and no language is currently release-cleared.
+
+## Historical corpus status snapshot — 23 November 2026
 
 **Preparation only — not release-ready.**
 
