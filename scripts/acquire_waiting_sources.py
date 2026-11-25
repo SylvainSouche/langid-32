@@ -605,9 +605,15 @@ def main():
             if not files:
                 raise RuntimeError("No Korean Wikipedia Parquet shards found at pinned revision")
             processed = 0
+            korean_bucket = ("ko", "korean_wikipedia_20231101")
             for filename in files:
-                if quota_reached(("ko", "korean_wikipedia_20231101")):
+                if quota_reached(korean_bucket):
                     break
+                remote_batch = begin_remote_file(
+                    korean_bucket, "wikimedia/wikipedia", revisions["wikipedia"], filename
+                )
+                if remote_batch is None:
+                    continue
                 local_path = hf_hub_download(
                     repo_id="wikimedia/wikipedia", repo_type="dataset",
                     filename=filename, revision=revisions["wikipedia"]
@@ -640,7 +646,8 @@ def main():
                     if quota_reached(("ko", "korean_wikipedia_20231101")):
                         break
                 Path(local_path).unlink(missing_ok=True)
-                if quota_reached(("ko", "korean_wikipedia_20231101")):
+                finish_remote_file(korean_bucket, remote_batch)
+                if quota_reached(korean_bucket):
                     break
             if not processed:
                 raise RuntimeError("Pinned Korean Wikipedia Parquet shards contained no rows")
