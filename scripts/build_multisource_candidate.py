@@ -12,7 +12,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from langid32.settings import load_config
+from langid32.settings import load_config, acquisition_target
 
 FAMILY_PREFIXES = (
     "temu_cc0",
@@ -54,11 +54,12 @@ def source_family(raw_source: str) -> tuple[str, str | None]:
     return raw_source, None
 
 
-def normalize_file(source_path: Path, destination: Path, *, filter_superseded=False):
+def normalize_file(source_path: Path, destination: Path, *, config, filter_superseded=False):
     rows_in = 0
     rows_out = 0
     filtered = Counter()
     source_counts = Counter()
+    raw_source_counts = Counter()
     with source_path.open("r", encoding="utf-8") as source, destination.open(
         "w", encoding="utf-8", newline="\n"
     ) as output:
@@ -81,6 +82,17 @@ def normalize_file(source_path: Path, destination: Path, *, filter_superseded=Fa
                 raise ValueError(f"{source_path}:{line_number}: missing {', '.join(missing)}")
             if not isinstance(row.get("provenance"), dict):
                 raise ValueError(f"{source_path}:{line_number}: provenance object is required")
+            language = str(row["language"])
+            try:
+                source_limit = acquisition_target(config, raw_source, language)
+            except ValueError:
+                filtered["source_language_not_approved"] += 1
+                continue
+            source_language_key = (raw_source, language)
+            if raw_source_counts[source_language_key] >= source_limit:
+                filtered["configured_source_target_reached"] += 1
+                continue
+            raw_source_counts[source_language_key] += 1
             family, component = source_family(raw_source)
             provenance = row["provenance"]
             provenance["source_original_name"] = raw_source
@@ -139,6 +151,7 @@ def normalize_file(source_path: Path, destination: Path, *, filter_superseded=Fa
         "rows_out": rows_out,
         "filtered_superseded_sources": dict(filtered),
         "source_counts": dict(sorted(source_counts.items())),
+        "raw_source_language_counts": {f"{source}:{language}": count for (source, language), count in sorted(raw_source_counts.items())},
         "normalized_path": str(destination),
     }
 
@@ -195,7 +208,7 @@ def main():
     merge_inputs = []
     for label, path, filter_superseded in sources:
         destination = normalized_dir / f"{label}.jsonl"
-        reports.append(normalize_file(path, destination, filter_superseded=filter_superseded))
+        reports.append(normalize_file(path, destination, config=cfg, filter_superseded=filter_superseded))
         if destination.stat().st_size:
             merge_inputs.append(destination)
 
@@ -232,7 +245,7 @@ def main():
         "merge_input": str(combined_path),
         "preselection": {"status": "disabled"},
         "combined_rows": combined_rows,
-        "source_family_policy": "component/config/file suffixes are preserved in provenance but quota accounting uses the dataset/release family",
+        "source_family_policy": "first-pass acquisition quotas and approved-language scopes are enforced on each original source identifier before normalization; candidate-stage balance accounting may then use source families",
         "v5_replacements": sorted(SUPERSEDED_V5_SOURCES),
     }
     (args.output / "input-manifest.json").write_text(
