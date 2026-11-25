@@ -26,7 +26,7 @@ from urllib.request import Request, urlopen
 
 EMAIL = re.compile(r"(?i)\\b[\\w.+-]+@[\\w.-]+\\.[A-Z]{2,}\\b")
 URL = re.compile(r"(?i)(https?://|www\\.)\\S+")
-NUMBER = re.compile(r"\\d{9,}")
+
 IPV4 = re.compile(r"(?<![\\w.])(?:\\d{1,3}\\.){3}\\d{1,3}(?![\\w.])")
 
 SOURCE_FAMILIES = (
@@ -49,8 +49,8 @@ def clean(value, language, rules=None):
     text = " ".join(unicodedata.normalize("NFC", str(value or "")).split())
     letters = sum(char.isalpha() for char in text)
     if (len(text) < rules["min_characters"] or len(text) > rules["max_characters"] or letters < rules["min_letters"]
-            or letters / max(len(text), 1) < rules["min_letter_ratio"] or EMAIL.search(text)
-            or URL.search(text) or NUMBER.search(text) or IPV4.search(text)):
+            or (rules["exclude_email"] and EMAIL.search(text))
+            or (rules["exclude_url"] and URL.search(text))
         return None
     if language == "ar" and sum("\u0600" <= char <= "\u06ff" for char in text) < max(rules["arabic_min_script_characters"], letters * rules["arabic_min_script_ratio"]):
         return None
