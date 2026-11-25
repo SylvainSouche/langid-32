@@ -12,6 +12,10 @@ on:
       - ".github/workflows/validate-pipeline-samples.yml"
   workflow_dispatch:
 
+concurrency:
+  group: langid32-sample-validation-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
