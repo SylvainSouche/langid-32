@@ -5,6 +5,8 @@ on:
   push:
     paths:
       - "docs/trigger-multisource-build.txt"
+      - "config/langid32.toml"
+      - "src/langid32/settings.py"
 
 permissions:
   actions: read
@@ -42,7 +44,7 @@ jobs:
       - name: Acquire HF-hosted CC0 Common Voice text in this runner
         run: |
           python scripts/download_common_voice_hf.py --output-dir input/common-voice/source
-          python scripts/curate_common_voice_hf.py --input-root input/common-voice/source --output input/common-voice --per-language-cap 9000
+          python scripts/curate_common_voice_hf.py --input-root input/common-voice/source --output input/common-voice
 
       - name: Download Tatoeba CC0 artifact
         uses: actions/download-artifact@v4
@@ -79,7 +81,7 @@ jobs:
           exit "$failed"
 
       - name: Acquire and deduplicate CC BY 4.0 Gaois Irish legislation sample
-        run: python scripts/acquire_gaois_irish_legislation.py --out input/waiting/irish/candidates.jsonl --max-sample 50000
+        run: python scripts/acquire_gaois_irish_legislation.py --out input/waiting/irish/candidates.jsonl
 
       - name: Screen up to 20k per source, then globally deduplicate and select 35k per language
         env:
