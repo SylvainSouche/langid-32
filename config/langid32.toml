@@ -60,13 +60,45 @@ languages = ["hr", "fi", "el", "mt", "sl", "is"]
 target = 20000
 languages = ["fi"]
 
-[acquisition.source_rules.gaois_irish_legislation]
-target = 20000
-languages = ["ga"]
-
 [acquisition.source_rules.igc]
 target = 20000
 languages = ["is"]
+status = "include_attribution_and_source_provenance"
+
+[acquisition.source_rules.gaois_irish_legislation]
+target = 20000
+languages = ["ga"]
+status = "include_cc_by_4_0_derivative_original_legislation_rights_review"
+
+[acquisition.source_rules.fineweb]
+target = 20000
+languages = ["en"]
+status = "technical_candidate_only_underlying_web_rights_hold"
+
+[acquisition.source_rules.bsc_legal]
+target = 20000
+languages = ["ca"]
+status = "technical_candidate_only_constituent_terms_hold"
+
+[acquisition.source_rules.korean_wikipedia_20231101]
+target = 20000
+languages = ["ko"]
+status = "technical_candidate_only_share_alike_compatibility_hold"
+
+[acquisition.source_rules.maalfrid2026]
+target = 20000
+languages = ["nb", "nn"]
+status = "technical_candidate_only_database_and_third_party_rights_hold"
+
+[acquisition.source_rules.temu_cc0]
+target = 20000
+languages = ["ca"]
+status = "cc0_component_union_source_level_review"
+
+[acquisition.source_rules.un_arabic_english_filtered]
+target = 20000
+languages = ["ar"]
+status = "include_cc_by_4_0_attribution_and_provenance"
 
 [acquisition.source_rules.macocu]
 target = 20000
@@ -83,6 +115,22 @@ languages = ["is"]
 [acquisition.source_rules.greynir_silver]
 target = 20000
 languages = ["is"]
+
+[acquisition.source_rules.fineweb]
+exclude = true
+status = "hold_underlying_web_text_rights_unresolved"
+
+[acquisition.source_rules.catalan_dpo_v2]
+exclude = true
+status = "exclude_pending_source_traceable_rights_review"
+
+[acquisition.source_rules.greynir]
+exclude = true
+status = "exclude_generic_partition_unspecified"
+
+[acquisition.source_rules.greynir_gold_dev]
+exclude = true
+status = "exclude_development_test_partition"
 
 [acquisition.source_rules.waiting_sources]
 target = 20000
