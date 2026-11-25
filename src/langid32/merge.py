@@ -18,10 +18,9 @@ from urllib.parse import urlparse
 from collections import Counter, defaultdict
 from pathlib import Path
 
-LANGUAGES = (
-    "bg hr cs da nl en et fi fr de el hu ga it lv lt mt pl pt ro sk sl es sv "
-    "nb nn ru ja zh ko ar tr ca is"
-).split()
+from langid32.settings import load_config
+
+LANGUAGES = tuple(load_config()["project"]["languages"])
 SPLITS = ("train", "validation", "test")
 EMAIL_RE = re.compile(r"(?i)(?<![\w.+-])[\w.+-]+@[\w.-]+\.[A-Z]{2,}(?![A-Za-z0-9_.-])")
 URL_RE = re.compile(
@@ -161,7 +160,7 @@ def read_inputs(paths: list[Path], args):
     rows = []
     source_seen = defaultdict(set)
     source_retained = Counter()
-    source_limit = getattr(args, "max_sentences_per_source", 20000)
+    source_limit = getattr(args, "max_sentences_per_source", 0)
     exclusions_path = getattr(args, "exclusions", None)
     exclusions = load_exclusions(exclusions_path)
     for path in paths:
@@ -617,25 +616,37 @@ def main():
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--exclusions", type=Path, default=None,
                         help="Active source/document exclusion registry (JSONL or CSV)")
-    parser.add_argument("--min-chars", type=int, default=12)
-    parser.add_argument("--max-chars", type=int, default=500)
-    parser.add_argument("--max-bytes", type=int, default=1500)
-    parser.add_argument("--max-sentences-per-source", type=int, default=20000,
-                        help="Maximum screened unique records retained from each source before global merge/JQL")
-    parser.add_argument("--max-per-language", type=int, default=30000,
-                        help="Total candidate pool per language; 0 disables all caps")
-    parser.add_argument("--core-per-language", type=int, default=20000,
-                        help="Core pool per language; remainder is held separately as reserve")
-    parser.add_argument("--preferred-source-share", type=float, default=0.30,
-                        help="Preferred maximum share for one source in a language/split bucket")
-    parser.add_argument("--max-source-share", type=float, default=0.50,
-                        help="Hard maximum share for one source in a language/split bucket")
-    parser.add_argument("--validation-fraction", type=float, default=0.10)
-    parser.add_argument("--test-fraction", type=float, default=0.10)
-    parser.add_argument("--seed", default="langid-32-fineweb2-v1")
+    parser.add_argument("--config", type=Path, default=None)
+    parser.add_argument("--min-chars", type=int, default=None)
+    parser.add_argument("--max-chars", type=int, default=None)
+    parser.add_argument("--max-bytes", type=int, default=None)
+    parser.add_argument("--max-sentences-per-source", type=int, default=None,
+                        help="0 disables a second-stage cap; acquisition limits are source-specific")
+    parser.add_argument("--max-per-language", type=int, default=None)
+    parser.add_argument("--core-per-language", type=int, default=None)
+    parser.add_argument("--preferred-source-share", type=float, default=None)
+    parser.add_argument("--max-source-share", type=float, default=None)
+    parser.add_argument("--validation-fraction", type=float, default=None)
+    parser.add_argument("--test-fraction", type=float, default=None)
+    parser.add_argument("--seed", default=None)
     parser.add_argument("--require-exact-counts", action="store_true",
                         help="Fail unless every target language reaches every split cap")
     args = parser.parse_args()
+    cfg = load_config(args.config)
+    text_cfg = cfg["candidate"]["text"]
+    split_cfg = cfg["candidate"]["splits"]
+    balance_cfg = cfg["candidate"]["source_balance"]
+    args.min_chars = args.min_chars if args.min_chars is not None else text_cfg["min_characters"]
+    args.max_chars = args.max_chars if args.max_chars is not None else text_cfg["max_characters"]
+    args.max_bytes = args.max_bytes if args.max_bytes is not None else text_cfg["max_utf8_bytes"]
+    args.max_sentences_per_source = args.max_sentences_per_source if args.max_sentences_per_source is not None else balance_cfg["max_sentences_per_source_after_acquisition"]
+    args.max_per_language = args.max_per_language if args.max_per_language is not None else cfg["candidate"]["minimum_candidates_per_language"]
+    args.core_per_language = args.core_per_language if args.core_per_language is not None else cfg["candidate"]["minimum_candidates_per_language"]
+    args.preferred_source_share = args.preferred_source_share if args.preferred_source_share is not None else balance_cfg["preferred_max_share_per_language_and_split"]
+    args.max_source_share = args.max_source_share if args.max_source_share is not None else balance_cfg["hard_max_share_per_language_and_split"]
+    args.validation_fraction = args.validation_fraction if args.validation_fraction is not None else split_cfg["validation_fraction"]
+    args.test_fraction = args.test_fraction if args.test_fraction is not None else split_cfg["test_fraction"]
+    args.seed = args.seed or split_cfg["seed"]
     if args.min_chars < 1 or args.max_chars < args.min_chars or args.max_bytes < 1:
         parser.error("invalid text length limits")
     if args.max_sentences_per_source < 0:
