@@ -21,8 +21,8 @@ def main() -> None:
     if not output:
         raise SystemExit("GITHUB_OUTPUT is required")
     with open(output, "a", encoding="utf-8") as stream:
-        stream.write("matrix=" + json.dumps(matrix, separators=(",", ":")) + "\\n")
-        stream.write(f"max_parallel={parallel}\\n")
+        stream.write("matrix=" + json.dumps(matrix, separators=(",", ":")) + chr(10))
+        stream.write(f"max_parallel={parallel}" + chr(10))
     print(json.dumps({"shards": count, "max_parallel": parallel, "matrix": matrix}))
 
 
