@@ -89,6 +89,12 @@ def fetch(url, destination, max_attempts=None):
                 except Exception:
                     expected = 0
             offset = destination.stat().st_size if destination.exists() else 0
+            if expected and offset == expected:
+                digest = hashlib.sha256()
+                with destination.open("rb") as existing:
+                    for block in iter(lambda: existing.read(EXECUTION["file_copy_chunk_bytes"]), b""):
+                        digest.update(block)
+                return {"url": url, "bytes": offset, "sha256": digest.hexdigest()}
             headers = {"User-Agent": "langid-32-source-audit/1"}
             if offset:
                 headers["Range"] = f"bytes={offset}-"
@@ -154,9 +160,10 @@ def main():
     if args.source == "fineweb2" and args.fineweb2_config not in fineweb2_languages:
         parser.error("--fineweb2-config must name exactly one supported FineWeb-2 configuration")
 
-    temp_root = Path(tempfile.mkdtemp())
     output_root = Path(args.out)
     output_root.mkdir(parents=True, exist_ok=True)
+    temp_root = output_root / ".work"
+    temp_root.mkdir(parents=True, exist_ok=True)
     state_path = args.state_db or (output_root / "acquisition-state.sqlite")
     state_path.parent.mkdir(parents=True, exist_ok=True)
     state_db = open_state(state_path)
@@ -414,9 +421,10 @@ e(exc).__name__}: {exc}")
     try:
         if args.source == "catalan":
             temu_root = temp_root / "temu"
-            subprocess.run(["git", "clone", "--depth", "1",
-                            "https://github.com/TeMU-BSC/catalan_CC0_sentences.git",
-                            str(temu_root)], check=True)
+            if not temu_root.exists():
+                subprocess.run(["git", "clone", "--depth", "1",
+                                "https://github.com/TeMU-BSC/catalan_CC0_sentences.git",
+                                str(temu_root)], check=True)
             revisions["temu"] = subprocess.check_output(
                 ["git", "-C", str(temu_root), "rev-parse", "HEAD"], text=True
             ).strip()
@@ -454,7 +462,7 @@ e(exc).__name__}: {exc}")
                 try:
                     downloads.append(fetch(url, archive))
                     extracted = temp_root / name
-                    extracted.mkdir()
+                    extracted.mkdir(parents=True, exist_ok=True)
                     if is_zip:
                         with zipfile.ZipFile(archive) as source_zip:
                             source_zip.extractall(extracted)
@@ -703,7 +711,6 @@ e(exc).__name__}: {exc}")
         print(json.dumps(report, ensure_ascii=False, indent=2))
     finally:
         state_db.close()
-        shutil.rmtree(temp_root, ignore_errors=True)
 
 
 if __name__ == "__main__":
