@@ -57,6 +57,10 @@ phone_min_separators = 2
 phone_candidate_min_intervening_characters = 7
 long_numeric_min_digits = 9
 
+[acquisition.source_rules.common_voice_v22.script]
+minimum_ratio = 0.70
+by_language = { fi = "LATIN", el = "GREEK", mt = "LATIN", sl = "LATIN", is = "LATIN" }
+
 [acquisition.source_rules.fineweb2]
 target = 20000
 languages = ["hr", "fi", "el", "mt", "sl", "is"]
