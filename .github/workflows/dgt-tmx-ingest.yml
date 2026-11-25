@@ -2,14 +2,6 @@ name: Ingest DGT-TM 2021 source sample
 # First-pass acquisition target: up to 20,000 eligible unique entries per language.
 
 on:
-  push:
-    paths:
-      - "src/langid32/dgt_tmx_stage.py"
-      - "src/langid32/merge.py"
-      - "tests/test_dgt_tmx_stage.py"
-      - "pyproject.toml"
-      - "scripts/emit_runtime_config.py"
-      - ".github/workflows/dgt-tmx-ingest.yml"
   workflow_dispatch:
 
 permissions:
@@ -17,6 +9,7 @@ permissions:
 
 jobs:
   ingest:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
