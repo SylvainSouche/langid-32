@@ -57,7 +57,7 @@ def plan_file_batches(db: sqlite3.Connection, source: str, language: str,
     known.update(path for row in db.execute(
         "SELECT files_json FROM file_batch WHERE source=? AND language=?", (source, language))
         for path in json.loads(row[0]))
-    pending = [str(path) for path in files if str(path) not in known]
+    pending = [path for path in sorted({str(item) for item in files}) if path not in known]
     next_no = db.execute(
         "SELECT COALESCE(MAX(batch_no),-1)+1 FROM file_batch WHERE source=? AND language=?",
         (source, language)).fetchone()[0]
@@ -175,3 +175,23 @@ def export_records(db: sqlite3.Connection, source: str, language: str) -> list[d
     return [json.loads(row[0]) for row in db.execute(
         "SELECT payload_json FROM sentence WHERE source=? AND language=? ORDER BY rowid",
         (source, language))]
+
+
+
+def task_report(db: sqlite3.Connection, source: str, language: str) -> dict:
+    row = db.execute(
+        "SELECT target,exhausted FROM task WHERE source=? AND language=?",
+        (source, language)).fetchone()
+    if row is None:
+        raise KeyError((source, language))
+    retained = retained_count(db, source, language)
+    return {
+        "source": source,
+        "language": language,
+        "target": row[0],
+        "retained_unique_post_filter": retained,
+        "shortfall": max(0, row[0] - retained),
+        "source_exhausted": bool(row[1]),
+        "complete": bool(retained >= row[0] or row[1]),
+        "incomplete_file_batches": pending_batch_count(db, source, language),
+    }
