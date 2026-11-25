@@ -36,7 +36,7 @@ Measured technical staging currently includes:
 | Waiting-source acquisition | 613,860 | New source candidates across Catalan, Icelandic, Bokmål, Nynorsk, Korean and Arabic; includes 100,000 FineWeb2 backfill candidates |
 | [HF-hosted Common Voice 22 CC0 text pilot](https://huggingface.co/datasets/fsicoli/common_voice_22_0) | 259,352 | Historical text-only pilot across 33 labels; Croatian has no source yet |
 | Tatoeba CC0 refresh | 80,155 | Fresh staged export; concentrated in a subset of languages |
-| DGT-TM 2021 refresh | 120,000 | 5,000 staged translation units per 24 EU languages |
+| DGT-TM 2021 refresh (historical snapshot) | Superseded | Old 24-language sample predates the current source scope and central configuration |
 | Legacy v5 candidate | 640,000 | Historical 32-label technical candidate; source balance and rights gates fail |
 
 These are **separate staging artifacts and must not be summed**. They have not all been globally deduplicated against one another. They are not final usable-record counts.
@@ -56,7 +56,7 @@ The table above is the **18 November candidate-staging snapshot**. The upstream 
 - **Korean:** cleaned 2026-07-01 Wikipedia release: 593,006 articles and 17.77M heuristic sentence segments. Its CC BY-SA 4.0/GFDL terms remain a compatibility decision, not a CC BY/CC0 source.
 - **Arabic:** the official UN download route currently redirects to the landing page rather than returning the archive. A full audit of all 19.28M train rows plus dev/test in the CC BY 4.0 HF derivative is now running; its schema still lacks source document IDs/URLs and row-level provenance.
 
-These are **upstream audit measures**, not final usable-record counts. They must still pass the global normalization, privacy, language/content, cross-source deduplication, source quota and rights gates before they can affect the 20k core or 10k reserve.
+These are **upstream audit measures**, not final usable-record counts. They must still pass the global normalization, privacy, language/content, cross-source deduplication, source quota and rights gates before they can affect the configured final corpus.
 
 The waiting-source artifact contains useful independent candidates, but some classes remain concentrated in one source and several licences or underlying-text rights remain under review. In particular:
 
