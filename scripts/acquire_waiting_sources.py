@@ -21,7 +21,7 @@ from pathlib import Path
 import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from langid32.settings import load_config, acquisition_target
+from langid32.settings import load_config, acquisition_target, source_quota_key
 from urllib.request import Request, urlopen
 
 EMAIL = re.compile(r"(?i)\\b[\\w.+-]+@[\\w.-]+\\.[A-Z]{2,}\\b")
@@ -36,8 +36,8 @@ SOURCE_FAMILIES = (
 
 
 def source_bucket(source):
-    """Keep acquisition quotas keyed to each individual source, never its family."""
-    return source
+    """Use only explicitly declared dataset quota identities; otherwise keep the source exact."""
+    return source_quota_key(load_config(), source)
 
 def clean(value, language, rules=None):
     if rules is None:
