@@ -656,11 +656,11 @@ def main():
     args.min_chars = args.min_chars if args.min_chars is not None else text_cfg["min_characters"]
     args.max_chars = args.max_chars if args.max_chars is not None else text_cfg["max_characters"]
     args.max_bytes = args.max_bytes if args.max_bytes is not None else text_cfg["max_utf8_bytes"]
-    args.max_sentences_per_source = args.max_sentences_per_source if args.max_sentences_per_source is not None else balance_cfg["max_sentences_per_source_after_acquisition"]
-    args.max_per_language = args.max_per_language if args.max_per_language is not None else cfg["candidate"]["minimum_candidates_per_language"]
-    args.core_per_language = args.core_per_language if args.core_per_language is not None else cfg["candidate"]["minimum_candidates_per_language"]
-    args.preferred_source_share = args.preferred_source_share if args.preferred_source_share is not None else balance_cfg["preferred_max_share_per_language_and_split"]
-    args.max_source_share = args.max_source_share if args.max_source_share is not None else balance_cfg["hard_max_share_per_language_and_split"]
+    args.max_sentences_per_source = args.max_sentences_per_source if args.max_sentences_per_source is not None else balance_cfg.get("max_sentences_per_source_after_acquisition", 0)
+    args.max_per_language = args.max_per_language if args.max_per_language is not None else 0
+    args.core_per_language = args.core_per_language if args.core_per_language is not None else 0
+    args.preferred_source_share = args.preferred_source_share if args.preferred_source_share is not None else balance_cfg.get("preferred_max_share_per_language_and_split", 1.0)
+    args.max_source_share = args.max_source_share if args.max_source_share is not None else balance_cfg.get("hard_max_share_per_language_and_split", 1.0)
     args.validation_fraction = args.validation_fraction if args.validation_fraction is not None else split_cfg["validation_fraction"]
     args.test_fraction = args.test_fraction if args.test_fraction is not None else split_cfg["test_fraction"]
     args.seed = args.seed or split_cfg["seed"]
