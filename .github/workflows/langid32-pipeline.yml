@@ -8,7 +8,6 @@ jobs:
   historical:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - id: runtime
@@ -37,7 +36,6 @@ jobs:
   common-voice:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    timeout-minutes: 180
     steps:
       - uses: actions/checkout@v4
       - id: runtime
@@ -57,7 +55,6 @@ jobs:
   waiting-source:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    timeout-minutes: 360
     strategy:
       fail-fast: false
       matrix:
@@ -85,7 +82,6 @@ jobs:
     if: github.ref == 'refs/heads/main'
     needs: [historical, common-voice, waiting-source]
     runs-on: ubuntu-latest
-    timeout-minutes: 360
     steps:
       - uses: actions/checkout@v4
       - id: runtime
@@ -116,7 +112,6 @@ jobs:
     if: github.ref == 'refs/heads/main'
     needs: [candidate]
     runs-on: ubuntu-latest
-    timeout-minutes: 180
     steps:
       - uses: actions/checkout@v4
       - id: runtime
