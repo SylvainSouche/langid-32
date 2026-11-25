@@ -3,8 +3,6 @@ on:
   push:
     paths:
       - "scripts/acquire_leipzig_balanced.py"
-      - "config/langid32.toml"
-      - "src/langid32/settings.py"
       - "scripts/emit_runtime_config.py"
       - ".github/workflows/acquire-leipzig-balanced.yml"
   workflow_dispatch:
