@@ -60,7 +60,7 @@ def test_normalization_applies_source_language_scope_and_per_source_caps(tmp_pat
 
 
 
-def test_declared_quota_identity_is_shared_across_files_but_not_across_other_components(tmp_path):
+def test_exact_source_identity_is_not_shared_across_source_components(tmp_path):
     config = load_config()
     config["acquisition"]["source_language_overrides"].update({
         "fineweb2:hrv_Latn.hr": 1,
@@ -80,5 +80,5 @@ def test_declared_quota_identity_is_shared_across_files_but_not_across_other_com
     second = MODULE.normalize_file(second_source, second_out, config=config, source_language_counts=shared_counts)
 
     assert first["rows_out"] == 1
-    assert second["rows_out"] == 0
-    assert second["filtered_superseded_sources"] == {"configured_source_target_reached": 1}
+    assert second["rows_out"] == 1
+    assert second["filtered_superseded_sources"] == {}
