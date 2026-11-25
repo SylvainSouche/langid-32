@@ -90,3 +90,15 @@ def test_running_batch_resumes_after_database_reopen(tmp_path):
     assert report["retained_unique_post_filter"] == 1
     assert report["shortfall"] == 1
     assert report["incomplete_file_batches"] == 1
+
+
+def test_waiting_source_adapter_uses_durable_file_batches_and_reports_shortfalls():
+    from pathlib import Path
+    worker = (Path(__file__).resolve().parents[1] / "scripts/acquire_waiting_sources.py").read_text()
+    assert 'temp_root = output_root / ".work"' in worker
+    assert 'state_path = args.state_db or (output_root / "acquisition-state.sqlite")' in worker
+    assert "plan_file_batches(" in worker
+    assert "next_batch(state_db" in worker
+    assert "finish_batch(state_db" in worker
+    assert '"source_language_status": [task_report' in worker
+    assert "inspect source_language_status for exact retained counts and shortfalls" in worker
