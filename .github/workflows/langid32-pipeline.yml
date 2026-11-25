@@ -39,6 +39,10 @@ jobs:
         env:
           LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"
         run: python -c 'import os,sys; k=os.environ.get("LANGID32_CHECKPOINT_KEY",""); sys.exit(0 if len(k)>=32 else "LANGID32_CHECKPOINT_KEY is missing or shorter than 32 characters")'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "${{ steps.runtime.outputs.python_version }}"
+      - run: python -m pip install cryptography
       - uses: actions/download-artifact@v4
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
@@ -64,16 +68,16 @@ jobs:
           run-id: "44291075180"
           path: input/dgt
       - name: Validate historical target
+        id: acquire
         run: python stages/01-acquisition/run.py --target historical
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "${{ steps.runtime.outputs.python_version }}"
-      - run: python -m pip install cryptography
-      - name: Encrypt acquisition checkpoint
+      - name: Encrypt historical checkpoint, including partial progress on failure
+        id: checkpoint
+        if: always() && steps.acquire.outcome != 'skipped'
         env:
           LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"
         run: python scripts/checkpoint.py pack --archive checkpoint.bin
       - uses: actions/upload-artifact@v4
+        if: always() && steps.checkpoint.outcome == 'success'
         with:
           name: acquisition-historical
           path: checkpoint.bin
