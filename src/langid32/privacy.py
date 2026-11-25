@@ -92,6 +92,15 @@ FLAG_KEYS = (
     "privacy_flags", "sensitive_info", "sensitive_information",
     "personal_data", "pii", "is_pii", "has_personal_information",
 )
+PERSONAL_METADATA_KEYS = {
+    "author", "author_name", "person_name", "full_name", "contact_name",
+    "recipient_name", "speaker_name", "participant_name", "contributor_name",
+    "submitted_by", "created_by", "user_name", "user_id", "client_id",
+    "contributor_id", "author_id", "contact_id", "email", "phone",
+    "ip_address", "street_address", "postal_address", "date_of_birth",
+    "birth_date",
+}
+TEXTUAL_IDENTITY_METADATA_KEYS = {"title", "publisher", "creator", "contributor", "speaker", "name"}
 
 
 @dataclass(frozen=True)
@@ -182,6 +191,27 @@ def screen_text(value: str, *, record: dict | None = None,
         status = "quarantined" if uncertain_action == "quarantine" else "rejected"
         return PrivacyResult(False, status, tuple(sorted(set(uncertain))))
     return PrivacyResult(True, "clean", ())
+
+
+def sanitize_provenance(value: dict | None) -> tuple[dict, tuple[str, ...]]:
+    """Remove contributor identity fields and unsafe person-bearing metadata values."""
+    if not isinstance(value, dict):
+        return {}, ()
+    cleaned = dict(value)
+    removed = []
+    for key in PERSONAL_METADATA_KEYS:
+        field_value = cleaned.get(key)
+        if field_value not in (None, "", [], {}):
+            cleaned.pop(key, None)
+            removed.append(key)
+    for key in TEXTUAL_IDENTITY_METADATA_KEYS:
+        field_value = cleaned.get(key)
+        if isinstance(field_value, str) and field_value.strip():
+            result = screen_text(field_value, uncertain_action="reject")
+            if not result.accepted:
+                cleaned.pop(key, None)
+                removed.append(key)
+    return cleaned, tuple(sorted(set(removed)))
 
 
 def screen_record(record: dict, *, uncertain_action: str = "quarantine") -> PrivacyResult:
