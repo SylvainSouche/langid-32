@@ -84,6 +84,7 @@ def main() -> None:
     args = ap.parse_args()
     jql_config = load_config(args.config)["jql"]
     penalty = float(jql_config["consensus_disagreement_penalty"])
+    mean_weight = float(jql_config["consensus_mean_weight"])
 
     if not args.input.is_file() or not args.quality.is_file():
         raise SystemExit("Input Parquet and quality CSV must both exist")
@@ -128,7 +129,7 @@ def main() -> None:
     z_columns = [f"{judge}_z" for judge in JUDGES]
     frame["jql_mean"] = frame[z_columns].mean(axis=1)
     frame["jql_disagreement"] = frame[z_columns].std(axis=1, ddof=0)
-    frame["jql_consensus"] = frame["jql_mean"] - penalty * frame["jql_disagreement"]
+    frame["jql_consensus"] = mean_weight * frame["jql_mean"] - penalty * frame["jql_disagreement"]
 
 
     frame["initial_capitalization"] = frame["id"].map(
@@ -162,6 +163,7 @@ def main() -> None:
         "quantile_normalization": "average ranks mapped through standard-normal inverse CDF; ties share average rank",
         "normalization_scope": "entire assessment corpus, all languages combined, independently per judge",
         "consensus_formula": "mean(gemma_z,mistral_z,llama_z) - 0.5 * population_std(gemma_z,mistral_z,llama_z)",
+        "consensus_mean_weight": mean_weight,
         "consensus_penalty": penalty,
         "quality_flags_are_non_filtering": True,
         "sentence_text_included": bool(args.include_text),
