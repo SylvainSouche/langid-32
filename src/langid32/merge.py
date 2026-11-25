@@ -619,7 +619,9 @@ def merge(args):
             "The shared deterministic privacy gate runs before per-source acquisition quotas and again "
             "during global merge. High-confidence email, URL, IPv4/IPv6, phone, long-identifier, "
             "street-address and contextual personal-name matches are rejected; ambiguous personal-name "
-            "candidates and upstream sensitive-data flags are quarantined. The screen is conservative "
+            "candidates and upstream sensitive-data flags are quarantined. Contributor names, author names, "
+            "contact identifiers and person-bearing title metadata are removed from provenance while "
+            "non-identifying speaker references and roles are retained. The screen is conservative "
             "and does not claim perfect multilingual named-entity recognition; human review remains "
             "necessary before any external release."
         ),
