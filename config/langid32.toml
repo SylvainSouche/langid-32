@@ -70,11 +70,6 @@ target = 20000
 languages = ["ga"]
 status = "include_cc_by_4_0_derivative_original_legislation_rights_review"
 
-[acquisition.source_rules.fineweb]
-target = 20000
-languages = ["en"]
-status = "technical_candidate_only_underlying_web_rights_hold"
-
 [acquisition.source_rules.bsc_legal]
 target = 20000
 languages = ["ca"]
