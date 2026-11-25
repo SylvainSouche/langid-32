@@ -41,7 +41,7 @@ def test_completed_files_are_not_replanned(tmp_path):
     db = open_state(tmp_path / "state.sqlite")
     plan_file_batches(db, "source-A", "is", 2, ["a", "b"], 1)
     batch_no, _ = next_batch(db, "source-A", "is")
-    finish_batch(db, "source-A", "is", batch_no, {"a": "sha-a"})
+    finish_batch(db, "source-A", "is", batch_no, {"a": "a".ljust(64, "0")})
     # Existing planned file paths are not duplicated when discovery is repeated.
     assert plan_file_batches(db, "source-A", "is", 2, ["a", "b", "c"], 1) == 1
 
