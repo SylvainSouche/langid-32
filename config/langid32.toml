@@ -197,3 +197,5 @@ jql_timeout_minutes = 300
 artifact_retention_days = 30
 checkpoint_retention_days = 7
 max_download_attempts = 12
+sqlite_insert_batch_size = 5000
+sqlite_join_batch_size = 10000
