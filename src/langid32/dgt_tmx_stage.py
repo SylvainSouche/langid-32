@@ -47,7 +47,9 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
-def iter_translation_units(stream):
+def iter_translation_units(stream, clear_every=None):
+    if clear_every is None:
+        clear_every = load_config()["acquisition"]["source_rules"]["dgt_tm_2021"]["clear_body_every_translation_units"]
     stack = []
     processed = 0
     for event, element in ET.iterparse(stream, events=("start", "end")):
@@ -60,7 +62,7 @@ def iter_translation_units(stream):
             processed += 1
             # Clear the <body> child list in batches; repeated Element.remove()
             # is quadratic for large TMX files.
-            if processed % 1000 == 0 and len(stack) > 1:
+            if processed % clear_every == 0 and len(stack) > 1:
                 parent = stack[-2]
                 if local_name(parent.tag) == "body":
                     parent.clear()
@@ -139,7 +141,7 @@ def stage(args):
                     per_document = defaultdict(list)
                     try:
                         with archive.open(member) as stream:
-                            for tu in iter_translation_units(stream):
+                            for tu in iter_translation_units(stream, dgt_rule["clear_body_every_translation_units"]):
                                 counts["translation_units"] += 1
                                 tu_id = tu.attrib.get("tuid", "")
                                 for language, text in segments_from_tu(tu):
