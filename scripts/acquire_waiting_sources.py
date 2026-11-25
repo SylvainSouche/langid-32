@@ -123,7 +123,7 @@ def main():
     parser.add_argument("--config", type=Path, default=ROOT / "config/langid32.toml")
     args = parser.parse_args()
     cfg = load_config(args.config)
-    waiting_text_rules = cfg["acquisition"]["source_rules"]["waiting_sources"]["text"]
+    waiting_text_rules = cfg["acquisition"]["source_rules"]["waiting_sources"]
     fineweb2_languages = {
         "cat_Latn": "ca", "isl_Latn": "is", "nob_Latn": "nb",
         "nno_Latn": "nn", "arb_Arab": "ar", "hrv_Latn": "hr",
