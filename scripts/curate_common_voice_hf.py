@@ -50,6 +50,7 @@ def main() -> None:
     if not languages:
         raise SystemExit("No Common Voice target languages are configured.")
     text_rules = cfg["acquisition"]["source_rules"]["common_voice_v22"]["text"]
+    script_rules = cfg["acquisition"]["source_rules"]["common_voice_v22"]["script"]
     download_manifest_path = args.input_root / "hf-common-voice-download-manifest.json"
     if not download_manifest_path.is_file():
         raise SystemExit("Common Voice download manifest is required for immutable provenance.")
@@ -106,7 +107,6 @@ def main() -> None:
                             or letters / max(len(text), 1) < global_text_rules["min_letter_ratio"]):
                         counts[f"{language}:letter_quality_rejected"] += 1
                         continue
-                    script_rules = cfg["acquisition"]["source_rules"]["common_voice_v22"]["script"]
                     expected_script = script_rules["by_language"].get(language)
                     if not expected_script:
                         raise ValueError(f"No expected script configured for Common Voice language {language}")
