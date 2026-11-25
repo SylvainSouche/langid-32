@@ -736,22 +736,62 @@ def main():
         elif args.source == "arabic":
             revisions["un_arabic"] = resolve_hf_revision("ymoslem/UN-Arabic-English-Filtered")
             from datasets import load_dataset
-            dataset = load_dataset("ymoslem/UN-Arabic-English-Filtered", split="train",
-                                   streaming=True, revision=revisions["un_arabic"])
-            for index, item in enumerate(dataset):
-                if quota_reached(("ar", "un_arabic_english_filtered:text_ar")):
-                    break
-                document_id = str(item.get("id") or item.get("url") or index)
-                provenance = {"dataset_repo": "ymoslem/UN-Arabic-English-Filtered",
-                              "repo_commit": revisions["un_arabic"],
-                              "source_record_id": document_id}
-                for key in ("url", "date", "title", "source"):
-                    if item.get(key) is not None:
-                        provenance[key] = item[key]
-                add("ar", "un_arabic_english_filtered:text_ar",
-                    item.get("text_ar"), document_id, provenance)
-                if index % 100000 == 0:
-                    print(f"Arabic pairs streamed: {index}", flush=True)
+            arabic_bucket = ("ar", "un_arabic_english_filtered:text_ar")
+            if not quota_reached(arabic_bucket):
+                remote_batch = begin_remote_file(
+                    arabic_bucket, "ymoslem/UN-Arabic-English-Filtered",
+                    revisions["un_arabic"], "train-stream",
+                )
+                if remote_batch is not None:
+                    dataset = load_dataset(
+                        "ymoslem/UN-Arabic-English-Filtered", split="train",
+                        streaming=True, revision=revisions["un_arabic"],
+                    )
+                    state_path = temp_root / f"un-arabic-stream-state-{revisions['un_arabic'][:12]}.json"
+                    processed = 0
+                    if state_path.is_file():
+                        saved = json.loads(state_path.read_text(encoding="utf-8"))
+                        if saved.get("revision") == revisions["un_arabic"]:
+                            if not hasattr(dataset, "load_state_dict"):
+                                raise RuntimeError("Installed datasets version cannot restore iterable stream state")
+                            dataset.load_state_dict(saved["state"])
+                            processed = int(saved.get("processed", 0))
+                    def persist_arabic_stream_state():
+                        if not hasattr(dataset, "state_dict"):
+                            raise RuntimeError("Installed datasets version cannot checkpoint iterable stream state")
+                        snapshot = {
+                            "repository": "ymoslem/UN-Arabic-English-Filtered",
+                            "revision": revisions["un_arabic"],
+                            "processed": processed,
+                            "state": dataset.state_dict(),
+                        }
+                        temporary = state_path.with_suffix(".json.part")
+                        temporary.write_text(
+                            json.dumps(snapshot, ensure_ascii=False, sort_keys=True),
+                            encoding="utf-8",
+                        )
+                        temporary.replace(state_path)
+                    for item in dataset:
+                        if quota_reached(arabic_bucket):
+                            break
+                        document_id = str(item.get("id") or item.get("url") or processed)
+                        provenance = {
+                            "dataset_repo": "ymoslem/UN-Arabic-English-Filtered",
+                            "repo_commit": revisions["un_arabic"],
+                            "source_record_id": document_id,
+                        }
+                        for key in ("url", "date", "title", "source"):
+                            if item.get(key) is not None:
+                                provenance[key] = item[key]
+                        add("ar", "un_arabic_english_filtered:text_ar",
+                            item.get("text_ar"), document_id, provenance)
+                        processed += 1
+                        if processed % 512 == 0:
+                            persist_arabic_stream_state()
+                        if processed and processed % 100000 == 0:
+                            print(f"Arabic pairs streamed: {processed}", flush=True)
+                    persist_arabic_stream_state()
+                    finish_remote_file(arabic_bucket, remote_batch)
             notes.append("HF dataset card declares CC BY 4.0; publisher-level declaration accepted.")
 
         else:
