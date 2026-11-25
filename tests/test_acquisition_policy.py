@@ -13,7 +13,7 @@ def test_central_acquisition_policy_is_six_hour_safe():
     config = load_config(ROOT / "config/langid32.toml")
     validate_acquisition_policy(config)
     execution = config["execution"]
-    assert execution["acquisition_files_per_batch"] == 8
+    assert execution["acquisition_files_per_batch"] == 1
     assert execution["acquisition_max_parallel_source_tasks"] == 4
     assert execution["acquisition_global_budget_minutes"] + execution["acquisition_safety_margin_minutes"] <= 360
 
