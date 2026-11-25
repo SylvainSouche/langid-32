@@ -34,10 +34,10 @@ def normalize(text: str) -> str:
     return " ".join(unicodedata.normalize("NFC", text).split())
 
 
-def sha256_file(path: Path) -> str:
+def sha256_file(path: Path, chunk_bytes: int) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as stream:
-        for block in iter(lambda: stream.read(1024 * 1024), b""):
+        for block in iter(lambda: stream.read(chunk_bytes), b""):
             digest.update(block)
     return digest.hexdigest()
 
@@ -51,6 +51,7 @@ def stage(args):
         for language in target_languages
     }
     text_rules = cfg["acquisition"]["text"]
+    chunk_bytes = cfg["execution"]["download_chunk_bytes"]
     batch_insert = cfg["execution"]["sqlite_insert_batch_size"]
     batch_join = cfg["execution"]["sqlite_join_batch_size"]
     args.min_chars = args.min_chars if args.min_chars is not None else text_rules["min_characters"]
@@ -196,9 +197,9 @@ def stage(args):
         "source_release": args.source_release,
         "source_licence": "CC0-1.0 (CC0 sentence export only)",
         "source_download_origin": "https://downloads.tatoeba.org/exports/",
-        "sentences_cc0_sha256": sha256_file(args.sentences_cc0),
-        "sentences_base_sha256": sha256_file(args.sentences_base),
-        "output_sha256": sha256_file(args.output),
+        "sentences_cc0_sha256": sha256_file(args.sentences_cc0, chunk_bytes),
+        "sentences_base_sha256": sha256_file(args.sentences_base, chunk_bytes),
+        "output_sha256": sha256_file(args.output, chunk_bytes),
         "output_records": output_count,
         "selection": {"target_per_language": target_by_language, "selected_per_language": dict(selected_counts), "text_rules": text_rules},
         "counts": dict(sorted(counts.items())),
