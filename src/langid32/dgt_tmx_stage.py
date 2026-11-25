@@ -102,7 +102,7 @@ def stage(args):
     global SEED
     cfg = load_config(args.config)
     SEED = cfg["acquisition"].get("seed", SEED)
-    args.target_per_language = args.target_per_language or acquisition_target(cfg, "dgt_tm_2021", "default")
+    target_by_language = {lang: (args.target_per_language or acquisition_target(cfg, "dgt_tm_2021", lang)) for lang in EU_LANGUAGES}
     dgt_rule = cfg["acquisition"]["source_rules"]["dgt_tm_2021"]
     args.max_per_document_language = args.max_per_document_language or dgt_rule["max_segments_per_tmx_document_language"]
     args.min_chars = args.min_chars or cfg["acquisition"]["text"]["min_characters"]
@@ -114,11 +114,11 @@ def stage(args):
     args.output.parent.mkdir(parents=True, exist_ok=True)
     counts = Counter()
     samples = defaultdict(list)
-    sample_caps = {
-        "train": args.target_per_language - 2 * round(args.target_per_language * 0.10),
-        "validation": round(args.target_per_language * 0.10),
-        "test": round(args.target_per_language * 0.10),
-    }
+    sample_caps = {language: {
+        "train": target - 2 * round(target * cfg["candidate"]["splits"]["validation_fraction"]),
+        "validation": round(target * cfg["candidate"]["splits"]["validation_fraction"]),
+        "test": round(target * cfg["candidate"]["splits"]["test_fraction"]),
+    } for language, target in target_by_language.items()}
 
     with tempfile.TemporaryDirectory(prefix="langid32-dgt-stage-") as temp:
         db = sqlite3.connect(Path(temp) / "unique.sqlite")
@@ -198,7 +198,7 @@ def stage(args):
                         counts[f"document_groups::{language}"] += 1
                         for neg_priority, text_hash, record in heap:
                             heap_add(samples[(language, group_split)],
-                                     sample_caps[group_split],
+                                     sample_caps[language][group_split],
                                      -neg_priority, text_hash, record)
             db.commit()
         db.close()
@@ -237,7 +237,7 @@ def stage(args):
         "languages": sorted(EU_LANGUAGES),
         "selection": {
             "seed": SEED,
-            "target_per_language": args.target_per_language,
+            "target_per_language_by_language": target_by_language,
             "selected_counts_by_language_split": selected_counts,
             "max_segments_per_tmx_document_language": args.max_per_document_language,
             "grouping": "all language segments from the same TMX file share a group_id",
@@ -276,7 +276,8 @@ def main():
     parser.add_argument("--max-chars", type=int, default=None)
     parser.add_argument("--max-bytes", type=int, default=None)
     args = parser.parse_args()
-    if args.target_per_language is not None and args.target_per_language < 1 or args.max_per_document_language is not None and args.max_per_document_language < 1:
+    if ((args.target_per_language is not None and args.target_per_language < 1)
+            or (args.max_per_document_language is not None and args.max_per_document_language < 1)):
         parser.error("target and per-document cap must be positive")
     if args.min_chars < 1 or args.max_chars < args.min_chars or args.max_bytes < 1:
         parser.error("invalid text length limits")
