@@ -22,6 +22,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 from langid32.settings import load_config, acquisition_target, source_quota_key
+EXECUTION = load_config()["execution"]
 from urllib.request import Request, urlopen
 
 EMAIL = re.compile(r"(?i)\\b[\\w.+-]+@[\\w.-]+\\.[A-Z]{2,}\\b")
@@ -68,7 +69,7 @@ def fetch(url, destination, max_attempts=None):
             if not expected:
                 head = Request(url, method="HEAD", headers={"User-Agent": "langid-32-source-audit/1"})
                 try:
-                    with urlopen(head, timeout=60) as response:
+                    with urlopen(head, timeout=EXECUTION["http_probe_timeout_seconds"]) as response:
                         expected = int(response.headers.get("Content-Length") or 0)
                 except Exception:
                     expected = 0
@@ -77,7 +78,7 @@ def fetch(url, destination, max_attempts=None):
             if offset:
                 headers["Range"] = f"bytes={offset}-"
             request = Request(url, headers=headers)
-            with urlopen(request, timeout=300) as response:
+            with urlopen(request, timeout=EXECUTION["http_read_timeout_seconds"]) as response:
                 if offset and response.status != 206:
                     raise IOError(f"server did not honour Range at byte {offset}: HTTP {response.status}")
                 if offset:
@@ -88,7 +89,7 @@ def fetch(url, destination, max_attempts=None):
                     raise IOError(f"unexpected HTTP {response.status}")
                 with destination.open("ab" if offset else "wb") as output:
                     while True:
-                        block = response.read(1024 * 1024)
+                        block = response.read(EXECUTION["download_chunk_bytes"])
                         if not block:
                             break
                         output.write(block)
@@ -97,7 +98,7 @@ def fetch(url, destination, max_attempts=None):
                 raise IOError(f"incomplete download: {size}/{expected} bytes")
             digest = hashlib.sha256()
             with destination.open("rb") as source:
-                for block in iter(lambda: source.read(8 * 1024 * 1024), b""):
+                for block in iter(lambda: source.read(EXECUTION["file_copy_chunk_bytes"]), b""):
                     digest.update(block)
             return {"url": url, "bytes": size, "sha256": digest.hexdigest()}
         except Exception as exc:
@@ -493,7 +494,7 @@ def main():
                     repo_id="HuggingFaceFW/fineweb-2", filename=filename,
                     repo_type="dataset", revision=revisions["fineweb2"]
                 )
-                with http.open(url, "rb", block_size=4 * 1024 * 1024,
+                with http.open(url, "rb", block_size=EXECUTION["fsspec_block_bytes"],
                                cache_type="readahead") as remote_file:
                     parquet = pq.ParquetFile(remote_file)
                     columns = set(parquet.schema_arrow.names)
