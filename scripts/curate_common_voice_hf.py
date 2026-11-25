@@ -91,7 +91,7 @@ def main() -> None:
                     continue
                 if ((text_rules["exclude_phone_like"] and phone_like(text, text_rules))
                         or (text_rules["exclude_long_numeric_sequences"]
-                            and re.search(r"\\d{" + str(text_rules["long_numeric_min_digits"]) + r",}", text))):
+                            and re.search("[0-9]{" + str(text_rules["long_numeric_min_digits"]) + ",}", text))):
                     counts[f"{language}:numeric_identifier_rejected"] += 1
                     continue
                 if text in candidates[language]:
