@@ -66,7 +66,6 @@ def normalize_file(source_path: Path, destination: Path, *, config=None, source_
     raw_source_counts = Counter()
     if source_language_counts is None:
         source_language_counts = Counter()
-    source_language_seen = defaultdict(set)
     if source_language_seen is None:
         source_language_seen = defaultdict(set)
     with source_path.open("r", encoding="utf-8") as source, destination.open(
