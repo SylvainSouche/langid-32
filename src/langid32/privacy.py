@@ -47,19 +47,34 @@ PERSON_CONTEXT = re.compile(
     r"patient|customer|employee|recipient)\s*[:,-]?\s*"
     r"([A-ZÀ-ÖØ-Þ][\wÀ-ÖØ-öø-ÿ'’-]+(?:\s+[A-ZÀ-ÖØ-Þ][\wÀ-ÖØ-öø-ÿ'’-]+){0,2})"
 )
-AMBIGUOUS_PROPER_NAME = re.compile(
-    r"(?<![.!?]\s)(?<!^)\b[A-ZÀ-ÖØ-Þ][\wÀ-ÖØ-öø-ÿ'’-]+"
-    r"\s+[A-ZÀ-ÖØ-Þ][\wÀ-ÖØ-öø-ÿ'’-]+\b"
+CAPITALIZED_PAIR = re.compile(
+    r"\\b([A-ZÀ-ÖØ-Þ][\\wÀ-ÖØ-öø-ÿ'’-]+)\\s+"
+    r"([A-ZÀ-ÖØ-Þ][\\wÀ-ÖØ-öø-ÿ'’-]+)\\b"
 )
-SENTENCE_INITIAL_PAIR = re.compile(
-    r"(?:^|(?<=[.!?]\s))([A-ZÀ-ÖØ-Þ][\wÀ-ÖØ-öø-ÿ'’-]+)"
-    r"\s+([A-ZÀ-ÖØ-Þ][\wÀ-ÖØ-öø-ÿ'’-]+)\b"
-)
-SENTENCE_START_STOPWORDS = {
-    "a", "an", "and", "as", "at", "but", "by", "for", "from", "he",
-    "here", "i", "if", "in", "it", "of", "on", "or", "she", "that",
-    "the", "their", "there", "these", "they", "this", "those", "to",
-    "we", "when", "where", "while", "who", "you",
+# Compact multilingual given-name lexicon; contextual and source-provided flags
+# cover names not present here. Place names such as New York/United States are
+# not treated as people merely because they are capitalized.
+GIVEN_NAMES = {
+    "aaron", "adam", "adrian", "agata", "agnes", "alain", "alberto", "alex",
+    "alexander", "alexandra", "alice", "alicia", "amanda", "ana", "andrea",
+    "andreas", "andrew", "anna", "anne", "anton", "antonio", "aria", "arno",
+    "arthur", "barbara", "ben", "benjamin", "bruno", "carlos", "caroline",
+    "catherine", "charles", "christian", "christina", "claire", "daniel",
+    "david", "elena", "elias", "elise", "elisabeth", "ella", "emil", "emilia",
+    "emma", "erik", "eva", "fabian", "felix", "francesca", "francisco",
+    "frank", "frederik", "gabriel", "george", "giulia", "greta", "hanna",
+    "hannah", "henri", "henrik", "hugo", "isabel", "isabella", "ivan",
+    "jacob", "james", "jan", "jane", "jean", "johan", "johann", "john",
+    "jonas", "jose", "julia", "julian", "karen", "karl", "katarina", "kate",
+    "laura", "leon", "liam", "linda", "lisa", "luca", "lucas", "lucia",
+    "lucy", "luis", "luka", "maria", "marie", "marina", "mark", "marta",
+    "martin", "matej", "mathias", "matthew", "max", "michael", "michal",
+    "mila", "miriam", "natalia", "nicolas", "nikola", "noah", "olga",
+    "oliver", "oscar", "paul", "pavel", "peter", "pierre", "rafael",
+    "raquel", "robert", "sara", "sarah", "sofia", "sophie", "stefan",
+    "sven", "thomas", "tim", "tomas", "victor", "viktor", "william",
+    "yann", "zuzana", "Αλέξανδρος", "Γιώργος", "Ελένη", "Μαρία",
+    "Николай", "Александр", "Анна", "Мария",
 }
 FLAG_KEYS = (
     "privacy_flags", "sensitive_info", "sensitive_information",
@@ -114,13 +129,10 @@ def _has_phone_like(text: str) -> bool:
 
 
 def _has_ambiguous_name(text: str) -> bool:
-    if AMBIGUOUS_PROPER_NAME.search(text):
-        return True
     return any(
-        match.group(1).casefold() not in SENTENCE_START_STOPWORDS
-        for match in SENTENCE_INITIAL_PAIR.finditer(text)
+        match.group(1).casefold() in GIVEN_NAMES
+        for match in CAPITALIZED_PAIR.finditer(text)
     )
-
 
 def screen_text(value: str, *, record: dict | None = None,
                 uncertain_action: str = "quarantine") -> PrivacyResult:
