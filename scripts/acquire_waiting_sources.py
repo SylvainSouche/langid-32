@@ -22,7 +22,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 from langid32.settings import load_config, acquisition_target, source_quota_key
-from langid32.acquisition_batches import open_state, plan_file_batches, next_batch, finish_batch, add_eligible, retained_count, export_records, task_report
+from langid32.acquisition_batches import open_state, plan_file_batches, next_batch, finish_batch, add_eligible, retained_count, pending_batch_count, mark_exhausted, export_records, task_report
 EXECUTION = load_config()["execution"]
 from urllib.request import Request, urlopen
 
@@ -648,6 +648,14 @@ e(exc).__name__}: {exc}")
 
         else:
             raise ValueError(f"Unknown source group: {args.source}")
+
+        # The adapter has now completed discovery/streaming for every initialized
+        # exact source-language task. Only declare exhaustion when no file batch
+        # remains incomplete; failed files stay resumable and report as incomplete.
+        for language, source in sorted(initialized_tasks):
+            if (retained_count(state_db, source, language) < limit_for(language, source)
+                    and pending_batch_count(state_db, source, language) == 0):
+                mark_exhausted(state_db, source, language)
 
         expected_languages = {
             "catalan": {"ca"},
