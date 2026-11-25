@@ -6,6 +6,9 @@ on:
     paths:
       - "scripts/stage_tatoeba.py"
       - "tests/test_tatoeba_stage.py"
+      - "config/langid32.toml"
+      - "src/langid32/settings.py"
+      - "scripts/emit_runtime_config.py"
   workflow_dispatch:
 
 permissions:
@@ -45,7 +48,9 @@ jobs:
             --output reports/tatoeba-cc0-staged.jsonl
       - uses: actions/upload-artifact@v4
         with:
-          name: tatoeba-cc0-staged-weekly-2026-11-14
-          path: reports/tatoeba-cc0-staged.manifest.json
+          name: tatoeba-cc0-staged-${{ github.run_id }}
+          path: |
+            reports/tatoeba-cc0-staged.jsonl
+            reports/tatoeba-cc0-staged.manifest.json
           retention-days: ${{ steps.runtime.outputs.artifact_retention_days }}
           if-no-files-found: error
