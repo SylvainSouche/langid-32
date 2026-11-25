@@ -25,10 +25,10 @@ from langid32.settings import load_config, acquisition_target, source_quota_key
 EXECUTION = load_config()["execution"]
 from urllib.request import Request, urlopen
 
-EMAIL = re.compile(r"(?i)\\b[\\w.+-]+@[\\w.-]+\\.[A-Z]{2,}\\b")
-URL = re.compile(r"(?i)(https?://|www\\.)\\S+")
+EMAIL = re.compile(r"(?i)\b[\w.+-]+@[\w.-]+\.[A-Z]{2,}\b")
+URL = re.compile(r"(?i)(https?://|www\.)\S+")
 
-IPV4 = re.compile(r"(?<![\\w.])(?:\\d{1,3}\\.){3}\\d{1,3}(?![\\w.])")
+IPV4 = re.compile(r"(?<![\w.])(?:\d{1,3}\.){3}\d{1,3}(?![\w.])")
 
 SOURCE_FAMILIES = (
     "temu_cc0", "bsc_legal", "maalfrid2026", "fineweb2",
@@ -460,7 +460,7 @@ def main():
                         for key in ("url", "title"):
                             if item.get(key):
                                 provenance[key] = item[key]
-                        for paragraph in re.split(r"(?<=[.!?。！？])\\s+|\\n+", item.get("text", "")):
+                        for paragraph in re.split(r"(?<=[.!?。！？])\s+|\n+", item.get("text", "")):
                             add("ko", "korean_wikipedia_20231101", paragraph, page_id, provenance)
                         processed += 1
                         if quota_reached(("ko", "korean_wikipedia_20231101")):
