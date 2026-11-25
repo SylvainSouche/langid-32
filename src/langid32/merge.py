@@ -35,8 +35,8 @@ IPV4_RE = re.compile(
     r"\b(?:(?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\.){3}"
     r"(?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\b"
 )
-PHONE_CANDIDATE_RE = re.compile(r"(?<!\\w)\\+?\\d[\\d -]{" + str(PRIVACY_RULES["phone_candidate_min_intervening_characters"]) + r",}\\d(?!\\w)")
-LONG_NUMBER_RE = re.compile(r"\\d{" + str(PRIVACY_RULES["long_numeric_min_digits"]) + r",}")
+PHONE_CANDIDATE_RE = re.compile(r"(?<!\w)\+?\d[\d -]{" + str(PRIVACY_RULES["phone_candidate_min_intervening_characters"]) + r",}\d(?!\w)")
+LONG_NUMBER_RE = re.compile(r"\d{" + str(PRIVACY_RULES["long_numeric_min_digits"]) + r",}")
 
 
 def has_phone_like(text: str) -> bool:
