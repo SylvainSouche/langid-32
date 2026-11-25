@@ -18,6 +18,10 @@ import urllib.request
 import zipfile
 from collections import Counter, defaultdict
 from pathlib import Path
+import sys
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+from langid32.settings import load_config, acquisition_target
 from urllib.request import Request, urlopen
 
 EMAIL = re.compile(r"(?i)\\b[\\w.+-]+@[\\w.-]+\\.[A-Z]{2,}\\b")
@@ -39,11 +43,11 @@ def source_bucket(source):
     return source
 
 
-def clean(value, language):
+def clean(value, language, rules):
     text = " ".join(unicodedata.normalize("NFC", str(value or "")).split())
     letters = sum(char.isalpha() for char in text)
-    if (len(text) < 40 or len(text) > 12000 or letters < 25
-            or letters / len(text) < 0.45 or EMAIL.search(text)
+    if (len(text) < rules["min_characters"] or len(text) > rules["max_characters"] or letters < rules["min_letters"]
+            or letters / max(len(text), 1) < rules["min_letter_ratio"] or EMAIL.search(text)
             or URL.search(text) or NUMBER.search(text) or IPV4.search(text)):
         return None
     if language == "ar" and sum("\u0600" <= char <= "\u06ff" for char in text) < max(10, letters * 0.35):
@@ -116,7 +120,10 @@ def main():
     parser.add_argument("--source", required=True)
     parser.add_argument("--out", required=True)
     parser.add_argument("--fineweb2-config")
+    parser.add_argument("--config", type=Path, default=ROOT / "config/langid32.toml")
     args = parser.parse_args()
+    cfg = load_config(args.config)
+    waiting_text_rules = cfg["acquisition"]["source_rules"]["waiting_sources"]["text"]
     fineweb2_languages = {
         "cat_Latn": "ca", "isl_Latn": "is", "nob_Latn": "nb",
         "nno_Latn": "nn", "arb_Arab": "ar", "hrv_Latn": "hr",
@@ -131,7 +138,11 @@ def main():
     output_root.mkdir(parents=True, exist_ok=True)
     retained = defaultdict(list)
     seen = defaultdict(set)
-    max_per_source = 20000
+    def limit_for(language, source):
+        return acquisition_target(cfg, source_bucket(source), language)
+
+    def quota_reached(bucket_key):
+        return len(retained[bucket_key]) >= limit_for(*bucket_key)
     downloads = []
     notes = []
     scanned = Counter()
@@ -188,13 +199,13 @@ def main():
         raise ValueError(f"No source metadata mapping for {source}")
 
     def add(language, source, value, group_id="", provenance=None):
-        text = clean(value, language)
+        text = clean(value, language, waiting_text_rules)
         if not text:
             return
         bucket_key = (language, source_bucket(source))
         text_hash = hashlib.sha256(text.encode("utf-8")).hexdigest()
         scanned[bucket_key] += 1
-        if text_hash in seen[bucket_key] or len(retained[bucket_key]) >= max_per_source:
+        if text_hash in seen[bucket_key] or quota_reached(bucket_key):
             return
         release, licence, origin, rights_status = source_metadata(source)
         source_record_id = str(group_id or text_hash)
@@ -404,7 +415,7 @@ def main():
                 raise RuntimeError("No Korean Wikipedia Parquet shards found at pinned revision")
             processed = 0
             for filename in files:
-                if len(retained[("ko", "korean_wikipedia_20231101")]) >= max_per_source:
+                if quota_reached(("ko", "korean_wikipedia_20231101")):
                     break
                 local_path = hf_hub_download(
                     repo_id="wikimedia/wikipedia", repo_type="dataset",
@@ -512,10 +523,10 @@ def main():
                             break
                 if processed and processed % 100000 == 0:
                     print(f"{config}: read {processed}; retained {len(retained[bucket_key])}", flush=True)
-            if len(retained[bucket_key]) < max_per_source:
+            if not quota_reached(bucket_key):
                 notes.append(f"{config}: source exhausted at {len(retained[bucket_key])} retained records.")
             else:
-                notes.append(f"{config}: reached the {max_per_source}-record source/language quota.")
+                notes.append(f"{config}: reached the {limit_for(*bucket_key)}-record source/language quota.")
             notes.append(config + ": underlying web-text rights unresolved; technical candidates only.")
 
         elif args.source == "arabic":
@@ -524,7 +535,7 @@ def main():
             dataset = load_dataset("ymoslem/UN-Arabic-English-Filtered", split="train",
                                    streaming=True, revision=revisions["un_arabic"])
             for index, item in enumerate(dataset):
-                if len(retained[("ar", "un_arabic_english_filtered:text_ar")]) >= max_per_source:
+                if quota_reached(("ar", "un_arabic_english_filtered:text_ar")):
                     break
                 document_id = str(item.get("id") or item.get("url") or index)
                 provenance = {"dataset_repo": "ymoslem/UN-Arabic-English-Filtered",
