@@ -1,4 +1,4 @@
-name: Leipzig Corpora Collection — Icelandic and Croatian pilot
+name: LEGACY — Leipzig Icelandic/Croatian pilot
 on:
   workflow_dispatch:
     inputs:
@@ -8,10 +8,6 @@ on:
         type: choice
         options: ["1","2","3","5"]
         default: "3"
-  push:
-    paths:
-      - "scripts/acquire_leipzig.py"
-      - ".github/workflows/acquire-leipzig-corpora.yml"
 permissions:
   contents: read
 jobs:
