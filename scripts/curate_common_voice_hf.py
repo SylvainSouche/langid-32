@@ -19,7 +19,7 @@ from pathlib import Path
 import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from langid32.settings import load_config, acquisition_target
+from langid32.settings import load_config, acquisition_target\nfrom langid32.privacy import screen_text
 
 EMAIL = re.compile(r"(?i)(?<![\w.+-])[\w.+-]+@[\w.-]+\.[A-Z]{2,}(?![A-Za-z0-9_.-])")
 URL = re.compile(r"(?i)(?:https?://[^\s<>]+|www\.[^\s<>]+)")
@@ -95,7 +95,7 @@ def main() -> None:
                             and re.search("[0-9]{" + str(text_rules["long_numeric_min_digits"]) + ",}", text))):
                     counts[f"{language}:numeric_identifier_rejected"] += 1
                     continue
-                if text in candidates[language]:
+                privacy = screen_text(text, uncertain_action=cfg["acquisition"]["text"]["privacy_uncertain_action"])\n                if not privacy.accepted:\n                    counts[f"{language}:privacy_{privacy.status}"] += 1\n                    for flag in privacy.flags:\n                        counts[f"{language}:privacy_flag_{flag}"] += 1\n                    continue\n                if text in candidates[language]:
                     counts[f"{language}:within_language_duplicate"] += 1
                     continue
                 sid = (row.get("sentence_id") or "").strip()
