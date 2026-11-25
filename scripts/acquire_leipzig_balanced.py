@@ -72,6 +72,11 @@ def main():
  a=ap.parse_args();cfg=load_config(a.config);a.seed=a.seed or cfg["candidate"]["splits"]["seed"];a.pause=a.pause if a.pause is not None else cfg["execution"]["leipzig_pause_seconds"];out=Path(a.out);ar=out/"archives";sm=out/"samples";ar.mkdir(parents=True,exist_ok=True);sm.mkdir(parents=True,exist_ok=True)
  s=requests.Session();idx=out/"links.parquet";fetch(s,INDEX_URL,idx);idxsha=sha(idx);cat=pq.read_table(idx).to_pylist()
  selected_labels={x.strip() for x in a.labels.split(",") if x.strip()}
+ if not selected_labels:
+  approved=set()
+  for source_name in ("leipzig_news","leipzig_wikipedia"):
+   approved.update(cfg["acquisition"]["source_rules"][source_name].get("languages", []))
+  selected_labels=approved or set(LANGS)
  unknown=selected_labels-set(LANGS)
  if unknown:raise SystemExit("Unknown labels: "+", ".join(sorted(unknown)))
  manifest={"collection":"Leipzig Corpora Collection","licence":"CC BY 4.0","licence_url":"https://wortschatz.uni-leipzig.de/en/usage",
