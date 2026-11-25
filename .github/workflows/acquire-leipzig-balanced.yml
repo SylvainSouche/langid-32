@@ -1,8 +1,10 @@
-name: Acquire Leipzig news + Wikipedia samples (34 labels)
+name: Acquire Leipzig news + Wikipedia first pass
 on:
   push:
     paths:
       - "scripts/acquire_leipzig_balanced.py"
+      - "config/langid32.toml"
+      - "src/langid32/settings.py"
       - ".github/workflows/acquire-leipzig-balanced.yml"
   workflow_dispatch:
 permissions:
@@ -19,7 +21,7 @@ jobs:
       - name: Install acquisition dependencies
         run: python -m pip install --disable-pip-version-check requests pyarrow
       - name: Acquire up to 20,000 eligible unique entries per source and language
-        run: python scripts/acquire_leipzig_balanced.py --out out/leipzig --quota 20000 --pause 1
+        run: python scripts/acquire_leipzig_balanced.py --out out/leipzig
       - name: Upload samples, provenance, manifests and original archives
         if: always() && hashFiles('out/leipzig/**') != ''
         uses: actions/upload-artifact@v4
