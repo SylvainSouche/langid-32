@@ -69,6 +69,11 @@ min_letters = 25
 min_letter_ratio = 0.45
 arabic_min_script_characters = 10
 arabic_min_script_ratio = 0.35
+exclude_email = true
+exclude_url = true
+exclude_ipv4 = true
+exclude_long_numeric_sequences = true
+long_numeric_min_digits = 9
 
 [acquisition.text]
 min_characters = 12
@@ -111,6 +116,13 @@ seed = "langid-32-v6-2026-11-18"
 min_characters = 12
 max_characters = 500
 max_utf8_bytes = 1500
+
+[candidate.privacy]
+phone_min_digits = 9
+phone_max_digits = 15
+phone_min_separators = 2
+phone_candidate_min_intervening_characters = 7
+long_numeric_min_digits = 9
 
 [jql]
 enabled = true
