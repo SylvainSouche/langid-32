@@ -14,6 +14,8 @@ def test_source_and_language_overrides_are_explicit_and_inherit_defaults():
     config = load_config()
     assert acquisition_target(config, "leipzig_news", "hr") == 20000
     assert acquisition_target(config, "fineweb2:hrv_Latn", "hr") == 20000
+    config["acquisition"]["source_language_overrides"]["fineweb2.hr"] = 12345
+    assert acquisition_target(config, "fineweb2:hrv_Latn", "hr") == 12345
     assert acquisition_target(config, "macocu_hr_2.0", "hr") == 20000
     assert acquisition_target(config, "parlamint_is", "is") == 20000
     with pytest.raises(ValueError):
