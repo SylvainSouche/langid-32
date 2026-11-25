@@ -47,7 +47,7 @@ def stage(args):
     source_rule = cfg["acquisition"]["source_rules"]["tatoeba_cc0"]
     target_languages = tuple(source_rule["languages"])
     target_by_language = {
-        language: (args.target_per_language or acquisition_target(cfg, "tatoeba_cc0", language))
+        language: (getattr(args, "target_per_language", None) or acquisition_target(cfg, "tatoeba_cc0", language))
         for language in target_languages
     }
     text_rules = cfg["acquisition"]["text"]
