@@ -16,6 +16,7 @@ def main() -> None:
     values = {
         "python_version": config["execution"]["python_version"],
         "artifact_retention_days": config["execution"]["artifact_retention_days"],
+        "checkpoint_retention_days": config["execution"]["checkpoint_retention_days"],
     }
     output = os.environ.get("GITHUB_OUTPUT")
     if not output:
