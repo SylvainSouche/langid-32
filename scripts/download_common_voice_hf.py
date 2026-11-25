@@ -78,6 +78,8 @@ def main():
     wanted=[x.strip() for x in requested.split(",") if x.strip()]
     unknown=sorted(set(wanted)-set(LOCALES))
     if unknown: p.error("Unknown target language(s): "+", ".join(unknown))
+    disabled=sorted(set(wanted)-allowed)
+    if disabled: p.error("Target language(s) are not enabled in config: "+", ".join(disabled))
     a.output_dir.mkdir(parents=True,exist_ok=True)
     api_url = f"https://huggingface.co/api/datasets/{REPO}"
     request = urllib.request.Request(api_url, headers={"User-Agent": "langid-32/0.4"})
@@ -87,6 +89,15 @@ def main():
     if not resolved_revision or not re.fullmatch(r"[0-9a-f]{40}", resolved_revision):
         raise RuntimeError(f"Could not resolve immutable revision for {REPO}@{a.revision}")
     manifest_path=a.output_dir/"hf-common-voice-download-manifest.json"
+    previous={}
+    if manifest_path.is_file():
+        try:
+            candidate=json.loads(manifest_path.read_text(encoding="utf-8"))
+            if candidate.get("revision_resolved")==resolved_revision:
+                previous=candidate
+        except (OSError, ValueError):
+            previous={}
+    previous_results={row["locale"]:row for row in previous.get("results",[]) if row.get("locale")}
     manifest={"source":REPO,"dataset_url":f"https://huggingface.co/datasets/{REPO}","source_license_claim":"CC0-1.0","release":"Common Voice Corpus 22.0 (unofficial HF conversion)",
               "revision_requested":a.revision,"revision_resolved":resolved_revision,"method":"direct HTTP fetch of transcript/<locale>/validated_sentences.tsv only; no audio",
               "results":[],"failures":[],"started_at_utc":now()}
@@ -96,10 +107,20 @@ def main():
             dest=a.output_dir/language/f"{locale}.validated_sentences.tsv"
             dest.parent.mkdir(parents=True,exist_ok=True)
             try:
-                row=fetch(locale,resolved_revision,dest)
-                row["language"]=language
+                row=previous_results.get(locale)
+                if row and dest.is_file():
+                    digest=hashlib.sha256(dest.read_bytes()).hexdigest()
+                    if dest.stat().st_size != row.get("bytes") or digest != row.get("sha256"):
+                        row=None
+                else:
+                    row=None
+                if row is None:
+                    row=fetch(locale,resolved_revision,dest)
+                    row["language"]=language
+                    print(f"Fetched {language}/{locale}: {row['bytes']:,} bytes sha256={row['sha256']} commit={row['repo_commit']}",flush=True)
+                else:
+                    print(f"Reused verified {language}/{locale}: {row['bytes']:,} bytes sha256={row['sha256']}",flush=True)
                 pieces.append(row); manifest["results"].append(row)
-                print(f"Fetched {language}/{locale}: {row['bytes']:,} bytes sha256={row['sha256']} commit={row['repo_commit']}",flush=True)
             except Exception as exc:
                 failure={"language":language,"locale":locale,"error":str(exc),"failed_at_utc":now()}
                 manifest["failures"].append(failure)
