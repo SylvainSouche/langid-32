@@ -17,6 +17,7 @@ def main() -> None:
         "python_version": config["execution"]["python_version"],
         "artifact_retention_days": config["execution"]["artifact_retention_days"],
         "checkpoint_retention_days": config["execution"]["checkpoint_retention_days"],
+        "curl_retry_count": config["execution"]["curl_retry_count"],
     }
     output = os.environ.get("GITHUB_OUTPUT")
     if not output:
