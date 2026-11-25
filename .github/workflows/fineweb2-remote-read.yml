@@ -1,9 +1,6 @@
-name: Probe FineWeb2 original Parquet range reads
+name: LEGACY — FineWeb2 remote range-read probe
 
 on:
-  push:
-    paths:
-      - "scripts/probe_fineweb2_remote_read.py"
   workflow_dispatch:
 
 permissions:
