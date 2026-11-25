@@ -181,9 +181,11 @@ def read_inputs(paths: list[Path], args):
                 missing = [key for key in required if not row.get(key)]
                 if missing:
                     raise ValueError(f"{path}:{line_number}: missing {', '.join(missing)}")
-                row["provenance"], removed_metadata = sanitize_provenance(
+                row, removed_top_metadata = sanitize_provenance(row)
+                row["provenance"], removed_provenance_metadata = sanitize_provenance(
                     row.get("provenance") if isinstance(row.get("provenance"), dict) else {}
                 )
+                removed_metadata = set(removed_top_metadata) | set(removed_provenance_metadata)
                 if removed_metadata:
                     rejected["personal_metadata_fields_removed"] += len(removed_metadata)
                 privacy_result = screen_record(row, uncertain_action=CONFIG["acquisition"]["text"]["privacy_uncertain_action"])
