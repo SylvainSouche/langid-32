@@ -1,0 +1,33 @@
+name: Validate langid-32 pipeline on synthetic samples
+
+on:
+  push:
+    branches:
+      - recovery/fix-acquisition-20261124
+    paths:
+      - "scripts/**"
+      - "src/**"
+      - "config/langid32.toml"
+      - ".github/workflows/validate-pipeline-samples.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sample-validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install sample-test dependencies
+        run: python -m pip install --upgrade pip pytest pandas pyarrow
+      - name: Compile project scripts
+        run: python -m compileall -q scripts src
+      - name: Run repository test suite
+        run: python -m pytest -q
+      - name: Run synthetic end-to-end pipeline
+        run: python scripts/test_pipeline_sample.py
