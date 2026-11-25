@@ -102,9 +102,9 @@ def stage(args):
     global SEED, EU_LANGUAGES
     cfg = load_config(getattr(args, "config", None))
     SEED = cfg["acquisition"].get("seed", SEED)
-    target_by_language = {lang: (args.target_per_language or acquisition_target(cfg, "dgt_tm_2021", lang)) for lang in target_languages}
     dgt_rule = cfg["acquisition"]["source_rules"]["dgt_tm_2021"]
     target_languages = tuple(getattr(args, "languages", None) or dgt_rule["languages"])
+    target_by_language = {lang: (args.target_per_language or acquisition_target(cfg, "dgt_tm_2021", lang)) for lang in target_languages}
     EU_LANGUAGES = set(target_languages)
     args.max_per_document_language = args.max_per_document_language or dgt_rule["max_segments_per_tmx_document_language"]
     args.min_chars = args.min_chars or cfg["acquisition"]["text"]["min_characters"]
@@ -135,7 +135,7 @@ def stage(args):
                         continue
                     counts["tmx_files_processed"] += 1
                     group_id = f"dgt-tm-2021:{archive_path.name}:{PurePosixPath(member).stem}"
-                    group_split = split_for(group_id, SEED, 0.10, 0.10)
+                    group_split = split_for(group_id, SEED, cfg["candidate"]["splits"]["validation_fraction"], cfg["candidate"]["splits"]["test_fraction"])
                     per_document = defaultdict(list)
                     try:
                         with archive.open(member) as stream:
