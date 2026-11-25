@@ -18,7 +18,7 @@ from urllib.parse import urlparse
 from collections import Counter, defaultdict
 from pathlib import Path
 
-from langid32.settings import load_config
+from langid32.settings import load_config\nfrom langid32.privacy import screen_record
 
 CONFIG = load_config()
 LANGUAGES = tuple(CONFIG["project"]["languages"])
@@ -180,7 +180,7 @@ def read_inputs(paths: list[Path], args):
                 missing = [key for key in required if not row.get(key)]
                 if missing:
                     raise ValueError(f"{path}:{line_number}: missing {', '.join(missing)}")
-                language = str(row["language"]).lower()
+                privacy_result = screen_record(row, uncertain_action=cfg["acquisition"]["text"]["privacy_uncertain_action"])\n                if not privacy_result.accepted:\n                    rejected["privacy_" + privacy_result.status] += 1\n                    for flag in privacy_result.flags:\n                        rejected["privacy_flag_" + flag] += 1\n                    continue\n                language = str(row["language"]).lower()
                 if language not in LANGUAGES:
                     rejected["language_not_in_target_set"] += 1
                     continue
@@ -362,9 +362,9 @@ def merge(args):
     cfg = load_config(getattr(args, "config", None))
     balance_cfg = cfg["candidate"]["source_balance"]
     preferred_share = getattr(args, "preferred_source_share", None)
-    preferred_share = preferred_share if preferred_share is not None else balance_cfg["preferred_max_share_per_language_and_split"]
+    preferred_share = preferred_share if preferred_share is not None else balance_cfg.get("preferred_max_share_per_language_and_split", 1.0)
     hard_share = getattr(args, "max_source_share", None)
-    hard_share = hard_share if hard_share is not None else balance_cfg["hard_max_share_per_language_and_split"]
+    hard_share = hard_share if hard_share is not None else balance_cfg.get("hard_max_share_per_language_and_split", 1.0)
     if not 0 < preferred_share <= hard_share <= 1:
         raise ValueError("source shares must satisfy 0 < preferred <= maximum <= 1")
 
@@ -572,7 +572,7 @@ def merge(args):
                 "policy": "fill to preferred share per source first; relax only as needed up to hard maximum; underfill rather than exceed hard maximum",
             },
             "reserve_policy": "reserve is emitted separately without a train/validation/test split and excludes every split group selected into core",
-            "privacy_filters": "exclude email, URL and IPv4 matches; retain phone-like and 9+ digit sequences with flags",
+            "privacy_filters": "shared conservative PII screen before per-source quota accounting; email, URL, IP, phone, address and contextual personal-name matches rejected or quarantined",
             "source_exclusion_registry": str(exclusions_path) if exclusions_path else None,
             "exclusion_matching": "document, exact URL/hash, domain, archive batch or source dataset; any matched group/split group is cascaded out",
         },
