@@ -21,13 +21,9 @@ from langid32.merge import (
     URL_RE, WEB_FRAGMENT_RE, split_for,
 )
 
-EU_LANGUAGES = {
-    "bg", "hr", "cs", "da", "nl", "en", "et", "fi", "fr", "de",
-    "el", "hu", "ga", "it", "lv", "lt", "mt", "pl", "pt", "ro",
-    "sk", "sl", "es", "sv",
-}
+EU_LANGUAGES = set(load_config()["acquisition"]["source_rules"]["dgt_tm_2021"]["languages"])
 XML_LANG = "{http://www.w3.org/XML/1998/namespace}lang"
-SEED = "langid-32-fineweb2-v1"
+SEED = load_config()["acquisition"]["seed"]
 LICENCE_ID = "EC-Reuse-Decision-2011-833-EU"
 
 
@@ -39,10 +35,11 @@ def normalize(value: str) -> str:
     return " ".join(unicodedata.normalize("NFC", value).split())
 
 
-def sha256_file(path: Path) -> str:
+def sha256_file(path: Path, chunk_bytes=None) -> str:
+    chunk_bytes = chunk_bytes or load_config()["execution"]["download_chunk_bytes"]
     digest = hashlib.sha256()
     with path.open("rb") as stream:
-        for block in iter(lambda: stream.read(1024 * 1024), b""):
+        for block in iter(lambda: stream.read(chunk_bytes), b""):
             digest.update(block)
     return digest.hexdigest()
 
@@ -118,11 +115,18 @@ def stage(args):
     args.output.parent.mkdir(parents=True, exist_ok=True)
     counts = Counter()
     samples = defaultdict(list)
-    sample_caps = {language: {
-        "train": target - 2 * round(target * cfg["candidate"]["splits"]["validation_fraction"]),
-        "validation": round(target * cfg["candidate"]["splits"]["validation_fraction"]),
-        "test": round(target * cfg["candidate"]["splits"]["test_fraction"]),
-    } for language, target in target_by_language.items()}
+    validation_fraction = cfg["candidate"]["splits"]["validation_fraction"]
+    test_fraction = cfg["candidate"]["splits"]["test_fraction"]
+    sample_caps = {}
+    for language, target in target_by_language.items():
+        validation_count = round(target * validation_fraction)
+        test_count = round(target * test_fraction)
+        sample_caps[language] = {
+            "train": target - validation_count - test_count,
+            "validation": validation_count,
+            "test": test_count,
+        }
+    chunk_bytes = cfg["execution"]["download_chunk_bytes"]
 
     with tempfile.TemporaryDirectory(prefix="langid32-dgt-stage-") as temp:
         db = sqlite3.connect(Path(temp) / "unique.sqlite")
@@ -225,7 +229,7 @@ def stage(args):
                     output_count += 1
 
     archive_info = [
-        {"name": path.name, "size_bytes": path.stat().st_size, "sha256": sha256_file(path)}
+        {"name": path.name, "size_bytes": path.stat().st_size, "sha256": sha256_file(path, chunk_bytes)}
         for path in sorted(args.archives)
     ]
     manifest = {
@@ -236,7 +240,7 @@ def stage(args):
         "source_licence": LICENCE_ID,
         "attribution": "European Commission, Directorate-General for Translation, DGT Translation Memory; reuse under Commission Decision 2011/833/EU. Preserve attribution and source release information.",
         "archives": archive_info,
-        "output_sha256": sha256_file(args.output),
+        "output_sha256": sha256_file(args.output, chunk_bytes),
         "output_records": output_count,
         "languages": sorted(target_languages),
         "selection": {
