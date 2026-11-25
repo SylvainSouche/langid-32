@@ -80,3 +80,21 @@ def test_waiting_source_privacy_regexes_are_active():
     assert clean(base + " see https://example.org/page", "en", rules) is None
     assert clean(base + " server address 192.168.1.24", "en", rules) is None
     assert clean(base + " reference number 123456789012", "en", rules) is None
+
+
+def test_common_voice_is_blocked_until_each_locale_is_accepted(tmp_path):
+    import subprocess
+    import sys
+    config = load_config(ROOT / "config/langid32.toml")
+    rule = config["acquisition"]["source_rules"]["common_voice_v22"]
+    assert rule["languages"] == []
+    assert rule["proposed_languages"] == ["fi", "el", "mt", "sl", "is"]
+    script = ROOT / "scripts/download_common_voice_hf.py"
+    result = subprocess.run(
+        [sys.executable, str(script), "--output-dir", str(tmp_path)],
+        capture_output=True, text=True,
+    )
+    assert result.returncode != 0
+    assert "individual locale terms acceptance is pending" in result.stderr
+    workflow = (ROOT / ".github/workflows/langid32-pipeline.yml").read_text()
+    assert "common-voice:\n    if: false" in workflow
