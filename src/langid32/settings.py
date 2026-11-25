@@ -45,9 +45,10 @@ def acquisition_target(config: dict[str, Any], source: str, language: str) -> in
     if allowed_languages is not None and language not in allowed_languages:
         raise ValueError(f"{source} is not approved for language {language}")
     overrides = acquisition.get("source_language_overrides", {})
-    key = f"{source}.{language}"
-    if key in overrides:
-        return int(overrides[key])
+    quota_key = str(rule.get("quota_key", source))
+    for key in (f"{source}.{language}", f"{quota_key}.{language}"):
+        if key in overrides:
+            return int(overrides[key])
     return int(rule.get("target", acquisition["first_pass_target_per_source_language"]))
 
 
