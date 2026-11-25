@@ -16,6 +16,10 @@ import re
 import unicodedata
 from collections import Counter, defaultdict
 from pathlib import Path
+import sys
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+from langid32.settings import load_config, acquisition_target
 
 EMAIL = re.compile(r"(?i)(?<![\w.+-])[\w.+-]+@[\w.-]+\.[A-Z]{2,}(?![A-Za-z0-9_.-])")
 URL = re.compile(r"(?i)(?:https?://[^\s<>]+|www\.[^\s<>]+)")
@@ -46,8 +50,10 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input-root", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
-    parser.add_argument("--per-language-cap", type=int, default=20000)
+    parser.add_argument("--per-language-cap", type=int, default=None)
+    parser.add_argument("--config", type=Path, default=ROOT / "config/langid32.toml")
     args = parser.parse_args()
+    cfg = load_config(args.config)
     download_manifest_path = args.input_root / "hf-common-voice-download-manifest.json"
     if not download_manifest_path.is_file():
         raise SystemExit("Common Voice download manifest is required for immutable provenance.")
@@ -127,11 +133,12 @@ def main() -> None:
         for language in LANGUAGES:
             items = list(candidates[language].items())
             before = len(items)
-            items = items[:args.per_language_cap]
+            cap = args.per_language_cap if args.per_language_cap is not None else acquisition_target(cfg, "common_voice_v22", language)
+            items = items[:cap]
             final_counts[language] = {
                 "eligible_after_privacy_dedup_collision_checks": before,
                 "selected": len(items),
-                "cap": args.per_language_cap,
+                "cap": cap,
             }
             for text, metadata in items:
                 out.write(json.dumps({
