@@ -5,6 +5,7 @@ on:
       - "scripts/acquire_leipzig_balanced.py"
       - "config/langid32.toml"
       - "src/langid32/settings.py"
+      - "scripts/emit_runtime_config.py"
       - ".github/workflows/acquire-leipzig-balanced.yml"
   workflow_dispatch:
 permissions:
@@ -15,9 +16,11 @@ jobs:
     timeout-minutes: 360
     steps:
       - uses: actions/checkout@v4
+      - id: runtime
+        run: python3 scripts/emit_runtime_config.py
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ steps.runtime.outputs.python_version }}
       - name: Install acquisition dependencies
         run: python -m pip install --disable-pip-version-check requests pyarrow
       - name: Acquire up to 20,000 eligible unique entries per source and language
@@ -28,5 +31,5 @@ jobs:
         with:
           name: leipzig-first-pass-${{ github.run_id }}
           path: out/leipzig/
-          retention-days: 30
+          retention-days: ${{ steps.runtime.outputs.artifact_retention_days }}
           if-no-files-found: error
