@@ -31,3 +31,5 @@ def test_approved_source_language_scopes_and_jql_non_filtering_policy():
     assert config["jql"]["consensus_disagreement_penalty"] == 0.5
     assert config["jql"]["apply_quality_floor"] is False
     assert config["jql"]["selection_effect"] == "none"
+    assert config["candidate"]["source_balance"]["preferred_max_share_of_total_corpus_per_source"] == 0.30
+    assert config["candidate"]["source_balance"]["hard_max_share_of_total_corpus_per_source"] == 0.50
