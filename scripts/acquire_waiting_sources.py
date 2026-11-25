@@ -438,9 +438,11 @@ def main():
             message = f"{path}: {type(exc).__name__}: {exc}"
             notes.append(message)
             failures.append(message)
+            state_db.commit()
             return False
 
         if quota_stopped:
+            state_db.commit()
             notes.append(f"Quota reached before end of {path}; batch left resumable for a later target increase.")
             return False
         return True
@@ -676,6 +678,7 @@ def main():
                     if row_group_complete:
                         finish_remote_file(korean_bucket, remote_batch)
                     else:
+                        state_db.commit()
                         notes.append(f"Korean Wikipedia {filename} row group {row_group} paused at quota; checkpoint remains resumable.")
                         break
                 Path(local_path).unlink(missing_ok=True)
@@ -768,6 +771,7 @@ def main():
                         if row_group_complete:
                             finish_remote_file(bucket_key, remote_batch)
                         else:
+                            state_db.commit()
                             notes.append(f"FineWeb-2 {config} {filename} row group {row_group} paused at quota; checkpoint remains resumable.")
                             break
                 if stopped_mid_row_group or quota_reached(bucket_key):
