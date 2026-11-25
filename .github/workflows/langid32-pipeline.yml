@@ -27,13 +27,13 @@ jobs:
       - name: Validate historical target
         run: python stages/01-acquisition/run.py --target historical
       - uses: actions/setup-python@v5
-        with: {python-version: ${{ steps.runtime.outputs.python_version }}}
+        with: {python-version: "${{ steps.runtime.outputs.python_version }}"}
       - run: python -m pip install cryptography
       - name: Encrypt acquisition checkpoint
         env: {LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"}
         run: python scripts/checkpoint.py pack --archive checkpoint.bin
       - uses: actions/upload-artifact@v4
-        with: {name: acquisition-historical, path: checkpoint.bin, retention-days: ${{ steps.runtime.outputs.checkpoint_retention_days }}}
+        with: {name: acquisition-historical, path: checkpoint.bin, retention-days: "${{ steps.runtime.outputs.checkpoint_retention_days }}"}
   common-voice:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -137,4 +137,4 @@ jobs:
         env: {LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"}
         run: python scripts/checkpoint.py pack --archive final.bin
       - uses: actions/upload-artifact@v4
-        with: {name: langid-32-jql-assessment-full-encrypted, path: final.bin, retention-days: ${{ steps.runtime.outputs.artifact_retention_days }}}
+        with: {name: langid-32-jql-assessment-full-encrypted, path: final.bin, retention-days: "${{ steps.runtime.outputs.artifact_retention_days }}"}
