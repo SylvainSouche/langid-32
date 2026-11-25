@@ -40,3 +40,23 @@ def test_filtering_must_precede_quota():
     config["acquisition"]["privacy_filter_before_quota"] = False
     with pytest.raises(ValueError, match="before quota"):
         validate_acquisition_policy(config)
+
+
+
+def test_shared_runtime_budget_guard_respects_safety_reserve():
+    import subprocess
+    import sys
+    script = ROOT / "scripts" / "check_runtime_budget.py"
+    ok = subprocess.run(
+        [sys.executable, str(script), "--started-epoch", str(int(__import__("time").time()) - 60),
+         "--budget-minutes", "330", "--safety-margin-minutes", "30"],
+        capture_output=True, text=True,
+    )
+    assert ok.returncode == 0, ok.stderr
+    blocked = subprocess.run(
+        [sys.executable, str(script), "--started-epoch", "1000",
+         "--budget-minutes", "330", "--safety-margin-minutes", "30"],
+        capture_output=True, text=True,
+    )
+    assert blocked.returncode != 0
+    assert "safety reserve" in blocked.stderr
