@@ -167,12 +167,12 @@ jobs:
         run: python scripts/checkpoint.py pack --archive checkpoint.bin
       - uses: actions/upload-artifact@v4
         with:
-          name: acquisition-${{ matrix.target }}
+          name: acquisition-${{ matrix.target }}-${{ matrix.config || 'default' }}
           path: checkpoint.bin
           retention-days: ${{ steps.runtime.outputs.checkpoint_retention_days }}
   candidate:
     if: github.ref == 'refs/heads/main'
-    needs: [config, historical, waiting-source]
+    needs: [config, historical, common-voice, waiting-source]
     runs-on: ubuntu-latest
     timeout-minutes: ${{ fromJSON(needs.config.outputs.acquisition_job_timeout_minutes) }}
     steps:
