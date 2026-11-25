@@ -5,6 +5,17 @@ permissions:
   actions: read
   contents: read
 jobs:
+  config:
+    runs-on: ubuntu-latest
+    outputs:
+      acquisition_max_parallel_source_tasks: ${{ steps.runtime.outputs.acquisition_max_parallel_source_tasks }}
+      acquisition_job_timeout_minutes: ${{ steps.runtime.outputs.acquisition_job_timeout_minutes }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - id: runtime
+        run: python3 scripts/emit_runtime_config.py
   historical:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -54,11 +65,12 @@ jobs:
         with: {name: acquisition-common-voice, path: checkpoint.bin, retention-days: ${{ steps.runtime.outputs.checkpoint_retention_days }}}
   waiting-source:
     if: github.ref == 'refs/heads/main'
+    needs: [config]
     runs-on: ubuntu-latest
-    timeout-minutes: ${{ fromJSON(steps.runtime.outputs.acquisition_job_timeout_minutes) }}
+    timeout-minutes: ${{ fromJSON(needs.config.outputs.acquisition_job_timeout_minutes) }}
     strategy:
       fail-fast: false
-      max-parallel: ${{ fromJSON(steps.runtime.outputs.acquisition_max_parallel_source_tasks) }}
+      max-parallel: ${{ fromJSON(needs.config.outputs.acquisition_max_parallel_source_tasks) }}
       matrix:
         target: [catalan, icelandic, norwegian, korean, fineweb2, arabic, gaois]
     steps:
