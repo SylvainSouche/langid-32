@@ -2,40 +2,58 @@
 
 **Updated: 25 November 2026**
 
-This document records the operational decisions on whether a source is to be ingested into the technical candidate. The machine-readable register is [`data/source-decisions.json`](../data/source-decisions.json). It is authoritative for inclusion/exclusion decisions and takes precedence over older discovery notes and any contradictory blanket exclusion. The descriptive [source register](source-register.md) remains useful for audit measurements and rights/provenance detail.
+This document records the operational decisions on source inclusion and first-pass acquisition. The machine-readable register is [`data/source-decisions.json`](../data/source-decisions.json). It is authoritative and takes precedence over contradictory historical notes and obsolete sampling defaults. The descriptive [source register](source-register.md) remains useful for audit measurements and rights/provenance detail.
 
-## Decision rule
+## First-pass acquisition rule
 
-- **Include** means the source is approved for candidate ingestion, subject to its stated adapter, filtering, provenance and family cap.
-- **Include — technical only** means it may appear in the technical candidate but must not be represented as rights-cleared or release-eligible.
-- **Approved, not yet integrated** means the decision is to take the source; absence from the current candidate is an implementation failure, not a decision to exclude it.
-- **Exclude** must be narrow and explicit. An exclusion of one partition must never be expanded silently to the entire dataset family.
-- Candidate ingestion and public-release rights clearance are separate decisions.
-- Source-family caps aggregate all components/configurations/partitions belonging to that family: **20,000 records per language and family**. The preferred source share is 30%; the hard ceiling is 50%.
+**Stream up to 20,000 eligible, unique entries from each source for each language.**
 
-## Decisions for the six underfilled languages
+This is a first-pass acquisition target, not a final corpus quota and not a candidate-selection quota. Read each source as a stream, apply its source-specific eligibility/quality filters and deduplication, and retain up to 20,000 eligible unique entries. Do not downsample a source to 3,000 or 5,000 at acquisition.
 
-| Language | Include in candidate | Explicitly excluded / held |
+The following old limits are explicitly abandoned:
+
+| Source | Old first-pass limit | Current first-pass target |
+|---|---:|---:|
+| Leipzig News | 3,000 / language | **20,000 / language** |
+| Leipzig Wikipedia | 3,000 / language | **20,000 / language** |
+| DGT-TM | 5,000 / language | **20,000 / language** |
+
+Leipzig News and Leipzig Wikipedia are separate sources and each gets its own 20,000-entry stream target. DGT-TM gets 20,000. The 20,000 target is not a family-wide cap and must not be interpreted as one. No general source-family cap is established by this register.
+
+Candidate construction happens later. Its per-language targets, source-balance policy and split allocation must not be pushed backwards into acquisition as smaller scraping limits. In particular, do not use candidate preferred-share/hard-share values to decide how many rows to scrape from an upstream source.
+
+## Inclusion and exclusion decisions for the six underfilled languages
+
+| Language | Include in first-pass acquisition | Explicitly unavailable / excluded / held |
 |---|---|---|
-| Croatian (`hr`) | DGT-TM 2021; Leipzig News; Leipzig Wikipedia; FineWeb2 (`hrv_Latn`, technical only); **MaCoCu-hr 2.0** | Common Voice has no Croatian locale. FineWeb2 remains on underlying-text rights hold for release. |
-| Finnish (`fi`) | Common Voice 22; DGT-TM 2021; Leipzig News; Leipzig Wikipedia; Tatoeba CC0; FineWeb2 (`fin_Latn`, technical only) | FineWeb2 remains on underlying-text rights hold for release. |
-| Greek (`el`) | Common Voice 22; DGT-TM 2021; Leipzig News; Leipzig Wikipedia; FineWeb2 (`ell_Grek`, technical only) | FineWeb2 remains on underlying-text rights hold for release. |
-| Maltese (`mt`) | Common Voice 22; DGT-TM 2021; Leipzig News; Leipzig Wikipedia; FineWeb2 (`mlt_Latn`, technical only); **MaCoCu-mt 2.0** | FineWeb2 remains on underlying-text rights hold for release. Korpus Malti is not a substitute for MaCoCu-mt. |
-| Slovenian (`sl`) | Common Voice 22; DGT-TM 2021; Leipzig News; Leipzig Wikipedia; FineWeb2 (`slv_Latn`, technical only); **MaCoCu-sl 2.0**; **ParlaMint 4.0** | FineWeb2 remains on underlying-text rights hold for release. Do not double-count MaCoCu derivatives or overlapping parliamentary corpora as independent sources. |
-| Icelandic (`is`) | Common Voice 22; IGC2024 Filtered-1; Leipzig News; Leipzig Wikipedia; FineWeb2 (`isl_Latn`, technical only); **ParlaMint 4.0**; **Greynir Copper and Silver** | IGC Filtered-2 is excluded under its custom terms. **Greynir Gold development/test is excluded; Copper/Silver are included.** FineWeb2 remains on underlying-text rights hold for release. |
+| Croatian (`hr`) | DGT-TM 2021 (20k); Leipzig News (20k); Leipzig Wikipedia (20k); FineWeb2 (`hrv_Latn`, technical only); **MaCoCu-hr 2.0** | Common Voice has no Croatian locale. FineWeb2 remains on underlying-text rights hold for release. |
+| Finnish (`fi`) | Common Voice 22; DGT-TM 2021 (20k); Leipzig News (20k); Leipzig Wikipedia (20k); Tatoeba CC0; FineWeb2 (`fin_Latn`, technical only) | FineWeb2 remains on underlying-text rights hold for release. |
+| Greek (`el`) | Common Voice 22; DGT-TM 2021 (20k); Leipzig News (20k); Leipzig Wikipedia (20k); FineWeb2 (`ell_Grek`, technical only) | FineWeb2 remains on underlying-text rights hold for release. |
+| Maltese (`mt`) | Common Voice 22; DGT-TM 2021 (20k); Leipzig News (20k); Leipzig Wikipedia (20k); FineWeb2 (`mlt_Latn`, technical only); **MaCoCu-mt 2.0** | FineWeb2 remains on underlying-text rights hold for release. Korpus Malti is not a substitute for MaCoCu-mt. |
+| Slovenian (`sl`) | Common Voice 22; DGT-TM 2021 (20k); Leipzig News (20k); Leipzig Wikipedia (20k); FineWeb2 (`slv_Latn`, technical only); **MaCoCu-sl 2.0**; **ParlaMint 4.0** | FineWeb2 remains on underlying-text rights hold for release. Do not double-count MaCoCu derivatives or overlapping parliamentary corpora as independent sources. |
+| Icelandic (`is`) | Common Voice 22; IGC2024 Filtered-1; Leipzig News (20k); Leipzig Wikipedia (20k); FineWeb2 (`isl_Latn`, technical only); **ParlaMint 4.0**; **Greynir Copper and Silver** | IGC Filtered-2 is excluded under its custom terms. **Greynir Gold development/test is excluded; Copper/Silver are included.** FineWeb2 remains on underlying-text rights hold for release. |
+
+The 20,000 target means "up to 20,000 eligible unique entries"; if a source contains fewer qualifying records, retain the available qualifying records and report the shortfall. It is not permission to fabricate or duplicate rows.
 
 ## Important Greynir correction
 
-The previous active rule excluding source family `greynir` wholesale is too broad and contradicts the decision recorded here. The decision is partition-specific:
+The previous active rule excluding source family `greynir` wholesale is too broad. The decision is partition-specific:
 
 - Include the full LFS-backed **Copper** and **Silver** corpora.
 - Exclude only the **Gold development/test** partition.
-- Copper and Silver share one 20,000-record Greynir family cap.
+- Do not invent a shared family-wide 20,000 cap for Copper and Silver.
 
-The current candidate adapter still needs partition-aware source labels and filtering before the old broad exclusion can safely be removed. Do not re-run candidate assembly with the old 4,930-row Gold/dev sample allowed through. The blanket exclusion is an implementation defect to replace, not the current source-selection decision.
+## Rights and provenance remain separate
 
-## Current pipeline discrepancy (run 45581250730)
+- FineWeb2 may be used in the technical candidate but remains on hold for release because underlying web-text rights are unresolved.
+- IGC2024 Filtered-1 is the open-access CC BY 4.0 portion; preserve TEI/source provenance and attribution. Filtered-2 remains excluded under its custom terms.
+- MaCoCu archives: preserve document URLs and paragraph quality/sensitive-information/language/heading flags.
+- ParlaMint: preserve speaker refs/roles, session/document IDs, dates and party metadata.
+- Greynir Copper/Silver: preserve source-document provenance and attribute Miðeind ehf.
+- DGT-TM: preserve NumDoc/member provenance and Commission attribution.
 
-The candidate diagnostics show that the approved new sources are not being supplied to the builder: MaCoCu-hr, MaCoCu-mt, MaCoCu-sl, ParlaMint-4.0, Greynir Copper and Greynir Silver are all absent. Icelandic IGC2024 contributes only 1,478 rows after the current intake filters. The source decisions above are therefore not reflected in the current build.
+## Current pipeline discrepancy
 
-See the JSON file for the per-source machine-readable decision, integration status, licence/rights distinction and language mapping. Update this register when a decision changes; never encode a source decision only in an acquisition script, workflow matrix or historical report.
+The latest diagnostics show Leipzig News and Wikipedia at approximately 3,000 each and DGT at approximately 5,000. Those figures are the obsolete acquisition caps, not the current sourcing decision. The acquisition scripts have been corrected to default to 20,000. Existing archived inputs/checkpoints still contain the old smaller samples and must be reacquired before candidate construction can reflect the current decision. Other approved but missing sources (MaCoCu, ParlaMint, Greynir Copper/Silver) remain separate integration tasks.
+
+Never encode source decisions only in a workflow matrix, script default or historical report. Update this register first, then make the acquisition implementation conform to it.
