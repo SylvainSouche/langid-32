@@ -804,8 +804,10 @@ def main():
                             encoding="utf-8",
                         )
                         temporary.replace(state_path)
+                    stream_exhausted = True
                     for item in dataset:
                         if quota_reached(arabic_bucket):
+                            stream_exhausted = False
                             break
                         document_id = str(item.get("id") or item.get("url") or processed)
                         provenance = {
@@ -824,7 +826,10 @@ def main():
                         if processed and processed % 100000 == 0:
                             print(f"Arabic pairs streamed: {processed}", flush=True)
                     persist_arabic_stream_state()
-                    finish_remote_file(arabic_bucket, remote_batch)
+                    if stream_exhausted:
+                        finish_remote_file(arabic_bucket, remote_batch)
+                    else:
+                        notes.append("Arabic stream paused at quota; its revision-pinned cursor remains resumable.")
             notes.append("HF dataset card declares CC BY 4.0; publisher-level declaration accepted.")
 
         else:
