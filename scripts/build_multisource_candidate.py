@@ -185,10 +185,8 @@ def main():
                         help="Fail unless every language reaches every core split target")
     args = parser.parse_args()
     cfg = load_config(args.config)
-    args.max_per_language = args.max_per_language if args.max_per_language is not None else cfg["candidate"]["minimum_candidates_per_language"]
-    args.core_per_language = args.core_per_language if args.core_per_language is not None else cfg["candidate"]["minimum_candidates_per_language"]
-    args.preferred_source_share = args.preferred_source_share if args.preferred_source_share is not None else cfg["candidate"]["source_balance"]["preferred_max_share_per_language_and_split"]
-    args.max_source_share = args.max_source_share if args.max_source_share is not None else cfg["candidate"]["source_balance"]["hard_max_share_per_language_and_split"]
+    # Keep the complete eligible pool for JQL. Final 30k/language selection and
+    # source balancing are intentionally deferred until after global JQL pruning.
     args.seed = args.seed or cfg["candidate"]["splits"]["seed"]
 
     v5_records = find_one(args.v5_dir, "records.jsonl")
@@ -267,10 +265,6 @@ def main():
         "--output", str(args.output / "candidate"),
         "--config", str(args.config),
         "--exclusions", str(args.exclusions),
-        "--max-per-language", str(args.max_per_language),
-        "--core-per-language", str(args.core_per_language),
-        "--preferred-source-share", str(args.preferred_source_share),
-        "--max-source-share", str(args.max_source_share),
         "--seed", args.seed,
     ]
     if args.require_exact_counts:
