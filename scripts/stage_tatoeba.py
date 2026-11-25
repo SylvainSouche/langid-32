@@ -11,6 +11,10 @@ import tempfile
 import unicodedata
 from collections import Counter
 from pathlib import Path
+import sys
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+from langid32.settings import load_config, acquisition_target
 
 from langid32.merge import (EMAIL_RE, HTTP_FRAGMENT_RE, IPV4_RE, LONG_NUMBER_RE,
                             URL_RE, WEB_FRAGMENT_RE, has_phone_like)
@@ -39,6 +43,19 @@ def sha256_file(path: Path) -> str:
 
 
 def stage(args):
+    cfg = load_config(getattr(args, "config", None))
+    source_rule = cfg["acquisition"]["source_rules"]["tatoeba_cc0"]
+    target_languages = tuple(source_rule["languages"])
+    target_by_language = {
+        language: (args.target_per_language or acquisition_target(cfg, "tatoeba_cc0", language))
+        for language in target_languages
+    }
+    text_rules = cfg["acquisition"]["text"]
+    batch_insert = cfg["execution"]["sqlite_insert_batch_size"]
+    batch_join = cfg["execution"]["sqlite_join_batch_size"]
+    args.min_chars = args.min_chars if args.min_chars is not None else text_rules["min_characters"]
+    args.max_chars = args.max_chars if args.max_chars is not None else text_rules["max_characters"]
+    args.max_bytes = args.max_bytes if args.max_bytes is not None else text_rules["max_utf8_bytes"]
     args.output.parent.mkdir(parents=True, exist_ok=True)
     counts = Counter()
     with tempfile.TemporaryDirectory(prefix="langid32-tatoeba-") as temp:
@@ -61,7 +78,7 @@ def stage(args):
                     continue
                 sentence_id, code, raw_text = fields[:3]
                 language = CODE_TO_LANGUAGE.get(code)
-                if language is None:
+                if language is None or language not in target_languages:
                     counts["non_target_language"] += 1
                     continue
                 try:
@@ -79,13 +96,13 @@ def stage(args):
                 if len(text.encode("utf-8")) > args.max_bytes:
                     counts["outside_byte_limit"] += 1
                     continue
-                if EMAIL_RE.search(text):
+                if text_rules["exclude_email"] and EMAIL_RE.search(text):
                     counts["email_excluded"] += 1
                     continue
-                if (URL_RE.search(text) or WEB_FRAGMENT_RE.search(text) or HTTP_FRAGMENT_RE.search(text)):
+                if text_rules["exclude_url"] and (URL_RE.search(text) or WEB_FRAGMENT_RE.search(text) or HTTP_FRAGMENT_RE.search(text)):
                     counts["url_excluded"] += 1
                     continue
-                if IPV4_RE.search(text):
+                if text_rules["exclude_ipv4"] and IPV4_RE.search(text):
                     counts["ipv4_excluded"] += 1
                     continue
                 privacy_flags = []
@@ -99,7 +116,7 @@ def stage(args):
                 batch.append((sentence_id, language, text, modified, None,
                               json.dumps(privacy_flags)))
                 counts[f"accepted_before_base_join:{language}"] += 1
-                if len(batch) >= 5000:
+                if len(batch) >= batch_insert:
                     db.executemany("INSERT OR REPLACE INTO sentence VALUES (?,?,?,?,?,?)", batch)
                     batch.clear()
         if batch:
@@ -121,7 +138,7 @@ def stage(args):
                 if sentence_id not in cc0_ids:
                     continue
                 batch.append((fields[1], sentence_id))
-                if len(batch) >= 10000:
+                if len(batch) >= batch_join:
                     db.executemany("UPDATE sentence SET base_id=? WHERE id=?", batch)
                     batch.clear()
         if batch:
@@ -129,12 +146,16 @@ def stage(args):
         db.commit()
 
         output_count = 0
+        selected_counts = Counter()
         with args.output.open("w", encoding="utf-8", newline="\n") as output:
             cursor = db.execute(
                 "SELECT id, language, text, modified, base_id, privacy_flags "
                 "FROM sentence ORDER BY id"
             )
             for sentence_id, language, text, modified, base_id, privacy_flags in cursor:
+                if selected_counts[language] >= target_by_language.get(language, 0):
+                    counts[f"over_target_cap:{language}"] += 1
+                    continue
                 if base_id is None or base_id in ("", r"\N"):
                     origin = "unknown"
                     group_material = f"sentence:{sentence_id}"
@@ -166,6 +187,7 @@ def stage(args):
                 output.write(json.dumps(record, ensure_ascii=False,
                                         separators=(",", ":")) + "\n")
                 counts[f"output:{language}"] += 1
+                selected_counts[language] += 1
                 output_count += 1
         db.close()
 
@@ -178,6 +200,7 @@ def stage(args):
         "sentences_base_sha256": sha256_file(args.sentences_base),
         "output_sha256": sha256_file(args.output),
         "output_records": output_count,
+        "selection": {"target_per_language": target_by_language, "selected_per_language": dict(selected_counts), "text_rules": text_rules},
         "counts": dict(sorted(counts.items())),
         "policy": (
             "Only rows from sentences_CC0.csv are emitted. sentences_base.csv is "
@@ -189,8 +212,8 @@ def stage(args):
             "base sentence ID; unknown bases use their own sentence ID."
         ),
         "privacy": (
-            "Email, URL and IPv4 matches are excluded. Phone-like and 9+ digit "
-            "sequences are retained with review flags. This is not full PII review."
+            "Email, URL and IPv4 matches are excluded. Phone-like and long numeric "
+            "sequences are retained with review flags according to the central configuration. This is not full PII review."
         ),
         "caveat": (
             "The base relation is the source-provided translation parent, not a "
@@ -212,11 +235,15 @@ def main():
     parser.add_argument("--sentences-base", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--source-release", default="weekly-2026-11-14")
-    parser.add_argument("--min-chars", type=int, default=12)
-    parser.add_argument("--max-chars", type=int, default=500)
-    parser.add_argument("--max-bytes", type=int, default=1500)
+    parser.add_argument("--config", type=Path, default=ROOT / "config/langid32.toml")
+    parser.add_argument("--target-per-language", type=int, default=None)
+    parser.add_argument("--min-chars", type=int, default=None)
+    parser.add_argument("--max-chars", type=int, default=None)
+    parser.add_argument("--max-bytes", type=int, default=None)
     args = parser.parse_args()
-    if args.min_chars < 1 or args.max_chars < args.min_chars or args.max_bytes < 1:
+    if ((args.min_chars is not None and args.min_chars < 1)
+            or (args.max_chars is not None and args.min_chars is not None and args.max_chars < args.min_chars)
+            or (args.max_bytes is not None and args.max_bytes < 1)):
         parser.error("invalid text length limits")
     stage(args)
 
