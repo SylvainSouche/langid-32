@@ -36,6 +36,20 @@ SOURCE_FAMILIES = (
 )
 
 
+def check_global_deadline():
+    """Abort long-running acquisition loops before consuming the workflow safety reserve."""
+    started = int(__import__("os").environ.get("LANGID32_ACQUISITION_STARTED_EPOCH", "0"))
+    if not started:
+        return
+    budget = int(EXECUTION["acquisition_global_budget_minutes"]) * 60
+    reserve = int(EXECUTION["acquisition_safety_margin_minutes"]) * 60
+    remaining = budget - (int(time.time()) - started)
+    if remaining <= reserve:
+        raise SystemExit(
+            f"Global acquisition deadline reached; remaining={remaining}s, safety reserve={reserve}s"
+        )
+
+
 def source_bucket(source):
     """Use only explicitly declared dataset quota identities; otherwise keep the source exact."""
     return source_quota_key(load_config(), source)
