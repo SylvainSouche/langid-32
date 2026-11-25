@@ -23,7 +23,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 from langid32.settings import load_config, acquisition_target, source_quota_key
 from langid32.acquisition_batches import open_state, plan_file_batches, next_batch, finish_batch, add_eligible, retained_count, pending_batch_count, mark_exhausted, export_records, task_report
-from langid32.privacy import screen_text
+from langid32.privacy import screen_text, sanitize_provenance
 EXECUTION = load_config()["execution"]
 from urllib.request import Request, urlopen
 
@@ -300,8 +300,11 @@ def main():
                 or letters / max(len(text), 1) < global_text_rules["min_letter_ratio"]):
             privacy_counts["global_quality_rejected"] += 1
             return
+        safe_provenance, removed_metadata = sanitize_provenance(provenance or {})
+        if removed_metadata:
+            privacy_counts["personal_metadata_fields_removed"] += len(removed_metadata)
         privacy = screen_text(
-            text, record=provenance or {},
+            text, record=safe_provenance,
             uncertain_action=global_text_rules["privacy_uncertain_action"],
         )
         if not privacy.accepted:
@@ -317,7 +320,7 @@ def main():
             return
         release, licence, origin, rights_status = source_metadata(source)
         source_record_id = str(group_id or text_hash)
-        prov = dict(provenance or {})
+        prov = dict(safe_provenance)
         prov.update({
             "source_record_id": source_record_id,
             "rights_status": rights_status,
