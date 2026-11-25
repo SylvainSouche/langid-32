@@ -18,10 +18,12 @@ jobs:
       - name: Check out source and merge code
         uses: actions/checkout@v4
 
+      - id: runtime
+        run: python3 scripts/emit_runtime_config.py
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ steps.runtime.outputs.python_version }}
 
       - name: Download historical v5 artifact
         uses: actions/download-artifact@v4
@@ -124,4 +126,4 @@ jobs:
             out/jql-assessment-full.parquet
             out/jql-assessment-full-summary.json
           if-no-files-found: warn
-          retention-days: 30
+          retention-days: ${{ steps.runtime.outputs.artifact_retention_days }}
