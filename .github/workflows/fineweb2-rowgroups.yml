@@ -1,9 +1,6 @@
-name: Probe FineWeb2 stratified row-group reads
+name: LEGACY — FineWeb2 Parquet row-group audit
 
 on:
-  push:
-    paths:
-      - "scripts/probe_fineweb2_rowgroups.py"
   workflow_dispatch:
 
 permissions:
