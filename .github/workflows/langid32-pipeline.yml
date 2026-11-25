@@ -109,7 +109,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "${{ steps.runtime.outputs.python_version }}"
-      - run: python -m pip install datasets huggingface_hub pyarrow fasttext-wheel cryptography
+      - run: python -m pip install datasets huggingface_hub pyarrow fasttext-wheel cryptography aiohttp requests
       - name: Acquire waiting-source target
         id: acquire
         env:
