@@ -1,9 +1,6 @@
-name: Top up FineWeb2 Turkish and Chinese privacy buffer
+name: LEGACY — FineWeb2 Turkish/Chinese buffer extraction
 
 on:
-  push:
-    paths:
-      - "scripts/extract_fineweb2_sample.py"
   workflow_dispatch:
 
 permissions:
