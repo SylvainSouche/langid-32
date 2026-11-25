@@ -421,6 +421,7 @@ def main():
                                  "source_document_id": None})
                         for index, row in enumerate(reader, 2):
                             if quota_reached(bucket_key):
+                                quota_stopped = True
                                 break
                             if row:
                                 add(language, source, row[0], f"{relative}:row:{index}",
