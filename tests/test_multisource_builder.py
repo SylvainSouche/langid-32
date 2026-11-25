@@ -17,10 +17,10 @@ def test_normalize_file_preserves_component_provenance_and_group_id(tmp_path):
     output = tmp_path / "normalized.jsonl"
     row = {
         "text": "A sufficiently long sentence for the source-family test.",
-        "language": "ca",
-        "source": "fineweb2:cat_Latn",
+        "language": "hr",
+        "source": "fineweb2:hrv_Latn",
         "source_release": "FineWeb2@revision",
-        "group_id": "fineweb2:cat_Latn:doc-1",
+        "group_id": "fineweb2:hrv_Latn:doc-1",
         "licence_id": "ODC-By-1.0",
         "text_origin": "web text",
         "provenance": {"document_id": "doc-1"},
@@ -31,11 +31,11 @@ def test_normalize_file_preserves_component_provenance_and_group_id(tmp_path):
     assert report["rows_out"] == 1
     assert normalized["source"] == "fineweb2"
     assert normalized["group_id"] == row["group_id"]
-    assert normalized["provenance"]["source_component"] == "cat_Latn"
-    assert normalized["provenance"]["source_original_name"] == "fineweb2:cat_Latn"
+    assert normalized["provenance"]["source_component"] == "hrv_Latn"
+    assert normalized["provenance"]["source_original_name"] == "fineweb2:hrv_Latn"
 
 
-def test_normalize_file_unifies_dpo_fields_to_one_dataset_row_group(tmp_path):
+def test_normalize_file_excludes_catalan_dpo_pending_rights_review(tmp_path):
     source = tmp_path / "dpo.jsonl"
     output = tmp_path / "normalized.jsonl"
     row = {
@@ -49,12 +49,10 @@ def test_normalize_file_unifies_dpo_fields_to_one_dataset_row_group(tmp_path):
         "provenance": {"dataset_row_id": "row-7", "field": "chosen"},
     }
     source.write_text(json.dumps(row) + "\n", encoding="utf-8")
-    normalize_file(source, output)
-    normalized = json.loads(output.read_text(encoding="utf-8").splitlines()[0])
-    assert normalized["source"] == "catalan_dpo_v2"
-    assert normalized["group_id"] == "catalan_dpo_v2:row-7"
-    assert normalized["split_group_id"] == normalized["group_id"]
-    assert normalized["provenance"]["source_component"] == "chosen"
+    report = normalize_file(source, output)
+    assert report["rows_out"] == 0
+    assert report["filtered_superseded_sources"] == {"source_excluded_by_policy": 1}
+    assert output.read_text(encoding="utf-8") == ""
 
 
 def test_normalize_file_rejects_unmapped_source_component(tmp_path):
@@ -71,8 +69,9 @@ def test_normalize_file_rejects_unmapped_source_component(tmp_path):
         "provenance": {},
     }
     source.write_text(json.dumps(row) + "\n", encoding="utf-8")
-    with pytest.raises(ValueError, match="Unmapped source component"):
-        normalize_file(source, output)
+    report = normalize_file(source, output)
+    assert report["rows_out"] == 0
+    assert report["filtered_superseded_sources"] == {"source_not_registered": 1}
 
 
 
@@ -81,7 +80,7 @@ def test_normalize_dgt_rows_adds_eurlex_celex_provenance(tmp_path):
     output = tmp_path / "normalized.jsonl"
     row = {
         "text": "A sufficiently long EU legislative sentence for this provenance test.",
-        "language": "en",
+        "language": "hr",
         "source": "dgt-tm-2021",
         "source_release": "DGT-TM-release-2021",
         "group_id": "dgt-tm-2021:Vol_2020_4.zip:22020D0933",
