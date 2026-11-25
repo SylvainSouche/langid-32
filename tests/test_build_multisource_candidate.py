@@ -40,7 +40,7 @@ def test_normalization_applies_source_language_scope_and_per_source_caps(tmp_pat
         _row("temu_cc0:component_b", "hr", 5),
         _row("temu_cc0:component_b", "hr", 6),
     ]
-    source.write_text("".join(json.dumps(row) + "\\n" for row in rows), encoding="utf-8")
+    source.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
 
     report = MODULE.normalize_file(source, destination, config=config)
     retained = [json.loads(line) for line in destination.read_text(encoding="utf-8").splitlines()]
