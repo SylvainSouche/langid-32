@@ -43,3 +43,12 @@ def test_ambiguous_proper_name_is_quarantined_but_year_is_not_pii():
     uncertain = screen_text("The team visited New York during the conference.")
     assert not uncertain.accepted
     assert uncertain.status == "quarantined"
+
+
+def test_ipv6_and_trailing_number_street_addresses_are_rejected():
+    ipv6 = screen_text("The server is reachable at 2001:db8::1 today.")
+    assert not ipv6.accepted
+    assert "ipv4" in ipv6.flags
+    address = screen_text("The meeting is at Rue de Rivoli 12 in Paris.")
+    assert not address.accepted
+    assert "street_address" in address.flags
