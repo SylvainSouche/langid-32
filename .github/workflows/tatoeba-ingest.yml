@@ -32,8 +32,8 @@ jobs:
       - name: Download official weekly CC0 and base exports
         run: |
           mkdir -p input/tatoeba
-          curl --fail --location --retry 3 --output input/tatoeba/sentences_CC0.tar.bz2 https://downloads.tatoeba.org/exports/sentences_CC0.tar.bz2
-          curl --fail --location --retry 3 --output input/tatoeba/sentences_base.tar.bz2 https://downloads.tatoeba.org/exports/sentences_base.tar.bz2
+          curl --fail --location --retry "${{ steps.runtime.outputs.curl_retry_count }}" --output input/tatoeba/sentences_CC0.tar.bz2 https://downloads.tatoeba.org/exports/sentences_CC0.tar.bz2
+          curl --fail --location --retry "${{ steps.runtime.outputs.curl_retry_count }}" --output input/tatoeba/sentences_base.tar.bz2 https://downloads.tatoeba.org/exports/sentences_base.tar.bz2
           tar -xjf input/tatoeba/sentences_CC0.tar.bz2 -C input/tatoeba
           tar -xjf input/tatoeba/sentences_base.tar.bz2 -C input/tatoeba
           find input/tatoeba -maxdepth 2 -type f -printf '%p %s bytes\n'
