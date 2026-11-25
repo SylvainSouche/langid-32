@@ -5,6 +5,10 @@ No audio, clips, speaker IDs, demographic metadata, or full dataset archive is f
 """
 from __future__ import annotations
 import argparse, csv, hashlib, json, os, re, time, urllib.error, urllib.request
+import sys
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+from langid32.settings import load_config
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -65,9 +69,18 @@ def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument("--output-dir",type=Path,required=True)
     p.add_argument("--revision",default="main")
-    p.add_argument("--languages",default=",".join(LOCALES))
+    p.add_argument("--languages",default=None)
+    p.add_argument("--config",type=Path,default=ROOT / "config/langid32.toml")
     a=p.parse_args()
-    wanted=[x.strip() for x in a.languages.split(",") if x.strip()]
+    cfg = load_config(a.config)
+    allowed = set(cfg["acquisition"]["source_rules"]["common_voice_v22"].get("languages", []))
+    requested = a.languages if a.languages is not None else ",".join(sorted(allowed))
+    wanted=[x.strip() for x in requested.split(",") if x.strip()]
+    if not wanted:
+        p.error("No Common Voice locales are enabled: individual locale terms acceptance is pending.")
+    unauthorized = sorted(set(wanted) - allowed)
+    if unauthorized:
+        p.error("Locale(s) lack recorded individual terms acceptance: " + ", ".join(unauthorized))
     unknown=sorted(set(wanted)-set(LOCALES))
     if unknown: p.error("Unknown target language(s): "+", ".join(unknown))
     a.output_dir.mkdir(parents=True,exist_ok=True)
