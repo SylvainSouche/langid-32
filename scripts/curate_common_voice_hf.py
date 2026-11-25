@@ -10,9 +10,7 @@ from __future__ import annotations
 import argparse
 import csv
 import hashlib
-import ipaddress
 import json
-import re
 import unicodedata
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -23,23 +21,8 @@ from langid32.settings import load_config, acquisition_target
 from langid32.privacy import screen_text
 from langid32.acquisition_batches import open_state, plan_file_batches, next_batch, finish_batch, add_eligible, export_records, task_report
 
-EMAIL = re.compile(r"(?i)(?<![\w.+-])[\w.+-]+@[\w.-]+\.[A-Z]{2,}(?![A-Za-z0-9_.-])")
-URL = re.compile(r"(?i)(?:https?://[^\s<>]+|www\.[^\s<>]+)")
-IPV4 = re.compile(r"(?<![\d.])(?:\d{1,3}\.){3}\d{1,3}(?![\d.])")
-LONG_NUMBER = re.compile(r"\d{9,}")
-PHONE = re.compile(r"(?<!\w)\+?\d[\d -]{7,}\d(?!\w)")
 def norm(value: str) -> str:
     return " ".join(unicodedata.normalize("NFC", value).split())
-
-
-def phone_like(text: str, rules: dict) -> bool:
-    pattern = re.compile(r"(?<!\\w)\\+?\\d[\\d -]{" + str(rules["phone_candidate_min_intervening_characters"]) + r",}\\d(?!\\w)")
-    for match in pattern.finditer(text):
-        raw = match.group()
-        digits = re.sub(r"\D", "", raw)
-        if rules["phone_min_digits"] <= len(digits) <= rules["phone_max_digits"] and (raw.count(" ") + raw.count("-") >= rules["phone_min_separators"] or "+" in raw):
-            return True
-    return False
 
 
 def priority(language: str, text: str) -> str:
@@ -97,17 +80,6 @@ def main() -> None:
                         continue
                     if len(text) < text_rules["min_characters"] or len(text) > text_rules["max_characters"] or len(text.encode("utf-8")) > text_rules["max_utf8_bytes"]:
                         counts[f"{language}:length_rejected"] += 1
-                        continue
-                    if (text_rules["exclude_email"] and EMAIL.search(text)) or (text_rules["exclude_url"] and URL.search(text)):
-                        counts[f"{language}:email_or_url_rejected"] += 1
-                        continue
-                    if text_rules["exclude_ipv4"] and IPV4.search(text):
-                        counts[f"{language}:ipv4_rejected"] += 1
-                        continue
-                    if ((text_rules["exclude_phone_like"] and phone_like(text, text_rules))
-                            or (text_rules["exclude_long_numeric_sequences"]
-                                and re.search("[0-9]{" + str(text_rules["long_numeric_min_digits"]) + ",}", text))):
-                        counts[f"{language}:numeric_identifier_rejected"] += 1
                         continue
                     privacy = screen_text(text, uncertain_action=cfg["acquisition"]["text"]["privacy_uncertain_action"])
                     if not privacy.accepted:
