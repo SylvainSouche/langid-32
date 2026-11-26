@@ -50,8 +50,13 @@ def iter_utterances(archive_path: str | Path, language: str):
             if stream is None:
                 raise RuntimeError(f"Cannot read ParlaMint archive member {member.name}")
             try:
-                for event, elem in ET.iterparse(stream, events=("end",)):
+                stack = []
+                for event, elem in ET.iterparse(stream, events=("start", "end")):
+                    if event == "start":
+                        stack.append(elem)
+                        continue
                     if elem.tag != TEI + "u":
+                        stack.pop()
                         continue
                     utterance_id = elem.attrib.get(XML_ID)
                     if not utterance_id:
@@ -88,7 +93,9 @@ def iter_utterances(archive_path: str | Path, language: str):
                                     "record_structure": "ParlaMint TEI utterance",
                                 },
                             }
-                    # Clear the utterance after extraction to bound memory.
+                    if len(stack) > 1:
+                        stack[-2].remove(elem)
                     elem.clear()
+                    stack.pop()
             finally:
                 stream.close()
