@@ -53,6 +53,7 @@ def test_greynir_silver_partition_is_explicit_and_gold_is_not_supported(tmp_path
     _write(path, [
         """( (META (ID-CORPUS silver-1)
                 (ID-LOCAL silver.psd,.1)
+                (URL https://example.is/silver)
                 (COMMENT ))
             (S0 (S-MAIN (IP (VP (so_1_þf_fh_p3_et_nt_gm Prófar (lemma prófa))
                                 (NP-OBJ (no_et_þf_hk útdrátt (lemma útdrátt))))))))""",
