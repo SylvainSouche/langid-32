@@ -171,7 +171,9 @@ def test_full_candidate_to_global_jql_pruning_contract(tmp_path):
     assert len(full) == 8 and len(pruned) == 6
     assert "sentence" in pruned.columns
     assert set(full["source-variant"]) == {f"original-source-{i}" for i in range(4)}
-    assert {item["source"] for item in pruning["retained_by_language_source"]} == {
-        f"original-source-{i}" for i in range(4)
-    }
     assert len(summary["shard_manifests"]) == 8
+    from collections import Counter
+    full_counts = Counter(full["source-variant"])
+    retained_counts = Counter(pruned["source-variant"])
+    pruned_counts = Counter(item["source"] for item in pruning["pruned_by_language_source"])
+    assert retained_counts + pruned_counts == full_counts
