@@ -157,6 +157,11 @@ def test_leipzig_historical_snapshot_is_restricted_to_six_current_languages():
     rules = config["acquisition"]["source_rules"]
     assert rules["leipzig_news"]["languages"] == expected
     assert rules["leipzig_wikipedia"]["languages"] == expected
+    assert rules["fineweb2"]["languages"] == expected
+    assert config["acquisition"]["source_rules"]["fineweb"]["exclude"] is True
     register = (ROOT / "docs/source-register.md").read_text(encoding="utf-8")
     assert "Current pipeline allowlist is exactly" in register
+    assert "English currently has no active source" in register
     assert "All 34 langid-32 labels targeted" not in register
+    contract = (ROOT / "docs/pipeline-contract.md").read_text(encoding="utf-8")
+    assert "no active English source" in contract
