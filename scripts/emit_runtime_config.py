@@ -15,7 +15,8 @@ from langid32.settings import load_config
 
 
 def main() -> None:
-    config = load_config(ROOT / "config/langid32.toml")
+    config_path = Path(os.environ.get("LANGID32_CONFIG", ROOT / "config/langid32.toml"))
+    config = load_config(config_path)
     values = {
         "python_version": config["execution"]["python_version"],
         "datasets_version": config["execution"]["datasets_version"],
@@ -31,7 +32,7 @@ def main() -> None:
         "acquisition_safety_margin_minutes": config["execution"]["acquisition_safety_margin_minutes"],
         "acquisition_started_epoch": int(time.time()),
         "code_commit_sha": os.environ.get("GITHUB_SHA", "local"),
-        "config_sha256": hashlib.sha256((ROOT / "config/langid32.toml").read_bytes()).hexdigest(),
+        "config_sha256": hashlib.sha256(config_path.read_bytes()).hexdigest(),
         "source_register_sha256": hashlib.sha256((ROOT / "docs/source-register.md").read_bytes()).hexdigest(),
         "pipeline_contract_sha256": hashlib.sha256((ROOT / "docs/pipeline-contract.md").read_bytes()).hexdigest(),
         "pipeline_trigger_sha256": hashlib.sha256((ROOT / "pipeline-trigger.json").read_bytes()).hexdigest(),
@@ -45,6 +46,8 @@ def main() -> None:
         "repository": os.environ.get("GITHUB_REPOSITORY", "local"),
         "run_id": os.environ.get("GITHUB_RUN_ID", "local"),
         "code_commit_sha": values["code_commit_sha"],
+        "config_path": str(config_path.relative_to(ROOT)),
+        "profile": config.get("profile", {}).get("name", "release"),
         "generated_at_epoch": values["acquisition_started_epoch"],
         "policy_hashes": {
             "config_sha256": values["config_sha256"],
