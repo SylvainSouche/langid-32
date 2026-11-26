@@ -25,7 +25,7 @@ jobs:
       - name: Extract 20,100 candidates per language
         run: >-
           python scripts/extract_fineweb2_sample.py
-          --languages bg hr cs da nl et fi fr de el hu ga it lv lt mt pl pt ro sk sl es sv nb nn ru ja zh ko ar tr
+          --languages "bg hr cs da nl et fi fr de el hu ga it lv lt mt pl pt ro sk sl es sv nb nn ru ja zh ko ar tr"
           --target-per-language 20100
           --shards-per-language 4
           --max-row-groups 3
