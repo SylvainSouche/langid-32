@@ -27,17 +27,22 @@ def sha256(path: Path, chunk_bytes: int) -> str:
     return h.hexdigest()
 
 
-def read_rating_files(directory: Path) -> dict[str, dict]:
+def read_rating_files(directory: Path) -> tuple[dict[str, dict], dict[str, int]]:
     merged: dict[str, dict] = {}
+    file_rows: dict[str, int] = {}
     files = sorted(directory.glob("*.csv"))
     if not files:
         raise SystemExit(f"No ratings CSV files found in {directory}")
     for path in files:
+        count = 0
         with path.open(encoding="utf-8", newline="") as stream:
-            for row in csv.DictReader(stream):
+            reader = csv.DictReader(stream)
+            if reader.fieldnames != ["id", "language", "ratings"]:
+                raise SystemExit(f"Unexpected ratings schema in {path}")
+            for row in reader:
                 row_id = row["id"]
-                if row_id in merged:
-                    raise SystemExit(f"Duplicate rating ID {row_id} (including {path.name})")
+                if not row_id or row_id in merged:
+                    raise SystemExit(f"Empty or duplicate rating ID {row_id!r} (including {path.name})")
                 try:
                     scores = json.loads(row["ratings"])
                     score_values = {judge: float(scores[judge]) for judge in JUDGES}
@@ -46,7 +51,71 @@ def read_rating_files(directory: Path) -> dict[str, dict]:
                     merged[row_id] = {"language": row["language"], **score_values}
                 except (KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
                     raise SystemExit(f"Invalid rating row for {row_id} in {path}: {exc}") from exc
-    return merged
+                count += 1
+        file_rows[path.name] = count
+    return merged, file_rows
+
+
+def read_score_manifests(
+    directory: Path,
+    file_rows: dict[str, int],
+    shards_dir: Path,
+    expected_shards: int,
+) -> tuple[dict, list[dict]]:
+    manifests = sorted(directory.glob("*.csv.manifest.json"))
+    if len(manifests) != expected_shards or len(file_rows) != expected_shards:
+        raise SystemExit(
+            f"Expected {expected_shards} completed rating shards and manifests; "
+            f"found {len(file_rows)} CSVs and {len(manifests)} manifests"
+        )
+    common_provenance = None
+    shard_records = []
+    manifest_csv_names = set()
+    for manifest_path in manifests:
+        csv_name = manifest_path.name.removesuffix(".manifest.json")
+        manifest_csv_names.add(csv_name)
+        if csv_name not in file_rows:
+            raise SystemExit(f"Missing ratings CSV for manifest {manifest_path.name}")
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        if int(manifest.get("scored_rows", -1)) != file_rows[csv_name]:
+            raise SystemExit(f"Ratings row count does not match manifest {manifest_path.name}")
+        if int(manifest.get("input_rows", -1)) != file_rows[csv_name]:
+            raise SystemExit(f"Shard is incomplete according to manifest {manifest_path.name}")
+        input_name = str(manifest.get("input_file", ""))
+        input_path = shards_dir / input_name
+        if not input_name or not input_path.is_file():
+            raise SystemExit(f"Missing input shard for manifest {manifest_path.name}: {input_name}")
+        input_hash = sha256(input_path, 1024 * 1024)
+        if input_hash != manifest.get("input_sha256"):
+            raise SystemExit(f"Input shard hash mismatch for {manifest_path.name}")
+        provenance = {
+            "models": manifest.get("models"),
+            "head_checkpoint_sha256": manifest.get("head_checkpoint_sha256"),
+            "scoring": manifest.get("scoring"),
+        }
+        if not provenance["models"] or not provenance["head_checkpoint_sha256"] or not provenance["scoring"]:
+            raise SystemExit(f"Incomplete model provenance in {manifest_path.name}")
+        for key in ("embedder_revision_resolved",):
+            revision = provenance["models"].get(key)
+            if not isinstance(revision, str) or len(revision) != 40:
+                raise SystemExit(f"Unpinned model revision in {manifest_path.name}: {key}")
+        head_revision = provenance["models"].get("head_revision_resolved")
+        if not isinstance(head_revision, str) or len(head_revision) != 40:
+            raise SystemExit(f"Unpinned JQL head revision in {manifest_path.name}")
+        if common_provenance is None:
+            common_provenance = provenance
+        elif provenance != common_provenance:
+            raise SystemExit("JQL shards used different model revisions, checkpoint files or scoring settings")
+        shard_records.append({
+            "ratings_file": csv_name,
+            "input_file": input_name,
+            "input_sha256": input_hash,
+            "input_rows": int(manifest["input_rows"]),
+            "scored_rows": int(manifest["scored_rows"]),
+        })
+    if manifest_csv_names != set(file_rows):
+        raise SystemExit("Ratings CSV and provenance manifest sets differ")
+    return common_provenance or {}, shard_records
 
 
 def quantile_normalize(values: list[float], epsilon: float | None = None) -> list[float]:
@@ -78,6 +147,7 @@ def main() -> None:
     ap.add_argument("--input", required=True, type=Path, help="Full assessment Parquet")
     ap.add_argument("--ratings-dir", required=True, type=Path, help="Directory of shard ratings CSVs")
     ap.add_argument("--quality", required=True, type=Path, help="Boundary-check CSV")
+    ap.add_argument("--shards-dir", required=True, type=Path, help="Directory containing the exact scored Parquet shards")
     ap.add_argument("--output-csv", required=True, type=Path)
     ap.add_argument("--output-parquet", type=Path)
     ap.add_argument("--summary", type=Path)
@@ -103,8 +173,13 @@ def main() -> None:
     if frame["id"].isna().any() or frame["id"].astype(str).duplicated().any():
         raise SystemExit("Input IDs must be non-null and unique")
     frame["id"] = frame["id"].astype(str)
-    ratings = read_rating_files(args.ratings_dir)
+    ratings, rating_file_rows = read_rating_files(args.ratings_dir)
+    model_provenance, shard_manifests = read_score_manifests(
+        args.ratings_dir, rating_file_rows, args.shards_dir, int(jql_config["shard_count"])
+    )
     expected, actual = set(frame["id"]), set(ratings)
+    if sum(item["input_rows"] for item in shard_manifests) != len(frame):
+        raise SystemExit("JQL shard row counts do not sum to the complete assessment row count")
     language_by_id = dict(zip(frame["id"], frame["lang"].astype(str)))
     missing, extra = expected - actual, actual - expected
     if missing or extra:
@@ -200,6 +275,8 @@ def main() -> None:
         "rows": len(frame),
         "input_sha256": sha256(args.input, chunk_bytes),
         "ratings_files": [p.name for p in sorted(args.ratings_dir.glob("*.csv"))],
+        "model_provenance": model_provenance,
+        "shard_manifests": shard_manifests,
         "ratings_rows": len(ratings),
         "quantile_normalization": "average ranks mapped through standard-normal inverse CDF; ties share average rank",
         "normalization_scope": "entire assessment corpus, all languages combined, independently per judge",
