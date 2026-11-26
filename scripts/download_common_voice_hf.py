@@ -79,13 +79,13 @@ def main():
     p.add_argument("--config",type=Path,default=ROOT / "config/langid32.toml")
     a=p.parse_args()
     cfg = load_config(a.config)
-    allowed = set(cfg["acquisition"]["source_rules"]["common_voice_v22"].get("languages", []))
-    requested = a.languages if a.languages is not None else ",".join(sorted(allowed))
+    project_languages = set(cfg["languages"])
+    requested = a.languages if a.languages is not None else ",".join(sorted(project_languages))
     wanted=[x.strip() for x in requested.split(",") if x.strip()]
-    unknown=sorted(set(wanted)-set(LOCALES))
-    if unknown: p.error("Unknown target language(s): "+", ".join(unknown))
-    disabled=sorted(set(wanted)-allowed)
-    if disabled: p.error("Target language(s) are not enabled in config: "+", ".join(disabled))
+    unknown=sorted(set(wanted)-project_languages)
+    if unknown: p.error("Unknown project target language(s): "+", ".join(unknown))
+    unavailable=sorted(set(wanted)-set(LOCALES))
+    wanted=[language for language in wanted if language in LOCALES]
     a.output_dir.mkdir(parents=True,exist_ok=True)
     api_url = f"https://huggingface.co/api/datasets/{REPO}"
     request = urllib.request.Request(api_url, headers={"User-Agent": "langid-32/0.4"})
@@ -106,7 +106,7 @@ def main():
     previous_results={row["locale"]:row for row in previous.get("results",[]) if row.get("locale")}
     manifest={"source":REPO,"dataset_url":f"https://huggingface.co/datasets/{REPO}","source_license_claim":"CC0-1.0","release":"Common Voice Corpus 22.0 (unofficial HF conversion)",
               "revision_requested":a.revision,"revision_resolved":resolved_revision,"method":"direct HTTP fetch of transcript/<locale>/validated_sentences.tsv only; no audio",
-              "results":[],"failures":[],"started_at_utc":now()}
+              "results":[],"failures":[],"unavailable_languages":[{"language":language,"reason":"No Common Voice 22 locale directory in the HF conversion"} for language in unavailable],"started_at_utc":now()}
     for language in wanted:
         pieces=[]
         for locale in LOCALES[language]:
