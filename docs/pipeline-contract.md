@@ -10,7 +10,7 @@
 
 Build a private, reproducible, multi-source candidate pool for all 34 configured language labels. Acquire current sources afresh, validate the pinned historical snapshots, normalize and screen records, apply source/language quotas, assess the entire resulting candidate pool with the three JQL judges, globally prune the bottom 25% by the agreed consensus score, and produce complete audit reports.
 
-**Stop after the JQL-pruned pool and reports.** The final selection of exactly 30,000 records per language is a separate human decision. Do not run it, publish it, upload it to a public dataset, or treat a technical candidate as rights-cleared without explicit user approval.
+**Stop after the JQL-pruned pool and reports.** The final selection of exactly 35,000 records per language is a separate human decision. Do not run it, publish it, upload it to a public dataset, or treat a technical candidate as rights-cleared without explicit user approval.
 
 ## 2. Stage contract
 
@@ -39,7 +39,7 @@ Build a private, reproducible, multi-source candidate pool for all 34 configured
 - For FineWeb2 remote Parquet reads, record the upstream LFS SHA-256 for each shard and retry transient HTTP 408/429/5xx and connection/time-out failures at the current row-group boundary with bounded exponential backoff (8 attempts, 5-second base, 120-second cap). Roll back an incomplete row-group transaction before replay; never double-count rows or privacy rejections. Stop retrying when the shared acquisition deadline is reached.
 - Keep each original source × language quota independent. Do not alias different sources into one family quota unless the source register and config explicitly approve that exact relationship.
 - English (`en`) is not a FineWeb2 subset and is not supplied by Common Voice 22. FineWeb is currently excluded by a source-wide unresolved web-text rights hold. This is a source-level decision, not a language allowlist; do not misdescribe it as FineWeb2 rejecting English.
-- Apply normalization, source quality checks, privacy screening and within-source deduplication before the **first-pass acquisition intake cap**: up to 20,000 eligible unique records per original source × language. This is an acquisition cap, not a guaranteed post-global-dedup count and not the final 30,000-per-language selection.
+- Apply normalization, source quality checks, privacy screening and within-source deduplication before the **first-pass acquisition intake cap**: up to 20,000 eligible unique records per original source × language. This is an acquisition cap, not a guaranteed post-global-dedup count and not the final 35,000-per-language selection.
 - **Approved exception: Gaois Parallel English-Irish Legislation, Irish side only, up to 50,000 deterministic candidates** from the six audited TMX archives. This is the explicitly accepted candidate-sample scope. The prior preview measured 390,992 screened distinct Irish segments; the fresh pipeline run must reapply the accepted privacy screen, report its actual eligible count, and select up to 50,000 deterministic candidates. Do not assume the prior count will be reproduced. This is not a final language selection or approval to ingest the entire underlying corpus. Preserve DCU/Gaois attribution and the distinction between CC BY 4.0 derivative TMX rights and Government of Ireland rights in original legislation.
 - Source-local normalization, validation and deduplication happen during acquisition; replenish from additional eligible material from that source/language as needed to meet its first-pass intake target, subject to actual source exhaustion and the six-hour batch ceiling. The candidate merge then removes cross-source global duplicates and cross-language collisions. No post-global-dedup replenishment stage has been specified or approved. Expected overlap between independent sources is minimal; measure and report actual global-deduplication losses by language and source, without inventing a second replenishment phase.
 - The 30% preferred / 50% hard source-share limits apply only to the later final selection, after JQL pruning and explicit user approval; they are not applied in acquisition or candidate construction. Source/language acquisition shortfalls are addressed during source-local replenishment; global-deduplication losses are measured and reported, not automatically replenished.
@@ -75,8 +75,8 @@ Build a private, reproducible, multi-source candidate pool for all 34 configured
 ### Stage 4 — review hand-off
 
 - Produce the complete private candidate/assessment artefacts and machine-readable manifests/reports, including per-language × original-source counts before and after every exclusion/pruning stage.
-- Stop. Do not select the final 30,000 per language, publish, push text to Hugging Face, or release provenance until the user has reviewed privacy, source rights and source balance and explicitly approved the next step.
-- The deferred final selection target is 30,000 per language. The agreed source-mix rule for that later selection is 30% preferred and 50% hard maximum per original source within each language; document any underfill or single-source exception. Do not apply this balancing before global JQL pruning.
+- Stop. Do not select the final 35,000 per language, publish, push text to Hugging Face, or release provenance until the user has reviewed privacy, source rights and source balance and explicitly approved the next step.
+- The deferred final selection target is 35,000 per language. The agreed source-mix rule for that later selection is 30% preferred and 50% hard maximum per original source within each language; document any underfill or single-source exception. Do not apply this balancing before global JQL pruning.
 
 ## 3. Privacy and rights constraints
 
@@ -96,7 +96,9 @@ Operational values currently recorded in `config/langid32.toml`:
 | Control | Required value |
 |---|---:|
 | Configured language labels | 34 |
-| First-pass target | 20,000 per original source × language |
+| First-pass target (release) | 20,000 per original source × language |
+| Debug profile | 200 per original source × language; 350 per language; same 34 labels, source adapters, filters, deduplication, privacy, JQL and pruning stages |
+| Release profile | 20,000 per original source × language (Gaois retains its separately approved 50,000 Irish-side exception); 35,000 per language |
 | Acquisition concurrent source tasks | 4 maximum |
 | Acquisition job timeout | 300 minutes |
 | Shared acquisition workflow budget | 330 minutes |
@@ -120,6 +122,8 @@ The shared acquisition budget plus reserve must remain within six hours. The JQL
 
 ## 5. Implementation audit baseline and current status
 
+The `config/langid32-debug.toml` profile is a bounded end-to-end validation configuration, not a different corpus scope: it keeps all 34 labels and all in-scope source rules while reducing every source quota to 200 and the per-language target to 350. The staged and downstream JQL workflows select this profile through `LANGID32_CONFIG`; change that value to `config/langid32.toml` in both workflows for release. The release configuration retains 20,000 per original source/language (with the separately approved Gaois 50,000 Irish-side exception) and 35,000 per language.
+
 The original audit baseline was `main` commit `1e6f8319b6cfd102c650c3b516cc4583d0d42730` on 2026-11-26. That baseline was not operational. The findings below record the corrections subsequently made on `main`; they do **not** claim a successful real-data end-to-end run.
 
 | Contract item | Current implementation on main | Status |
@@ -136,7 +140,7 @@ The original audit baseline was `main` commit `1e6f8319b6cfd102c650c3b516cc4583d
 | Three-judge scoring | `scripts/score_jql_parquet.py`; three balanced heads, bfloat16, pinned runtime, source pipeline SHA/run ID, immutable model revisions and checkpoint hashes in each shard manifest | Implemented; actual model inference on the full pool not yet verified |
 | Global normalization, consensus and pruning | `scripts/merge_jql_ratings.py`; validates exact split manifest, all candidate IDs, all three judge ratings, source run/commit, model/runtime provenance, global quantile normalization, consensus and exact global bottom-25% pruning | Implemented; synthetic end-to-end JQL integration test added |
 | JQL workflow integration and resumption | `.github/workflows/score-jql-assessment.yml`; automatic `workflow_run` after staged pipeline success, exact source-run SHA checkout, optional resume from previous scoring-run artifacts with provenance checks | Implemented; workflow syntax and repository CI passed in run `45798217209`; real downstream scoring run not yet exercised |
-| Manual review hand-off | Text-bearing candidate/JQL outputs are encrypted before Actions artifact upload; final 30k selector is disabled | Implemented; no review artifact from a new full run yet |
+| Manual review hand-off | Text-bearing candidate/JQL outputs are encrypted before Actions artifact upload; final 35k selector is disabled | Implemented; no review artifact from a new full run yet |
 | Full real-data end-to-end proof | Staged acquisition → candidate → full-pool JQL scoring → merge/prune → encrypted hand-off | **Not yet verified**; do not describe the pipeline as production-verified until a complete run succeeds |
 
 ### Source adapter coverage audit
@@ -175,8 +179,8 @@ All three approved source families now have extraction adapters, acquisition bra
 - Historical gate: the historical job validates the full Leipzig JSONL and the other three pinned snapshots before any fresh acquisition job starts. The four pinned GitHub artifacts have been confirmed present and unexpired; the earliest expiry is the V5 artifact on 2026-11-30 20:30 UTC.
 - Secret gate: GitHub Actions must provide `LANGID32_CHECKPOINT_KEY`; the connector cannot read secret presence/value. The config job checks it before acquisition, so a missing/invalid key stops the run before source downloads.
 - First-full-run data gate: the first clean full run is the real-archive integration test; no separate partial acquisition is required. MaCoCu HR/MT/SL, ParlaMint IS/SI/TR and pinned Greynir Copper/Silver must verify their exact hashes, parse records, and report either quota reached or genuine source exhaustion for every source/language cell. Candidate construction is gated on successful completion of all acquisition jobs and historical validation. Greynir Gold dev/test and extra heading/short partitions remain excluded.
-- Run acceptance: the full run must complete all in-scope acquisitions, candidate construction, every JQL shard, exact merge/pruning and encrypted artifact upload, with reconciled per-language × original-source counts. The user then manually reviews privacy and source-rights outputs. No final 30,000-per-language selection or publication follows automatically.
-- The user then manually reviews privacy and source-rights outputs. No final 30k selection or publication follows automatically.
+- Run acceptance: the full run must complete all in-scope acquisitions, candidate construction, every JQL shard, exact merge/pruning and encrypted artifact upload, with reconciled per-language × original-source counts. The user then manually reviews privacy and source-rights outputs. No final 35,000-per-language selection or publication follows automatically.
+- The user then manually reviews privacy and source-rights outputs. No final 35k selection or publication follows automatically.
 
 ## 6. Mandatory change-control protocol
 
@@ -195,7 +199,7 @@ After **every** modification:
 4. Do not merge or trigger a full pipeline while any blocking contract check fails.
 5. Never describe a stage as implemented, verified, integrated or complete based only on its existence, documentation, a successful compile, or a skipped downstream job. Integration is verified only by a successful end-to-end run with complete expected outputs and coverage.
 
-Required preflight/integration assertions include: every job uses the same commit SHA; every referenced file exists at that SHA; all required historical inputs validate; fresh acquisitions are same-run only; no failed-run artifacts are restored; every source/language cell is independently quota-limited after privacy/quality filters; candidate IDs are unique and cross-language collisions are fully removed; privacy metadata is sanitized; JQL assessment IDs equal candidate IDs exactly; every ID has all three judge scores; normalized distributions use the full combined assessment pool; consensus matches the formula above; exactly floor(25% × N) rows are pruned globally with deterministic ties; counts reconcile by language and original source; no final 30k selection or publication occurs.
+Required preflight/integration assertions include: every job uses the same commit SHA; every referenced file exists at that SHA; all required historical inputs validate; fresh acquisitions are same-run only; no failed-run artifacts are restored; every source/language cell is independently quota-limited after privacy/quality filters; candidate IDs are unique and cross-language collisions are fully removed; privacy metadata is sanitized; JQL assessment IDs equal candidate IDs exactly; every ID has all three judge scores; normalized distributions use the full combined assessment pool; consensus matches the formula above; exactly floor(25% × N) rows are pruned globally with deterministic ties; counts reconcile by language and original source; no final 35k selection or publication occurs.
 
 ## 7. How to invoke the workflow without asking the user to click Run
 
