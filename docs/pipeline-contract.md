@@ -141,12 +141,12 @@ The current staged workflow's source coverage is narrower than the full set of a
 | IGC2024 Filtered-1 | `scripts/acquire_waiting_sources.py --source icelandic` downloads the Filtered-1 archive and scans it into candidate records under source ID `igc` | Active; fresh acquisition in the waiting-source matrix |
 | Greynir Copper and Silver | Audit workflow/script only; no candidate extraction adapter in the staged workflow | Audited/registered, **not acquired by this pipeline** |
 | MaCoCu-hr 2.0, MaCoCu-mt 2.0, MaCoCu-sl 2.0 | Full archive audit workflows/scripts only; no paragraph-to-candidate adapter in the staged workflow | Audited/registered, **not acquired by this pipeline** |
-| ParlaMint 4.0 (IS/SI) | TEI audit workflow/script only; no utterance-to-candidate adapter in the staged workflow | Audited/registered, **not acquired by this pipeline** |
+| ParlaMint 4.0 (IS/SI) | `src/langid32/parlamint.py`, `scripts/acquire_waiting_sources.py --source parlamint`, `stages/01-acquisition/targets/parlamint.py`, waiting-source matrix | Adapter and synthetic fixture added on main; CI/integration verification pending. Speaker `who` references and person metadata are not emitted. |
 | Soranoha Japanese literature | Audit artifact/source-register entry only; no active config rule or staged acquisition adapter | Audited/registered, **not acquired by this pipeline** |
 
 The v5 artifact is a composite historical snapshot. Restoring it does not override source exclusions: rows from held/excluded sources (including FineWeb where marked held) must still be filtered by the source register and exclusion registry before candidate construction.
 
-The `config/langid32.toml` contains target rules for Greynir Copper/Silver, MaCoCu and ParlaMint despite the absence of acquisition adapters/jobs for them. These config entries are not evidence that their text enters the candidate pool. The user has explicitly ruled all five source-language groups above into the current candidate scope; their absence is an integration defect and a launch blocker. Implement and test adapters before arming the trigger. Soranoha is not included in this approved scope.
+The `config/langid32.toml` contains target rules for Greynir Copper/Silver and MaCoCu, but those entries are not evidence that their text enters the candidate pool. ParlaMint now has an extraction adapter, synthetic fixture and workflow matrix entry on main; its CI and real-archive integration remain unverified. Greynir Copper/Silver and all three MaCoCu sources still lack candidate extraction adapters and remain launch blockers. The user has explicitly approved these source-language groups for the current candidate scope. Soranoha is not included in this approved scope.
 
 ### Resolved findings from run #178
 
