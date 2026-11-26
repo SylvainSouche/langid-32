@@ -145,7 +145,7 @@ def iter_sentences(path: str | Path, partition: str, source_file: str | None = N
                 continue
             yield {
                 "text": text,
-                "group_id": corpus_id,
+                "group_id": source_url,
                 "provenance": {
                     "source_file": source_file,
                     "source_partition": partition,
