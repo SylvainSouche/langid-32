@@ -146,7 +146,7 @@ The current staged workflow's source coverage is narrower than the full set of a
 
 The v5 artifact is a composite historical snapshot. Restoring it does not override source exclusions: rows from held/excluded sources (including FineWeb where marked held) must still be filtered by the source register and exclusion registry before candidate construction.
 
-The `config/langid32.toml` contains target rules for Greynir Copper/Silver, MaCoCu and ParlaMint despite the absence of acquisition adapters/jobs for them. These config entries are not evidence that their text enters the candidate pool. **Do not silently count these sources or imply source completeness.** Before a full acquisition launch, the intended scope of these audited-but-not-integrated sources must be resolved: implement and test adapters, or explicitly defer them in the source register/config and record that scope decision here. This is a launch blocker if the user's intended current source set includes them.
+The `config/langid32.toml` contains target rules for Greynir Copper/Silver, MaCoCu and ParlaMint despite the absence of acquisition adapters/jobs for them. These config entries are not evidence that their text enters the candidate pool. The user has explicitly ruled all five source-language groups above into the current candidate scope; their absence is an integration defect and a launch blocker. Implement and test adapters before arming the trigger. Soranoha is not included in this approved scope.
 
 ### Resolved findings from run #178
 
@@ -161,7 +161,7 @@ The `config/langid32.toml` contains target rules for Greynir Copper/Silver, MaCo
 ### Remaining verification gates
 
 - CI gate: **passed** in run `45798217209` on commit `71fde5b0c2b02b34783d120fdfa3ada0c290f71f` (110 tests; CPU PyTorch/bfloat16 dependency installed; actionlint, script compilation and Make dependency validation passed). Earlier run `45795368247` failed two tests; those failures were subsequently corrected and the later run is green. CI success does not replace a full real-data pipeline run.
-- Resolve the source-scope blocker in the source-adapter matrix: determine whether Greynir Copper/Silver, MaCoCu, ParlaMint and Soranoha are required in this current candidate run. If required, implement and test their acquisition adapters; if deferred, update the source register and configuration with the user's explicit scope decision. Do not silently omit or claim they are included.
+- Integrate the already-approved current-pipeline sources that are still missing from the adapter matrix: MaCoCu-hr 2.0 (`hr`), MaCoCu-mt 2.0 (`mt`), MaCoCu-sl 2.0 (`sl`), ParlaMint 4.0 (`is`, `sl`), and Greynir Copper and Silver (`is`). These are required inputs, not an open scope question. Greynir Gold development/test partitions remain excluded. Implement and test each adapter; the current pipeline is not launch-ready while any of these approved sources is absent. Soranoha remains audited/investigated only: it has not been ruled into the current candidate scope and must not be added by inference.
 - The historical job must validate the full Leipzig JSONL as well as the other three snapshots before any fresh acquisition job starts.
 - A clean real-data run must complete all in-scope acquisitions, candidate construction, every JQL shard, exact merge/pruning and encrypted artifact upload. The run must produce reconciled per-language × original-source counts.
 - The user then manually reviews privacy and source-rights outputs. No final 30k selection or publication follows automatically.
