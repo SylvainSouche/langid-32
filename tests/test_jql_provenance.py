@@ -17,6 +17,8 @@ def _write_manifest(directory, shards_dir, index, *, head_revision="b" * 40):
     csv_name = f"shard-{index}.csv"
     manifest = {
         "schema_version": 1,
+        "pipeline_source_sha": "f" * 40,
+        "pipeline_source_run_id": "123456",
         "input_file": input_name,
         "input_sha256": input_hash,
         "input_rows": 1,
