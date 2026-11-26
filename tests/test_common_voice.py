@@ -19,6 +19,11 @@ def test_common_voice_expected_script_filter():
     assert MODULE.script_ratio("Hello Καλημέρα", "LATIN") < 0.70
     assert MODULE.script_ratio("Здравей свят", "CYRILLIC") > 0.95
     assert MODULE.script_ratio("Привет мир", "CYRILLIC") > 0.95
+    assert MODULE.script_ratio("مرحبا بكم في العالم", "ARABIC") > 0.95
+    assert MODULE.script_ratio("你好世界", "HAN") > 0.95
+    assert MODULE.script_ratio("안녕하세요 세계", "HANGUL") > 0.95
+    assert MODULE.script_ratio("こんにちは世界", "JAPANESE") > 0.95
+    assert MODULE.script_ratio("日本語の文章です", "JAPANESE") > 0.95
 
 
 def test_common_voice_script_policy_covers_enabled_locales():
@@ -26,9 +31,14 @@ def test_common_voice_script_policy_covers_enabled_locales():
     languages = set(cfg["project"]["languages"])
     scripts = cfg["acquisition"]["source_rules"]["common_voice_v22"]["script"]["by_language"]
     assert set(scripts).issubset(languages)
-    assert set(scripts.values()).issubset({"LATIN", "GREEK", "CYRILLIC"})
+    assert set(scripts.values()).issubset({"LATIN", "GREEK", "CYRILLIC", "ARABIC", "HAN", "HANGUL", "JAPANESE"})
     assert scripts["bg"] == "CYRILLIC"
     assert scripts["ru"] == "CYRILLIC"
+    assert len(scripts) == 33
+    assert scripts["ar"] == "ARABIC"
+    assert scripts["ja"] == "JAPANESE"
+    assert scripts["zh"] == "HAN"
+    assert scripts["ko"] == "HANGUL"
     assert cfg["acquisition"]["source_rules"]["common_voice_v22"]["script"]["minimum_ratio"] == 0.70
 
 
