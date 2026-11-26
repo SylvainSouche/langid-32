@@ -264,6 +264,13 @@ def main():
             return (f"GreynirCorpus-1.1@{revision}", "CC-BY-4.0 (corpus-level claim)",
                     "Icelandic news/government corpus text; underlying article rights require review",
                     "declared_cc_by_4_0_accepted")
+        if source.startswith("parlamint_"):
+            language = source.rsplit("_", 1)[1]
+            item = next((row for row in downloads if f"ParlaMint-{language.upper()}.tgz" in row["url"]), None)
+            revision = f"sha256:{item['sha256']}" if item else "archive-hash-unresolved"
+            return (f"ParlaMint-4.0-{language}@{revision}", "CC-BY-4.0",
+                    "parliamentary utterance paragraph from ParlaMint 4.0 TEI",
+                    "declared_cc_by_4_0_accepted")
         if source.startswith("maalfrid2026:"):
             language = source.rsplit(":", 1)[1]
             suffix = "nob.tar" if language == "nb" else "nno.tar"
@@ -795,6 +802,36 @@ def main():
                 notes.append(f"{config}: reached the {limit_for(*bucket_key)}-record source/language quota.")
             notes.append(config + ": underlying web-text rights unresolved; technical candidates only.")
 
+        elif args.source == "parlamint":
+            from langid32.parlamint import SOURCES as PARLAMINT_SOURCES, iter_utterances
+            for language in ("is", "sl"):
+                meta = PARLAMINT_SOURCES[language]
+                source = meta["source"]
+                bucket_key = (language, source)
+                if quota_reached(bucket_key):
+                    continue
+                archive = temp_root / f"parlamint-{language}-4.0.tgz"
+                download = fetch(meta["url"], archive)
+                md5 = hashlib.md5()
+                with archive.open("rb") as stream:
+                    for block in iter(lambda: stream.read(EXECUTION["file_copy_chunk_bytes"]), b""):
+                        md5.update(block)
+                if md5.hexdigest() != meta["md5"]:
+                    raise RuntimeError(
+                        f"ParlaMint {language.upper()} archive MD5 mismatch: "
+                        f"{md5.hexdigest()} != {meta['md5']}"
+                    )
+                downloads.append({**download, "catalogue_md5": meta["md5"], "md5_matches": True})
+                for record in iter_utterances(archive, language):
+                    if quota_reached(bucket_key):
+                        break
+                    add(language, source, record["text"], record["group_id"], record["provenance"])
+                if quota_reached(bucket_key):
+                    notes.append(f"ParlaMint {language.upper()}: reached the source/language quota.")
+                else:
+                    notes.append(f"ParlaMint {language.upper()}: archive exhausted at {retained_count(state_db, source, language)} retained records.")
+                archive.unlink(missing_ok=True)
+
         elif args.source == "arabic":
             revisions["un_arabic"] = resolve_hf_revision("ymoslem/UN-Arabic-English-Filtered")
             from datasets import load_dataset
@@ -882,6 +919,7 @@ def main():
             "korean": {"ko"},
             "fineweb2": {fineweb2_languages[args.fineweb2_config]} if args.source == "fineweb2" else set(),
             "arabic": {"ar"},
+            "parlamint": {"is", "sl"},
         }
         actual_languages = {language for (language, _bucket), items in retained.items() if items}
         missing_languages = sorted(expected_languages.get(args.source, set()) - actual_languages)
