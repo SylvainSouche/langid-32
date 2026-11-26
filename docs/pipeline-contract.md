@@ -155,7 +155,7 @@ The `config/langid32.toml` contains target rules for Greynir Copper/Silver, MaCo
 
 ### Remaining verification gates
 
-- Latest CI must pass, including Python tests, the synthetic candidate→assessment→shard→three-rating-manifest→global-pruning integration test, CPU bfloat16 operation and actionlint over all workflows.
+- Latest CI must pass, including Python tests, the synthetic candidate→assessment→shard→three-rating-manifest→global-pruning integration test, CPU bfloat16 operation, fail-closed guarded-trigger tests and actionlint over all workflows.
 - Resolve the source-scope blocker in the source-adapter matrix: determine whether Greynir Copper/Silver, MaCoCu, ParlaMint and Soranoha are required in this current candidate run. If required, implement and test their acquisition adapters; if deferred, update the source register and configuration with the user's explicit scope decision. Do not silently omit or claim they are included.
 - The historical job must validate the full Leipzig JSONL as well as the other three snapshots before any fresh acquisition job starts.
 - A clean real-data run must complete all in-scope acquisitions, candidate construction, every JQL shard, exact merge/pruning and encrypted artifact upload. The run must produce reconciled per-language × original-source counts.
