@@ -31,6 +31,12 @@ SOURCES = {
         "md5": "a710c3869b2aaa89da3b9eaa3c7eb83f",
         "prefix": "ParlaMint-SI_",
     },
+    "tr": {
+        "source": "parlamint_tr",
+        "url": "https://www.clarin.si/repository/xmlui/bitstream/handle/11356/1859/ParlaMint-TR.tgz?isAllowed=y&sequence=25",
+        "md5": "82569712b7194216a18012af5bac992c",
+        "prefix": "ParlaMint-TR_",
+    },
 }
 
 
