@@ -79,6 +79,8 @@ def validate_jql_policy(config: dict[str, Any]) -> None:
     expected_judges = ["gemma", "mistral", "llama"]
     if jql.get("enabled") is not True or jql.get("judges") != expected_judges:
         raise ValueError("JQL must use the three accepted judges: Gemma, Mistral and Llama")
+    if jql.get("out_of_training_languages") != ["ar", "ja", "ko", "zh", "nb", "nn"]:
+        raise ValueError("JQL out-of-training target languages must remain explicitly flagged")
     if jql.get("assessment_all_candidate_rows") is not True:
         raise ValueError("JQL must assess every post-filter candidate row")
     if int(jql.get("assessment_sample_per_language", -1)) != 0 or int(jql.get("max_rows", -1)) != 0:
