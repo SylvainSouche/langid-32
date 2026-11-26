@@ -107,7 +107,7 @@ def test_fineweb2_retry_policy_is_bounded_and_configured():
 def test_common_voice_has_no_configured_language_allowlist():
     config = load_config()
     assert "languages" not in config["acquisition"]["source_rules"]["common_voice_v22"]
-    for language in config["project"]["languages"]
+    for language in config["project"]["languages"]:
         assert acquisition_target(config, "common_voice_v22", language) == 20000
 
 
