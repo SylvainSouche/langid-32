@@ -4,7 +4,7 @@
 No audio, clips, speaker IDs, demographic metadata, or full dataset archive is fetched.
 """
 from __future__ import annotations
-import argparse, csv, hashlib, json, os, re, time, urllib.error, urllib.request
+import argparse,os, csv, hashlib, json, os, re, time, urllib.error, urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 import sys
@@ -76,7 +76,7 @@ def main():
     p.add_argument("--output-dir",type=Path,required=True)
     p.add_argument("--revision",default="main")
     p.add_argument("--languages",default=None)
-    p.add_argument("--config",type=Path,default=ROOT / "config/langid32.toml")
+    p.add_argument("--config",type=Path,default=Path(os.environ.get("LANGID32_CONFIG", ROOT / "config/langid32.toml")))
     a=p.parse_args()
     cfg = load_config(a.config)
     project_languages = set(cfg["languages"])
