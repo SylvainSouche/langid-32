@@ -294,7 +294,7 @@ def test_checked_in_source_exclusions_exclude_legacy_greynir_only(tmp_path):
     ]
     for row in rows:
         row["provenance"]["source_original_name"] = row["source"]
-    source.write_text("".join(json.dumps(row) + "\\n" for row in rows))
+    source.write_text("".join(json.dumps(row) + "\n" for row in rows))
     args = _args(tmp_path, [source])
     args.exclusions = Path("data/source-exclusions.jsonl")
     merge(args)
