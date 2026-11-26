@@ -16,7 +16,7 @@
 
 ### Common Voice 22.0 — HF-hosted text conversion (`fsicoli/common_voice_22_0`)
 
-**Description.** Text-only extraction from `transcript/<locale>/validated_sentences.tsv`; no audio, clip paths, speaker/client identifiers or demographic metadata. The current adapter resolves and records an immutable HF revision, TSV hashes and sentence IDs. Common Voice 22 has five upstream locales; Croatian (`hr`) is absent from this release. This is the sole source-specific language availability exception.
+**Description.** Text-only extraction from `transcript/<locale>/validated_sentences.tsv`; no audio, clip paths, speaker/client identifiers or demographic metadata. The current adapter resolves and records an immutable HF revision, TSV hashes and sentence IDs. The HF conversion maps 33 project language labels to available locale directories (with `zh` combining `zh-CN` and `zh-TW`); Croatian (`hr`) is absent. All available mapped locales are in scope.
 
 **Sentence/segment matrix (current source acquisition):**
 
@@ -27,13 +27,13 @@
 | Maltese (mt) | not measured in a current full run; provider inventory below 20,000 |
 | Slovenian (sl) | not measured in a current full run; provider inventory below 20,000 |
 | Icelandic (is) | not measured in a current full run; provider inventory below 20,000 |
-| Other 29 configured labels | not in current Common Voice locale matrix |
+| Croatian (`hr`) | unavailable: no locale directory in this Common Voice 22 HF conversion |
 
 Historical pilot: 259,352 rows across 33 labels; it is not reused as a current clean-run acquisition count. The current 20,000/source/language value is a ceiling, not a claim that the source contains that many rows.
 
 **Licence and attribution.** HF dataset card declares CC0-1.0 for this specific conversion. This is not a claim about every Common Voice release. Cite Ardila et al. (2020) as recommended. No per-locale terms acceptance gate is used for this HF-hosted conversion.
 
-**Pending questions/checks.** First clean run must record actual eligible counts, provider exhaustion and source hashes for each of the five locales. Retain the user-approved text-only scope. No Croatian Common Voice input is approved. Mozilla Data Collective and Mozilla-hosted data remain voluntarily excluded by project decision.
+**Pending questions/checks.** First clean run must record actual eligible counts, provider exhaustion and source hashes for each available mapped locale. Retain the user-approved text-only scope. No Croatian Common Voice input is approved. Mozilla Data Collective and Mozilla-hosted data remain voluntarily excluded by project decision.
 
 ### Tatoeba — CC0 sentence export (14 November 2026 refresh)
 
@@ -305,7 +305,7 @@ This audit compares the checked-in `docs/source-register.md`, `docs/pipeline-con
 ### Required correction order
 
 1. Confirm the 34-label language inventory and per-source/per-language availability in the clean run; do not reinterpret the historical repository name as a 32-language limit.
-2. Keep the source-language allowlist invariant: Common Voice 22 alone has an explicit locale list because Croatian is absent; all other sources must derive coverage from their actual source content, with no config-level language allowlists.
+2. Keep no source-language allowlists: Common Voice 22 downloads all mapped HF-available project locales; Croatian is absent upstream. All sources derive coverage from their actual content.
 3. Verify source-local replenishment against the first-pass intake targets, preserving per-source provenance and the six-hour batch ceiling. Do not add post-global-deduplication replenishment without an explicit project decision.
 4. Reconcile source register, config, pipeline contract, README and trigger hashes as one reviewed contract change.
 5. Re-run full CI and source-adapter synthetic tests.
