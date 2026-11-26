@@ -2,9 +2,6 @@ name: Build source-first 35k candidate corpus and JQL assessment
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - "docs/trigger-multisource-build.txt"
 
 permissions:
   actions: read
