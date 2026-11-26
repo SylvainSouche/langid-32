@@ -895,7 +895,7 @@ def main():
                             "revision": GREYNIR_REVISION,
                         })
                         files_scanned += 1
-                        for record in iter_sentences(corpus_file, partition):
+                        for record in iter_sentences(corpus_file, partition, source_file=relative):
                             if quota_reached(bucket_key):
                                 break
                             provenance = dict(record["provenance"])
