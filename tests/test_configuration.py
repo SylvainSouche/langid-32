@@ -72,6 +72,10 @@ def test_jql_contract_is_locked_to_full_pool_global_quartile_and_deferred_select
     assert config["jql"]["shard_batch_rows"] == 8192
     assert config["jql"]["inference_batch_size"] == 8
     assert config["jql"]["inference_dtype"] == "bfloat16"
+    assert config["jql"]["python_version"] == "3.11"
+    assert config["jql"]["torch_version"] == "2.6.0"
+    assert config["jql"]["transformers_version"] == "4.44.2"
+    assert config["jql"]["huggingface_hub_version"] == "0.26.5"
     assert config["jql"]["shard_count"] == 8
     assert config["jql"]["max_parallel_shards"] == 4
     assert config["jql"]["job_timeout_minutes"] == 360
