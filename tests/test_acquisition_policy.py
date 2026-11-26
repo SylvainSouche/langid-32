@@ -129,3 +129,22 @@ def test_un_arabic_row_index_is_not_mislabelled_as_document_id():
     assert provenance["repo_commit"] == "a" * 40
     assert provenance["publisher_id"] == "united-nations"
     assert provenance["attribution_required"] is True
+
+
+
+def test_acquisition_streaming_dependencies_are_config_pinned_and_used():
+    config = load_config(ROOT / "config/langid32.toml")
+    execution = config["execution"]
+    assert execution["datasets_version"] == "3.3.2"
+    assert execution["huggingface_hub_version"] == "0.26.5"
+    assert execution["pyarrow_version"] == "19.0.1"
+
+    workflow = (ROOT / ".github/workflows/langid32-pipeline.yml").read_text(encoding="utf-8")
+    assert 'datasets==${{ steps.runtime.outputs.datasets_version }}' in workflow
+    assert 'huggingface_hub==${{ steps.runtime.outputs.huggingface_hub_version }}' in workflow
+    assert 'pyarrow==${{ steps.runtime.outputs.pyarrow_version }}' in workflow
+
+    ci = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+    assert '"datasets==3.3.2"' in ci
+    assert '"huggingface_hub==0.26.5"' in ci
+    assert '"pyarrow==19.0.1"' in ci
