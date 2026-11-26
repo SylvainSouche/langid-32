@@ -178,16 +178,22 @@ jobs:
           output="ratings/shard-${{ matrix.index }}.csv"
           mkdir -p ratings
           while true; do
-            if (( SECONDS - started >= JQL_WORK_BUDGET_MINUTES * 60 )); then
-              echo "Shard did not finish within the configured work budget; preserving partial ratings."
+            elapsed=$((SECONDS - started))
+            remaining=$((JQL_WORK_BUDGET_MINUTES * 60 - elapsed))
+            # Leave one inference mini-batch for orderly checkpointing, plus the
+            # separately configured ten-minute artifact-upload reserve.
+            if (( remaining <= 60 )); then
+              echo "Shard work budget exhausted; preserving partial ratings."
               exit 76
             fi
+            invocation_budget=$((remaining - 60))
             python scripts/score_jql_parquet.py \
               --input "jql-work/out/jql-shards/${{ matrix.file }}" \
               --output "$output" \
               --device cpu \
               --config config/langid32.toml \
               --max-seconds "$JQL_MAX_SECONDS" \
+              --max-runtime-seconds "$invocation_budget" \
               --resume
             status=$?
             if [ "$status" -eq 0 ]; then
