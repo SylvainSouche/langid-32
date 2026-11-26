@@ -21,7 +21,7 @@ def test_greynir_extracts_terminal_text_and_nonidentifying_provenance(tmp_path):
                     (IP (NP-SUBJ (pfn_et_nf_hk_p3 Hann (lemma hann)))
                         (VP (so_1_þf_fh_p3_et_nt_gm segir (lemma segja))
                             (NP-OBJ (no_et_þf_hk sannleikann (lemma sannleikur)))))
-                (grm .)))""",
+                (grm .))))""",
         """( (META (ID-CORPUS abc-123.2)
                 (ID-LOCAL greynir_corpus_00001.psd,.2)
                 (URL https://example.is/heading)
@@ -53,7 +53,7 @@ def test_greynir_silver_partition_is_explicit_and_gold_is_not_supported(tmp_path
                 (ID-LOCAL silver.psd,.1)
                 (COMMENT ))
             (S0 (S-MAIN (IP (VP (so_1_þf_fh_p3_et_nt_gm Prófar (lemma prófa))
-                                (NP-OBJ (no_et_þf_hk útdrátt (lemma útdrátt)))))))""",
+                                (NP-OBJ (no_et_þf_hk útdrátt (lemma útdrátt))))))))""",
     ])
 
     rows = list(iter_sentences(path, "silver"))
