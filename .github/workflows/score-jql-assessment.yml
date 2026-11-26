@@ -201,7 +201,7 @@ jobs:
               --input "jql-work/out/jql-shards/${{ matrix.file }}" \
               --output "$output" \
               --device cpu \
-              --config config/langid32.toml \
+              --config "$LANGID32_CONFIG" \
               --max-seconds "$JQL_MAX_SECONDS" \
               --max-runtime-seconds "$invocation_budget" \
               --resume
