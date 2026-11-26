@@ -1,0 +1,10 @@
+{
+  "run_mode": "disabled",
+  "nonce": "",
+  "config_sha256": "",
+  "source_register_sha256": "",
+  "pipeline_contract_sha256": "",
+  "artifact_reuse": false,
+  "final_selection": "deferred",
+  "privacy_review_required": true
+}
