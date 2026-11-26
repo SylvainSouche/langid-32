@@ -178,3 +178,15 @@ def test_staged_pipeline_deletes_plaintext_after_encrypted_checkpoint_uploads():
     assert "rm -rf input out checkpoints candidate.bin" in workflow
     assert "rm -rf input out checkpoint final.bin" in workflow
     assert "HF_HOME: ${{ github.workspace }}/.cache/huggingface" in workflow
+
+
+
+def test_plaintext_leipzig_upload_workflows_are_retired():
+    root = Path(__file__).resolve().parents[1]
+    workflows = root / ".github/workflows"
+    assert not (workflows / "acquire-leipzig-balanced.yml").exists()
+    assert not (workflows / "acquire-leipzig-corpora.yml").exists()
+    for path in workflows.glob("*.yml"):
+        content = path.read_text(encoding="utf-8")
+        assert "path: out/leipzig/" not in content, path.name
+        assert "path: out/leipzig/**" not in content, path.name
