@@ -10,6 +10,8 @@ import argparse
 import csv
 import json
 import sys
+import os
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -52,6 +54,8 @@ def main():
     ap.add_argument("--device", choices=("auto", "cpu", "mps", "cuda"), default="auto")
     ap.add_argument("--max-rows", type=int, default=None, help="Optional smoke-test row limit")
     ap.add_argument("--torch-threads", type=int, default=None, help="CPU intra-op threads")
+    ap.add_argument("--max-seconds", type=int, default=None, help="Maximum inference time for this resumable batch")
+    ap.add_argument("--resume", action="store_true", help="Append to an existing ratings CSV and skip completed IDs")
     ap.add_argument("--config", type=Path, default=ROOT / "config/langid32.toml")
     ap.add_argument("--head-repo", default=None)
     args = ap.parse_args()
@@ -60,6 +64,7 @@ def main():
     args.max_length = args.max_length if args.max_length is not None else jql_cfg["max_token_length"]
     args.torch_threads = args.torch_threads if args.torch_threads is not None else jql_cfg["cpu_torch_threads"]
     args.max_rows = args.max_rows if args.max_rows is not None else jql_cfg["max_rows"]
+    args.max_seconds = args.max_seconds if args.max_seconds is not None else int(jql_cfg["max_seconds"])
     args.head_repo = args.head_repo or jql_cfg["head_repository"]
     embedder_id = jql_cfg["embedder_model"]
     head_checkpoints = jql_cfg["head_checkpoints"]
@@ -68,6 +73,8 @@ def main():
         raise SystemExit("--batch-size must be positive")
     if args.torch_threads < 1:
         raise SystemExit("--torch-threads must be positive")
+    if args.max_seconds < 1:
+        raise SystemExit("--max-seconds must be positive")
     torch.set_num_threads(args.torch_threads)
     if not args.input.is_file():
         raise SystemExit(f"Input not found: {args.input}")
@@ -120,14 +127,41 @@ def main():
         heads[name] = load_head(checkpoint_path, device, jql_cfg)
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    with args.output.open("w", encoding="utf-8", newline="") as stream:
+    completed_ids = set()
+    if args.resume and args.output.is_file():
+        with args.output.open(encoding="utf-8", newline="") as existing:
+            reader = csv.DictReader(existing)
+            if reader.fieldnames != ["id", "language", "ratings"]:
+                raise SystemExit("Existing ratings CSV has an unexpected schema")
+            for row in reader:
+                row_id = str(row["id"])
+                if not row_id or row_id in completed_ids:
+                    raise SystemExit("Existing ratings CSV contains an empty or duplicate ID")
+                scores = json.loads(row["ratings"])
+                if set(scores) != set(jql_cfg["judges"]):
+                    raise SystemExit(f"Existing ratings row {row_id} is incomplete")
+                completed_ids.add(row_id)
+        frame = frame.loc[~frame["id"].astype(str).isin(completed_ids)].copy()
+    if frame.empty:
+        print(f"All requested rows already have ratings in {args.output}")
+        return 0
+
+    mode = "a" if args.resume and args.output.is_file() else "w"
+    with args.output.open(mode, encoding="utf-8", newline="") as stream:
         writer = csv.DictWriter(stream, fieldnames=["id", "language", "ratings"])
-        writer.writeheader()
+        if mode == "w":
+            writer.writeheader()
         texts = frame["sentence"].astype(str).tolist()
         ids = frame["id"].astype(str).tolist()
         languages = frame["lang"].astype(str).tolist()
+        batch_started = time.monotonic()
 
         for start in range(0, len(texts), args.batch_size):
+            if time.monotonic() - batch_started >= args.max_seconds:
+                stream.flush()
+                os.fsync(stream.fileno())
+                print(f"Batch time limit reached; completed {start}/{len(texts)} remaining rows", flush=True)
+                raise SystemExit(75)
             batch_texts = texts[start:start + args.batch_size]
             tokens = tokenizer(
                 batch_texts,
@@ -158,10 +192,12 @@ def main():
                     "ratings": json.dumps(ratings, separators=(",", ":")),
                 })
             stream.flush()
-            print(f"Scored {min(start + len(batch_texts), len(texts))}/{len(texts)}",
+            os.fsync(stream.fileno())
+            print(f"Scored {min(start + len(batch_texts), len(texts))}/{len(texts)} remaining rows",
                   flush=True)
 
     print(f"Wrote {len(texts)} ratings to {args.output}")
+    return 0
 
 
 if __name__ == "__main__":
