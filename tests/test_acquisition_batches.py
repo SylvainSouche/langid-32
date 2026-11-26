@@ -4,6 +4,7 @@ import sqlite3
 from langid32.acquisition_batches import (
     add_eligible, finish_batch, mark_exhausted, next_batch, open_state,
     plan_file_batches, retained_count, task_complete, task_report,
+    is_retryable_remote_error, retry_delay_seconds,
 )
 
 
@@ -148,3 +149,22 @@ def test_interrupted_batch_rolls_back_uncommitted_rows_for_safe_replay(tmp_path)
     }])
     finish_batch(db, "source-A", "fi", batch_no, {"one-file": "a" * 64})
     assert retained_count(db, "source-A", "fi") == 1
+
+
+def test_transient_http_errors_are_retryable_but_permanent_errors_are_not():
+    class HttpError(Exception):
+        def __init__(self, status):
+            super().__init__(f"HTTP status {status}")
+            self.status = status
+
+    assert is_retryable_remote_error(HttpError(429))
+    assert is_retryable_remote_error(HttpError(503))
+    assert is_retryable_remote_error(TimeoutError("read timed out"))
+    assert not is_retryable_remote_error(HttpError(404))
+    assert not is_retryable_remote_error(ValueError("invalid parquet schema"))
+
+
+def test_retry_delay_uses_capped_exponential_backoff():
+    assert [retry_delay_seconds(n, 5, 120) for n in range(1, 9)] == [
+        5, 10, 20, 40, 80, 120, 120, 120
+    ]
