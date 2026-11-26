@@ -23,7 +23,7 @@ def test_macocu_extracts_paragraph_metadata_and_flags_before_filtering(tmp_path)
            heading="yes" lang="hr" contains_sensitive="false">Naslov</p>
         <p id="macocu.hr.doc1.3" quality="good" lm_score="0.88"
            heading="no" lang="hr" contains_sensitive="true">Osobni podatci</p>
-        <p id="macocu.hr.doc1.4" quality="short" lm_score="0.43"
+        <p id="macocu.hr.doc1.4" quality="short" lm_score="-2.4"
            lang="hr" contains_sensitive="false">Kratko</p>
         <p id="macocu.hr.doc1.5" quality="good" lm_score="0.84"
            heading="no" contains_sensitive="false">Unknown language</p>
@@ -50,6 +50,7 @@ def test_macocu_extracts_paragraph_metadata_and_flags_before_filtering(tmp_path)
     assert rows[1]["provenance"]["paragraph_heading"] is True
     assert rows[2]["provenance"]["paragraph_sensitive"] is True
     assert rows[3]["provenance"]["paragraph_quality"] == "short"
+    assert rows[3]["provenance"]["paragraph_fluency"] == -2.4
     assert rows[3]["provenance"]["paragraph_heading"] is False
     assert rows[4]["provenance"]["paragraph_language"] is None
 
