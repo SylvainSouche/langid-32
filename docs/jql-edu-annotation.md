@@ -1,62 +1,51 @@
-# JQL-Edu-Heads annotation
+# JQL assessment and global pruning
 
-## Purpose and non-use
+## Purpose and limits
 
-JQL-Edu-Heads is an optional QA annotation, not a corpus-selection signal. The scorer adds three educational-value regression scores (Gemma, Mistral and Llama heads), their mean and their range to each JSONL row. It preserves every input row. Scores must never exclude, down-rank, replace, reorder or otherwise alter the production corpus.
+JQL-Edu-Heads supplies a relative educational-value signal for ranking candidate sentences. It is not a measure of language correctness, grammaticality, factuality, safety, privacy or copyright status. JQL must not replace language validation, privacy screening or source-rights review.
 
-The score estimates educational value. It is not a measure of language correctness, grammaticality, factuality, safety, privacy or copyright status. Do not use it as a language-label validator.
+The accepted project decision is to use JQL as a **global candidate-pool pruning step**, not merely an optional annotation. The complete eligible candidate pool is assessed before any final per-language selection.
 
-The model card lists training/evaluation language coverage for many, but not all, project labels. Arabic, Japanese, Korean and Chinese are not in its published language list. Norwegian is listed as a single language (`no`), not separate Bokmål and Nynorsk labels. Treat scores for `ar`, `ja`, `ko`, `zh`, `nb` and `nn` as exploratory and potentially out-of-domain; do not compare them as if calibrated equivalently to the supported language labels.
+## Binding assessment policy
 
-## Model provenance
+1. Assess **every row** in the post-filter candidate pool. Sampling is forbidden. The assessment manifest must prove exact one-to-one coverage of candidate IDs.
+2. Score independently with the Gemma, Mistral and Llama JQL-Edu regression heads. Preserve each judge's raw score.
+3. Independently quantile-normalize each judge's scores over the **entire assessment corpus**, with all languages and original sources combined. Use average ranks for ties and map the ranks through the standard-normal inverse CDF.
+4. For each record calculate:
 
-- Heads: `JQL-AI/JQL-Edu-Heads`, balanced checkpoints for Gemma, Mistral and Llama.
+   `consensus = mean(gemma_z, mistral_z, llama_z) - 0.5 × population_std(gemma_z, mistral_z, llama_z)`
+
+5. Remove the bottom 25% **globally**, not 25% per language or source. Resolve boundary ties deterministically by consensus ascending, then stable record ID, and prune exactly `floor(0.25 × N)` records.
+6. Preserve the three raw scores, three normalized scores, mean, disagreement, consensus, candidate ID, language and original source identity.
+7. Report counts before scoring, successfully scored, retained and pruned by language and **original source**, plus missing, duplicate and failed scoring IDs.
+8. Capitalization and terminal-punctuation checks are diagnostic flags only; they do not filter records.
+
+The final selection of exactly 30,000 records per language, including source balancing, is a separate decision after privacy review and review of the post-pruning source/language counts. It must not be performed automatically by the JQL workflow.
+
+## Model provenance and reproducibility
+
 - Embedding backbone: `Snowflake/snowflake-arctic-embed-m-v2.0`.
-- The runner records resolved Hugging Face commit revisions for both repositories in every annotated row and in `jql_run_summary.json`.
-- Three raw scores are retained independently. The mean and inter-head range are descriptive only.
-- The implementation follows the public model card architecture: 768-dimensional embedding, 1,000-unit hidden layer and ReLU regression head.
+- JQL heads: `JQL-AI/JQL-Edu-Heads`, balanced Gemma, Mistral and Llama checkpoints.
+- The architecture currently encoded by the scorer is a 768-dimensional embedding, 1,000-unit hidden layer and ReLU regression head.
+- The pipeline must resolve and record immutable repository revisions for both the embedding backbone and head repository, along with checkpoint file hashes, in the run manifest. Floating `main` references are not acceptable for a reproducible production assessment.
+- Scores for labels outside the published training/evaluation coverage of the model are exploratory and may be out of domain. In particular, do not interpret Arabic, Japanese, Korean, Chinese, Bokmål or Nynorsk scores as calibrated equivalently to well-covered languages.
 
-## Local hardware
+**Implementation audit note (2026-11-26):** the scoring script and merge/normalization utility exist, but immutable model revision recording and the complete staged-workflow integration have not yet been verified. Do not treat the scoring workflow as production-ready until those requirements and the pipeline contract checks pass.
 
-Inference is local. No GitHub Actions or hosted GPU is used for JQL scoring.
+## Execution constraints
 
-- Apple Silicon: install a PyTorch build with MPS support, then use `DEVICE=mps` (or `auto`).
-- Windows/NVIDIA: install the CUDA-enabled PyTorch build matching the installed NVIDIA driver/CUDA runtime from the official PyTorch selector, then use `DEVICE=cuda` (or `auto`).
-- CPU fallback: `DEVICE=cpu`.
+- Use the configured eight deterministic shards and no more than four concurrent scoring workers as the initial execution shape.
+- Keep scoring batches bounded to at most 3,600 seconds. Use a small initial throughput measurement when necessary to estimate safe batch sizes and the number of batches; persist completed ratings and resume without rescoring them.
+- The six-hour ceiling is binding. A single unbounded scoring job is not an acceptable implementation.
+- Preserve complete coverage across all shards; a partial set of ratings must never be merged or reported as a completed assessment.
+- The automated workflow must keep sentence-bearing assessment and result artifacts encrypted at rest. Score-only intermediate files must not contain sentence text.
 
-The Makefile deliberately does not install PyTorch automatically: CPU-only and CUDA/MPS wheels are platform-specific. Install the matching PyTorch build first, then install the remaining JQL dependencies with `make install-jql`.
+## Local inference
 
-## One-hour resumable batches
+Local scoring is an alternative execution environment, not a different selection policy. Install a platform-appropriate PyTorch build first, then install the remaining dependencies from `requirements-jql.txt`.
 
-Model downloads and initialization happen before the one-hour timer starts. Each completed batch is appended and fsynced. Re-run the same target with the same output path to resume; rows already present in the output are skipped using a stable key.
+- Apple Silicon: use a PyTorch build with MPS support and `--device mps`.
+- Windows/NVIDIA: use a CUDA-enabled PyTorch build matching the installed driver/runtime and `--device cuda`.
+- CPU fallback: `--device cpu`.
 
-```sh
-make install-corpus
-# Install platform-appropriate PyTorch separately.
-make install-jql
-make all DEVICE=mps                 # Apple Silicon
-make rate DEVICE=cuda MAX_SECONDS=3600 BATCH_SIZE=64  # Windows/NVIDIA
-```
-
-The full dependency chain is:
-
-`download -> filter -> anonymize -> count -> assess -> rate -> score-report`
-
-Each stage is an individual Make target. See the repository Makefile and `make help`. `make rate` runs one batch (3,600 seconds by default); invoke it again to continue rating. `make score-report` runs a batch and then refreshes score distributions by language and source. Set `MAX_SECONDS` for a shorter test or a different batch duration.
-
-## Filtering and redaction policy
-
-The news-only Unicode decimal-digit exclusion is applied at Leipzig acquisition and checked again during filtering. Wikipedia is not subjected to that rule. The default filter removes only empty/invalid text rows; it reports duplicate rows but keeps them, and has no arbitrary maximum sentence length. Override `MIN_CHARS` or `MAX_CHARS` explicitly if desired.
-
-The `anonymize` target currently performs **pattern-based redaction only** in sentence text: email addresses, URLs, IPv4 addresses and phone-like strings. It does not reliably detect personal names, postal addresses, indirect identifiers or every format. It is not a guarantee of complete anonymization and requires review before public release. Provenance fields are retained for traceability; do not publish them if source-level anonymization is required.
-
-## Interpreting scores
-
-Report:
-- number rated in each batch and cumulative rows/hour;
-- hardware, device, batch size and maximum token length;
-- throughput by language and source;
-- score distributions for each head, plus mean and inter-head range;
-- errors, skipped rows and remaining backlog.
-
-Do not set a score threshold or discard low-scoring records. Inspect examples across the score distribution, and check whether distributions differ systematically by language or source before deciding whether the annotation is useful.
+Any local run must use the same immutable model revisions, full-pool normalization, exact coverage checks, consensus formula and global pruning rule as the automated pipeline.
