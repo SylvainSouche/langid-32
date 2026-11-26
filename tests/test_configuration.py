@@ -65,6 +65,7 @@ def test_jql_contract_is_locked_to_full_pool_global_quartile_and_deferred_select
     assert config["jql"]["assessment_sample_per_language"] == 0
     assert config["jql"]["max_rows"] == 0
     assert config["jql"]["judges"] == ["gemma", "mistral", "llama"]
+    assert config["jql"]["out_of_training_languages"] == ["ar", "ja", "ko", "zh", "nb", "nn"]
     assert config["jql"]["prune_bottom_quantile"] == 0.25
     assert config["jql"]["max_seconds"] == 3600
     assert config["jql"]["assessment_batch_size"] == 2000
