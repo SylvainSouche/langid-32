@@ -21,6 +21,7 @@ SOURCES = [
     ("secondary_instruments", "https://www.gaois.ie/assets/tmx/18.10.25-gaois.ie-crp-tmx-irish-legislation-secondary.zip"),
     ("secondary_court_rules", "https://www.gaois.ie/assets/tmx/18.10.25-gaois.ie-crp-tmx-irish-legislation-secondary-court-rules.zip"),
 ]
+EXPECTED_COMBINED_SHA256 = "8d5748a5d55818c05b4f6c925c3851ed7bf4735308f0aca6811fb3a4f57a20b5"
 XML_LANG = "{http://www.w3.org/XML/1998/namespace}lang"
 EMAIL = re.compile(r"(?i)\b[\w.+-]+@[\w.-]+\.[A-Z]{2,}\b")
 URL = re.compile(r"(?i)(https?://|www\.)\S+")
@@ -177,6 +178,10 @@ def main():
                             tu.clear()
             db.commit()
         combined = hashlib.sha256("".join(x["sha256"] for x in downloads).encode()).hexdigest()
+        if combined != EXPECTED_COMBINED_SHA256:
+            raise RuntimeError(
+                f"Gaois six-file release hash mismatch: {combined} != {EXPECTED_COMBINED_SHA256}"
+            )
         selected = [entry[2] for entry in heap]
         selected.sort(key=lambda x: (x["group_id"], x["text"]))
         for row in selected:
@@ -196,6 +201,10 @@ def main():
             "downloads": downloads, "combined_release_sha256": combined,
             "source_original_name": "gaois_irish_legislation",
             "counts": totals, "sample_cap": args.max_sample, "seed": args.seed,
+            "quota_status": "quota_reached" if totals["distinct_clean_irish_segments"] >= args.max_sample else "source_exhausted",
+            "quota_reached": totals["distinct_clean_irish_segments"] >= args.max_sample,
+            "source_exhausted": totals["distinct_clean_irish_segments"] < args.max_sample,
+            "source_language_counts": {"gaois_irish_legislation:ga": totals["selected"]},
             "privacy_policy": "shared langid32.privacy screen_text before deduplication and the 50,000 source-language quota; provenance sanitized before output",
             "candidate_file": str(args.out),
             "sampling": "Exact NFC/whitespace-normalized Irish text dedup across all six archives, then deterministic SHA-256 priority sample; English side is not emitted.",
