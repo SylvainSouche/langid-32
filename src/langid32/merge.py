@@ -76,6 +76,11 @@ def digest(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
 
 
+def original_source_identity(row: dict) -> str:
+    provenance = row.get("provenance") if isinstance(row.get("provenance"), dict) else {}
+    return str(provenance.get("source_original_name") or row.get("source") or "").strip()
+
+
 def load_exclusions(path: Path | None):
     """Load active source/document exclusions from JSONL or CSV."""
     if path is None:
@@ -130,7 +135,7 @@ def _row_domain(url):
 
 def _matches_exclusion(row, rule):
     provenance = row.get("provenance", {}) if isinstance(row.get("provenance"), dict) else {}
-    source = str(row.get("source", ""))
+    source = original_source_identity(row)
     release = str(row.get("source_release", ""))
     group = str(row.get("group_id", ""))
     url = _row_source_url(row)
@@ -248,7 +253,11 @@ def read_inputs(paths: list[Path], args):
                     rejected["empty_group_id"] += 1
                     continue
                 source = str(row["source"]).strip()
-                source_key = (language, source)
+                original_source = original_source_identity(row)
+                if not original_source:
+                    rejected["missing_original_source_identity"] += 1
+                    continue
+                source_key = (language, original_source)
                 if text in source_seen[source_key]:
                     rejected[f"source_duplicate_within_source:{language}:{source}"] += 1
                     continue
@@ -313,7 +322,7 @@ def _select_source_balanced(bucket, target, preferred_share, hard_share):
     source_counts = Counter()
 
     for row in bucket:
-        source = row["source"]
+        source = original_source_identity(row)
         if source_counts[source] >= preferred_cap:
             continue
         selected.append(row)
@@ -326,7 +335,7 @@ def _select_source_balanced(bucket, target, preferred_share, hard_share):
     for row in bucket:
         if id(row) in selected_ids:
             continue
-        source = row["source"]
+        source = original_source_identity(row)
         if source_counts[source] >= hard_cap:
             continue
         selected.append(row)
@@ -479,7 +488,7 @@ def merge(args):
                         ensure_ascii=False, separators=(",", ":")
                     ) + "\n")
                     counts[f"{language}:{split}"] += 1
-                    source_counts[f"{row['source']}:{language}:core:{split}"] += 1
+                    source_counts[f"{original_source_identity(row)}:{language}:core:{split}"] += 1
         output_hashes[public_path.name] = digest(public_path.read_text(encoding="utf-8"))
 
     reserve_path = output / "reserve.jsonl"
@@ -492,7 +501,7 @@ def merge(args):
                     "source": row["source"],
                     "pool_role": "reserve",
                 }, ensure_ascii=False, separators=(",", ":")) + "\n")
-                source_counts[f"{row['source']}:{language}:reserve"] += 1
+                source_counts[f"{original_source_identity(row)}:{language}:reserve"] += 1
     output_hashes[reserve_path.name] = digest(reserve_path.read_text(encoding="utf-8"))
 
     if args.require_exact_counts and args.max_per_language:
@@ -508,7 +517,7 @@ def merge(args):
             available_by_source = defaultdict(Counter)
             for (language, split), bucket in by_bucket.items():
                 for row in bucket:
-                    available_by_source[f"{language}:{split}"][row["source"]] += 1
+                    available_by_source[f"{language}:{split}"][original_source_identity(row)] += 1
             diagnostic = {
                 "status": "candidate_incomplete",
                 "exact_split_shortfalls": shortfalls,
@@ -552,7 +561,7 @@ def merge(args):
         privacy_flag_counts.update(row.get("provenance", {}).get("privacy_flags", []))
         rights_status_counts[row.get("provenance", {}).get("rights_status", "unclassified")] += 1
         output_groups.add(row["group_id"])
-        output_groups_by_source[row["source"]].add(row["group_id"])
+        output_groups_by_source[original_source_identity(row)].add(row["group_id"])
         if row["pool_role"] == "core":
             core_group_ids.add(row["split_group_id"])
         else:
@@ -593,6 +602,7 @@ def merge(args):
         "counts": dict(sorted(counts.items())),
         "reserve_counts": dict(sorted(reserve_counts.items())),
         "source_counts": dict(sorted(source_counts.items())),
+        "source_counts_identity": "provenance.source_original_name, falling back to source only when absent",
         "source_quota_shortfalls": source_quota_shortfalls,
         "cross_language_collision_strings_removed": len(cross_language_texts),
         "rejected": dict(sorted(rejected.items())),
@@ -608,6 +618,7 @@ def merge(args):
         "reserve_group_count": len(reserve_group_ids),
         "candidate_group_count": len(group_splits),
         "group_counts_by_source": {source: len(groups) for source, groups in sorted(output_groups_by_source.items())},
+        "group_counts_source_identity": "original source identifier",
         "output_sha256": output_hashes,
         "exclusion_registry": {"path": str(exclusions_path) if exclusions_path else None,
                               "active_rules_loaded": len(exclusions),
