@@ -30,21 +30,16 @@ def test_source_and_language_overrides_are_explicit_and_inherit_defaults():
         acquisition_target(config, "unregistered_source", "hr")
     config["acquisition"]["source_language_overrides"]["leipzig_news.hr"] = 12345
     assert acquisition_target(config, "leipzig_news", "hr") == 12345
-    assert language_target(config, "is") == 30000
+    assert language_target(config, "is") == 35000
     config["candidate"]["language_target_overrides"]["is"] = 24000
     assert language_target(config, "is") == 24000
 
 
 def test_approved_source_scopes_and_deferred_final_selection_policy():
     config = load_config()
-    assert set(config["acquisition"]["source_rules"]["leipzig_news"]["languages"]) == {
-        "hr", "fi", "el", "mt", "sl", "is"
-    }
-    assert set(config["acquisition"]["source_rules"]["dgt_tm_2021"]["languages"]) == {
-        "hr", "fi", "el", "mt", "sl"
-    }
+    assert all("languages" not in rule for rule in config["acquisition"]["source_rules"].values())
     assert config["acquisition"]["first_pass_target_per_source_language"] == 20000
-    assert config["candidate"]["final_sentences_per_language"] == 30000
+    assert config["candidate"]["final_sentences_per_language"] == 35000
     assert config["candidate"]["final_selection_status"] == "deferred_pending_user_review"
     assert config["candidate"]["source_balance"]["enabled"] is False
     assert config["jql"]["consensus_disagreement_penalty"] == 0.5
@@ -112,5 +107,20 @@ def test_fineweb2_retry_policy_is_bounded_and_configured():
 def test_common_voice_has_no_configured_language_allowlist():
     config = load_config()
     assert "languages" not in config["acquisition"]["source_rules"]["common_voice_v22"]
-    for language in config["languages"]:
+    for language in config["project"]["languages"]
         assert acquisition_target(config, "common_voice_v22", language) == 20000
+
+
+def test_debug_profile_uses_small_source_and_language_targets():
+    from pathlib import Path
+
+    debug_path = Path(__file__).resolve().parents[1] / "config/langid32-debug.toml"
+    debug = load_config(debug_path)
+    assert debug["profile"]["name"] == "debug"
+    assert debug["acquisition"]["first_pass_target_per_source_language"] == 200
+    assert debug["candidate"]["final_sentences_per_language"] == 350
+    for source, rule in debug["acquisition"]["source_rules"].items():
+        if not rule.get("exclude", False):
+            assert rule.get("target", 200) == 200, source
+    assert acquisition_target(debug, "gaois_irish_legislation", "ga") == 200
+    assert language_target(debug, "is") == 350
