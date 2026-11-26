@@ -75,6 +75,29 @@ def clean(value, language, rules=None):
     return text
 
 
+def un_arabic_provenance(item, row_index, revision):
+    """Preserve available row metadata without inventing a source-document identifier."""
+    provenance = {
+        "dataset_repo": "ymoslem/UN-Arabic-English-Filtered",
+        "repo_commit": revision,
+        "source_row_index": int(row_index),
+        "publisher": "United Nations",
+        "attribution_required": True,
+        "required_citation_id": "ziemski-junczys-dowmunt-pouliquen-2016",
+    }
+    record_id = item.get("id")
+    if record_id is not None and str(record_id).strip():
+        provenance["source_record_id"] = str(record_id)
+    document_url = item.get("url") or item.get("source_url")
+    if document_url:
+        provenance["source_document_url"] = str(document_url)
+    for field_name in ("date", "title", "source"):
+        value = item.get(field_name)
+        if value is not None:
+            provenance[field_name] = value
+    return provenance
+
+
 def fetch(url, destination, max_attempts=None):
     """Download with resumable byte ranges; verify the complete payload hash."""
     max_attempts = max_attempts or load_config()["execution"]["max_download_attempts"]
@@ -319,7 +342,7 @@ def main():
                     "hold_attribution_and_source_provenance_review")
         raise ValueError(f"No source metadata mapping for {source}")
 
-    def add(language, source, value, group_id="", provenance=None):
+    def add(language, source, value, group_id="", provenance=None, source_record_id_from_group=True):
         text = clean(value, language, waiting_text_rules)
         if not text:
             privacy_counts["source_quality_rejected"] += 1
@@ -352,10 +375,11 @@ def main():
         if text_hash in seen[bucket_key] or quota_reached(bucket_key):
             return
         release, licence, origin, rights_status = source_metadata(source)
-        source_record_id = str(group_id or text_hash)
+        group_identity = str(group_id or text_hash)
         prov = dict(safe_provenance)
+        if source_record_id_from_group:
+            prov["source_record_id"] = group_identity
         prov.update({
-            "source_record_id": source_record_id,
             "rights_status": rights_status,
             "privacy_flags": list(privacy.flags),
         })
@@ -364,7 +388,7 @@ def main():
             "language": language,
             "source": source,
             "source_release": release,
-            "group_id": f"{source}:{source_record_id}",
+            "group_id": f"{source}:{group_identity}",
             "licence_id": licence,
             "text_origin": origin,
             "provenance": prov,
@@ -1065,17 +1089,18 @@ def main():
                         if quota_reached(arabic_bucket):
                             stream_exhausted = False
                             break
-                        document_id = str(item.get("id") or item.get("url") or processed)
-                        provenance = {
-                            "dataset_repo": "ymoslem/UN-Arabic-English-Filtered",
-                            "repo_commit": revisions["un_arabic"],
-                            "source_record_id": document_id,
-                        }
-                        for key in ("url", "date", "title", "source"):
-                            if item.get(key) is not None:
-                                provenance[key] = item[key]
+                        record_id = item.get("id")
+                        document_url = item.get("url") or item.get("source_url")
+                        group_identity = str(
+                            record_id or document_url
+                            or f"row:{processed}"
+                        )
+                        provenance = un_arabic_provenance(
+                            item, processed, revisions["un_arabic"]
+                        )
                         add("ar", "un_arabic_english_filtered:text_ar",
-                            item.get("text_ar"), document_id, provenance)
+                            item.get("text_ar"), group_identity, provenance,
+                            source_record_id_from_group=False)
                         processed += 1
                         if processed % 512 == 0:
                             persist_arabic_stream_state()
