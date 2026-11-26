@@ -1,4 +1,5 @@
 import importlib.util
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -41,20 +42,22 @@ def test_common_voice_curation_retains_safe_sentence_provenance_only(tmp_path, m
     output_root = tmp_path / "output"
     locale_dir = input_root / "fi"
     locale_dir.mkdir(parents=True)
+    tsv_content = (
+        "sentence_id\\tsentence\\tvariant\\tsentence_domain\\tsource\\tis_used\\tclips_count\\tsource_locale\\n"
+        "fi-1\\tTämä on riittävän pitkä suomenkielinen testilause.\\tstandard\\teveryday\\tuser\\ttrue\\t2\\tfi\\n"
+    )
+    tsv_bytes = tsv_content.encode("utf-8")
+    (locale_dir / "validated_sentences.tsv").write_bytes(tsv_bytes)
+    tsv_sha256 = hashlib.sha256(tsv_bytes).hexdigest()
     (input_root / "hf-common-voice-download-manifest.json").write_text(
         json.dumps({
             "source": "fsicoli/common_voice_22_0",
             "revision_resolved": "a" * 40,
             "results": [{
                 "locale": "fi", "repo_commit": "b" * 40,
-                "sha256": "c" * 64, "bytes": 1234,
+                "sha256": tsv_sha256, "bytes": len(tsv_bytes),
             }],
         }),
-        encoding="utf-8",
-    )
-    (locale_dir / "validated_sentences.tsv").write_text(
-        "sentence_id\tsentence\tvariant\tsentence_domain\tsource\tis_used\tclips_count\tsource_locale\n"
-        "fi-1\tTämä on riittävän pitkä suomenkielinen testilause.\tstandard\teveryday\tuser\ttrue\t2\tfi\n",
         encoding="utf-8",
     )
     monkeypatch.setattr(sys, "argv", [
@@ -73,5 +76,5 @@ def test_common_voice_curation_retains_safe_sentence_provenance_only(tmp_path, m
     assert provenance["sentence_variant"] == "standard"
     assert provenance["sentence_domain"] == "everyday"
     assert provenance["repo_commit"] == "b" * 40
-    assert provenance["source_tsv_sha256"] == "c" * 64
+    assert provenance["source_tsv_sha256"] == tsv_sha256
     assert not {"client_id", "path", "age", "gender", "accent"} & set(provenance)
