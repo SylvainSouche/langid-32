@@ -135,13 +135,13 @@ The current staged workflow's source coverage is narrower than the full set of a
 | Common Voice 22 text-only (fi, el, mt, sl, is) | `stages/01-acquisition/targets/common-voice.py`, `scripts/download_common_voice_hf.py`, `scripts/curate_common_voice_hf.py` | Active; fresh HF acquisition |
 | FineWeb2, TeMU CC0, BSC-LT legal, Målfrid 2026, Korean Wikipedia, UN Arabic-English Filtered | `scripts/acquire_waiting_sources.py` via the waiting-source job | Active technical candidates; each source's rights hold/status in the source register remains binding |
 | Gaois Irish legislation, Irish side only | `scripts/acquire_gaois_irish_legislation.py`, `stages/01-acquisition/targets/gaois.py` | Active; accepted 50,000-record bounded sample |
-| IGC2024 Filtered-1 | Audit workflow/script only; no candidate extraction adapter in the staged workflow | Audited/registered, **not acquired by this pipeline** |
+| IGC2024 Filtered-1 | `scripts/acquire_waiting_sources.py --source icelandic` downloads the Filtered-1 archive and scans it into candidate records under source ID `igc` | Active; fresh acquisition in the waiting-source matrix |
 | Greynir Copper and Silver | Audit workflow/script only; no candidate extraction adapter in the staged workflow | Audited/registered, **not acquired by this pipeline** |
 | MaCoCu-hr 2.0, MaCoCu-mt 2.0, MaCoCu-sl 2.0 | Full archive audit workflows/scripts only; no paragraph-to-candidate adapter in the staged workflow | Audited/registered, **not acquired by this pipeline** |
 | ParlaMint 4.0 (IS/SI) | TEI audit workflow/script only; no utterance-to-candidate adapter in the staged workflow | Audited/registered, **not acquired by this pipeline** |
 | Soranoha Japanese literature | Audit artifact/source-register entry only; no active config rule or staged acquisition adapter | Audited/registered, **not acquired by this pipeline** |
 
-The `config/langid32.toml` currently contains target rules for IGC, Greynir Copper/Silver, MaCoCu and ParlaMint despite the absence of acquisition adapters/jobs for them. These config entries are not evidence that their text enters the candidate pool. **Do not silently count these sources or imply source completeness.** Before a full acquisition launch, the intended scope of these audited-but-not-integrated sources must be resolved: implement and test adapters, or explicitly defer them in the source register/config and record that scope decision here. This is a launch blocker if the user's intended current source set includes them.
+The `config/langid32.toml` contains target rules for Greynir Copper/Silver, MaCoCu and ParlaMint despite the absence of acquisition adapters/jobs for them. These config entries are not evidence that their text enters the candidate pool. **Do not silently count these sources or imply source completeness.** Before a full acquisition launch, the intended scope of these audited-but-not-integrated sources must be resolved: implement and test adapters, or explicitly defer them in the source register/config and record that scope decision here. This is a launch blocker if the user's intended current source set includes them.
 
 ### Resolved findings from run #178
 
@@ -156,7 +156,7 @@ The `config/langid32.toml` currently contains target rules for IGC, Greynir Copp
 ### Remaining verification gates
 
 - Latest CI must pass, including Python tests, the synthetic candidate→assessment→shard→three-rating-manifest→global-pruning integration test, CPU bfloat16 operation and actionlint over all workflows.
-- Resolve the source-scope blocker in the source-adapter matrix: determine whether IGC2024, Greynir Copper/Silver, MaCoCu, ParlaMint and Soranoha are required in this current candidate run. If required, implement and test their acquisition adapters; if deferred, update the source register and configuration with the user's explicit scope decision. Do not silently omit or claim they are included.
+- Resolve the source-scope blocker in the source-adapter matrix: determine whether Greynir Copper/Silver, MaCoCu, ParlaMint and Soranoha are required in this current candidate run. If required, implement and test their acquisition adapters; if deferred, update the source register and configuration with the user's explicit scope decision. Do not silently omit or claim they are included.
 - The historical job must validate the full Leipzig JSONL as well as the other three snapshots before any fresh acquisition job starts.
 - A clean real-data run must complete all in-scope acquisitions, candidate construction, every JQL shard, exact merge/pruning and encrypted artifact upload. The run must produce reconciled per-language × original-source counts.
 - The user then manually reviews privacy and source-rights outputs. No final 30k selection or publication follows automatically.
