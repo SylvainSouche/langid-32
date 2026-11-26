@@ -23,17 +23,29 @@ def main() -> None:
             raise SystemExit("Pipeline push trigger is allowed only on main")
         payload_path = Path(os.environ.get("GITHUB_EVENT_PATH", ""))
         payload = json.loads(payload_path.read_text(encoding="utf-8"))
-        commits = payload.get("commits", [])
-        declared_size = payload.get("size")
-        if declared_size is not None and int(declared_size) != len(commits):
-            raise SystemExit(
-                "Push event commit list is incomplete; refusing to validate a possibly truncated change set"
-            )
-        changed = {
-            name
-            for commit in commits
-            for name in (commit.get("added", []) + commit.get("modified", []) + commit.get("removed", []))
-        }
+        # GitHub push payloads may omit the commits array (notably for some
+        # generated/large pushes). Compare the exact before/after commits via
+        # the GitHub API instead of treating an empty payload list as a diff.
+        before = payload.get("before")
+        after = payload.get("after") or os.environ.get("GITHUB_SHA")
+        token = os.environ.get("GH_TOKEN", "")
+        if not before or not after or not token:
+            raise SystemExit("Push event is missing before/after SHA or GH_TOKEN; refusing guarded run")
+        import urllib.error
+        import urllib.request
+        request = urllib.request.Request(
+            f"https://api.github.com/repos/{os.environ.get('GITHUB_REPOSITORY', 'SylvainSouche/langid-32')}/compare/{before}...{after}",
+            headers={"Accept": "application/vnd.github+json", "Authorization": f"Bearer {token}",
+                     "X-GitHub-Api-Version": "2022-11-28"},
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=30) as response:
+                comparison = json.loads(response.read().decode("utf-8"))
+        except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError) as exc:
+            raise SystemExit(f"Could not verify guarded push commit diff: {exc}") from exc
+        if comparison.get("status") not in {"ahead", "identical"}:
+            raise SystemExit(f"Unexpected push comparison status: {comparison.get('status')}")
+        changed = {item["filename"] for item in comparison.get("files", [])}
         if changed != {"pipeline-trigger.json"}:
             raise SystemExit(
                 "A guarded pipeline push must modify pipeline-trigger.json and no other path; "
