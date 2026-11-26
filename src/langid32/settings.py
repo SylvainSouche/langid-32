@@ -95,6 +95,10 @@ def validate_jql_policy(config: dict[str, Any]) -> None:
         raise ValueError("JQL disagreement must use population standard deviation")
     if int(jql.get("max_seconds", 0)) != 3600:
         raise ValueError("JQL scoring batches must be capped at 3,600 seconds")
+    if int(jql.get("assessment_batch_size", 0)) != 2000 or int(jql.get("shard_batch_rows", 0)) != 8192:
+        raise ValueError("JQL Parquet preparation must use the configured bounded batch sizes")
+    if int(jql.get("inference_batch_size", 0)) != 8:
+        raise ValueError("JQL model inference batch size must remain 8")
     if int(jql.get("shard_count", 0)) != 8 or int(jql.get("max_parallel_shards", 0)) != 4:
         raise ValueError("JQL must use eight deterministic shards and at most four concurrent workers")
     timeout = int(jql.get("job_timeout_minutes", 0))
