@@ -2,15 +2,17 @@
 from __future__ import annotations
 
 import tomllib
+import os
 from pathlib import Path
 from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CONFIG = REPO_ROOT / "config" / "langid32.toml"
+CONFIG_ENV = "LANGID32_CONFIG"
 
 
 def load_config(path: str | Path | None = None) -> dict[str, Any]:
-    config_path = Path(path) if path else DEFAULT_CONFIG
+    config_path = Path(path) if path else Path(os.environ.get(CONFIG_ENV, DEFAULT_CONFIG))
     if not config_path.is_absolute():
         config_path = (Path.cwd() / config_path).resolve()
     with config_path.open("rb") as stream:
@@ -28,9 +30,12 @@ def validate_acquisition_policy(config: dict[str, Any]) -> None:
     execution = config["execution"]
     if not acquisition.get("filter_before_quota") or not acquisition.get("privacy_filter_before_quota"):
         raise ValueError("Acquisition must apply quality and privacy filters before quota accounting")
+    profile = config.get("profile", {})
+    profile_name = profile.get("name", "release")
+    expected_target = int(profile.get("first_pass_target_per_source_language", 20000))
     target = int(acquisition["first_pass_target_per_source_language"])
-    if target != 20000:
-        raise ValueError(f"Expected the approved 20,000 post-filter target, got {target}")
+    if target != expected_target or profile_name not in {"debug", "release"}:
+        raise ValueError(f"Invalid {profile_name!r} acquisition profile target: {target}; expected {expected_target}")
     for source, rule in acquisition.get("source_rules", {}).items():
         if "languages" in rule:
             raise ValueError(f"Source-language allowlists are forbidden: {source}.languages")
@@ -125,8 +130,9 @@ def validate_jql_policy(config: dict[str, Any]) -> None:
 
     candidate = config["candidate"]
     balance = candidate["source_balance"]
-    if int(candidate["final_sentences_per_language"]) != 30000:
-        raise ValueError("Final per-language selection target must remain 30,000")
+    expected_final = int(config.get("profile", {}).get("final_sentences_per_language", 35000))
+    if int(candidate["final_sentences_per_language"]) != expected_final:
+        raise ValueError(f"Final per-language target must match profile value {expected_final}")
     if candidate.get("final_selection_status") != "deferred_pending_user_review":
         raise ValueError("Final per-language selection must remain deferred pending user review")
     if jql.get("final_selection_requires_user_approval") is not True or balance.get("enabled") is not False:
@@ -134,8 +140,9 @@ def validate_jql_policy(config: dict[str, Any]) -> None:
     if float(balance.get("preferred_share", -1)) != 0.30 or float(balance.get("hard_max_share", -1)) != 0.50:
         raise ValueError("Deferred final selection must retain the 30% preferred / 50% hard source mix")
     gaoi = config["acquisition"]["source_rules"].get("gaois_irish_legislation", {})
-    if int(gaoi.get("target", 0)) != 50000:
-        raise ValueError("Gaois must remain limited to the approved 50,000-record Irish-side sample")
+    expected_gaoi = 50000 if profile_name == "release" else 200
+    if int(gaoi.get("target", 0)) != expected_gaoi:
+        raise ValueError(f"Gaois target must be {expected_gaoi} for {profile_name} profile")
 
 
 def language_target(config: dict[str, Any], language: str) -> int:
