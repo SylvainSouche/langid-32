@@ -2,7 +2,7 @@ import gzip
 
 import pytest
 
-from src.langid32.greynir import COPPER_FILES, PARTITION_FILES, REVISION, iter_sentences
+from src.langid32.greynir import COPPER_FILES, PARTITION_FILES, REVISION, _terminals, iter_sentences
 
 
 def _write(path, records):
@@ -72,3 +72,9 @@ def test_greynir_rejects_unbalanced_records(tmp_path):
     _write(path, ["( (META (ID-CORPUS broken)"])
     with pytest.raises(RuntimeError, match="incomplete tree record"):
         list(iter_sentences(path, "copper"))
+
+
+
+def test_greynir_preserves_multiword_terminal_nodes():
+    node = ["person_ef_kvk", "Anna", "Jónsdóttir", ["lemma", "Anna Jónsdóttir"]]
+    assert _terminals(node) == ["Anna", "Jónsdóttir"]
