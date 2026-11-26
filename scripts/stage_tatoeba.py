@@ -6,6 +6,7 @@ import argparse
 import csv
 import hashlib
 import json
+import os
 import sqlite3
 import tempfile
 import unicodedata
@@ -236,7 +237,7 @@ def main():
     parser.add_argument("--sentences-base", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--source-release", default="weekly-2026-11-14")
-    parser.add_argument("--config", type=Path, default=ROOT / "config/langid32.toml")
+    parser.add_argument("--config", type=Path, default=Path(os.environ.get("LANGID32_CONFIG", ROOT / "config/langid32.toml")) )
     parser.add_argument("--target-per-language", type=int, default=None)
     parser.add_argument("--min-chars", type=int, default=None)
     parser.add_argument("--max-chars", type=int, default=None)
