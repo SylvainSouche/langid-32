@@ -31,6 +31,9 @@ jobs:
     outputs:
       matrix: ${{ steps.config.outputs.matrix }}
       max_parallel: ${{ steps.config.outputs.max_parallel }}
+      max_seconds: ${{ steps.config.outputs.max_seconds }}
+      job_timeout_minutes: ${{ steps.config.outputs.job_timeout_minutes }}
+      work_budget_minutes: ${{ steps.config.outputs.work_budget_minutes }}
       python_version: ${{ steps.config.outputs.python_version }}
       short_retention_days: ${{ steps.config.outputs.short_retention_days }}
       retention_days: ${{ steps.config.outputs.retention_days }}
@@ -88,7 +91,7 @@ jobs:
     needs: prepare
     name: Score shard ${{ matrix.index }}
     runs-on: ubuntu-latest
-    timeout-minutes: 360
+    timeout-minutes: ${{ needs.prepare.outputs.job_timeout_minutes }}
     strategy:
       fail-fast: false
       max-parallel: ${{ fromJSON(needs.prepare.outputs.max_parallel) }}
@@ -96,6 +99,8 @@ jobs:
     env:
       HF_HOME: ${{ github.workspace }}/.cache/huggingface
       HF_HUB_DISABLE_TELEMETRY: "1"
+      JQL_MAX_SECONDS: ${{ needs.prepare.outputs.max_seconds }}
+      JQL_WORK_BUDGET_MINUTES: ${{ needs.prepare.outputs.work_budget_minutes }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -129,8 +134,8 @@ jobs:
           output="ratings/shard-${{ matrix.index }}.csv"
           mkdir -p ratings
           while true; do
-            if (( SECONDS - started >= 350 * 60 )); then
-              echo "Shard did not finish within the 350-minute work budget; preserving partial ratings."
+            if (( SECONDS - started >= JQL_WORK_BUDGET_MINUTES * 60 )); then
+              echo "Shard did not finish within the configured work budget; preserving partial ratings."
               exit 76
             fi
             python scripts/score_jql_parquet.py \
@@ -138,7 +143,7 @@ jobs:
               --output "$output" \
               --device cpu \
               --config config/langid32.toml \
-              --max-seconds 3600 \
+              --max-seconds "$JQL_MAX_SECONDS" \
               --resume
             status=$?
             if [ "$status" -eq 0 ]; then
