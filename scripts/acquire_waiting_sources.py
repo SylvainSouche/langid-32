@@ -81,7 +81,7 @@ def un_arabic_provenance(item, row_index, revision):
         "dataset_repo": "ymoslem/UN-Arabic-English-Filtered",
         "repo_commit": revision,
         "source_row_index": int(row_index),
-        "publisher": "United Nations",
+        "publisher_id": "united-nations",
         "attribution_required": True,
         "required_citation_id": "ziemski-junczys-dowmunt-pouliquen-2016",
     }
