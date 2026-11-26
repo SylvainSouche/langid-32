@@ -48,7 +48,8 @@ def main() -> None:
     parser.add_argument("--config", type=Path, default=ROOT / "config/langid32.toml")
     args = parser.parse_args()
     config = load_config(args.config)
-    out_of_training = set(config["jql"]["out_of_training_languages"])
+    out_of_training_languages = list(config["jql"]["out_of_training_languages"])
+    out_of_training = set(out_of_training_languages)
     if not args.all:
         parser.error("--all is mandatory")
     if args.batch_size < 1:
@@ -134,7 +135,7 @@ def main() -> None:
             "unique_ids": rows,
             "assessment_parquet_sha256": sha256_file(args.output),
             "source_identity": "provenance.source_original_name, falling back to source only when no family mapping exists",
-            "jql_out_of_training_languages": sorted(out_of_training),
+            "jql_out_of_training_languages": out_of_training_languages,
             "out_of_training_domain_counts_by_language_source": [
                 {"language": language, "source": source, "count": count}
                 for (language, source), count in sorted(counts.items())
