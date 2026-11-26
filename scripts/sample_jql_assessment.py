@@ -15,6 +15,16 @@ def sentence_id(language: str, source: str, sentence: str) -> str:
     return hashlib.sha256("\0".join((language, source, sentence)).encode("utf-8")).hexdigest()
 
 
+def original_source_id(row: dict, source: str) -> str:
+    provenance = row.get("provenance")
+    if not isinstance(provenance, dict):
+        provenance = {}
+    original_source = str(provenance.get("source_original_name") or source).strip()
+    if not original_source:
+        raise ValueError("missing original source identity")
+    return original_source
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", required=True, type=Path)
@@ -77,14 +87,10 @@ def main() -> None:
                         raise ValueError(
                             f"{args.input}:{line_number}: duplicate assessment ID {ident}"
                         ) from exc
-                    provenance = row.get("provenance")
-                    if not isinstance(provenance, dict):
-                        provenance = {}
-                    original_source = str(provenance.get("source_original_name") or source).strip()
-                    if not original_source:
-                        raise ValueError(
-                            f"{args.input}:{line_number}: missing original source identity"
-                        )
+                    try:
+                        original_source = original_source_id(row, source)
+                    except ValueError as exc:
+                        raise ValueError(f"{args.input}:{line_number}: {exc}") from exc
                     batch.append({
                         "id": ident, "lang": language, "sentence": sentence,
                         "source": source, "source-variant": original_source,
