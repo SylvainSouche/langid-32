@@ -9,6 +9,8 @@ on:
 permissions:
   actions: read
   contents: read
+env:
+  LANGID32_CONFIG: config/langid32-debug.toml
 jobs:
   config:
     runs-on: ubuntu-latest
