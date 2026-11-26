@@ -206,7 +206,7 @@ def main() -> None:
     ap.add_argument("--pruned-output-csv", type=Path)
     ap.add_argument("--pruned-output-parquet", type=Path)
     ap.add_argument("--pruning-summary", type=Path)
-    ap.add_argument("--config", type=Path, default=ROOT / "config/langid32.toml")
+    ap.add_argument("--config", type=Path, default=Path(os.environ.get("LANGID32_CONFIG", ROOT / "config/langid32.toml")))
     args = ap.parse_args()
     full_config = load_config(args.config)
     jql_config = full_config["jql"]
