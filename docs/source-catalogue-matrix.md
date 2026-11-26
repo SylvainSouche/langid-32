@@ -69,7 +69,7 @@ Historical pilot: 259,352 rows across 33 labels; it is not reused as a current c
 
 **Description.** Multilingual Common Crawl-derived web-text dataset. The historical v5 artifact contains 510,702 FineWeb2 rows across 31 labels. A historical waiting-source artifact also contains FineWeb2 samples for Catalan and Icelandic. The current configuration and workflow schedule all 33 FineWeb2 non-English project-language subsets; no project-language allowlist is applied.
 
-**Sentence matrix.** Historical v5 total: 510,702 rows across 31 labels; the checked-in summary does not provide a complete 31-language breakdown. Current fresh matrix: all 31 available non-English project subsets are scheduled; exact eligible sentence counts are not yet measured by a successful clean full run. English is naturally separate in FineWeb, not a FineWeb2 language subset.
+**Sentence matrix.** Historical v5 total: 510,702 rows across 31 labels; the checked-in summary does not provide a complete 31-language breakdown. Current fresh matrix: all 33 available non-English project-language subsets are scheduled; exact eligible sentence counts are not yet measured by a successful clean full run. English is naturally separate in FineWeb, not a FineWeb2 language subset.
 
 **Licence and attribution.** ODC-BY 1.0 applies to the database/compilation, not automatically to individual page contents (ODC-BY §2.4). The dataset card also points to Common Crawl Terms of Use. The underlying web-page rights are not individually established by the compilation licence. This uncertainty is a rights-review question; it is not evidence that all crawled text is categorically prohibited. Keep rights status distinct from technical candidate eligibility and from the project's inclusion decision.
 
