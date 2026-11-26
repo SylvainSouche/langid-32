@@ -276,7 +276,7 @@ jobs:
             --pruned-output-csv results/jql-consensus-pruned.csv \
             --pruned-output-parquet results/jql-consensus-pruned.parquet \
             --pruning-summary results/jql-pruning-summary.json \
-            --config config/langid32.toml
+            --config "$LANGID32_CONFIG"
           cp jql-work/out/jql-assessment-full.parquet result-work/out/
           cp -R results/. result-work/out/
       - name: Encrypt full and pruned JQL outputs
