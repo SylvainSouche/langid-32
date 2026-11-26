@@ -56,6 +56,43 @@ def read_rating_files(directory: Path) -> tuple[dict[str, dict], dict[str, int]]
     return merged, file_rows
 
 
+def validate_split_manifest(
+    assessment_path: Path,
+    shards_dir: Path,
+    assessment_rows: int,
+    expected_shards: int,
+) -> tuple[dict, dict[str, dict]]:
+    manifest_path = shards_dir / "manifest.json"
+    if not manifest_path.is_file():
+        raise SystemExit("Missing deterministic JQL split manifest")
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    if manifest.get("input") != assessment_path.name:
+        raise SystemExit("JQL split manifest references a different assessment file")
+    if manifest.get("input_sha256") != sha256(assessment_path, 1024 * 1024):
+        raise SystemExit("JQL split manifest assessment hash mismatch")
+    if int(manifest.get("rows", -1)) != assessment_rows:
+        raise SystemExit("JQL split manifest assessment row count mismatch")
+    if int(manifest.get("shards", -1)) != expected_shards:
+        raise SystemExit("JQL split manifest shard count mismatch")
+    files = manifest.get("files")
+    if not isinstance(files, list) or len(files) != expected_shards:
+        raise SystemExit("JQL split manifest has an incomplete shard file list")
+    file_map = {}
+    for item in files:
+        name = str(item.get("file", ""))
+        if not name or Path(name).name != name or not name.endswith(".parquet") or name in file_map:
+            raise SystemExit(f"Invalid or duplicate shard filename in split manifest: {name!r}")
+        path = shards_dir / name
+        if not path.is_file() or sha256(path, 1024 * 1024) != item.get("sha256"):
+            raise SystemExit(f"JQL shard file hash mismatch: {name}")
+        if int(item.get("rows", -1)) < 1:
+            raise SystemExit(f"JQL shard is empty or has invalid row count: {name}")
+        file_map[name] = item
+    if sum(int(item["rows"]) for item in file_map.values()) != assessment_rows:
+        raise SystemExit("JQL split shard row counts do not sum to assessment row count")
+    return manifest, file_map
+
+
 def read_score_manifests(
     directory: Path,
     file_rows: dict[str, int],
@@ -177,6 +214,17 @@ def main() -> None:
     model_provenance, shard_manifests = read_score_manifests(
         args.ratings_dir, rating_file_rows, args.shards_dir, int(jql_config["shard_count"])
     )
+    split_manifest, split_files = validate_split_manifest(
+        args.input, args.shards_dir, len(frame), int(jql_config["shard_count"])
+    )
+    scored_files = {item["input_file"]: item for item in shard_manifests}
+    if set(scored_files) != set(split_files):
+        raise SystemExit("Scored shard set differs from deterministic split manifest")
+    for filename, split_item in split_files.items():
+        scored_item = scored_files[filename]
+        if (scored_item["input_sha256"] != split_item["sha256"]
+                or scored_item["input_rows"] != int(split_item["rows"])):
+            raise SystemExit(f"Scored shard provenance mismatch: {filename}")
     model_info = model_provenance["models"]
     if model_info.get("embedder_repository") != jql_config["embedder_model"]:
         raise SystemExit("JQL embedding repository does not match the authoritative config")
@@ -292,6 +340,7 @@ def main() -> None:
         "input_sha256": sha256(args.input, chunk_bytes),
         "ratings_files": [p.name for p in sorted(args.ratings_dir.glob("*.csv"))],
         "model_provenance": model_provenance,
+        "split_manifest_sha256": sha256(args.shards_dir / "manifest.json", chunk_bytes),
         "shard_manifests": shard_manifests,
         "ratings_rows": len(ratings),
         "quantile_normalization": "average ranks mapped through standard-normal inverse CDF; ties share average rank",
