@@ -109,4 +109,4 @@ def test_waiting_source_record_rights_status_preserves_registered_holds():
     assert "| **BSC-LT Legal Catalan-Spanish Parallel Corpus**" in register
     assert "**STAGED / HOLD**" in register
     assert "| **UN Arabic-English Filtered**" in register
-    assert "**STAGED / ATTRIBUTION + PROVENANCE HOLD**" in register
+    assert "**STAGED / ATTRIBUTION + PROVENANCE HOLD;" in register
