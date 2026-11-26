@@ -47,7 +47,7 @@ Build a private, reproducible, multi-source candidate pool for all 34 configured
 
 ### Stage 3 — JQL assessment and pruning
 
-- Assess **every row** in the post-filter candidate pool. Sampling is forbidden. The staged workflow must pass `--all` and the assessment manifest must prove exact one-to-one coverage of candidate IDs. The retained `assessment_sample_per_language=1000` config value is only for optional diagnostic/sample mode; it does not limit the staged full-pool assessment. The archived 34k experiment is not a current input.
+- Assess **every row** in the post-filter candidate pool. Sampling is forbidden. The staged workflow must pass `--all`; configuration also requires `assessment_sample_per_language=0` and `max_rows=0`. The assessment manifest must prove exact one-to-one coverage of candidate IDs. No sampling or row cap is permitted; the archived 34k experiment is not a current input.
 - Score independently with Gemma, Mistral and Llama JQL heads. Preserve all three raw scores and model/repository immutable revisions.
 - Use the Snowflake Arctic Embed M v2.0 embedder pinned by the configured commit SHA and the balanced JQL-Edu heads from `JQL-AI/JQL-Edu-Heads`. Resolve the head repository's `main` selector to a commit SHA before downloading any checkpoint; use that immutable SHA for every download and require all shards to report the same resolved SHA.
 - Match the published inference recipe: CLS pooling, L2-normalized embeddings, 768→1000→1 regression heads, bfloat16 inference. Pin Python 3.11, PyTorch 2.6.0, Transformers 4.44.2 and Hugging Face Hub 0.26.5. Record exact runtime versions and checkpoint SHA-256 values in every shard manifest; reject drift at merge.
