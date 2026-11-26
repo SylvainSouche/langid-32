@@ -9,10 +9,10 @@ def test_stage_tatoeba_uses_cc0_only_and_preserves_base_groups(tmp_path):
     base = tmp_path / "sentences_base.csv"
     with cc0.open("w", encoding="utf-8", newline="") as stream:
         writer = csv.writer(stream, delimiter="\t")
-        writer.writerow([1, "eng", "Hello there.", "2026-11-14"])
-        writer.writerow([2, "fra", "Bonjour à tous.", "2026-11-14"])
-        writer.writerow([3, "fra", "Bonjour tout le monde.", "2026-11-14"])
-        writer.writerow([4, "deu", "Guten Tag.", "2026-11-14"])
+        writer.writerow([1, "fin", "Hei siellä.", "2026-11-14"])
+        writer.writerow([2, "fin", "Hyvää päivää.", "2026-11-14"])
+        writer.writerow([3, "fin", "Terve kaikille.", "2026-11-14"])
+        writer.writerow([4, "fin", "Hyvää huomenta.", "2026-11-14"])
     with base.open("w", encoding="utf-8", newline="") as stream:
         writer = csv.writer(stream, delimiter="\t")
         writer.writerow([1, "0"])
@@ -29,7 +29,7 @@ def test_stage_tatoeba_uses_cc0_only_and_preserves_base_groups(tmp_path):
     stage(args)
     rows = [json.loads(line) for line in output.read_text().splitlines()]
     assert len(rows) == 4
-    assert rows[0]["language"] == "en"
+    assert rows[0]["language"] == "fi"
     assert rows[1]["group_id"] == rows[2]["group_id"] == "tatoeba:base:1"
     assert rows[1]["text_origin"] == "translated"
     assert rows[0]["text_origin"] == "original"
