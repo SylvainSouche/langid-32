@@ -119,11 +119,11 @@ def test_split_manifest_rejects_missing_rows_or_unsafe_paths(tmp_path):
     assessment.write_bytes(b"assessment")
     manifest = {
         "input": assessment.name,
-        "input_sha256": "x",
+        "input_sha256": __import__("hashlib").sha256(assessment.read_bytes()).hexdigest(),
         "rows": 1,
         "shards": 1,
         "files": [{"file": "../outside.parquet", "rows": 1, "sha256": "x"}],
     }
     (shards / "manifest.json").write_text(json.dumps(manifest))
-    with pytest.raises(SystemExit, match="assessment hash mismatch"):
+    with pytest.raises(SystemExit, match="Invalid or duplicate shard filename"):
         validate_split_manifest(assessment, shards, 1, 1)
