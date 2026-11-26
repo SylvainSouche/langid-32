@@ -3,6 +3,8 @@ from pathlib import Path
 import subprocess
 import sys
 
+import torch
+
 from scripts.check_sentence_boundaries import (
     capitalization_status,
     punctuation_status,
@@ -40,3 +42,15 @@ def test_final_30k_selection_is_fail_closed_until_user_approval():
     )
     assert result.returncode != 0
     assert "FINAL SELECTION DISABLED BY CONTRACT" in result.stderr
+
+
+def test_cpu_bfloat16_regression_head_operations_are_supported():
+    head = torch.nn.Sequential(
+        torch.nn.Linear(768, 1000),
+        torch.nn.ReLU(),
+        torch.nn.Linear(1000, 1),
+    ).to(dtype=torch.bfloat16)
+    embeddings = torch.randn(2, 768, dtype=torch.bfloat16)
+    scores = head(embeddings)
+    assert scores.dtype == torch.bfloat16
+    assert scores.shape == (2, 1)
