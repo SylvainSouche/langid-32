@@ -1,0 +1,282 @@
+# langid-32 corpus policy — single operational source of numeric rules.
+# Per-language and per-source overrides belong in the *_overrides tables below.
+# A missing override inherits the corresponding default. Do not copy numeric
+# policy values into workflows or scripts; load this file through langid32.settings.
+schema_version = 1
+
+[project]
+languages = ["bg","hr","cs","da","nl","en","et","fi","fr","de","el","hu","ga","it","lv","lt","mt","pl","pt","ro","sk","sl","es","sv","nb","nn","ru","ja","zh","ko","ar","tr","ca","is"]
+
+[acquisition]
+# First pass: stream up to this many eligible, unique records from EACH
+# individual source for EACH language. This is not a family-wide/candidate cap.
+first_pass_target_per_source_language = 20000
+# Retain all eligible unique sentences up to this cap per original source/language.
+# Underfilled cells stay underfilled; never top up from another source.
+filter_before_quota = true
+privacy_filter_before_quota = true
+reject_unregistered_sources = true
+seed = "langid-32-fineweb2-v1"
+# No override currently approved. Keys are source identifiers, then language.
+[acquisition.source_language_overrides]
+# Example: "leipzig_news.hr" = 15000
+# Example: "common_voice_v22.is" = 18000
+
+[acquisition.source_rules.leipzig_news]
+target = 20000
+languages = ["hr", "fi", "el", "mt", "sl", "is"]
+exclude_unicode_decimal_digits = true
+
+[acquisition.source_rules.leipzig_wikipedia]
+target = 20000
+languages = ["hr", "fi", "el", "mt", "sl", "is"]
+exclude_unicode_decimal_digits = false
+
+[acquisition.source_rules.dgt_tm_2021]
+target = 20000
+languages = ["hr", "fi", "el", "mt", "sl"]
+max_segments_per_tmx_document_language = 20
+clear_body_every_translation_units = 1000
+
+[acquisition.source_rules.common_voice_v22]
+target = 20000
+languages = ["fi", "el", "mt", "sl", "is"]
+
+[acquisition.source_rules.common_voice_v22.text]
+min_characters = 12
+max_characters = 500
+max_utf8_bytes = 1500
+exclude_email = true
+exclude_url = true
+exclude_ipv4 = true
+exclude_phone_like = true
+exclude_long_numeric_sequences = true
+phone_min_digits = 9
+phone_max_digits = 15
+phone_min_separators = 2
+phone_candidate_min_intervening_characters = 7
+long_numeric_min_digits = 9
+
+[acquisition.source_rules.common_voice_v22.script]
+minimum_ratio = 0.70
+by_language = { fi = "LATIN", el = "GREEK", mt = "LATIN", sl = "LATIN", is = "LATIN" }
+
+[acquisition.source_rules.fineweb2]
+target = 20000
+languages = ["hr", "fi", "el", "mt", "sl", "is"]
+
+[acquisition.source_rules.tatoeba_cc0]
+target = 20000
+languages = ["fi"]
+
+[acquisition.source_rules.igc]
+target = 20000
+languages = ["is"]
+status = "include_attribution_and_source_provenance"
+
+[acquisition.source_rules.gaois_irish_legislation]
+target = 20000
+languages = ["ga"]
+status = "include_cc_by_4_0_derivative_original_legislation_rights_review"
+
+[acquisition.source_rules.gaois_irish_legislation.text]
+min_characters = 40
+max_characters = 12000
+min_alpha_characters = 25
+min_alpha_ratio = 0.45
+exclude_email = true
+exclude_url = true
+exclude_long_numeric = true
+exclude_ipv4 = true
+
+[acquisition.source_rules.bsc_legal]
+target = 20000
+languages = ["ca"]
+status = "technical_candidate_only_constituent_terms_hold"
+
+[acquisition.source_rules.korean_wikipedia_20231101]
+target = 20000
+languages = ["ko"]
+status = "technical_candidate_only_share_alike_compatibility_hold"
+
+[acquisition.source_rules.maalfrid2026]
+target = 20000
+languages = ["nb", "nn"]
+status = "technical_candidate_only_database_and_third_party_rights_hold"
+
+[acquisition.source_rules.temu_cc0]
+target = 20000
+languages = ["ca"]
+status = "cc0_component_union_source_level_review"
+
+[acquisition.source_rules.un_arabic_english_filtered]
+target = 20000
+languages = ["ar"]
+status = "include_cc_by_4_0_attribution_and_provenance"
+
+[acquisition.source_rules.macocu]
+target = 20000
+languages = ["hr", "mt", "sl"]
+
+[acquisition.source_rules.parlamint]
+target = 20000
+languages = ["is", "sl"]
+
+[acquisition.source_rules.greynir_copper]
+target = 20000
+languages = ["is"]
+
+[acquisition.source_rules.greynir_silver]
+target = 20000
+languages = ["is"]
+
+[acquisition.source_rules.fineweb]
+exclude = true
+status = "hold_underlying_web_text_rights_unresolved"
+
+[acquisition.source_rules.catalan_dpo_v2]
+exclude = true
+status = "exclude_pending_source_traceable_rights_review"
+
+[acquisition.source_rules.greynir]
+exclude = true
+status = "exclude_generic_partition_unspecified"
+
+[acquisition.source_rules.greynir_gold_dev]
+exclude = true
+status = "exclude_development_test_partition"
+
+[acquisition.source_rules.greynir_gold_dev_test]
+exclude = true
+status = "exclude_development_test_partition"
+
+[acquisition.source_rules.waiting_sources]
+target = 20000
+min_characters = 40
+max_characters = 12000
+min_letters = 25
+min_letter_ratio = 0.45
+arabic_min_script_characters = 10
+arabic_min_script_ratio = 0.35
+arabic_unicode_start = 1536
+arabic_unicode_end = 1791
+minimum_retained_records = 1000
+exclude_email = true
+exclude_url = true
+exclude_ipv4 = true
+exclude_long_numeric_sequences = true
+long_numeric_min_digits = 9
+
+[acquisition.text]
+# Applied before source/language cap and before JQL.
+min_characters = 12
+max_characters = 500
+max_utf8_bytes = 1500
+min_letter_characters = 8
+min_letter_ratio = 0.45
+exclude_email = true
+exclude_url = true
+exclude_ipv4 = true
+exclude_phone_like = true
+exclude_long_numeric_sequences = true
+exclude_personal_names = true
+exclude_personal_addresses = true
+# Source privacy flags and deterministic patterns/NER must be applied; uncertain matches are quarantined.
+privacy_uncertain_action = "quarantine"
+
+[candidate]
+# Final corpus size and source mix are deferred until the post-JQL pool is reported.
+final_sentences_per_language = 30000
+final_source_target_per_language = 10000
+final_selection_status = "deferred_pending_user_review"
+[candidate.language_target_overrides]
+# Set overrides only after reviewing post-pruning per-language/source availability.
+
+[candidate.source_balance]
+enabled = false
+
+[candidate.splits]
+validation_fraction = 0.10
+test_fraction = 0.10
+train_fraction = 0.80
+seed = "langid-32-v6-2026-11-18"
+
+[candidate.text]
+min_characters = 12
+max_characters = 500
+max_utf8_bytes = 1500
+
+[candidate.privacy]
+phone_min_digits = 9
+phone_max_digits = 15
+phone_min_separators = 2
+phone_candidate_min_intervening_characters = 7
+long_numeric_min_digits = 9
+
+[jql]
+enabled = true
+judges = ["gemma", "mistral", "llama"]
+embedder_model = "Snowflake/snowflake-arctic-embed-m-v2.0"
+head_repository = "JQL-AI/JQL-Edu-Heads"
+head_checkpoints = { gemma = "checkpoints/edu-gemma-snowflake-balanced.ckpt", mistral = "checkpoints/edu-mistral-snowflake-balanced.ckpt", llama = "checkpoints/edu-llama-snowflake-balanced.ckpt" }
+score_decimal_places = 6
+quantile_epsilon = 0.000001
+score_scale = "raw model regression output; nominal 0-5"
+normalization = "independent_quantile_to_standard_normal"
+normalization_scope = "full_assessment_corpus_per_judge"
+consensus_mean_weight = 1.0
+consensus_disagreement_penalty = 0.5
+disagreement_standard_deviation = "population"
+# Normalize each judge over the full filtered assessment pool, then prune the
+# bottom quarter by normalized consensus. Final 30k/source selection is deferred.
+selection_effect = "bottom_quantile_pruning"
+apply_quality_floor = false
+prune_bottom_quantile = 0.25
+pruning_scope = "global_all_languages_after_full_corpus_normalization"
+diagnostic_global_quantile = 0.25
+publish_post_pruning_report = true
+final_selection_requires_user_approval = true
+assessment_sample_per_language = 1000
+assessment_all_candidate_rows = true
+assessment_seed = "langid-32-jql-assessment-2026-11-19"
+max_seconds = 3600
+max_rows = 0
+embedding_dimension = 768
+head_hidden_dimension = 1000
+inference_batch_size = 8
+max_token_length = 8192
+cpu_torch_threads = 2
+shard_count = 8
+max_parallel_shards = 4
+python_version = "3.11"
+short_artifact_retention_days = 2
+
+[quality]
+# Boundary checks are annotations/QA flags, not automatic corpus exclusions.
+initial_capitalization = "record_flag_only"
+terminal_punctuation = "record_flag_only"
+
+[execution]
+# Acquisition is scheduled in bounded file batches. Counts are post-filter, post-dedup.
+acquisition_files_per_batch = 1
+acquisition_max_parallel_source_tasks = 4
+acquisition_job_timeout_minutes = 300
+acquisition_global_budget_minutes = 330
+acquisition_safety_margin_minutes = 30
+acquisition_retry_attempts = 3
+acquisition_checkpoint_every_files = 1
+# Runtime controls are centralized here too; workflows should reference these.
+python_version = "3.12"
+leipzig_pause_seconds = 1
+artifact_retention_days = 30
+checkpoint_retention_days = 7
+max_download_attempts = 12
+sqlite_insert_batch_size = 5000
+sqlite_join_batch_size = 10000
+http_connect_timeout_seconds = 30
+http_probe_timeout_seconds = 60
+http_read_timeout_seconds = 300
+download_chunk_bytes = 1048576
+file_copy_chunk_bytes = 8388608
+fsspec_block_bytes = 4194304
+curl_retry_count = 3
