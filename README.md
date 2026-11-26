@@ -13,7 +13,7 @@ Build a balanced, reproducible text corpus for 34 language labels:
 - Norwegian Bokmål (`nb`) and Nynorsk (`nn`) as separate labels.
 - Chinese (`zh`), combining the intended Simplified and Traditional source varieties.
 
-Target **30,000 usable records per language**: a 20,000-record core plus up to 10,000 reserve. A language must have at least 20,000 usable records to meet the minimum. Counts are measured only after normalization, privacy filtering, language/content checks, global exact deduplication and source quota enforcement.
+Target **30,000 usable records per language**: a 20,000-record core plus up to 10,000 reserve. A language must have at least 20,000 usable records to meet the minimum. These target counts are evaluated only after normalization, privacy filtering, language/content checks, global exact deduplication, full-pool JQL pruning and the later final source-share selection; that final selection is deferred pending explicit approval.
 
 Source mix target: **30% preferred, 50% hard ceiling per source and language**. Any exception must be explicit, justified and reported; a single-source class is not considered balanced.
 
