@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import hashlib
 import json
 import sys
@@ -77,7 +78,7 @@ def validate_snapshot(root: Path, filename: str, languages: set[str]) -> dict:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=Path("."))
-    parser.add_argument("--config", type=Path, default=ROOT / "config/langid32.toml")
+    parser.add_argument("--config", type=Path, default=Path(os.environ.get("LANGID32_CONFIG", ROOT / "config/langid32.toml")))
     args = parser.parse_args()
     cfg = load_config(args.config)
     languages = set(cfg["project"]["languages"])
