@@ -140,7 +140,7 @@ def test_staged_workflow_targets_and_referenced_scripts_exist_at_run_commit():
     assert script_refs
     assert all((root / path).is_file() for path in script_refs)
 
-    matrix_targets = set(re.findall(r"- target: ([a-z0-9-]+)", workflow))
+    matrix_targets = set(re.findall(r"^\\s*-\\s*target:\\s*([a-z0-9-]+)", workflow))
     assert matrix_targets
     assert all((targets / f"{name}.py").is_file() for name in matrix_targets)
     for target in matrix_targets - {"gaois"}:
