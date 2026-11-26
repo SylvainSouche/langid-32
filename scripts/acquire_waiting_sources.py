@@ -854,6 +854,14 @@ def main():
                 subprocess.run([
                     "git", "-C", str(repository), "checkout", "--detach", "FETCH_HEAD",
                 ], check=True, env=lfs_env)
+                checked_out_revision = subprocess.check_output([
+                    "git", "-C", str(repository), "rev-parse", "HEAD",
+                ], text=True).strip()
+                if checked_out_revision != GREYNIR_REVISION:
+                    raise RuntimeError(
+                        f"Greynir checkout revision mismatch: "
+                        f"{checked_out_revision} != {GREYNIR_REVISION}"
+                    )
 
                 for partition in ("copper", "silver"):
                     source = f"greynir_{partition}"
