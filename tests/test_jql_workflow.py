@@ -54,3 +54,15 @@ def test_cpu_bfloat16_regression_head_operations_are_supported():
     scores = head(embeddings)
     assert scores.dtype == torch.bfloat16
     assert scores.shape == (2, 1)
+
+
+
+def test_jql_scoring_invocation_cannot_overrun_job_upload_budget():
+    root = Path(__file__).resolve().parents[1]
+    workflow = (root / ".github/workflows/score-jql-assessment.yml").read_text(encoding="utf-8")
+    scorer = (root / "scripts/score_jql_parquet.py").read_text(encoding="utf-8")
+    assert 'invocation_budget=$((remaining - 60))' in workflow
+    assert '--max-runtime-seconds "$invocation_budget"' in workflow
+    assert 'process_started = time.monotonic()' in scorer
+    assert 'runtime_limit_reached' in scorer
+    assert 'args.max_seconds' in scorer
