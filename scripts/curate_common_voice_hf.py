@@ -62,11 +62,20 @@ def main() -> None:
     resolved_revision = str(download_manifest.get("revision_resolved") or "")
     if not resolved_revision:
         raise SystemExit("Common Voice manifest has no immutable dataset revision.")
-    policy_digest = hashlib.sha256(
-        Path(__file__).read_bytes()
-        + (ROOT / "src/langid32/privacy.py").read_bytes()
-        + args.config.read_bytes()
-    ).hexdigest()[:12]
+    policy_files = [
+        Path(__file__),
+        ROOT / "scripts/download_common_voice_hf.py",
+        ROOT / "stages/01-acquisition/targets/common-voice.py",
+        ROOT / "src/langid32/privacy.py",
+        args.config,
+    ]
+    policy_hash = hashlib.sha256()
+    for policy_file in sorted(set(policy_files), key=lambda item: str(item)):
+        label = (policy_file.relative_to(ROOT).as_posix()
+                 if policy_file.is_relative_to(ROOT) else policy_file.name)
+        policy_hash.update(label.encode("utf-8"))
+        policy_hash.update(policy_file.read_bytes())
+    policy_digest = policy_hash.hexdigest()[:12]
     state_db = open_state(
         args.output / f"common-voice-acquisition-{resolved_revision[:12]}-{policy_digest}.sqlite"
     )
