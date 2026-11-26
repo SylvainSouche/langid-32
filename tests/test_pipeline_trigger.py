@@ -102,3 +102,14 @@ def test_manual_dispatch_does_not_require_push_trigger_file(tmp_path, monkeypatc
     MODULE.main()
     result = json.loads((tmp_path / "out/pipeline-trigger-validation.json").read_text())
     assert result == {"event": "workflow_dispatch", "status": "not_applicable"}
+
+
+
+def test_preflight_manifest_uses_actual_common_voice_acquisition_path():
+    root = Path(__file__).resolve().parents[1]
+    emitter = (root / "scripts/emit_runtime_config.py").read_text(encoding="utf-8")
+    target = (root / "stages/01-acquisition/targets/common-voice.py").read_text(encoding="utf-8")
+    assert '"input/common-voice/**"' in emitter
+    assert 'root / "input/common-voice/source"' in target
+    assert 'root / "input/common-voice"' in target
+    assert '"input/common_voice/**"' not in emitter
