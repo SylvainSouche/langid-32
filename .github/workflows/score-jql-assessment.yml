@@ -115,6 +115,9 @@ jobs:
           path: quality/sentence-boundary-flags.csv
           if-no-files-found: error
           retention-days: ${{ steps.config.outputs.short_retention_days }}
+      - name: Remove plaintext assessment workspaces
+        if: always()
+        run: rm -rf source stage jql-work quality jql-shards.bin
 
   score:
     needs: prepare
@@ -218,6 +221,9 @@ jobs:
           if-no-files-found: error
           retention-days: ${{ needs.prepare.outputs.short_retention_days }}
           overwrite: true
+      - name: Remove plaintext shard workspace
+        if: always()
+        run: rm -rf jql-work encrypted previous ratings
 
   merge:
     needs: [prepare, score]
@@ -282,3 +288,6 @@ jobs:
           path: jql-pruned-pool.bin
           if-no-files-found: error
           retention-days: ${{ needs.prepare.outputs.retention_days }}
+      - name: Remove plaintext scoring and merge workspaces
+        if: always()
+        run: rm -rf jql-work encrypted ratings quality results result-work jql-pruned-pool.bin
