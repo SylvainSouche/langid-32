@@ -28,8 +28,11 @@ def main() -> None:
             for commit in payload.get("commits", [])
             for name in (commit.get("added", []) + commit.get("modified", []) + commit.get("removed", []))
         }
-        if "pipeline-trigger.json" not in changed:
-            raise SystemExit("A push run must be caused by a pipeline-trigger.json modification")
+        if changed != {"pipeline-trigger.json"}:
+            raise SystemExit(
+                "A guarded pipeline push must modify pipeline-trigger.json and no other path; "
+                f"changed paths were {sorted(changed)}"
+            )
         trigger_path = ROOT / "pipeline-trigger.json"
         trigger = json.loads(trigger_path.read_text(encoding="utf-8"))
         if trigger.get("run_mode") != "clean_full_pipeline":
