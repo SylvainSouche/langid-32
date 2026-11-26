@@ -291,13 +291,8 @@ def main():
                     "declared_cc0_accepted")
 
         if source in {"greynir_copper", "greynir_silver"}:
-            from langid32.greynir import REVISION as GREYNIR_REVISION, PARTITION_FILES
+            from langid32.greynir import REVISION as GREYNIR_REVISION
             partition = source.rsplit("_", 1)[1]
-            relative = PARTITION_FILES[partition]
-            item = next((row for row in downloads
-                         if row.get("source_file") == relative), None)
-            if item is None:
-                raise RuntimeError(f"Missing pinned Greynir file manifest for {relative}")
             return (f"GreynirCorpus-1.1-{partition}@{GREYNIR_REVISION}",
                     "CC-BY-4.0",
                     f"Icelandic parsed sentence from GreynirCorpus 1.1 {partition}; publisher Miðeind ehf.",
@@ -835,11 +830,11 @@ def main():
 
         elif args.source == "greynir":
             from langid32.greynir import (
+                COPPER_FILES as GREYNIR_COPPER_FILES,
                 PARTITION_FILES as GREYNIR_FILES, REVISION as GREYNIR_REVISION,
                 UPSTREAM as GREYNIR_UPSTREAM, iter_sentences,
             )
             repository = temp_root / "GreynirCorpus"
-            include = ",".join(GREYNIR_FILES.values())
             try:
                 if not repository.exists():
                     subprocess.run(["git", "init", str(repository)], check=True)
@@ -848,58 +843,75 @@ def main():
                         "origin", GREYNIR_UPSTREAM + ".git",
                     ], check=True)
                     subprocess.run([
-                        "git", "-C", str(repository), "fetch", "--depth=1",
-                        "origin", GREYNIR_REVISION,
-                    ], check=True)
-                    subprocess.run([
-                        "git", "-C", str(repository), "checkout", "--detach", "FETCH_HEAD",
-                    ], check=True)
-                    subprocess.run([
                         "git", "-C", str(repository), "lfs", "install", "--local",
                     ], check=True)
                     subprocess.run([
-                        "git", "-C", str(repository), "lfs", "fetch",
-                        f"--include={include}", "origin", GREYNIR_REVISION,
+                        "git", "-C", str(repository), "fetch", "--depth=1",
+                        "origin", GREYNIR_REVISION,
                     ], check=True)
+                    lfs_env = {**__import__("os").environ, "GIT_LFS_SKIP_SMUDGE": "1"}
                     subprocess.run([
-                        "git", "-C", str(repository), "lfs", "checkout",
-                    ], check=True)
+                        "git", "-C", str(repository), "checkout", "--detach", "FETCH_HEAD",
+                    ], check=True, env=lfs_env)
 
                 for partition in ("copper", "silver"):
                     source = f"greynir_{partition}"
                     bucket_key = ("is", source)
                     if quota_reached(bucket_key):
                         continue
-                    relative = GREYNIR_FILES[partition]
-                    corpus_file = repository / relative
-                    if not corpus_file.is_file():
-                        raise RuntimeError(f"Pinned Greynir file is missing: {relative}")
-                    with corpus_file.open("rb") as stream:
-                        if stream.read(200).startswith(b"version https://git-lfs.github.com/spec"):
-                            raise RuntimeError(f"Greynir LFS object was not hydrated: {relative}")
-                    digest = hashlib.sha256()
-                    size = 0
-                    with corpus_file.open("rb") as stream:
-                        for block in iter(lambda: stream.read(EXECUTION["file_copy_chunk_bytes"]), b""):
-                            digest.update(block)
-                            size += len(block)
-                    downloads.append({
-                        "source_file": relative,
-                        "url": f"{GREYNIR_UPSTREAM}/blob/{GREYNIR_REVISION}/{relative}",
-                        "bytes": size,
-                        "sha256": digest.hexdigest(),
-                        "revision": GREYNIR_REVISION,
-                    })
-                    for record in iter_sentences(corpus_file, partition):
+                    relative_files = (
+                        GREYNIR_COPPER_FILES if partition == "copper"
+                        else (GREYNIR_FILES["silver"],)
+                    )
+                    files_scanned = 0
+                    for relative in relative_files:
                         if quota_reached(bucket_key):
                             break
-                        add("is", source, record["text"], record["group_id"], record["provenance"])
+                        subprocess.run([
+                            "git", "-C", str(repository), "lfs", "fetch",
+                            f"--include={relative}", "origin", GREYNIR_REVISION,
+                        ], check=True)
+                        subprocess.run([
+                            "git", "-C", str(repository), "lfs", "checkout", relative,
+                        ], check=True)
+                        corpus_file = repository / relative
+                        if not corpus_file.is_file():
+                            raise RuntimeError(f"Pinned Greynir file is missing: {relative}")
+                        with corpus_file.open("rb") as stream:
+                            if stream.read(200).startswith(b"version https://git-lfs.github.com/spec"):
+                                raise RuntimeError(f"Greynir LFS object was not hydrated: {relative}")
+                        digest = hashlib.sha256()
+                        size = 0
+                        with corpus_file.open("rb") as stream:
+                            for block in iter(lambda: stream.read(EXECUTION["file_copy_chunk_bytes"]), b""):
+                                digest.update(block)
+                                size += len(block)
+                        file_sha256 = digest.hexdigest()
+                        downloads.append({
+                            "source_file": relative,
+                            "url": f"{GREYNIR_UPSTREAM}/blob/{GREYNIR_REVISION}/{relative}",
+                            "bytes": size,
+                            "sha256": file_sha256,
+                            "revision": GREYNIR_REVISION,
+                        })
+                        files_scanned += 1
+                        for record in iter_sentences(corpus_file, partition):
+                            if quota_reached(bucket_key):
+                                break
+                            provenance = dict(record["provenance"])
+                            provenance["source_file_sha256"] = file_sha256
+                            add("is", source, record["text"], record["group_id"], provenance)
+                        if quota_reached(bucket_key):
+                            break
                     if quota_reached(bucket_key):
-                        notes.append(f"Greynir {partition}: reached the source/language quota.")
+                        notes.append(
+                            f"Greynir {partition}: reached the source/language quota "
+                            f"after {files_scanned} file(s)."
+                        )
                     else:
                         notes.append(
-                            f"Greynir {partition}: source file exhausted at "
-                            f"{retained_count(state_db, source, 'is')} retained records."
+                            f"Greynir {partition}: exhausted all {files_scanned} eligible file(s) "
+                            f"at {retained_count(state_db, source, 'is')} retained records."
                         )
             finally:
                 shutil.rmtree(repository, ignore_errors=True)
