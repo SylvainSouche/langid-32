@@ -77,7 +77,7 @@ def main():
     ap.add_argument("--max-seconds", type=int, default=None, help="Maximum inference time for this resumable batch")
     ap.add_argument("--max-runtime-seconds", type=int, default=None, help="Hard cap for the complete process invocation, including model loading")
     ap.add_argument("--resume", action="store_true", help="Append to an existing ratings CSV and skip completed IDs")
-    ap.add_argument("--config", type=Path, default=ROOT / "config/langid32.toml")
+    ap.add_argument("--config", type=Path, default=Path(os.environ.get("LANGID32_CONFIG", ROOT / "config/langid32.toml")))
     ap.add_argument("--head-repo", default=None)
     args = ap.parse_args()
     jql_cfg = load_config(args.config)["jql"]
