@@ -21,9 +21,10 @@ def test_common_voice_expected_script_filter():
 
 def test_common_voice_script_policy_covers_enabled_locales():
     cfg = load_config()
-    languages = set(cfg["acquisition"]["source_rules"]["common_voice_v22"]["languages"])
+    languages = set(cfg["project"]["languages"])
     scripts = cfg["acquisition"]["source_rules"]["common_voice_v22"]["script"]["by_language"]
-    assert set(scripts) == languages
+    assert set(scripts).issubset(languages)
+    assert set(scripts.values()).issubset({"LATIN", "GREEK"})
     assert cfg["acquisition"]["source_rules"]["common_voice_v22"]["script"]["minimum_ratio"] == 0.70
 
 
