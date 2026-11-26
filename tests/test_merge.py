@@ -210,3 +210,12 @@ def test_source_balancing_uses_original_sources_not_family_labels():
     selected, counts = _select_source_balanced(rows, 2, 0.5, 0.5)
     assert len(selected) == 2
     assert counts == {"source-A": 1, "source-B": 1}
+
+def test_candidate_merge_rejects_per_language_final_selection_before_jql(tmp_path):
+    source = tmp_path / "candidate.jsonl"
+    row = _row("A sentence that should remain in the complete candidate pool.", "fr", "source-A", "doc-1")
+    source.write_text(json.dumps(row) + "\n")
+    args = _args(tmp_path, [source])
+    args.max_per_language = 30000
+    with pytest.raises(SystemExit, match="Pre-JQL per-language selection"):
+        merge(args)
