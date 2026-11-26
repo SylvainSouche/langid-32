@@ -42,6 +42,7 @@ Earlier workflow runs already uploaded text-bearing artifacts before this policy
 | Workflow run | Artifact | Contents |
 |---|---:|---|
 | [43950037392](https://github.com/SylvainSouche/langid-32/actions/runs/43950037392) | 14266897039 | Historical multisource candidate v5 records |
+| [44361364340](https://github.com/SylvainSouche/langid-32/actions/runs/44361364340) | 14454427333 | Pinned Leipzig multilingual historical candidate snapshot |
 | [44121162591](https://github.com/SylvainSouche/langid-32/actions/runs/44121162591) | 14345216923 | Tatoeba CC0 staged rows |
 | [44291075180](https://github.com/SylvainSouche/langid-32/actions/runs/44291075180) | 14421763101 | DGT-TM 2021 staged translation units |
 | [44241908630](https://github.com/SylvainSouche/langid-32/actions/runs/44241908630) | 14403758073 | Historical waiting-source candidate rows |
