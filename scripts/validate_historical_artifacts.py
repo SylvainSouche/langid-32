@@ -88,7 +88,7 @@ def main() -> None:
     result = {"historical_artifacts_preflight": "passed", "artifacts": verified}
     output = ROOT / "out" / "historical-artifact-preflight.json"
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(result, indent=2) + "\\n", encoding="utf-8")
+    output.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(result, indent=2))
 
 
