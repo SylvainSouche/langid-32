@@ -77,11 +77,19 @@ def main() -> None:
                         raise ValueError(
                             f"{args.input}:{line_number}: duplicate assessment ID {ident}"
                         ) from exc
+                    provenance = row.get("provenance")
+                    if not isinstance(provenance, dict):
+                        provenance = {}
+                    original_source = str(provenance.get("source_original_name") or source).strip()
+                    if not original_source:
+                        raise ValueError(
+                            f"{args.input}:{line_number}: missing original source identity"
+                        )
                     batch.append({
                         "id": ident, "lang": language, "sentence": sentence,
-                        "source": source, "source-variant": source,
+                        "source": source, "source-variant": original_source,
                     })
-                    counts[(language, source)] += 1
+                    counts[(language, original_source)] += 1
                     rows += 1
                     if len(batch) >= args.batch_size:
                         writer.write_table(pa.Table.from_pylist(batch, schema=schema))
@@ -96,7 +104,7 @@ def main() -> None:
             "sampling": False,
             "rows": rows,
             "unique_ids": rows,
-            "source_identity": "original source identifier",
+            "source_identity": "provenance.source_original_name, falling back to source only when no family mapping exists",
             "final_30k_selection": "deferred_pending_user_review",
             "counts_by_language_source": [
                 {"language": language, "source": source, "count": count}
