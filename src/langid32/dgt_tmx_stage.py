@@ -14,18 +14,16 @@ import zipfile
 from collections import Counter, defaultdict
 from pathlib import Path, PurePosixPath
 
+from langid32.settings import load_config, acquisition_target
+
 from langid32.merge import (
     EMAIL_RE, HTTP_FRAGMENT_RE, IPV4_RE,
     URL_RE, WEB_FRAGMENT_RE, split_for,
 )
 
-EU_LANGUAGES = {
-    "bg", "hr", "cs", "da", "nl", "en", "et", "fi", "fr", "de",
-    "el", "hu", "ga", "it", "lv", "lt", "mt", "pl", "pt", "ro",
-    "sk", "sl", "es", "sv",
-}
+EU_LANGUAGES = set(load_config()["acquisition"]["source_rules"]["dgt_tm_2021"]["languages"])
 XML_LANG = "{http://www.w3.org/XML/1998/namespace}lang"
-SEED = "langid-32-fineweb2-v1"
+SEED = load_config()["acquisition"]["seed"]
 LICENCE_ID = "EC-Reuse-Decision-2011-833-EU"
 
 
@@ -37,15 +35,18 @@ def normalize(value: str) -> str:
     return " ".join(unicodedata.normalize("NFC", value).split())
 
 
-def sha256_file(path: Path) -> str:
+def sha256_file(path: Path, chunk_bytes=None) -> str:
+    chunk_bytes = chunk_bytes or load_config()["execution"]["download_chunk_bytes"]
     digest = hashlib.sha256()
     with path.open("rb") as stream:
-        for block in iter(lambda: stream.read(1024 * 1024), b""):
+        for block in iter(lambda: stream.read(chunk_bytes), b""):
             digest.update(block)
     return digest.hexdigest()
 
 
-def iter_translation_units(stream):
+def iter_translation_units(stream, clear_every=None):
+    if clear_every is None:
+        clear_every = load_config()["acquisition"]["source_rules"]["dgt_tm_2021"]["clear_body_every_translation_units"]
     stack = []
     processed = 0
     for event, element in ET.iterparse(stream, events=("start", "end")):
@@ -58,7 +59,7 @@ def iter_translation_units(stream):
             processed += 1
             # Clear the <body> child list in batches; repeated Element.remove()
             # is quadratic for large TMX files.
-            if processed % 1000 == 0 and len(stack) > 1:
+            if processed % clear_every == 0 and len(stack) > 1:
                 parent = stack[-2]
                 if local_name(parent.tag) == "body":
                     parent.clear()
@@ -97,17 +98,35 @@ def heap_add(heap, limit: int, priority: int, text_hash: str, record):
 
 
 def stage(args):
+    global SEED, EU_LANGUAGES
+    cfg = load_config(getattr(args, "config", None))
+    SEED = cfg["acquisition"].get("seed", SEED)
+    dgt_rule = cfg["acquisition"]["source_rules"]["dgt_tm_2021"]
+    target_languages = tuple(getattr(args, "languages", None) or dgt_rule["languages"])
+    target_by_language = {lang: (args.target_per_language or acquisition_target(cfg, "dgt_tm_2021", lang)) for lang in target_languages}
+    EU_LANGUAGES = set(target_languages)
+    args.max_per_document_language = args.max_per_document_language or dgt_rule["max_segments_per_tmx_document_language"]
+    args.min_chars = args.min_chars or cfg["acquisition"]["text"]["min_characters"]
+    args.max_chars = args.max_chars or cfg["acquisition"]["text"]["max_characters"]
+    args.max_bytes = args.max_bytes or cfg["acquisition"]["text"]["max_utf8_bytes"]
     for path in args.archives:
         if not path.is_file():
             raise FileNotFoundError(path)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     counts = Counter()
     samples = defaultdict(list)
-    sample_caps = {
-        "train": args.target_per_language - 2 * round(args.target_per_language * 0.10),
-        "validation": round(args.target_per_language * 0.10),
-        "test": round(args.target_per_language * 0.10),
-    }
+    validation_fraction = cfg["candidate"]["splits"]["validation_fraction"]
+    test_fraction = cfg["candidate"]["splits"]["test_fraction"]
+    sample_caps = {}
+    for language, target in target_by_language.items():
+        validation_count = round(target * validation_fraction)
+        test_count = round(target * test_fraction)
+        sample_caps[language] = {
+            "train": target - validation_count - test_count,
+            "validation": validation_count,
+            "test": test_count,
+        }
+    chunk_bytes = cfg["execution"]["download_chunk_bytes"]
 
     with tempfile.TemporaryDirectory(prefix="langid32-dgt-stage-") as temp:
         db = sqlite3.connect(Path(temp) / "unique.sqlite")
@@ -122,11 +141,11 @@ def stage(args):
                         continue
                     counts["tmx_files_processed"] += 1
                     group_id = f"dgt-tm-2021:{archive_path.name}:{PurePosixPath(member).stem}"
-                    group_split = split_for(group_id, SEED, 0.10, 0.10)
+                    group_split = split_for(group_id, SEED, cfg["candidate"]["splits"]["validation_fraction"], cfg["candidate"]["splits"]["test_fraction"])
                     per_document = defaultdict(list)
                     try:
                         with archive.open(member) as stream:
-                            for tu in iter_translation_units(stream):
+                            for tu in iter_translation_units(stream, dgt_rule["clear_body_every_translation_units"]):
                                 counts["translation_units"] += 1
                                 tu_id = tu.attrib.get("tuid", "")
                                 for language, text in segments_from_tu(tu):
@@ -187,7 +206,7 @@ def stage(args):
                         counts[f"document_groups::{language}"] += 1
                         for neg_priority, text_hash, record in heap:
                             heap_add(samples[(language, group_split)],
-                                     sample_caps[group_split],
+                                     sample_caps[language][group_split],
                                      -neg_priority, text_hash, record)
             db.commit()
         db.close()
@@ -195,7 +214,7 @@ def stage(args):
     output_count = 0
     selected_counts = {}
     with args.output.open("w", encoding="utf-8", newline="\n") as output:
-        for language in sorted(EU_LANGUAGES):
+        for language in sorted(target_languages):
             for split in ("train", "validation", "test"):
                 heap = samples[(language, split)]
                 records = sorted(
@@ -210,7 +229,7 @@ def stage(args):
                     output_count += 1
 
     archive_info = [
-        {"name": path.name, "size_bytes": path.stat().st_size, "sha256": sha256_file(path)}
+        {"name": path.name, "size_bytes": path.stat().st_size, "sha256": sha256_file(path, chunk_bytes)}
         for path in sorted(args.archives)
     ]
     manifest = {
@@ -221,12 +240,12 @@ def stage(args):
         "source_licence": LICENCE_ID,
         "attribution": "European Commission, Directorate-General for Translation, DGT Translation Memory; reuse under Commission Decision 2011/833/EU. Preserve attribution and source release information.",
         "archives": archive_info,
-        "output_sha256": sha256_file(args.output),
+        "output_sha256": sha256_file(args.output, chunk_bytes),
         "output_records": output_count,
-        "languages": sorted(EU_LANGUAGES),
+        "languages": sorted(target_languages),
         "selection": {
             "seed": SEED,
-            "target_per_language": args.target_per_language,
+            "target_per_language_by_language": target_by_language,
             "selected_counts_by_language_split": selected_counts,
             "max_segments_per_tmx_document_language": args.max_per_document_language,
             "grouping": "all language segments from the same TMX file share a group_id",
@@ -258,15 +277,19 @@ def main():
     parser.add_argument("--archive", dest="archives", action="append", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--source-release", default="DGT-TM-release-2021")
-    parser.add_argument("--target-per-language", type=int, default=5000)
-    parser.add_argument("--max-per-document-language", type=int, default=20)
-    parser.add_argument("--min-chars", type=int, default=12)
-    parser.add_argument("--max-chars", type=int, default=500)
-    parser.add_argument("--max-bytes", type=int, default=1500)
+    parser.add_argument("--config", type=Path, default=None)
+    parser.add_argument("--target-per-language", type=int, default=None)
+    parser.add_argument("--max-per-document-language", type=int, default=None)
+    parser.add_argument("--min-chars", type=int, default=None)
+    parser.add_argument("--max-chars", type=int, default=None)
+    parser.add_argument("--max-bytes", type=int, default=None)
     args = parser.parse_args()
-    if args.target_per_language < 1 or args.max_per_document_language < 1:
+    if ((args.target_per_language is not None and args.target_per_language < 1)
+            or (args.max_per_document_language is not None and args.max_per_document_language < 1)):
         parser.error("target and per-document cap must be positive")
-    if args.min_chars < 1 or args.max_chars < args.min_chars or args.max_bytes < 1:
+    if ((args.min_chars is not None and args.min_chars < 1)
+            or (args.max_chars is not None and args.min_chars is not None and args.max_chars < args.min_chars)
+            or (args.max_bytes is not None and args.max_bytes < 1)):
         parser.error("invalid text length limits")
     stage(args)
 
