@@ -5,7 +5,13 @@ on:
     branches: [main]
     paths:
       - "pipeline-trigger.json"
-  workflow_dispatch:
+
+# A single guarded trigger commit starts one complete run; never run two
+# acquisition pipelines against the same repository state concurrently.
+concurrency:
+  group: langid32-clean-pipeline-main
+  cancel-in-progress: false
+
 permissions:
   actions: read
   contents: read
