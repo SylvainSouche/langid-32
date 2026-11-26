@@ -38,6 +38,14 @@ def priority(language: str, text: str) -> str:
     return hashlib.sha256(f"langid-32-cv-v1\0{language}\0{text}".encode()).hexdigest()
 
 
+def file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input-root", type=Path, required=True)
@@ -87,6 +95,17 @@ def main() -> None:
             continue
         cap = args.per_language_cap if args.per_language_cap is not None else acquisition_target(cfg, "common_voice_v22", language)
         source_key = "common_voice_v22"
+        source_meta = locale_metadata.get(language)
+        if not source_meta or not source_meta.get("repo_commit"):
+            raise RuntimeError(f"Missing resolved HF repository metadata for {language}")
+        actual_bytes = path.stat().st_size
+        actual_sha256 = file_sha256(path)
+        if actual_bytes != int(source_meta["bytes"]) or actual_sha256 != source_meta["sha256"]:
+            raise RuntimeError(
+                f"Common Voice {language} TSV does not match its download manifest: "
+                f"{actual_bytes} bytes/{actual_sha256} != "
+                f"{source_meta['bytes']} bytes/{source_meta['sha256']}"
+            )
         resolved_path = str(path.resolve())
         plan_file_batches(state_db, source_key, language, cap, [resolved_path], 1)
         batch = next_batch(state_db, source_key, language)
@@ -133,11 +152,11 @@ def main() -> None:
                         continue
                     sid = (row.get("sentence_id") or "").strip()
                     locale = (row.get("source_locale") or "").strip()
-                    if not sid or not locale:
-                        raise ValueError(f"{path}: row is missing sentence_id or source_locale")
-                    source_meta = locale_metadata.get(locale)
-                    if not source_meta or not source_meta.get("repo_commit"):
-                        raise ValueError(f"{path}: no immutable source revision recorded for locale {locale}")
+                    if not sid or locale != language:
+                        raise ValueError(
+                            f"{path}: expected non-empty sentence_id and source_locale={language!r}, "
+                            f"got {sid!r}/{locale!r}"
+                        )
                     group = f"common_voice_v22:{locale}:{sid}"
                     provenance = {
                         "dataset_repo": download_manifest.get("source"),
@@ -160,11 +179,7 @@ def main() -> None:
                     }
                     add_eligible(state_db, source_key, language, [record])
 
-            digest = hashlib.sha256()
-            with path.open("rb") as raw:
-                for chunk in iter(lambda: raw.read(1024 * 1024), b""):
-                    digest.update(chunk)
-            finish_batch(state_db, source_key, language, batch_no, {resolved_path: digest.hexdigest()})
+            finish_batch(state_db, source_key, language, batch_no, {resolved_path: actual_sha256})
         if (retained_count(state_db, source_key, language) < cap
                 and pending_batch_count(state_db, source_key, language) == 0):
             mark_exhausted(state_db, source_key, language)
