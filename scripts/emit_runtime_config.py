@@ -65,7 +65,7 @@ def main() -> None:
             "input/leipzig/leipzig-candidates.jsonl",
             "input/tatoeba/tatoeba-cc0-staged.jsonl",
             "input/dgt/dgt-tm-2021-staged.jsonl",
-            "input/common_voice/**",
+            "input/common-voice/**",
             "input/waiting/**",
         ],
         "expected_outputs": [
