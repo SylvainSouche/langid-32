@@ -7,6 +7,7 @@ import csv
 import gzip
 import hashlib
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -173,7 +174,7 @@ def main():
     parser.add_argument("--source", required=True)
     parser.add_argument("--out", required=True)
     parser.add_argument("--fineweb2-config")
-    parser.add_argument("--config", type=Path, default=ROOT / "config/langid32.toml")
+    parser.add_argument("--config", type=Path, default=Path(os.environ.get("LANGID32_CONFIG", ROOT / "config/langid32.toml")) )
     parser.add_argument("--state-db", type=Path, help="Durable SQLite acquisition state (defaults inside --out)")
     args = parser.parse_args()
     cfg = load_config(args.config)
