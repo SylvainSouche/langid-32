@@ -13,7 +13,7 @@ from langid32.settings import load_config
 
 
 def main() -> None:
-    config = load_config(ROOT / "config/langid32.toml")
+    config = load_config()
     count = int(config["jql"]["shard_count"])
     parallel = int(config["jql"]["max_parallel_shards"])
     max_seconds = int(config["jql"]["max_seconds"])
