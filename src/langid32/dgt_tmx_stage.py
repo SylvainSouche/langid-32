@@ -21,7 +21,8 @@ from langid32.merge import (
     URL_RE, WEB_FRAGMENT_RE, split_for,
 )
 
-EU_LANGUAGES = set("bg cs da de el en es et fi fr ga hr hu it lt lv mt nl pl pt ro sk sl sv".split())
+DGT_EU_LANGUAGES = frozenset("bg cs da de el en es et fi fr ga hr hu it lt lv mt nl pl pt ro sk sl sv".split())
+EU_LANGUAGES = set(DGT_EU_LANGUAGES)
 XML_LANG = "{http://www.w3.org/XML/1998/namespace}lang"
 SEED = load_config()["acquisition"]["seed"]
 LICENCE_ID = "EC-Reuse-Decision-2011-833-EU"
@@ -102,7 +103,7 @@ def stage(args):
     cfg = load_config(getattr(args, "config", None))
     SEED = cfg["acquisition"].get("seed", SEED)
     dgt_rule = cfg["acquisition"]["source_rules"]["dgt_tm_2021"]
-    target_languages = tuple(getattr(args, "languages", None) or sorted(EU_LANGUAGES))
+    target_languages = tuple(getattr(args, "languages", None) or sorted(DGT_EU_LANGUAGES))
     target_by_language = {lang: (args.target_per_language or acquisition_target(cfg, "dgt_tm_2021", lang)) for lang in target_languages}
     EU_LANGUAGES = set(target_languages)
     args.max_per_document_language = args.max_per_document_language or dgt_rule["max_segments_per_tmx_document_language"]
