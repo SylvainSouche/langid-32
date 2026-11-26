@@ -123,6 +123,9 @@ jobs:
           name: acquisition-historical
           path: checkpoint.bin
           retention-days: "${{ steps.runtime.outputs.checkpoint_retention_days }}"
+      - name: Remove plaintext working files
+        if: always()
+        run: rm -rf input out checkpoint.bin
   common-voice:
     if: github.ref == 'refs/heads/main'
     needs: [config, historical]
@@ -161,11 +164,18 @@ jobs:
           name: acquisition-common-voice
           path: checkpoint.bin
           retention-days: "${{ steps.runtime.outputs.checkpoint_retention_days }}"
+      - name: Remove plaintext working files
+        if: always()
+        run: rm -rf input out checkpoint.bin
   waiting-source:
     if: github.ref == 'refs/heads/main'
     needs: [config, historical]
     runs-on: ubuntu-latest
     timeout-minutes: ${{ fromJSON(needs.config.outputs.acquisition_job_timeout_minutes) }}
+    env:
+      HF_HOME: ${{ github.workspace }}/.cache/huggingface
+      HF_DATASETS_CACHE: ${{ github.workspace }}/.cache/huggingface/datasets
+      HF_HUB_CACHE: ${{ github.workspace }}/.cache/huggingface/hub
     strategy:
       fail-fast: false
       max-parallel: ${{ fromJSON(needs.config.outputs.acquisition_max_parallel_source_tasks) }}
@@ -227,6 +237,9 @@ jobs:
           name: acquisition-${{ matrix.target }}-${{ matrix.config || 'default' }}
           path: checkpoint.bin
           retention-days: ${{ steps.runtime.outputs.checkpoint_retention_days }}
+      - name: Remove plaintext working files and Hugging Face caches
+        if: always()
+        run: rm -rf input out .cache checkpoint.bin
   candidate:
     if: github.ref == 'refs/heads/main'
     needs: [config, historical, common-voice, waiting-source]
@@ -275,6 +288,9 @@ jobs:
           name: candidate-checkpoint
           path: candidate.bin
           retention-days: "${{ steps.runtime.outputs.checkpoint_retention_days }}"
+      - name: Remove plaintext working files
+        if: always()
+        run: rm -rf input out checkpoints candidate.bin
   jql:
     if: github.ref == 'refs/heads/main'
     needs: [config, candidate]
@@ -316,3 +332,6 @@ jobs:
           name: langid-32-jql-assessment-full-encrypted
           path: final.bin
           retention-days: "${{ steps.runtime.outputs.artifact_retention_days }}"
+      - name: Remove plaintext working files
+        if: always()
+        run: rm -rf input out checkpoint final.bin
