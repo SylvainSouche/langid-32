@@ -1022,7 +1022,7 @@ def main():
 
         elif args.source == "parlamint":
             from langid32.parlamint import SOURCES as PARLAMINT_SOURCES, iter_utterances
-            for language in ("is", "sl"):
+            for language in ("is", "sl", "tr"):
                 meta = PARLAMINT_SOURCES[language]
                 source = meta["source"]
                 bucket_key = (language, source)
@@ -1141,7 +1141,7 @@ def main():
             "korean": {"ko"},
             "fineweb2": {fineweb2_languages[args.fineweb2_config]} if args.source == "fineweb2" else set(),
             "arabic": {"ar"},
-            "parlamint": {"is", "sl"},
+            "parlamint": {"is", "sl", "tr"},
             "macocu": {"hr", "mt", "sl"},
             "greynir": {"is"},
         }
