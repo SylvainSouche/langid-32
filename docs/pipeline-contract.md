@@ -122,7 +122,7 @@ The shared acquisition budget plus reserve must remain within six hours. The JQL
 
 ## 5. Implementation audit baseline and current status
 
-The `config/langid32-debug.toml` profile is a bounded end-to-end validation configuration, not a different corpus scope: it keeps all 34 labels and all in-scope source rules while reducing every source quota to 200 and the per-language target to 350. The staged and downstream JQL workflows select this profile through `LANGID32_CONFIG`; change that value to `config/langid32.toml` in both workflows for release. The release configuration retains 20,000 per original source/language (with the separately approved Gaois 50,000 Irish-side exception) and 35,000 per language.
+The `config/langid32-debug.toml` profile is a bounded end-to-end validation configuration, not a different corpus scope: it keeps all 34 labels and all in-scope source rules while reducing every source quota to 200 and the per-language target to 350. The staged workflow selects the profile through `LANGID32_CONFIG`. The preflight manifest records the exact config path and SHA-256; downstream JQL retrieves and verifies that same file from the source run, so its profile cannot drift. For release, change `LANGID32_CONFIG` in `.github/workflows/langid32-pipeline.yml` to `config/langid32.toml`. The release configuration retains 20,000 per original source/language (with the separately approved Gaois 50,000 Irish-side exception) and 35,000 per language.
 
 The original audit baseline was `main` commit `1e6f8319b6cfd102c650c3b516cc4583d0d42730` on 2026-11-26. That baseline was not operational. The findings below record the corrections subsequently made on `main`; they do **not** claim a successful real-data end-to-end run.
 
