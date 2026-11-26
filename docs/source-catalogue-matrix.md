@@ -127,13 +127,13 @@ Historical pilot: 259,352 rows across 33 labels; it is not reused as a current c
 
 ### ParlaMint 4.0 — Icelandic, Slovenian and Turkish
 
-**Description.** TEI parliamentary corpora. Audit reports 928 Icelandic and 1,572 Slovenian session files; Turkish is also listed in the source inventory. Adapter groups segment-bearing utterances and fallback utterance records by session, preserves session/date and utterance/segment IDs, and keeps only the non-identifying role whitelist (chair, regular, guest). It excludes speaker references and person metadata.
+**Description.** TEI parliamentary corpora. Audit reports 928 Icelandic, 1,572 Slovenian and 1,335 Turkish session files. Adapter groups segment-bearing utterances and fallback utterance records by session, preserves session/date and utterance/segment IDs, and keeps only the non-identifying role whitelist (chair, regular, guest). It excludes speaker references and person metadata.
 
 **Sentence matrix.** is: sentence count not measured; sl: sentence count not measured; tr: sentence count not measured. Session-file counts are not sentence counts. The adapter now covers all three audited national releases (IS/SI/TR); verify Turkish production parsing and quota/exhaustion in the clean run.
 
 **Licence and attribution.** ParlaMint/CLARIN.SI attribution is required; inspect the exact national-corpus licence/terms in the pinned release manifest rather than assuming one blanket licence for every national corpus.
 
-**Pending questions/checks.** Verify Turkish is actually included in the active matrix and its precise licence/attribution. First production run must parse the real archives, count emitted segments, and report source/language quota or exhaustion. Keep speaker/person metadata excluded.
+**Pending questions/checks.** Confirm the exact Turkish national-corpus licence/attribution in the pinned release manifest. The production run must parse all three real archives, count emitted segments, and report source/language quota or exhaustion. Keep speaker/person metadata excluded.
 
 ### Gaois Parallel English-Irish Legislation Corpus — Irish side only
 
