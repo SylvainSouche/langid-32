@@ -1,14 +1,6 @@
 name: Prepare Hugging Face dataset metadata package
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "docs/huggingface-dataset-card.md"
-      - "docs/huggingface-licensing.md"
-      - "docs/source-register.md"
-      - "docs/source-attribution-register.md"
-      - ".github/workflows/prepare-hf-dataset.yml"
   workflow_dispatch:
 
 permissions:
