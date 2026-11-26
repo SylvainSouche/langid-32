@@ -21,7 +21,7 @@ HF card declares CC0-1.0 for this conversion. Do not conflate with other release
 
 ## Content and language coverage
 
-Crowd-contributed read prompts/transcripts; project locale map supports target languages except Croatian; zh-CN and zh-TW combined.
+Crowd-contributed read prompts/transcripts. The downloader knows a wider locale map, but the current approved acquisition is restricted by config to fi, el, mt, sl and is. Croatian is not in the Common Voice 22 target set; zh-CN/zh-TW are outside this run.
 
 ## Verified upstream availability (independent of project acquisition)
 
@@ -66,9 +66,19 @@ The pinned Hugging Face conversion includes `release_stats.py`, with provider-re
 
 The `zh` value is the raw sum of the `zh-CN` and `zh-TW` locale counts; cross-locale duplicates have not yet been removed. These are sentence counts, not audio-clip counts or project-selected records. The complete per-locale table is not yet transcribed; all other target-language cells remain unmeasured, not zero. Source file at pinned revision: https://huggingface.co/datasets/fsicoli/common_voice_22_0/blob/0ca7c0e9cf2c25897c13aa73c54003d8d6d1cf28/release_stats.py
 
-## Current langid-32 acquisition snapshot
+## Historical staged snapshot from an earlier run (not reused)
 
-9,000/language hard curator cap, followed by text/privacy filtering and deduplication. These are our sample counts, not upstream totals.
+The following records describe an earlier 9,000/language-cap acquisition. They are retained only as historical audit context. The current pipeline trigger has `artifact_reuse=false`; these rows and their artifacts are not inputs to the next fresh run.
+
+## Current approved run contract
+
+- Exact source: `fsicoli/common_voice_22_0`, fetched directly from Hugging Face.
+- Current target languages: `fi`, `el`, `mt`, `sl`, `is`.
+- Target: up to 20,000 eligible unique sentences per exact source/language; the quota is a ceiling, not a promise. The provider's published validated-sentence counts for these locales are all below 20,000.
+- Fetch only `transcript/<locale>/validated_sentences.tsv` at a commit resolved from the repository's current `main`; record resolved commit, ETag, byte count and SHA-256.
+- No audio, clips, speaker IDs, demographic metadata, Mozilla Data Collective, or per-locale terms-acceptance gate.
+- Apply validated/use status when present, language-specific script ratio, text-quality and privacy filters, within-language deduplication, and cross-language collision removal before the quota is counted.
+- The curation checkpoint policy digest includes the downloader, target script, curator, privacy module and config; a fresh workflow workspace prevents reuse of previous run checkpoints.
 
 | Language | Current staged records |
 |---|---:|
