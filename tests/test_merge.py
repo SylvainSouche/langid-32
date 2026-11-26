@@ -282,3 +282,31 @@ def test_source_exclusion_registry_matches_source_archive_url(tmp_path):
     merge(args)
     manifest = json.loads((args.output / "manifest.json").read_text())
     assert manifest["rejected"]["source_exclusion_registry"] == 1
+
+
+
+def test_legacy_greynir_gold_exclusion_does_not_match_copper_or_silver(tmp_path):
+    source = tmp_path / "greynir-current.jsonl"
+    rows = []
+    for partition in ("copper", "silver"):
+        row = _row(
+            f"This is a sufficiently long Icelandic corpus sentence for {partition}.",
+            "is", f"greynir_{partition}", f"greynir_{partition}:article-1",
+        )
+        row["provenance"]["source_original_name"] = f"greynir_{partition}"
+        rows.append(row)
+    source.write_text("".join(json.dumps(row) + "\n" for row in rows))
+    registry = tmp_path / "exclusions.jsonl"
+    registry.write_text(json.dumps({
+        "scope": "source-dataset", "source": "greynir",
+        "reason_code": "legacy_gold_quality_hold",
+        "effective_at": "2026-11-18",
+    }) + "\n")
+    args = _args(tmp_path, [source])
+    args.exclusions = registry
+    merge(args)
+    manifest = json.loads((args.output / "manifest.json").read_text())
+    retained = [json.loads(line) for line in
+                (args.output / "records.jsonl").read_text().splitlines()]
+    assert manifest["rejected"]["source_exclusion_registry"] == 0
+    assert {row["source"] for row in retained} == {"greynir_copper", "greynir_silver"}
