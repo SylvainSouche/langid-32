@@ -104,10 +104,12 @@ def iter_utterances(archive_path: str | Path, language: str):
                         if value:
                             yield {
                                 "text": value,
-                                "group_id": utterance_id,
+                                "group_id": session_id,
                                 "provenance": {
                                     "source_file": member.name,
-                                    "session_id": Path(member.name).stem,
+                                    "session_id": session_id,
+                                    "session_date": session_date,
+                                    "publisher": "ParlaMint consortium / CLARIN.SI",
                                     "utterance_id": utterance_id,
                                     "record_structure": "ParlaMint TEI utterance",
                                     **({"speaker_roles": speaker_roles} if speaker_roles else {}),
