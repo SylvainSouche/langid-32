@@ -58,6 +58,10 @@ def test_common_voice_curation_retains_safe_sentence_provenance_only(tmp_path, m
                 "locale": "fi", "repo_commit": "b" * 40,
                 "sha256": tsv_sha256, "bytes": len(tsv_bytes),
             }],
+            "combined": {"fi": {
+                "locales": ["fi"], "repo_commit": "b" * 40,
+                "bytes": len(tsv_bytes), "sha256": tsv_sha256,
+            }},
         }),
         encoding="utf-8",
     )
