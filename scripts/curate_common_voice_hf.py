@@ -54,7 +54,7 @@ def main() -> None:
     parser.add_argument("--config", type=Path, default=ROOT / "config/langid32.toml")
     args = parser.parse_args()
     cfg = load_config(args.config)
-    languages = tuple(cfg["acquisition"]["source_rules"]["common_voice_v22"]["languages"])
+    languages = tuple(cfg["languages"])
     if not languages:
         raise SystemExit("No Common Voice target languages are configured.")
     text_rules = cfg["acquisition"]["source_rules"]["common_voice_v22"]["text"]
@@ -63,7 +63,7 @@ def main() -> None:
     if not download_manifest_path.is_file():
         raise SystemExit("Common Voice download manifest is required for immutable provenance.")
     download_manifest = json.loads(download_manifest_path.read_text(encoding="utf-8"))
-    locale_metadata = {row["locale"]: row for row in download_manifest.get("results", [])}
+    language_metadata = download_manifest.get("combined", {})
     candidates = defaultdict(dict)
     counts = Counter()
     args.output.mkdir(parents=True, exist_ok=True)
@@ -95,7 +95,7 @@ def main() -> None:
             continue
         cap = args.per_language_cap if args.per_language_cap is not None else acquisition_target(cfg, "common_voice_v22", language)
         source_key = "common_voice_v22"
-        source_meta = locale_metadata.get(language)
+        source_meta = language_metadata.get(language)
         if not source_meta or not source_meta.get("repo_commit"):
             raise RuntimeError(f"Missing resolved HF repository metadata for {language}")
         if source_meta["repo_commit"] != download_manifest.get("revision_resolved"):
