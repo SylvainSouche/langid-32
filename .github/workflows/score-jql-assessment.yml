@@ -89,6 +89,15 @@ jobs:
           test -n "$manifest"
           config_path="$(jq -r '.config_path' "$manifest")"
           config_sha256="$(jq -r '.policy_hashes.config_sha256' "$manifest")"
+          profile="$(jq -r '.profile' "$manifest")"
+          if [[ "$profile" == "debug" ]]; then
+            test "$config_path" = "config/langid32-debug.toml"
+          elif [[ "$profile" == "release" ]]; then
+            test "$config_path" = "config/langid32.toml"
+          else
+            echo "Unknown source-run profile: $profile" >&2
+            exit 1
+          fi
           test -n "$config_path"
           test -f "$config_path"
           actual_sha256="$(sha256sum "$config_path" | cut -d ' ' -f 1)"
@@ -152,6 +161,7 @@ jobs:
       max-parallel: ${{ fromJSON(needs.prepare.outputs.max_parallel) }}
       matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
     env:
+      LANGID32_CONFIG: ${{ needs.prepare.outputs.config_path }}
       HF_HOME: ${{ github.workspace }}/.cache/huggingface
       HF_HUB_DISABLE_TELEMETRY: "1"
       JQL_MAX_SECONDS: ${{ needs.prepare.outputs.max_seconds }}
