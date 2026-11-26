@@ -4,6 +4,11 @@
 # policy values into workflows or scripts; load this file through langid32.settings.
 schema_version = 1
 
+[profile]
+name = "release"
+first_pass_target_per_source_language = 20000
+final_sentences_per_language = 35000
+
 [project]
 languages = ["bg","hr","cs","da","nl","en","et","fi","fr","de","el","hu","ga","it","lv","lt","mt","pl","pt","ro","sk","sl","es","sv","nb","nn","ru","ja","zh","ko","ar","tr","ca","is"]
 
@@ -200,7 +205,7 @@ privacy_uncertain_action = "quarantine"
 
 [candidate]
 # Final corpus size and source mix are deferred until the post-JQL pool is reported.
-final_sentences_per_language = 30000
+final_sentences_per_language = 35000
 final_source_target_per_language = 10000
 final_selection_status = "deferred_pending_user_review"
 [candidate.language_target_overrides]
