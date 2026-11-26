@@ -43,6 +43,10 @@ def validate_acquisition_policy(config: dict[str, Any]) -> None:
     for source, rule in acquisition.get("source_rules", {}).items():
         if "languages" in rule:
             raise ValueError(f"Source-language allowlists are forbidden: {source}.languages")
+        if not rule.get("exclude", False):
+            expected_source_target = 50000 if profile_name == "release" and source == "gaois_irish_legislation" else expected_target
+            if int(rule.get("target", expected_target)) != expected_source_target:
+                raise ValueError(f"{source} target must be {expected_source_target} for {profile_name} profile")
         if "quota_key" in rule:
             raise ValueError(
                 f"Source-family quota alias is forbidden: {source}.quota_key; "
