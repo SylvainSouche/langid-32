@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import subprocess
+import os
 import sys
 from pathlib import Path
 
@@ -12,7 +13,7 @@ from langid32.settings import load_config
 
 
 def main() -> None:
-    config_path = ROOT / "config/langid32.toml"
+    config_path = Path(os.environ.get("LANGID32_CONFIG", ROOT / "config/langid32.toml"))
     config = load_config(config_path)
     batch_size = int(config["jql"]["assessment_batch_size"])
     subprocess.run([
