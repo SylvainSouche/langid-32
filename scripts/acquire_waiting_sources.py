@@ -1057,7 +1057,9 @@ def main():
                         "ymoslem/UN-Arabic-English-Filtered", split="train",
                         streaming=True, revision=revisions["un_arabic"],
                     )
-                    state_path = temp_root / f"un-arabic-stream-state-{revisions['un_arabic'][:12]}-{policy_digest}.json"
+                    # Persist the HF iterable cursor beside the acquisition state DB so an
+                    # encrypted failure checkpoint can resume without replaying the full stream.
+                    state_path = output_root / f"un-arabic-stream-state-{revisions['un_arabic'][:12]}-{policy_digest}.json"
                     processed = 0
                     if state_path.is_file():
                         saved = json.loads(state_path.read_text(encoding="utf-8"))
