@@ -76,15 +76,29 @@ def wait_for_new_threads_to_exit(existing_threads, timeout_seconds=30, quiet_per
 
 
 def stop_tqdm_monitors(timeout_seconds=10):
-    """Stop tqdm's daemon monitor threads before CPython finalization."""
+    """Stop every live tqdm monitor thread, including instances absent from TMonitor's registry."""
     from tqdm._monitor import TMonitor
 
-    monitors = list(getattr(TMonitor, "_instances", ()))
+    # Some datasets/tqdm combinations leave monitor threads alive after their
+    # weak-set registry has lost the owning TMonitor reference. Enumerate the
+    # actual threads as well as the registry; the thread object still exposes
+    # TMonitor.exit(), which signals its shutdown event.
+    monitors = set(getattr(TMonitor, "_instances", ()))
+    monitors.update(
+        thread for thread in threading.enumerate()
+        if thread.name == "tqdm_monitor"
+    )
     for monitor in monitors:
-        monitor.exit()
+        stop = getattr(monitor, "exit", None)
+        if callable(stop):
+            stop()
     for monitor in monitors:
-        monitor.join(timeout=timeout_seconds)
-    alive = [monitor.name for monitor in monitors if monitor.is_alive()]
+        if monitor is not threading.current_thread():
+            monitor.join(timeout=timeout_seconds)
+    alive = [
+        thread.name for thread in threading.enumerate()
+        if thread.name == "tqdm_monitor" and thread.is_alive()
+    ]
     if alive:
         raise RuntimeError(
             "tqdm monitor threads did not stop cleanly: " + ", ".join(alive)
