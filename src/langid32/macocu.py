@@ -7,6 +7,7 @@ privacy screening and exact source/language quota accounting.
 """
 from __future__ import annotations
 
+import math
 import zipfile
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -123,8 +124,8 @@ def iter_paragraphs(archive_path: str | Path, language: str):
                         fluency = float(fluency_raw)
                     except ValueError as exc:
                         raise RuntimeError(f"Invalid MaCoCu fluency score: {fluency_raw!r}") from exc
-                    if not 0.0 <= fluency <= 1.0:
-                        raise RuntimeError(f"MaCoCu fluency score outside [0,1]: {fluency}")
+                    if not math.isfinite(fluency):
+                        raise RuntimeError(f"Non-finite MaCoCu fluency score: {fluency_raw!r}")
                     heading_value = attrs.get("heading", attrs.get("is_heading"))
                     heading = _boolean(heading_value, "heading") if heading_value is not None else False
                     sensitive = _sensitive_flag(attrs)
