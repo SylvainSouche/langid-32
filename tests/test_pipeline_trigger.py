@@ -1,6 +1,7 @@
 import hashlib
 import importlib.util
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -123,3 +124,34 @@ def test_preflight_manifest_uses_actual_common_voice_acquisition_path():
     assert 'root / "input/common-voice/source"' in target
     assert 'root / "input/common-voice"' in target
     assert '"input/common_voice/**"' not in emitter
+
+
+
+def test_staged_workflow_targets_and_referenced_scripts_exist_at_run_commit():
+    root = Path(__file__).resolve().parents[1]
+    workflow = (root / ".github/workflows/langid32-pipeline.yml").read_text(encoding="utf-8")
+    worker = (root / "scripts/acquire_waiting_sources.py").read_text(encoding="utf-8")
+    targets = root / "stages/01-acquisition/targets"
+
+    script_refs = set(re.findall(
+        r"(?:python3?|python)\\s+((?:scripts|stages)/[A-Za-z0-9_./-]+\\.py)",
+        workflow,
+    ))
+    assert script_refs
+    assert all((root / path).is_file() for path in script_refs)
+
+    matrix_targets = set(re.findall(r"- target: ([a-z0-9-]+)", workflow))
+    assert matrix_targets
+    assert all((targets / f"{name}.py").is_file() for name in matrix_targets)
+    for target in matrix_targets - {"gaois"}:
+        source = target.replace("-", "_")
+        assert f'args.source == "{source}"' in worker or f'args.source == "{target}"' in worker
+    assert (root / "scripts/acquire_gaois_irish_legislation.py").is_file()
+
+    checkout_blocks = re.findall(
+        r"- uses: actions/checkout@v4(.*?)(?=\\n\\s+- (?:uses:|name:)|\\Z)",
+        workflow,
+        flags=re.S,
+    )
+    assert checkout_blocks
+    assert all("ref:" not in block for block in checkout_blocks)
