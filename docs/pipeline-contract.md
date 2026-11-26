@@ -16,6 +16,7 @@ Build a private, reproducible, multi-source candidate pool for all 34 configured
 
 - Read operational values from `config/langid32.toml`; do not duplicate numeric policy in workflow YAML or scripts.
 - Validate the configuration, registered source IDs, language labels, source/language quotas, rights statuses, required secrets and all stage input/output contracts before acquisition starts.
+- Pin acquisition runtime dependencies in `config/langid32.toml`: `datasets==3.3.2`, `huggingface_hub==0.26.5` and `pyarrow==19.0.1`. The production waiting-source job consumes those exact config outputs; CI installs the same versions and smoke-tests JSON-serializable Hugging Face iterable-stream cursor save/restore before the first production run.
 - Pin the workflow code to one commit for every job. A run must not mix a workflow from `main` with scripts/config from a moving recovery branch.
 - Fail before downloading if any required script, config file, adapter, dependency, secret or historical artifact is missing.
 - Produce a machine-readable preflight manifest with commit SHA, config hash, source/revision plan, expected inputs, outputs and policy version.
