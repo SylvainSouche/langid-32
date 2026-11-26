@@ -1,6 +1,5 @@
 name: langid-32 staged corpus pipeline
-# Automatic push trigger is deliberately disabled while the pipeline is being repaired.
-# Re-enable push to main only after the pipeline contract preflight passes.
+# Manual dispatch only until the complete staged pipeline passes contract verification.
 on:
   workflow_dispatch:
 permissions:
@@ -17,8 +16,6 @@ jobs:
       acquisition_started_epoch: "${{  steps.runtime.outputs.acquisition_started_epoch  }}"
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: recovery/fix-acquisition-20261124
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -87,13 +84,12 @@ jobs:
           path: checkpoint.bin
           retention-days: "${{ steps.runtime.outputs.checkpoint_retention_days }}"
   common-voice:
+    if: github.ref == 'refs/heads/main'
     needs: [config]
     runs-on: ubuntu-latest
     timeout-minutes: ${{ fromJSON(needs.config.outputs.acquisition_job_timeout_minutes) }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: recovery/fix-acquisition-20261124
       - id: runtime
         run: python3 scripts/emit_runtime_config.py
       - name: Enforce shared six-hour workflow budget
@@ -126,6 +122,7 @@ jobs:
           path: checkpoint.bin
           retention-days: "${{ steps.runtime.outputs.checkpoint_retention_days }}"
   waiting-source:
+    if: github.ref == 'refs/heads/main'
     needs: [config]
     runs-on: ubuntu-latest
     timeout-minutes: ${{ fromJSON(needs.config.outputs.acquisition_job_timeout_minutes) }}
@@ -154,8 +151,6 @@ jobs:
           - target: gaois
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: recovery/fix-acquisition-20261124
       - id: runtime
         run: python3 scripts/emit_runtime_config.py
       - name: Enforce shared six-hour workflow budget
@@ -171,7 +166,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "${{ steps.runtime.outputs.python_version }}"
-      - run: python -m pip install datasets huggingface_hub pyarrow fasttext-wheel cryptography aiohttp requests
+      - run: python -m pip install datasets huggingface_hub pyarrow fasttext-wheel cryptography
       - name: Acquire waiting-source target
         id: acquire
         env:
@@ -190,13 +185,12 @@ jobs:
           path: checkpoint.bin
           retention-days: ${{ steps.runtime.outputs.checkpoint_retention_days }}
   candidate:
+    if: github.ref == 'refs/heads/main'
     needs: [config, historical, common-voice, waiting-source]
     runs-on: ubuntu-latest
     timeout-minutes: ${{ fromJSON(needs.config.outputs.acquisition_job_timeout_minutes) }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: recovery/fix-acquisition-20261124
       - id: runtime
         run: python3 scripts/emit_runtime_config.py
       - name: Enforce shared six-hour workflow budget
@@ -239,13 +233,12 @@ jobs:
           path: candidate.bin
           retention-days: "${{ steps.runtime.outputs.checkpoint_retention_days }}"
   jql:
+    if: github.ref == 'refs/heads/main'
     needs: [config, candidate]
     runs-on: ubuntu-latest
     timeout-minutes: ${{ fromJSON(needs.config.outputs.acquisition_job_timeout_minutes) }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: recovery/fix-acquisition-20261124
       - id: runtime
         run: python3 scripts/emit_runtime_config.py
       - name: Enforce shared six-hour workflow budget
