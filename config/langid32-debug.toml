@@ -90,7 +90,7 @@ long_numeric_min_digits = 9
 
 [acquisition.source_rules.common_voice_v22.script]
 minimum_ratio = 0.70
-by_language = { fi = "LATIN", el = "GREEK", mt = "LATIN", sl = "LATIN", is = "LATIN" }
+by_language = { fi = "LATIN", el = "GREEK", mt = "LATIN", sl = "LATIN", is = "LATIN", bg = "CYRILLIC", ru = "CYRILLIC" }
 
 [acquisition.source_rules.fineweb2]
 target = 200
