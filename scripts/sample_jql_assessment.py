@@ -15,6 +15,14 @@ def sentence_id(language: str, source: str, sentence: str) -> str:
     return hashlib.sha256("\0".join((language, source, sentence)).encode("utf-8")).hexdigest()
 
 
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for block in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
 def original_source_id(row: dict, source: str) -> str:
     provenance = row.get("provenance")
     if not isinstance(provenance, dict):
@@ -108,8 +116,11 @@ def main() -> None:
         summary = {
             "status": "full_filtered_acquisition_pool",
             "sampling": False,
+            "input_file": args.input.name,
+            "input_sha256": sha256_file(args.input),
             "rows": rows,
             "unique_ids": rows,
+            "assessment_parquet_sha256": sha256_file(args.output),
             "source_identity": "provenance.source_original_name, falling back to source only when no family mapping exists",
             "final_30k_selection": "deferred_pending_user_review",
             "counts_by_language_source": [
