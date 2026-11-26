@@ -7,7 +7,7 @@ from scripts.merge_jql_ratings import read_score_manifests, validate_split_manif
 from scripts.split_jql_parquet import shard_sizes
 
 
-def _write_manifest(directory, shards_dir, index, *, head_revision="b" * 40):
+def _write_manifest(directory, shards_dir, index, *, head_revision="b" * 40, source_run_id="123456"):
     input_name = f"shard-{index:02d}.parquet"
     input_path = shards_dir / input_name
     input_path.write_bytes(f"shard-{index}".encode())
@@ -18,7 +18,7 @@ def _write_manifest(directory, shards_dir, index, *, head_revision="b" * 40):
     manifest = {
         "schema_version": 1,
         "pipeline_source_sha": "f" * 40,
-        "pipeline_source_run_id": "123456",
+        "pipeline_source_run_id": source_run_id,
         "input_file": input_name,
         "input_sha256": input_hash,
         "input_rows": 1,
@@ -141,3 +141,15 @@ def test_jql_shard_plan_is_balanced_and_exact():
 def test_jql_shard_plan_rejects_empty_shards():
     with pytest.raises(ValueError):
         shard_sizes(3, 4)
+
+def test_score_manifests_reject_mixed_source_pipeline_runs(tmp_path):
+    ratings = tmp_path / "ratings"
+    shards = tmp_path / "shards"
+    ratings.mkdir()
+    shards.mkdir()
+    csv0 = _write_manifest(ratings, shards, 0)
+    csv1 = _write_manifest(ratings, shards, 1, source_run_id="654321")
+    with pytest.raises(SystemExit, match="different model revisions"):
+        read_score_manifests(
+            ratings, {csv0: 1, csv1: 1}, shards, expected_shards=2
+        )
