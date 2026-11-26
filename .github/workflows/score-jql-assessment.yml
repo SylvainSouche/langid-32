@@ -130,6 +130,8 @@ jobs:
       HF_HUB_DISABLE_TELEMETRY: "1"
       JQL_MAX_SECONDS: ${{ needs.prepare.outputs.max_seconds }}
       JQL_WORK_BUDGET_MINUTES: ${{ needs.prepare.outputs.work_budget_minutes }}
+      LANGID32_SOURCE_SHA: ${{ needs.prepare.outputs.source_sha }}
+      LANGID32_SOURCE_RUN_ID: ${{ needs.prepare.outputs.source_run_id }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -238,6 +240,9 @@ jobs:
           LANGID32_CHECKPOINT_KEY: ${{ secrets.LANGID32_CHECKPOINT_KEY }}
         run: python scripts/checkpoint.py unpack --root jql-work --archive encrypted/jql-shards.bin
       - name: Normalize, calculate consensus and prune the global bottom quarter
+        env:
+          LANGID32_SOURCE_SHA: ${{ needs.prepare.outputs.source_sha }}
+          LANGID32_SOURCE_RUN_ID: ${{ needs.prepare.outputs.source_run_id }}
         run: |
           mkdir -p results result-work/out
           python scripts/merge_jql_ratings.py \
