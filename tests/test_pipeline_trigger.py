@@ -67,7 +67,17 @@ def test_valid_guarded_push_trigger_passes_and_records_hashes(tmp_path, monkeypa
 def test_push_without_trigger_file_change_fails_closed(tmp_path, monkeypatch):
     _write_sources(tmp_path)
     _set_push_event(monkeypatch, tmp_path, changed_files=["README.md"])
-    with pytest.raises(SystemExit, match="must be caused by a pipeline-trigger.json modification"):
+    with pytest.raises(SystemExit, match="must modify pipeline-trigger.json and no other path"):
+        MODULE.main()
+
+
+def test_push_with_trigger_and_code_change_fails_closed(tmp_path, monkeypatch):
+    _write_sources(tmp_path)
+    _set_push_event(
+        monkeypatch, tmp_path,
+        changed_files=["pipeline-trigger.json", "scripts/acquire_waiting_sources.py"],
+    )
+    with pytest.raises(SystemExit, match="must modify pipeline-trigger.json and no other path"):
         MODULE.main()
 
 
