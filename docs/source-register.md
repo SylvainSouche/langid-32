@@ -1,16 +1,18 @@
 # Source register — canonical status
 
-**Last reconciled: 23 November 2026.** This is the canonical index of every dataset/source family actually acquired, staged, sampled, investigated, rejected, or retired for langid-32. It supersedes the source-discovery and acquisition-priority narrative in older inventory documents. Historical audit reports remain available but are not current source-status statements.
+**Last reconciled: 26 November 2026.** This is the canonical index of every dataset/source family actually acquired, staged, sampled, investigated, rejected, or retired for langid-32. It supersedes the source-discovery and acquisition-priority narrative in older inventory documents. Historical audit reports remain available but are not current source-status statements.
 
 Status vocabulary:
-- **STAGED** — an acquisition or sample artifact exists; this does not mean the source is legally cleared.
+- **STAGED** — an acquisition or sample/audit artifact exists; this does not mean the source is legally cleared or integrated into the current staged candidate workflow. Check the [pipeline source-adapter coverage audit](pipeline-contract.md#source-adapter-coverage-audit) before assuming a staged source is present in a candidate build.
 - **PILOT** — limited technical sample; not part of a release-ready corpus.
 - **INVESTIGATED** — documentation/catalogue examined, but no usable text has been acquired into the current candidate pipeline.
 - **HOLD** — technically acquired or sampled, but rights/terms or required attribution remain unresolved.
 - **NOT PURSUED / RETIRED** — route was considered but is not part of the current acquisition plan.
 - **FAILED** — attempted acquisition did not yield usable source data.
 
-No source in this register is automatically approved for public redistribution. The latest global candidate build is run [44316929956](https://github.com/SylvainSouche/langid-32/actions/runs/44316929956): it completed successfully and uploaded metadata only. Its manifest reports 654,401 core records and 135,851 reserve records across 34 labels; 26 labels reached the 20,000-record core target and eight did not. This is a technical candidate, not a rights-cleared corpus. The build's Common Voice rights-status fallback was corrected in commit [a703bda](https://github.com/SylvainSouche/langid-32/commit/a703bda2409cf2c1fa0b9a7443f47c4980073e39); a refreshed candidate manifest is pending.
+No source in this register is automatically approved for public redistribution. The latest historical candidate build before the current staged-pipeline rewrite is run [44316929956](https://github.com/SylvainSouche/langid-32/actions/runs/44316929956): it completed successfully and uploaded metadata only. Its manifest reported 654,401 core records and 135,851 reserve records across 34 labels; 26 labels reached the 20,000-record core target and eight did not. This is historical technical-candidate evidence, not the output of the current staged pipeline and not a rights-cleared corpus.
+
+The current staged-pipeline attempt, run [45780510056](https://github.com/SylvainSouche/langid-32/actions/runs/45780510056), completed only partial acquisition: candidate and JQL jobs were skipped. **There is no current full candidate pool or JQL-pruned output.** The implementation, active source coverage and launch gates are defined in [`docs/pipeline-contract.md`](pipeline-contract.md). The source adapter audit identifies sources that are staged/audited but not yet integrated.
 
 ## Voluntary source-selection decision
 
