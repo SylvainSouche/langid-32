@@ -9,7 +9,12 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import sys
 from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+from langid32.settings import load_config
 
 import pandas as pd
 import torch
@@ -17,18 +22,9 @@ import torch.nn as nn
 from huggingface_hub import hf_hub_download
 from transformers import AutoConfig, AutoModel, AutoTokenizer
 
-EMBEDDER_ID = "Snowflake/snowflake-arctic-embed-m-v2.0"
-HEAD_REPO = "JQL-AI/JQL-Edu-Heads"
-HEADS = {
-    "gemma": "checkpoints/edu-gemma-snowflake-balanced.ckpt",
-    "mistral": "checkpoints/edu-mistral-snowflake-balanced.ckpt",
-    "llama": "checkpoints/edu-llama-snowflake-balanced.ckpt",
-}
-
-
 class RegressionHead(nn.Module):
     """Architecture from JQL-AI/JQL-Annotation-Pipeline."""
-    def __init__(self, input_dim: int = 768, hidden_dim: int = 1000):
+    def __init__(self, input_dim: int, hidden_dim: int):
         super().__init__()
         self.layer1 = nn.Linear(input_dim, hidden_dim)
         self.relu = nn.ReLU()
@@ -38,8 +34,8 @@ class RegressionHead(nn.Module):
         return self.layer2(self.relu(self.layer1(x)))
 
 
-def load_head(path: str, device: torch.device) -> nn.Module:
-    model = RegressionHead()
+def load_head(path: str, device: torch.device, jql_cfg: dict) -> nn.Module:
+    model = RegressionHead(jql_cfg["embedding_dimension"], jql_cfg["head_hidden_dimension"])
     checkpoint = torch.load(path, map_location="cpu", weights_only=False)
     state = checkpoint.get("state_dict", checkpoint)
     # Lightning checkpoints from the upstream project use these unprefixed keys.
@@ -51,13 +47,22 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--input", required=True, type=Path, help="Input Parquet")
     ap.add_argument("--output", required=True, type=Path, help="Output CSV")
-    ap.add_argument("--batch-size", type=int, default=32)
-    ap.add_argument("--max-length", type=int, default=8192)
+    ap.add_argument("--batch-size", type=int, default=None)
+    ap.add_argument("--max-length", type=int, default=None)
     ap.add_argument("--device", choices=("auto", "cpu", "mps", "cuda"), default="auto")
-    ap.add_argument("--max-rows", type=int, default=0, help="Optional smoke-test row limit")
-    ap.add_argument("--torch-threads", type=int, default=2, help="CPU intra-op threads")
-    ap.add_argument("--head-repo", default=HEAD_REPO)
+    ap.add_argument("--max-rows", type=int, default=None, help="Optional smoke-test row limit")
+    ap.add_argument("--torch-threads", type=int, default=None, help="CPU intra-op threads")
+    ap.add_argument("--config", type=Path, default=ROOT / "config/langid32.toml")
+    ap.add_argument("--head-repo", default=None)
     args = ap.parse_args()
+    jql_cfg = load_config(args.config)["jql"]
+    args.batch_size = args.batch_size if args.batch_size is not None else jql_cfg["inference_batch_size"]
+    args.max_length = args.max_length if args.max_length is not None else jql_cfg["max_token_length"]
+    args.torch_threads = args.torch_threads if args.torch_threads is not None else jql_cfg["cpu_torch_threads"]
+    args.max_rows = args.max_rows if args.max_rows is not None else jql_cfg["max_rows"]
+    args.head_repo = args.head_repo or jql_cfg["head_repository"]
+    embedder_id = jql_cfg["embedder_model"]
+    head_checkpoints = jql_cfg["head_checkpoints"]
 
     if args.batch_size < 1:
         raise SystemExit("--batch-size must be positive")
@@ -94,14 +99,14 @@ def main():
     # float32 is the portable CPU/MPS baseline. The model card's published
     # embedding recipe is CLS pooling followed by L2 normalization.
     dtype = torch.float32
-    tokenizer = AutoTokenizer.from_pretrained(EMBEDDER_ID)
+    tokenizer = AutoTokenizer.from_pretrained(embedder_id)
     # The Arctic Embed remote implementation otherwise selects an xformers-only
     # memory-efficient attention path. Native PyTorch SDPA works on CPU and MPS.
-    config = AutoConfig.from_pretrained(EMBEDDER_ID, trust_remote_code=True)
+    config = AutoConfig.from_pretrained(embedder_id, trust_remote_code=True)
     config.use_memory_efficient_attention = False
     config.unpad_inputs = False
     embedder = AutoModel.from_pretrained(
-        EMBEDDER_ID,
+        embedder_id,
         config=config,
         trust_remote_code=True,
         torch_dtype=dtype,
@@ -110,9 +115,9 @@ def main():
     ).to(device).eval()
 
     heads = {}
-    for name, filename in HEADS.items():
-        checkpoint_path = hf_hub_download(repo_id=args.head_repo, filename=filename)
-        heads[name] = load_head(checkpoint_path, device)
+    for name in jql_cfg["judges"]:
+        checkpoint_path = hf_hub_download(repo_id=args.head_repo, filename=head_checkpoints[name])
+        heads[name] = load_head(checkpoint_path, device, jql_cfg)
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with args.output.open("w", encoding="utf-8", newline="") as stream:
@@ -145,8 +150,8 @@ def main():
                 ids[start:start + len(batch_texts)],
                 languages[start:start + len(batch_texts)],
             )):
-                ratings = {name: round(float(batch_scores[name][offset]), 6)
-                           for name in ("gemma", "mistral", "llama")}
+                ratings = {name: round(float(batch_scores[name][offset]), jql_cfg["score_decimal_places"])
+                           for name in jql_cfg["judges"]}
                 writer.writerow({
                     "id": row_id,
                     "language": lang,
