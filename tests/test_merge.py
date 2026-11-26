@@ -285,6 +285,26 @@ def test_source_exclusion_registry_matches_source_archive_url(tmp_path):
 
 
 
+def test_checked_in_source_exclusions_exclude_legacy_greynir_only(tmp_path):
+    source = tmp_path / "greynir-legacy-and-current.jsonl"
+    rows = [
+        _row("Legacy generic Greynir record held for quality review.", "is", "greynir", "greynir:legacy-gold"),
+        _row("Approved Copper sentence remains eligible for candidate review.", "is", "greynir_copper", "greynir_copper:article-1"),
+        _row("Approved Silver sentence remains eligible for candidate review.", "is", "greynir_silver", "greynir_silver:article-1"),
+    ]
+    for row in rows:
+        row["provenance"]["source_original_name"] = row["source"]
+    source.write_text("".join(json.dumps(row) + "\\n" for row in rows))
+    args = _args(tmp_path, [source])
+    args.exclusions = Path("data/source-exclusions.jsonl")
+    merge(args)
+    manifest = json.loads((args.output / "manifest.json").read_text())
+    retained = [json.loads(line) for line in
+                (args.output / "records.jsonl").read_text().splitlines()]
+    assert manifest["rejected"]["source_exclusion_registry"] == 1
+    assert {row["source"] for row in retained} == {"greynir_copper", "greynir_silver"}
+
+
 def test_legacy_greynir_gold_exclusion_does_not_match_copper_or_silver(tmp_path):
     source = tmp_path / "greynir-current.jsonl"
     rows = []
