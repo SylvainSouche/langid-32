@@ -73,7 +73,7 @@ Historical pilot: 259,352 rows across 33 labels; it is not reused as a current c
 
 **Licence and attribution.** ODC-BY 1.0 applies to the database/compilation, not automatically to individual page contents (ODC-BY §2.4). The dataset card also points to Common Crawl Terms of Use. The underlying web-page rights are not individually established by the compilation licence. This uncertainty is a rights-review question; it is not evidence that all crawled text is categorically prohibited. Keep rights status distinct from technical candidate eligibility and from the project's inclusion decision.
 
-**Pending questions/checks.** Remove the unsupported six-language restriction unless it is an explicit, user-approved operational choice. Restore approved source/language coverage and the first-pass 20,000 eligible unique rows per original source × language. Retry transient 408/429/5xx and network failures at row-group boundaries with bounded backoff and no double-counting. Record shard LFS hashes, source URLs/domains and all per-language counts. Preserve a separate rights/attribution review flag; do not silently turn it into a source deletion or a blanket legal conclusion.
+**Pending questions/checks.** Run the expanded 33-subset FineWeb2 matrix and verify actual eligible counts, quota/exhaustion, retry behavior and per-language source provenance. Preserve the separate rights/attribution review flag. Retry transient 408/429/5xx and network failures at row-group boundaries with bounded backoff and no double-counting. Record shard LFS hashes, source URLs/domains and all per-language counts. Preserve a separate rights/attribution review flag; do not silently turn it into a source deletion or a blanket legal conclusion.
 
 ### FineWeb v1.4.0 (English)
 
