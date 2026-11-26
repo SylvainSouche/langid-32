@@ -23,6 +23,8 @@ on:
 permissions:
   actions: read
   contents: read
+env:
+  LANGID32_CONFIG: config/langid32-debug.toml
 
 concurrency:
   group: jql-full-assessment-${{ github.event.workflow_run.id || inputs.source_run_id || github.ref }}
@@ -96,7 +98,7 @@ jobs:
             --input jql-work/out/jql-assessment-full.parquet \
             --output-dir jql-work/out/jql-shards \
             --batch-rows "$JQL_SHARD_BATCH_ROWS" \
-            --config config/langid32.toml
+            --config "$LANGID32_CONFIG"
           python scripts/check_sentence_boundaries.py \
             --input jql-work/out/jql-assessment-full.parquet \
             --output quality/sentence-boundary-flags.csv
