@@ -103,6 +103,10 @@ def validate_jql_policy(config: dict[str, Any]) -> None:
         raise ValueError("JQL model inference batch size must remain 8")
     if jql.get("inference_dtype") != "bfloat16":
         raise ValueError("JQL inference precision must match the published bfloat16 model recipe")
+    if (jql.get("python_version") != "3.11" or jql.get("torch_version") != "2.6.0"
+            or jql.get("transformers_version") != "4.44.2"
+            or jql.get("huggingface_hub_version") != "0.26.5"):
+        raise ValueError("JQL runtime versions must remain pinned to the verified upstream-compatible stack")
     if int(jql.get("shard_count", 0)) != 8 or int(jql.get("max_parallel_shards", 0)) != 4:
         raise ValueError("JQL must use eight deterministic shards and at most four concurrent workers")
     timeout = int(jql.get("job_timeout_minutes", 0))
