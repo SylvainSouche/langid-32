@@ -107,3 +107,11 @@ def test_fineweb2_retry_policy_is_bounded_and_configured():
     assert execution["fineweb2_rowgroup_retry_attempts"] == 8
     assert execution["fineweb2_rowgroup_retry_base_seconds"] == 5
     assert execution["fineweb2_rowgroup_retry_max_seconds"] == 120
+
+
+def test_common_voice_is_the_only_source_with_a_language_availability_exception():
+    config = load_config()
+    with pytest.raises(ValueError, match="not approved for language hr"):
+        acquisition_target(config, "common_voice_v22", "hr")
+    for source in ("leipzig_news", "leipzig_wikipedia", "dgt_tm_2021", "fineweb2", "tatoeba_cc0"):
+        assert acquisition_target(config, source, "hr") == 20000
