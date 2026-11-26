@@ -49,6 +49,11 @@ def script_ratio(text: str, script: str) -> float:
     return matched / len(letters)
 
 
+def source_locale_allowed(source_meta: dict, locale: str) -> bool:
+    """Check an upstream locale against the exact locale set in the download manifest."""
+    return bool(locale) and locale in set(source_meta.get("locales", []))
+
+
 def priority(language: str, text: str) -> str:
     return hashlib.sha256(f"langid-32-cv-v1\0{language}\0{text}".encode()).hexdigest()
 
@@ -177,7 +182,7 @@ def main() -> None:
                     # nn-NO→nn, and both zh-CN/zh-TW→zh). Validate against the
                     # exact locale list recorded by the immutable download manifest.
                     allowed_locales = set(source_meta.get("locales", []))
-                    if not sid or not locale or locale not in allowed_locales:
+                    if not sid or not source_locale_allowed(source_meta, locale):
                         raise ValueError(
                             f"{path}: expected non-empty sentence_id and one of "
                             f"source locales {sorted(allowed_locales)!r}, got {sid!r}/{locale!r}"
