@@ -45,7 +45,7 @@ def main() -> None:
     parser.add_argument("--summary", required=True, type=Path)
     parser.add_argument("--all", action="store_true", help="Required: sampling is forbidden")
     parser.add_argument("--batch-size", type=int, default=8192)
-    parser.add_argument("--config", type=Path, default=ROOT / "config/langid32.toml")
+    parser.add_argument("--config", type=Path, default=Path(os.environ.get("LANGID32_CONFIG", ROOT / "config/langid32.toml")))
     args = parser.parse_args()
     config = load_config(args.config)
     out_of_training_languages = list(config["jql"]["out_of_training_languages"])
