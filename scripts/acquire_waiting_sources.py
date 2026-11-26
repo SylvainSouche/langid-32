@@ -831,6 +831,7 @@ def main():
         elif args.source == "greynir":
             from langid32.greynir import (
                 COPPER_FILES as GREYNIR_COPPER_FILES,
+                LFS_POINTERS as GREYNIR_LFS_POINTERS,
                 PARTITION_FILES as GREYNIR_FILES, REVISION as GREYNIR_REVISION,
                 UPSTREAM as GREYNIR_UPSTREAM, iter_sentences,
             )
@@ -887,11 +888,21 @@ def main():
                                 digest.update(block)
                                 size += len(block)
                         file_sha256 = digest.hexdigest()
+                        expected_sha256, expected_size = GREYNIR_LFS_POINTERS[relative]
+                        if size != expected_size or file_sha256 != expected_sha256:
+                            raise RuntimeError(
+                                f"Greynir LFS object mismatch for {relative}: "
+                                f"{size} bytes/{file_sha256} != "
+                                f"{expected_size} bytes/{expected_sha256}"
+                            )
                         downloads.append({
                             "source_file": relative,
                             "url": f"{GREYNIR_UPSTREAM}/blob/{GREYNIR_REVISION}/{relative}",
                             "bytes": size,
                             "sha256": file_sha256,
+                            "lfs_pointer_sha256": expected_sha256,
+                            "lfs_pointer_bytes": expected_size,
+                            "lfs_pointer_verified": True,
                             "revision": GREYNIR_REVISION,
                         })
                         files_scanned += 1
