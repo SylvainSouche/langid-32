@@ -106,6 +106,8 @@ def test_waiting_source_record_rights_status_preserves_registered_holds():
     register = (ROOT / "docs/source-register.md").read_text(encoding="utf-8")
     assert '"hold_constituent_terms_review"' in source
     assert '"hold_attribution_and_source_provenance_review"' in source
+    assert "derivative attribution and source-document provenance remain on hold" in source
+    assert "publisher-level declaration accepted" not in source
     assert "| **BSC-LT Legal Catalan-Spanish Parallel Corpus**" in register
     assert "**STAGED / HOLD**" in register
     assert "| **UN Arabic-English Filtered**" in register
