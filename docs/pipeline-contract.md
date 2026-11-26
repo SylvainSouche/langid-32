@@ -89,9 +89,16 @@ Operational values currently recorded in `config/langid32.toml`:
 | Safety reserve | 30 minutes |
 | Acquisition file batch | 1 file |
 | JQL assessment | all candidate rows; no sampling |
+| JQL assessment Parquet batch | 2,000 rows |
+| JQL shard Parquet batch | 8,192 rows |
 | JQL shards | 8 |
 | JQL concurrent scoring shards | 4 maximum |
+| JQL model inference batch | 8 rows |
+| JQL inference precision | bfloat16 |
+| JQL runtime | Python 3.11; PyTorch 2.6.0; Transformers 4.44.2; Hugging Face Hub 0.26.5 |
+| JQL out-of-training labels | ar, ja, ko, zh, nb, nn (flagged, still scored) |
 | JQL scoring batch ceiling | 3,600 seconds |
+| JQL job timeout / work budget / upload reserve | 360 / 350 / 10 minutes |
 | Global JQL pruning | bottom 25% |
 | Final selection | deferred; requires explicit user approval |
 
