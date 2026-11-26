@@ -1,6 +1,8 @@
-# 34,000-row JQL-Edu assessment sample
+# Historical 34,000-row JQL-Edu assessment sample
 
-This workflow builds a private working sample from the current merged candidate pool. It selects exactly 1,000 sentences for each of the 34 project language labels (34,000 rows total), after the candidate merge's normalization, deduplication, privacy-pattern filtering and active source-exclusion registry.
+> **ARCHIVED — superseded by the current pipeline contract.** This document describes an earlier 1,000-per-language (34,000-row) experiment and its manual/local workflow. The current pipeline does not sample 1,000 per language: it scores every post-filter candidate row, flags `ar`, `ja`, `ko`, `zh`, `nb` and `nn` as outside the JQL heads' training-language set, normalizes all three judges over the full combined assessment corpus, and prunes the global bottom 25%. The current workflow and execution rules are in [`docs/pipeline-contract.md`](pipeline-contract.md).
+
+This historical workflow builds a private working sample from the current merged candidate pool. It selects exactly 1,000 sentences for each of the 34 project language labels (34,000 rows total), after the candidate merge's normalization, deduplication, privacy-pattern filtering and active source-exclusion registry.
 
 ## Files
 
@@ -64,20 +66,13 @@ The Parquet is an **internal assessment sample, not a rights-cleared or publicat
 - Inference implementation: https://github.com/JQL-AI/JQL-Annotation-Pipeline
 - Paper: https://arxiv.org/abs/2505.22232
 
-## Parallel scoring, boundary checks and consensus ranking
+## Historical parallel scoring, boundary checks and consensus ranking
 
-For the full 34,000-row sample, use the sharded workflow rather than a single long hosted-runner job. The GitHub Actions workflow is manually dispatched from **Actions → Parallel JQL assessment and sentence-quality workflow**. Supply the run ID and artifact name of the run that produced the Parquet artifact. The defaults point to the existing assessment artifact.
+The following describes the archived 34,000-row experiment only. Its manual-dispatch workflow and its text-free final artifact are not the current staged pipeline.
 
-The workflow:
+The current hosted workflow is `.github/workflows/score-jql-assessment.yml`. It starts automatically after a successful staged-pipeline run, checks out the exact source-run commit, restores the encrypted full-pool assessment, creates eight streaming shards, and runs four CPU-only workers concurrently. It uses the published bfloat16 inference recipe with pinned Python/PyTorch/Transformers/Hub versions. Each shard's ratings are bound to the source pipeline run, source commit, shard hash, model revisions and checkpoint hashes. A failed scoring run can be resumed by manually dispatching the scoring workflow with the original source run ID and the previous scoring run ID; it rejects ratings from any other source run or model/runtime provenance.
 
-1. Downloads the private assessment artifact; it does not commit or publish the Parquet.
-2. Splits it deterministically into eight balanced Parquet shards and records an input hash and row counts.
-3. Runs the three JQL heads on each shard in a matrix. Four jobs run concurrently; each uses a CPU-only PyTorch build, batch size 8, two CPU threads and a five-hour job timeout. This keeps each inference task below the standard six-hour hosted-job ceiling while avoiding GPU assumptions.
-4. Runs capitalization and sentence-final punctuation checks in a separate job at the same time as JQL scoring.
-5. Merges all outputs only after both branches finish. The merge fails on missing, extra or duplicate IDs, language mismatches, or incomplete boundary-check coverage.
-6. Publishes CSV, Parquet and JSON summary as a 30-day workflow artifact. Intermediate artifacts expire after two days.
-
-The Hugging Face model cache is enabled per runner. The first run may download the embedder and three heads on each runner; later runs can restore the cache. Matrix concurrency is capped at four to avoid launching eight model downloads and inference processes simultaneously.
+The current pipeline encrypts every text-bearing intermediate and final review artifact before uploading it to the public repository's Actions storage. Plain inter-job rating CSVs and quality flags contain IDs/language/scores or flags, not sentence text. The final encrypted JQL artifact includes the pruned sentence text for the required manual privacy and source-rights review. The encryption key is a repository secret and is never included in an artifact.
 
 ### Consensus score
 
@@ -114,7 +109,4 @@ Use `DEVICE=mps` on Apple Silicon or `DEVICE=cuda` where CUDA is available. `-j4
 
 The original single-file scorer remains available for smoke tests and manual runs. It uses native PyTorch SDPA rather than the embedder's xformers-only attention path.
 
-**Public-repository artifact caution:** `langid-32` is a public repository. GitHub documents that anyone with repository read access can download its workflow artifacts ([artifact access documentation](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/download-workflow-artifacts)). The new workflow therefore does not upload the Parquet, sentence text, or sentence-bearing shards as intermediate artifacts. Each job downloads the existing source artifact directly; only ID/language/score files and boundary flags are passed between jobs. The final workflow artifact deliberately omits sentence text. Use the local Make target with `--include-text` to produce a text-bearing result on your own machine.
-
-The source assessment artifact itself remains subject to the repository's public visibility until it expires or is deleted. Do not put rights-restricted or otherwise non-public source text in a public-repository Actions artifact; move the assessment workflow and its input artifact to a private repository if the source text must remain private.
-The local `make -j4 jql-pipeline` target includes sentence text in its local CSV/Parquet outputs (`--include-text`). The hosted workflow intentionally omits it from its downloadable artifact; join the score CSV to the local assessment Parquet by `id` when preparing the sentence-selection file.
+**Public-repository artifact caution:** `langid-32` is public. GitHub documents that anyone with repository read access can download workflow artifacts ([artifact access documentation](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/download-workflow-artifacts)). Current text-bearing artifacts are therefore AES-GCM encrypted before upload; their ciphertext and non-sensitive manifests remain downloadable, but sentence text is not exposed without the secret key. Never upload the key or unencrypted text-bearing artifacts. The manual privacy review must be performed on the decrypted local review artifact. This encryption does not clear source rights or authorise redistribution.
