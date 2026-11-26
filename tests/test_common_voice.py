@@ -17,6 +17,8 @@ def test_common_voice_expected_script_filter():
     assert MODULE.script_ratio("Καλημέρα σε όλους", "GREEK") > 0.95
     assert MODULE.script_ratio("Terve kaikille ystäville", "LATIN") > 0.95
     assert MODULE.script_ratio("Hello Καλημέρα", "LATIN") < 0.70
+    assert MODULE.script_ratio("Здравей свят", "CYRILLIC") > 0.95
+    assert MODULE.script_ratio("Привет мир", "CYRILLIC") > 0.95
 
 
 def test_common_voice_script_policy_covers_enabled_locales():
@@ -24,7 +26,9 @@ def test_common_voice_script_policy_covers_enabled_locales():
     languages = set(cfg["project"]["languages"])
     scripts = cfg["acquisition"]["source_rules"]["common_voice_v22"]["script"]["by_language"]
     assert set(scripts).issubset(languages)
-    assert set(scripts.values()).issubset({"LATIN", "GREEK"})
+    assert set(scripts.values()).issubset({"LATIN", "GREEK", "CYRILLIC"})
+    assert scripts["bg"] == "CYRILLIC"
+    assert scripts["ru"] == "CYRILLIC"
     assert cfg["acquisition"]["source_rules"]["common_voice_v22"]["script"]["minimum_ratio"] == 0.70
 
 
