@@ -41,8 +41,8 @@ filename = "dgt-tm-2021-staged.jsonl"
 # First pass: stream up to this many eligible, unique records from EACH
 # individual source for EACH language. This is not a family-wide/candidate cap.
 first_pass_target_per_source_language = 20000
-# Retain all eligible unique sentences up to this cap per original source/language.
-# Underfilled cells stay underfilled; never top up from another source.
+# Retain eligible unique sentences up to this cap per original source/language.
+# Source/language restrictions are not configured here; upstream availability determines each cell. Replenish from additional eligible material when needed.
 filter_before_quota = true
 privacy_filter_before_quota = true
 reject_unregistered_sources = true
@@ -54,17 +54,14 @@ seed = "langid-32-fineweb2-v1"
 
 [acquisition.source_rules.leipzig_news]
 target = 20000
-languages = ["hr", "fi", "el", "mt", "sl", "is"]
 exclude_unicode_decimal_digits = true
 
 [acquisition.source_rules.leipzig_wikipedia]
 target = 20000
-languages = ["hr", "fi", "el", "mt", "sl", "is"]
 exclude_unicode_decimal_digits = false
 
 [acquisition.source_rules.dgt_tm_2021]
 target = 20000
-languages = ["hr", "fi", "el", "mt", "sl"]
 max_segments_per_tmx_document_language = 20
 clear_body_every_translation_units = 1000
 
@@ -93,11 +90,9 @@ by_language = { fi = "LATIN", el = "GREEK", mt = "LATIN", sl = "LATIN", is = "LA
 
 [acquisition.source_rules.fineweb2]
 target = 20000
-languages = ["hr", "fi", "el", "mt", "sl", "is"]
 
 [acquisition.source_rules.tatoeba_cc0]
 target = 20000
-languages = ["fi"]
 
 [acquisition.source_rules.igc]
 target = 20000
