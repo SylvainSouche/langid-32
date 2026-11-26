@@ -87,7 +87,9 @@ def main():
     db.execute("CREATE TABLE seen (digest TEXT PRIMARY KEY) WITHOUT ROWID")
     heap, serial = [], 0
     downloads, totals = [], {"translation_units": 0, "irish_segments": 0,
-        "empty_or_missing_irish": 0, "filtered_irish_segments": 0, "clean_irish_segments": 0,
+        "empty_or_missing_irish": 0, "filtered_irish_segments": 0,
+        "privacy_rejected": 0, "privacy_quarantined": 0,
+        "personal_metadata_fields_removed": 0, "clean_irish_segments": 0,
         "duplicate_irish_segments": 0, "selected": 0}
     try:
         for label, url in SOURCES:
@@ -120,6 +122,14 @@ def main():
                             ga = clean(raw_ga, text_rules)
                             if not ga:
                                 totals["filtered_irish_segments"] += 1
+                                tu.clear()
+                                continue
+                            privacy = screen_text(
+                                ga,
+                                uncertain_action=cfg["acquisition"]["text"]["privacy_uncertain_action"],
+                            )
+                            if not privacy.accepted:
+                                totals["privacy_" + privacy.status] += 1
                                 tu.clear()
                                 continue
                             totals["clean_irish_segments"] += 1
