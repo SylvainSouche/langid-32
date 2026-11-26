@@ -121,6 +121,20 @@ def test_waiting_source_record_rights_status_preserves_registered_holds():
 
 
 
+def test_wait_for_new_source_threads_to_exit():
+    import threading
+    import time
+    from scripts.acquire_waiting_sources import wait_for_new_threads_to_exit
+
+    baseline = set(threading.enumerate())
+    worker = threading.Thread(target=lambda: time.sleep(0.1), name="test-source-worker")
+    worker.start()
+    wait_for_new_threads_to_exit(
+        baseline, timeout_seconds=2, quiet_period_seconds=0.05
+    )
+    assert not worker.is_alive()
+
+
 def test_un_arabic_row_index_is_not_mislabelled_as_document_id():
     from scripts.acquire_waiting_sources import un_arabic_provenance
 
