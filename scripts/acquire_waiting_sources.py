@@ -260,7 +260,7 @@ def main():
             revision = f"sha256:{item['sha256']}" if item else "file-hash-unresolved"
             return (f"Legal_Catalan_Spanish_Corpus@{revision}",
                     "CC-BY-4.0 (repository claim)", "text extracted from BSC-LT legal-corpus constituent",
-                    "declared_cc_by_4_0_accepted")
+                    "hold_constituent_terms_review")
         if source == "igc":
             item = next((row for row in downloads if "20.500.12537/381" in row["url"]), None)
             revision = f"sha256:{item['sha256']}" if item else "archive-hash-unresolved"
@@ -316,7 +316,7 @@ def main():
             return (f"UN-Arabic-English-Filtered@{revisions.get('un_arabic', 'unresolved')}",
                     "CC-BY-4.0 (HF dataset card claim)",
                     "Arabic text from a UN-derived dataset; upstream source terms unverified",
-                    "declared_cc_by_4_0_accepted")
+                    "hold_attribution_and_source_provenance_review")
         raise ValueError(f"No source metadata mapping for {source}")
 
     def add(language, source, value, group_id="", provenance=None):
