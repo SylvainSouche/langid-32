@@ -221,3 +221,46 @@ def test_candidate_merge_rejects_per_language_final_selection_before_jql(tmp_pat
     args.max_per_language = 30000
     with pytest.raises(SystemExit, match="Pre-JQL per-language selection"):
         merge(args)
+
+
+
+def test_source_exclusion_registry_matches_source_document_url(tmp_path):
+    source = tmp_path / "document-url.jsonl"
+    rows = [
+        _row("Sentence from the document to remove", "hr", "macocu_hr_2", "macocu_hr_2:doc1"),
+        _row("Sentence from an independent document", "hr", "macocu_hr_2", "macocu_hr_2:doc2"),
+    ]
+    rows[0]["provenance"]["source_document_url"] = "https://news.example.hr/article/1"
+    rows[1]["provenance"]["source_document_url"] = "https://news.example.hr/article/2"
+    source.write_text("".join(json.dumps(row) + "\n" for row in rows))
+    registry = tmp_path / "exclusions.jsonl"
+    registry.write_text(json.dumps({
+        "scope": "url", "source_url": "https://news.example.hr/article/1",
+        "reason_code": "rights_notice", "case_id": "MACOCU-1",
+        "effective_at": "2026-11-26T00:00:00Z", "status": "active",
+    }) + "\n")
+    args = _args(tmp_path, [source])
+    args.exclusions = registry
+    merge(args)
+    manifest = json.loads((args.output / "manifest.json").read_text())
+    internal = [json.loads(line) for line in (args.output / "records.jsonl").read_text().splitlines()]
+    assert len(internal) == 1
+    assert internal[0]["group_id"] == "macocu_hr_2:doc2"
+    assert manifest["rejected"]["source_exclusion_registry"] == 1
+
+
+def test_source_exclusion_registry_domain_matches_source_document_url(tmp_path):
+    source = tmp_path / "document-domain.jsonl"
+    row = _row("Sentence from a blocked article", "is", "greynir_copper", "greynir_copper:article")
+    row["provenance"]["source_document_url"] = "https://news.example.is/article/1"
+    source.write_text(json.dumps(row) + "\n")
+    registry = tmp_path / "exclusions.jsonl"
+    registry.write_text(json.dumps({
+        "scope": "domain", "domain": "example.is",
+        "reason_code": "provider_restriction", "effective_at": "2026-11-26",
+    }) + "\n")
+    args = _args(tmp_path, [source])
+    args.exclusions = registry
+    merge(args)
+    manifest = json.loads((args.output / "manifest.json").read_text())
+    assert manifest["rejected"]["source_exclusion_registry"] == 1
