@@ -99,14 +99,18 @@ def test_provenance_sanitizer_removes_personal_names_but_keeps_source_references
         "title": "Alice Martin interview transcript",
         "speaker_ref": "SPEAKER_0042",
         "speaker_role": "member of parliament",
+        "speaker_roles": ["chair", "guest"],
         "source_url": "https://example.org/document/42",
+        "source_document_url": "https://example.org/document/42",
     })
     assert "author" not in cleaned
     assert "speaker_name" not in cleaned
     assert "title" not in cleaned
     assert cleaned["speaker_ref"] == "SPEAKER_0042"
     assert cleaned["speaker_role"] == "member of parliament"
+    assert cleaned["speaker_roles"] == ["chair", "guest"]
     assert cleaned["source_url"] == "https://example.org/document/42"
+    assert cleaned["source_document_url"] == "https://example.org/document/42"
     assert {"author", "speaker_name", "title"}.issubset(set(removed))
 
 
