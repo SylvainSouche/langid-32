@@ -191,6 +191,7 @@ jobs:
           - target: gaois
           - target: parlamint
           - target: macocu
+          - target: greynir
     steps:
       - uses: actions/checkout@v4
       - id: runtime
