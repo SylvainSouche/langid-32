@@ -18,6 +18,7 @@ def load_config(path: str | Path | None = None) -> dict[str, Any]:
     if config.get("schema_version") != 1:
         raise ValueError(f"Unsupported langid-32 config schema in {config_path}")
     validate_acquisition_policy(config)
+    validate_jql_policy(config)
     return config
 
 
@@ -72,6 +73,50 @@ def validate_acquisition_policy(config: dict[str, Any]) -> None:
         raise ValueError("Per-job timeout conflicts with the acquisition budget/six-hour limit")
 
 
+def validate_jql_policy(config: dict[str, Any]) -> None:
+    """Lock the accepted full-pool JQL policy and deferred final-selection boundary."""
+    jql = config["jql"]
+    expected_judges = ["gemma", "mistral", "llama"]
+    if jql.get("enabled") is not True or jql.get("judges") != expected_judges:
+        raise ValueError("JQL must use the three accepted judges: Gemma, Mistral and Llama")
+    if jql.get("assessment_all_candidate_rows") is not True:
+        raise ValueError("JQL must assess every post-filter candidate row")
+    if int(jql.get("assessment_sample_per_language", -1)) != 0 or int(jql.get("max_rows", -1)) != 0:
+        raise ValueError("JQL sampling and row caps are forbidden")
+    if float(jql.get("prune_bottom_quantile", -1)) != 0.25:
+        raise ValueError("JQL must prune exactly the global bottom 25 percent")
+    if float(jql.get("consensus_mean_weight", -1)) != 1.0:
+        raise ValueError("JQL consensus mean weight must remain 1.0")
+    if float(jql.get("consensus_disagreement_penalty", -1)) != 0.5:
+        raise ValueError("JQL consensus disagreement penalty must remain 0.5")
+    if jql.get("normalization_scope") != "full_assessment_corpus_per_judge":
+        raise ValueError("Each JQL judge must be normalized over the complete assessment corpus")
+    if jql.get("disagreement_standard_deviation") != "population":
+        raise ValueError("JQL disagreement must use population standard deviation")
+    if int(jql.get("max_seconds", 0)) != 3600:
+        raise ValueError("JQL scoring batches must be capped at 3,600 seconds")
+    if int(jql.get("shard_count", 0)) != 8 or int(jql.get("max_parallel_shards", 0)) != 4:
+        raise ValueError("JQL must use eight deterministic shards and at most four concurrent workers")
+    timeout = int(jql.get("job_timeout_minutes", 0))
+    buffer = int(jql.get("upload_buffer_minutes", 0))
+    if timeout != 360 or buffer != 10 or timeout > 360 or timeout - buffer <= 0:
+        raise ValueError("JQL job must stay within six hours and reserve ten minutes for artifact upload")
+
+    candidate = config["candidate"]
+    balance = candidate["source_balance"]
+    if int(candidate["final_sentences_per_language"]) != 30000:
+        raise ValueError("Final per-language selection target must remain 30,000")
+    if candidate.get("final_selection_status") != "deferred_pending_user_review":
+        raise ValueError("Final per-language selection must remain deferred pending user review")
+    if jql.get("final_selection_requires_user_approval") is not True or balance.get("enabled") is not False:
+        raise ValueError("Final selection and source balancing must remain disabled pending user approval")
+    if float(balance.get("preferred_share", -1)) != 0.30 or float(balance.get("hard_max_share", -1)) != 0.50:
+        raise ValueError("Deferred final selection must retain the 30% preferred / 50% hard source mix")
+    gaoi = config["acquisition"]["source_rules"].get("gaois_irish_legislation", {})
+    if int(gaoi.get("target", 0)) != 50000 or gaoi.get("languages") != ["ga"]:
+        raise ValueError("Gaois must remain limited to the approved 50,000-record Irish-side sample")
+
+
 def language_target(config: dict[str, Any], language: str) -> int:
     overrides = config.get("candidate", {}).get("language_target_overrides", {})
     return int(overrides.get(language, config["candidate"]["final_sentences_per_language"]))
@@ -105,11 +150,7 @@ def acquisition_target(config: dict[str, Any], source: str, language: str) -> in
 
 
 def source_quota_key(config: dict[str, Any], source: str) -> str:
-    """Return an explicit source identity for acquisition quota accounting.
-
-    Components share a quota only when their registered source rule declares
-    quota_key. Otherwise each original source identifier keeps its own quota.
-    """
+    """Return the original source identifier; source-family quota aliases are forbidden."""
     source_rules = config["acquisition"].get("source_rules", {})
     normalized = source.replace("-", "_")
     rule = source_rules.get(normalized)
