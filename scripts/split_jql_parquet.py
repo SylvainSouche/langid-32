@@ -83,9 +83,9 @@ def main() -> None:
             for path in shard_paths
         ]
         for batch in parquet.iter_batches(batch_size=args.batch_rows, columns=list(COLUMNS)):
-            if any(batch.column(name).null_count for name in COLUMNS):
+            if any(batch.column(batch.schema.get_field_index(name)).null_count for name in COLUMNS):
                 raise SystemExit("Assessment contains null id/lang/sentence values")
-            ids = [str(value) for value in batch.column("id").to_pylist()]
+            ids = [str(value) for value in batch.column(batch.schema.get_field_index("id")).to_pylist()]
             if any(not value for value in ids):
                 raise SystemExit("Assessment contains an empty ID")
             cursor = db.executemany(
