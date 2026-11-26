@@ -1113,7 +1113,7 @@ def main():
                         finish_remote_file(arabic_bucket, remote_batch)
                     else:
                         notes.append("Arabic stream paused at quota; its revision-pinned cursor remains resumable.")
-            notes.append("HF dataset card declares CC BY 4.0; publisher-level declaration accepted.")
+            notes.append("HF dataset card declares CC BY 4.0; derivative attribution and source-document provenance remain on hold pending review.")
 
         else:
             raise ValueError(f"Unknown source group: {args.source}")
