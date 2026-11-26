@@ -134,6 +134,7 @@ def read_score_manifests(
             "models": manifest.get("models"),
             "head_checkpoint_sha256": manifest.get("head_checkpoint_sha256"),
             "scoring": manifest.get("scoring"),
+            "runtime": manifest.get("runtime"),
         }
         source_sha = provenance["pipeline_source_sha"]
         if not isinstance(source_sha, str) or len(source_sha) != 40 or any(
@@ -142,8 +143,9 @@ def read_score_manifests(
             raise SystemExit(f"Invalid source pipeline commit SHA in {manifest_path.name}")
         if not provenance["pipeline_source_run_id"].isdigit():
             raise SystemExit(f"Invalid source pipeline run ID in {manifest_path.name}")
-        if not provenance["models"] or not provenance["head_checkpoint_sha256"] or not provenance["scoring"]:
-            raise SystemExit(f"Incomplete model provenance in {manifest_path.name}")
+        if (not provenance["models"] or not provenance["head_checkpoint_sha256"]
+                or not provenance["scoring"] or not provenance["runtime"]):
+            raise SystemExit(f"Incomplete model/runtime provenance in {manifest_path.name}")
         for key in ("embedder_revision_resolved",):
             revision = provenance["models"].get(key)
             if not isinstance(revision, str) or len(revision) != 40 or any(ch not in "0123456789abcdef" for ch in revision.lower()):
@@ -262,6 +264,17 @@ def main() -> None:
         raise SystemExit("JQL head repository revision request does not match the authoritative config")
     if tuple(model_provenance["scoring"].get("judges", [])) != JUDGES:
         raise SystemExit("JQL judge set does not match the authoritative config")
+    runtime = model_provenance["runtime"]
+    if not str(runtime.get("python_version", "")).startswith(str(jql_config["python_version"]) + "."):
+        raise SystemExit("JQL shard Python runtime does not match the authoritative config")
+    if str(runtime.get("torch_version", "")).split("+")[0] != jql_config["torch_version"]:
+        raise SystemExit("JQL shard PyTorch version does not match the authoritative config")
+    if runtime.get("transformers_version") != jql_config["transformers_version"]:
+        raise SystemExit("JQL shard Transformers version does not match the authoritative config")
+    if runtime.get("huggingface_hub_version") != jql_config["huggingface_hub_version"]:
+        raise SystemExit("JQL shard Hugging Face Hub version does not match the authoritative config")
+    if model_provenance["scoring"].get("dtype") != jql_config["inference_dtype"]:
+        raise SystemExit("JQL inference dtype does not match the authoritative config")
     checkpoint_hashes = model_provenance["head_checkpoint_sha256"]
     if set(checkpoint_hashes) != set(JUDGES) or any(
         not isinstance(value, str) or len(value) != 64
