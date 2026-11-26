@@ -86,7 +86,7 @@ def test_common_voice_hf_acquisition_is_enabled_for_configured_locales():
     config = load_config(ROOT / "config/langid32.toml")
     rule = config["acquisition"]["source_rules"]["common_voice_v22"]
     assert rule["target"] == 20000
-    assert rule["languages"] == ["fi", "el", "mt", "sl", "is"]
+    assert "languages" not in rule
     assert "proposed_languages" not in rule
     assert "status" not in rule
 
@@ -151,11 +151,10 @@ def test_acquisition_streaming_dependencies_are_config_pinned_and_used():
 
 
 
-def test_only_common_voice_has_a_source_language_allowlist():
+def test_no_source_has_a_configured_language_allowlist():
     config = load_config(ROOT / "config/langid32.toml")
     rules = config["acquisition"]["source_rules"]
-    assert rules["common_voice_v22"]["languages"] == ["fi", "el", "mt", "sl", "is"]
-    assert all("languages" not in rule for name, rule in rules.items() if name != "common_voice_v22")
+    assert all("languages" not in rule for rule in rules.values())
     assert rules["fineweb2"]["target"] == 20000
     assert rules["leipzig_news"]["target"] == 20000
     assert rules["leipzig_wikipedia"]["target"] == 20000
@@ -164,5 +163,6 @@ def test_only_common_voice_has_a_source_language_allowlist():
     register = (ROOT / "docs/source-register.md").read_text(encoding="utf-8")
     assert "Common Voice 22" in register
     assert "Croatian" in register
+    assert "all HF-hosted Common Voice 22 locales" in register
     contract = (ROOT / "docs/pipeline-contract.md").read_text(encoding="utf-8")
     assert "Common Voice 22" in contract
