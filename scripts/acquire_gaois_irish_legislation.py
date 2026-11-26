@@ -152,7 +152,7 @@ def main():
                                 "source_translation_unit_id": record_id,
                                 "source_record_index": tu_index,
                                 "source_export_date": "2018-10-25",
-                                "publisher": "Fiontar & Scoil na Gaeilge, Dublin City University",
+                                "publisher_id": "dcu-fiontar-scoil-na-gaeilge-gaois",
                                 "language_tag": "ga",
                                 "english_segment_sha256": hashlib.sha256(english.encode("utf-8")).hexdigest() if english else None,
                                 "english_segment_characters": len(english) if english else 0,
