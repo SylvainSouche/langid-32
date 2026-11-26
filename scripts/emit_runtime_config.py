@@ -18,6 +18,9 @@ def main() -> None:
     config = load_config(ROOT / "config/langid32.toml")
     values = {
         "python_version": config["execution"]["python_version"],
+        "datasets_version": config["execution"]["datasets_version"],
+        "huggingface_hub_version": config["execution"]["huggingface_hub_version"],
+        "pyarrow_version": config["execution"]["pyarrow_version"],
         "artifact_retention_days": config["execution"]["artifact_retention_days"],
         "checkpoint_retention_days": config["execution"]["checkpoint_retention_days"],
         "curl_retry_count": config["execution"]["curl_retry_count"],
