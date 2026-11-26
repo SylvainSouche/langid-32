@@ -6,7 +6,13 @@ import sys
 from pathlib import Path
 
 CONFIGS = {
-    "isl_Latn", "hrv_Latn", "fin_Latn", "ell_Grek", "mlt_Latn", "slv_Latn",
+    "bul_Cyrl", "hrv_Latn", "cat_Latn", "ces_Latn", "dan_Latn",
+    "nld_Latn", "ekk_Latn", "fin_Latn", "fra_Latn", "deu_Latn",
+    "ell_Grek", "hun_Latn", "gle_Latn", "ita_Latn", "lvs_Latn",
+    "lit_Latn", "mlt_Latn", "pol_Latn", "por_Latn", "ron_Latn",
+    "slk_Latn", "slv_Latn", "spa_Latn", "swe_Latn", "nob_Latn",
+    "nno_Latn", "rus_Cyrl", "jpn_Jpan", "cmn_Hani", "kor_Hang",
+    "arb_Arab", "tur_Latn",
 }
 
 
