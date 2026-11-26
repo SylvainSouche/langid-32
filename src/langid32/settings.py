@@ -60,6 +60,9 @@ def validate_acquisition_policy(config: dict[str, Any]) -> None:
         "acquisition_safety_margin_minutes",
         "acquisition_retry_attempts",
         "acquisition_checkpoint_every_files",
+        "fineweb2_rowgroup_retry_attempts",
+        "fineweb2_rowgroup_retry_base_seconds",
+        "fineweb2_rowgroup_retry_max_seconds",
     )
     for key in positive:
         if int(execution[key]) <= 0:
@@ -67,6 +70,10 @@ def validate_acquisition_policy(config: dict[str, Any]) -> None:
     budget = int(execution["acquisition_global_budget_minutes"])
     margin = int(execution["acquisition_safety_margin_minutes"])
     timeout = int(execution["acquisition_job_timeout_minutes"])
+    if (int(execution["fineweb2_rowgroup_retry_attempts"]) != 8
+            or int(execution["fineweb2_rowgroup_retry_base_seconds"]) != 5
+            or int(execution["fineweb2_rowgroup_retry_max_seconds"]) != 120):
+        raise ValueError("FineWeb2 row-group retries must remain bounded at 8 attempts, 5s base and 120s cap")
     if budget + margin > 360:
         raise ValueError("Acquisition budget plus safety margin exceeds the six-hour limit")
     if timeout > budget or timeout + margin > 360:
