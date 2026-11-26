@@ -151,17 +151,18 @@ def test_acquisition_streaming_dependencies_are_config_pinned_and_used():
 
 
 
-def test_leipzig_historical_snapshot_is_restricted_to_six_current_languages():
+def test_only_common_voice_has_a_source_language_allowlist():
     config = load_config(ROOT / "config/langid32.toml")
-    expected = ["hr", "fi", "el", "mt", "sl", "is"]
     rules = config["acquisition"]["source_rules"]
-    assert rules["leipzig_news"]["languages"] == expected
-    assert rules["leipzig_wikipedia"]["languages"] == expected
-    assert rules["fineweb2"]["languages"] == expected
-    assert config["acquisition"]["source_rules"]["fineweb"]["exclude"] is True
+    assert rules["common_voice_v22"]["languages"] == ["fi", "el", "mt", "sl", "is"]
+    assert all("languages" not in rule for name, rule in rules.items() if name != "common_voice_v22")
+    assert rules["fineweb2"]["target"] == 20000
+    assert rules["leipzig_news"]["target"] == 20000
+    assert rules["leipzig_wikipedia"]["target"] == 20000
+    assert rules["dgt_tm_2021"]["target"] == 20000
+    assert rules["fineweb"]["exclude"] is True
     register = (ROOT / "docs/source-register.md").read_text(encoding="utf-8")
-    assert "Current pipeline allowlist is exactly" in register
-    assert "English currently has no active source" in register
-    assert "All 34 langid-32 labels targeted" not in register
+    assert "Common Voice 22" in register
+    assert "Croatian" in register
     contract = (ROOT / "docs/pipeline-contract.md").read_text(encoding="utf-8")
-    assert "no active English source" in contract
+    assert "Common Voice 22" in contract
