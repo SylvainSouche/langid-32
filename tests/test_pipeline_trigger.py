@@ -82,6 +82,17 @@ def test_push_with_trigger_and_code_change_fails_closed(tmp_path, monkeypatch):
         MODULE.main()
 
 
+def test_push_with_truncated_commit_payload_fails_closed(tmp_path, monkeypatch):
+    _write_sources(tmp_path)
+    _set_push_event(monkeypatch, tmp_path)
+    event_path = tmp_path / "event.json"
+    event = json.loads(event_path.read_text(encoding="utf-8"))
+    event["size"] = 2
+    event_path.write_text(json.dumps(event), encoding="utf-8")
+    with pytest.raises(SystemExit, match="commit list is incomplete"):
+        MODULE.main()
+
+
 def test_disabled_trigger_cannot_launch(tmp_path, monkeypatch):
     _write_sources(tmp_path)
     trigger_path = tmp_path / "pipeline-trigger.json"
