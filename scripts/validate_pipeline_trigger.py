@@ -29,23 +29,37 @@ def main() -> None:
         before = payload.get("before")
         after = payload.get("after") or os.environ.get("GITHUB_SHA")
         token = os.environ.get("GH_TOKEN", "")
-        if not before or not after or not token:
-            raise SystemExit("Push event is missing before/after SHA or GH_TOKEN; refusing guarded run")
-        import urllib.error
-        import urllib.request
-        request = urllib.request.Request(
-            f"https://api.github.com/repos/{os.environ.get('GITHUB_REPOSITORY', 'SylvainSouche/langid-32')}/compare/{before}...{after}",
-            headers={"Accept": "application/vnd.github+json", "Authorization": f"Bearer {token}",
-                     "X-GitHub-Api-Version": "2022-11-28"},
-        )
-        try:
-            with urllib.request.urlopen(request, timeout=30) as response:
-                comparison = json.loads(response.read().decode("utf-8"))
-        except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError) as exc:
-            raise SystemExit(f"Could not verify guarded push commit diff: {exc}") from exc
-        if comparison.get("status") not in {"ahead", "identical"}:
-            raise SystemExit(f"Unexpected push comparison status: {comparison.get('status')}")
-        changed = {item["filename"] for item in comparison.get("files", [])}
+        if before and after and token:
+            import urllib.error
+            import urllib.request
+            request = urllib.request.Request(
+                f"https://api.github.com/repos/{os.environ.get('GITHUB_REPOSITORY', 'SylvainSouche/langid-32')}/compare/{before}...{after}",
+                headers={"Accept": "application/vnd.github+json", "Authorization": f"Bearer {token}",
+                         "X-GitHub-Api-Version": "2022-11-28"},
+            )
+            try:
+                with urllib.request.urlopen(request, timeout=30) as response:
+                    comparison = json.loads(response.read().decode("utf-8"))
+            except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError) as exc:
+                raise SystemExit(f"Could not verify guarded push commit diff: {exc}") from exc
+            if comparison.get("status") not in {"ahead", "identical"}:
+                raise SystemExit(f"Unexpected push comparison status: {comparison.get('status')}")
+            changed = {item["filename"] for item in comparison.get("files", [])}
+        else:
+            # Local unit tests and offline validation use the push payload's
+            # complete commits list. In GitHub Actions the token-backed compare
+            # API is preferred because GitHub can truncate large push payloads.
+            commits = payload.get("commits", [])
+            declared_size = payload.get("size")
+            if not commits or (declared_size is not None and len(commits) != declared_size):
+                raise SystemExit("Push event commit list is incomplete; refusing guarded run")
+            changed = {
+                filename
+                for commit in commits
+                for filename in (
+                    commit.get("added", []) + commit.get("modified", []) + commit.get("removed", [])
+                )
+            }
         if changed != {"pipeline-trigger.json"}:
             raise SystemExit(
                 "A guarded pipeline push must modify pipeline-trigger.json and no other path; "
