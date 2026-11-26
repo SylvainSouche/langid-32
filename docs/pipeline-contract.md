@@ -125,6 +125,24 @@ The original audit baseline was `main` commit `1e6f8319b6cfd102c650c3b516cc4583d
 | Manual review hand-off | Text-bearing candidate/JQL outputs are encrypted before Actions artifact upload; final 30k selector is disabled | Implemented; no review artifact from a new full run yet |
 | Full real-data end-to-end proof | Staged acquisition → candidate → full-pool JQL scoring → merge/prune → encrypted hand-off | **Not yet verified**; do not describe the pipeline as production-verified until a complete run succeeds |
 
+### Source adapter coverage audit
+
+The current staged workflow's source coverage is narrower than the full set of audited/registered sources. A TOML `source_rules` entry or an audit report does **not** mean a source is acquired by the staged pipeline.
+
+| Source scope | Code path observed on main | Current status |
+|---|---|---|
+| Historical v5, Leipzig, Tatoeba CC0 and DGT-TM 2021 | `stages/01-acquisition/targets/historical.py` plus pinned artifact restore | Active; validated before fresh acquisition |
+| Common Voice 22 text-only (fi, el, mt, sl, is) | `stages/01-acquisition/targets/common-voice.py`, `scripts/download_common_voice_hf.py`, `scripts/curate_common_voice_hf.py` | Active; fresh HF acquisition |
+| FineWeb2, TeMU CC0, BSC-LT legal, Målfrid 2026, Korean Wikipedia, UN Arabic-English Filtered | `scripts/acquire_waiting_sources.py` via the waiting-source job | Active technical candidates; each source's rights hold/status in the source register remains binding |
+| Gaois Irish legislation, Irish side only | `scripts/acquire_gaois_irish_legislation.py`, `stages/01-acquisition/targets/gaois.py` | Active; accepted 50,000-record bounded sample |
+| IGC2024 Filtered-1 | Audit workflow/script only; no candidate extraction adapter in the staged workflow | Audited/registered, **not acquired by this pipeline** |
+| Greynir Copper and Silver | Audit workflow/script only; no candidate extraction adapter in the staged workflow | Audited/registered, **not acquired by this pipeline** |
+| MaCoCu-hr 2.0, MaCoCu-mt 2.0, MaCoCu-sl 2.0 | Full archive audit workflows/scripts only; no paragraph-to-candidate adapter in the staged workflow | Audited/registered, **not acquired by this pipeline** |
+| ParlaMint 4.0 (IS/SI) | TEI audit workflow/script only; no utterance-to-candidate adapter in the staged workflow | Audited/registered, **not acquired by this pipeline** |
+| Soranoha Japanese literature | Audit artifact/source-register entry only; no active config rule or staged acquisition adapter | Audited/registered, **not acquired by this pipeline** |
+
+The `config/langid32.toml` currently contains target rules for IGC, Greynir Copper/Silver, MaCoCu and ParlaMint despite the absence of acquisition adapters/jobs for them. These config entries are not evidence that their text enters the candidate pool. **Do not silently count these sources or imply source completeness.** Before a full acquisition launch, the intended scope of these audited-but-not-integrated sources must be resolved: implement and test adapters, or explicitly defer them in the source register/config and record that scope decision here. This is a launch blocker if the user's intended current source set includes them.
+
 ### Resolved findings from run #178
 
 1. The mixed branch checkout was removed: the staged jobs use the workflow run's single commit; the downstream JQL workflow resolves and checks out the exact source pipeline run SHA.
