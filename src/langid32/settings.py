@@ -36,6 +36,21 @@ def validate_acquisition_policy(config: dict[str, Any]) -> None:
                 f"Source-family quota alias is forbidden: {source}.quota_key; "
                 "each original source keeps its own source-language target"
             )
+    snapshots = config.get("historical_snapshots", {})
+    expected_snapshots = {"v5", "leipzig", "tatoeba", "dgt"}
+    if set(snapshots) != expected_snapshots:
+        raise ValueError(
+            f"Historical snapshot pins must be exactly {sorted(expected_snapshots)}"
+        )
+    for name, snapshot in snapshots.items():
+        required = ("run_id", "artifact_id", "artifact_name", "expires_at", "filename")
+        missing = [key for key in required if not snapshot.get(key)]
+        if missing:
+            raise ValueError(f"historical_snapshots.{name} missing {missing}")
+        if int(snapshot["run_id"]) <= 0 or int(snapshot["artifact_id"]) <= 0:
+            raise ValueError(f"historical_snapshots.{name} has an invalid run/artifact ID")
+        if Path(str(snapshot["filename"])).name != str(snapshot["filename"]):
+            raise ValueError(f"historical_snapshots.{name}.filename must be a basename")
     positive = (
         "acquisition_files_per_batch",
         "acquisition_max_parallel_source_tasks",
