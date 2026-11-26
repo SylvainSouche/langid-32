@@ -287,6 +287,7 @@ upload_buffer_minutes = 10
 embedding_dimension = 768
 head_hidden_dimension = 1000
 inference_batch_size = 8
+inference_dtype = "bfloat16"
 max_token_length = 8192
 cpu_torch_threads = 2
 shard_count = 8
