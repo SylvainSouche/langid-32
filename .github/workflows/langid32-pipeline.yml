@@ -1,6 +1,10 @@
 name: langid-32 staged corpus pipeline
-# Manual dispatch only until the complete staged pipeline passes contract verification.
+# Pushes trigger a run only when the explicit guarded pipeline-trigger.json command changes.
 on:
+  push:
+    branches: [main]
+    paths:
+      - "pipeline-trigger.json"
   workflow_dispatch:
 permissions:
   actions: read
@@ -42,6 +46,7 @@ jobs:
         run: |
           python3 -c 'import os,sys; k=os.environ.get("LANGID32_CHECKPOINT_KEY",""); sys.exit(0 if len(k)>=32 else "LANGID32_CHECKPOINT_KEY is missing or shorter than 32 characters")'
           python3 scripts/validate_historical_artifacts.py
+          python3 scripts/validate_pipeline_trigger.py
       - name: Preserve preflight manifest and historical artifact validation
         uses: actions/upload-artifact@v4
         with:
@@ -49,6 +54,7 @@ jobs:
           path: |
             out/preflight-manifest.json
             out/historical-artifact-preflight.json
+            out/pipeline-trigger-validation.json
           if-no-files-found: error
           retention-days: ${{ steps.runtime.outputs.artifact_retention_days }}
   historical:
