@@ -285,7 +285,7 @@ def main():
         "merge_input": str(combined_path),
         "preselection": {"status": "disabled"},
         "combined_rows": combined_rows,
-        "source_family_policy": "first-pass acquisition quotas and approved-language scopes are enforced on each original source identifier before normalization; candidate-stage balance accounting may then use source families",
+        "source_family_policy": "source families are used only for normalized display/grouping; acquisition quotas, candidate caps, source-balance constraints and all source-level reports use provenance.source_original_name",
         "v5_replacements": sorted(SUPERSEDED_V5_SOURCES),
     }
     (args.output / "input-manifest.json").write_text(
