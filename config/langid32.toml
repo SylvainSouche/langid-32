@@ -317,6 +317,9 @@ fineweb2_rowgroup_retry_base_seconds = 5
 fineweb2_rowgroup_retry_max_seconds = 120
 # Runtime controls are centralized here too; workflows should reference these.
 python_version = "3.12"
+datasets_version = "3.3.2"
+huggingface_hub_version = "0.26.5"
+pyarrow_version = "19.0.1"
 leipzig_pause_seconds = 1
 artifact_retention_days = 30
 checkpoint_retention_days = 7
