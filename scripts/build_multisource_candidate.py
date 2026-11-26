@@ -205,7 +205,7 @@ def main():
     parser.add_argument("--dgt-dir", type=Path, required=True)
     parser.add_argument("--waiting-dir", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
-    parser.add_argument("--config", type=Path, default=ROOT / "config/langid32.toml")
+    parser.add_argument("--config", type=Path, default=Path(os.environ.get("LANGID32_CONFIG", ROOT / "config/langid32.toml")))
     parser.add_argument("--exclusions", type=Path, default=Path("data/source-exclusions.jsonl"))
     parser.add_argument("--max-per-language", type=int, default=None)
     parser.add_argument("--core-per-language", type=int, default=None)
