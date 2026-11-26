@@ -217,7 +217,10 @@ long_numeric_min_digits = 9
 enabled = true
 judges = ["gemma", "mistral", "llama"]
 embedder_model = "Snowflake/snowflake-arctic-embed-m-v2.0"
+embedder_revision = "c6f9424b4d35ad6d408687d179d568bd68094afd"
 head_repository = "JQL-AI/JQL-Edu-Heads"
+# Resolve this ref once at scoring start, then use and record the immutable commit SHA for every head download.
+head_repository_revision = "main"
 head_checkpoints = { gemma = "checkpoints/edu-gemma-snowflake-balanced.ckpt", mistral = "checkpoints/edu-mistral-snowflake-balanced.ckpt", llama = "checkpoints/edu-llama-snowflake-balanced.ckpt" }
 score_decimal_places = 6
 quantile_epsilon = 0.000001
@@ -236,7 +239,7 @@ pruning_scope = "global_all_languages_after_full_corpus_normalization"
 diagnostic_global_quantile = 0.25
 publish_post_pruning_report = true
 final_selection_requires_user_approval = true
-assessment_sample_per_language = 1000
+assessment_sample_per_language = 0
 assessment_all_candidate_rows = true
 assessment_seed = "langid-32-jql-assessment-2026-11-19"
 max_seconds = 3600
