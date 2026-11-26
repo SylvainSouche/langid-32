@@ -44,12 +44,12 @@ def test_parlamint_turkish_release_is_wired_to_the_audited_archive(tmp_path):
     assert SOURCES["tr"]["source"] == "parlamint_tr"
     assert SOURCES["tr"]["md5"] == "82569712b7194216a18012af5bac992c"
     assert SOURCES["tr"]["prefix"] == "ParlaMint-TR_"
-    xml = b'''<?xml version="1.0"?>
+    xml = '''<?xml version="1.0"?>
     <TEI xmlns="http://www.tei-c.org/ns/1.0">
       <text><body><u xml:id="tr.u1" ana="#regular">
         <seg xml:id="tr.seg1">Bu yeterince uzun bir Türkçe konuşma parçasıdır.</seg>
       </u></body></text>
-    </TEI>'''
+    </TEI>'''.encode("utf-8")
     archive_path = tmp_path / "turkish.tgz"
     with tarfile.open(archive_path, "w:gz") as archive:
         info = tarfile.TarInfo("ParlaMint-TR_2024-01-01-1.xml")
