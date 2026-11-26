@@ -55,6 +55,7 @@ def iter_utterances(archive_path: str | Path, language: str):
             raise RuntimeError(f"No plain ParlaMint {language.upper()} session XML files found")
 
         for member in members:
+            session_id = Path(member.name).stem
             stream = archive.extractfile(member)
             if stream is None:
                 raise RuntimeError(f"Cannot read ParlaMint archive member {member.name}")
@@ -81,10 +82,10 @@ def iter_utterances(archive_path: str | Path, language: str):
                                 segment_id = segment.attrib.get(XML_ID) or f"{utterance_id}.seg{index}"
                                 yield {
                                     "text": value,
-                                    "group_id": utterance_id,
+                                    "group_id": session_id,
                                     "provenance": {
                                         "source_file": member.name,
-                                        "session_id": Path(member.name).stem,
+                                        "session_id": session_id,
                                         "utterance_id": utterance_id,
                                         "segment_id": segment_id,
                                         "record_structure": "ParlaMint TEI utterance segment",
