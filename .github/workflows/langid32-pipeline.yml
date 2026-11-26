@@ -18,6 +18,8 @@ jobs:
       config_sha256: "${{ steps.runtime.outputs.config_sha256 }}"
       source_register_sha256: "${{ steps.runtime.outputs.source_register_sha256 }}"
       pipeline_contract_sha256: "${{ steps.runtime.outputs.pipeline_contract_sha256 }}"
+      preflight_manifest_sha256: "${{ steps.runtime.outputs.preflight_manifest_sha256 }}"
+      artifact_retention_days: "${{ steps.runtime.outputs.artifact_retention_days }}"
       historical_v5_run_id: "${{ steps.runtime.outputs.historical_v5_run_id }}"
       historical_v5_artifact_name: "${{ steps.runtime.outputs.historical_v5_artifact_name }}"
       historical_leipzig_run_id: "${{ steps.runtime.outputs.historical_leipzig_run_id }}"
@@ -40,6 +42,15 @@ jobs:
         run: |
           python3 -c 'import os,sys; k=os.environ.get("LANGID32_CHECKPOINT_KEY",""); sys.exit(0 if len(k)>=32 else "LANGID32_CHECKPOINT_KEY is missing or shorter than 32 characters")'
           python3 scripts/validate_historical_artifacts.py
+      - name: Preserve preflight manifest and historical artifact validation
+        uses: actions/upload-artifact@v4
+        with:
+          name: langid-32-pipeline-preflight
+          path: |
+            out/preflight-manifest.json
+            out/historical-artifact-preflight.json
+          if-no-files-found: error
+          retention-days: ${{ steps.runtime.outputs.artifact_retention_days }}
   historical:
     if: github.ref == 'refs/heads/main'
     needs: [config]
