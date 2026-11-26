@@ -16,7 +16,7 @@ permissions:
   actions: read
   contents: read
 env:
-  LANGID32_CONFIG: config/langid32-debug.toml
+  LANGID32_CONFIG: config/langid32.toml
 jobs:
   config:
     runs-on: ubuntu-latest
