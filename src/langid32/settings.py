@@ -32,6 +32,8 @@ def validate_acquisition_policy(config: dict[str, Any]) -> None:
     if target != 20000:
         raise ValueError(f"Expected the approved 20,000 post-filter target, got {target}")
     for source, rule in acquisition.get("source_rules", {}).items():
+        if source != "common_voice_v22" and "languages" in rule:
+            raise ValueError(f"Source-language allowlists are forbidden outside Common Voice 22: {source}.languages")
         if "quota_key" in rule:
             raise ValueError(
                 f"Source-family quota alias is forbidden: {source}.quota_key; "
@@ -132,7 +134,7 @@ def validate_jql_policy(config: dict[str, Any]) -> None:
     if float(balance.get("preferred_share", -1)) != 0.30 or float(balance.get("hard_max_share", -1)) != 0.50:
         raise ValueError("Deferred final selection must retain the 30% preferred / 50% hard source mix")
     gaoi = config["acquisition"]["source_rules"].get("gaois_irish_legislation", {})
-    if int(gaoi.get("target", 0)) != 50000 or gaoi.get("languages") != ["ga"]:
+    if int(gaoi.get("target", 0)) != 50000:
         raise ValueError("Gaois must remain limited to the approved 50,000-record Irish-side sample")
 
 
