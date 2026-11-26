@@ -34,7 +34,7 @@ def test_full_candidate_to_global_jql_pruning_contract(tmp_path):
     rows = []
     for index in range(8):
         source = f"original-source-{index % 4}"
-        language = "en" if index < 4 else "fr"
+        language = "ar" if index == 7 else ("en" if index < 4 else "fr")
         rows.append({
             "text": f"This is a synthetic educational sentence number {index}.",
             "language": language,
@@ -179,7 +179,11 @@ def test_full_candidate_to_global_jql_pruning_contract(tmp_path):
     assert pruning["retained_rows"] == 6
     assert len(full) == 8 and len(pruned) == 6
     assert "sentence" in pruned.columns
-    assert set(full["jql_training_domain_status"]) == {"training_domain"}
+    assert full["jql_training_domain_status"].value_counts().to_dict() == {
+        "training_domain": 7, "out_of_training_domain": 1
+    }
+    assert summary["jql_out_of_training_languages"] == config["jql"]["out_of_training_languages"]
+    assert pruning["out_of_training_domain_rows_pruned"] + pruning["out_of_training_domain_rows_retained"] == 1
     assert set(full["source-variant"]) == {f"original-source-{i}" for i in range(4)}
     assert len(summary["shard_manifests"]) == 8
     from collections import Counter
