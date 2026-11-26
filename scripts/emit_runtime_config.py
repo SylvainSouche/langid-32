@@ -2,6 +2,7 @@
 """Emit runtime settings for GitHub Actions from the authoritative TOML file."""
 from __future__ import annotations
 
+import hashlib
 import os
 import sys
 import time
@@ -25,7 +26,14 @@ def main() -> None:
         "acquisition_global_budget_minutes": config["execution"]["acquisition_global_budget_minutes"],
         "acquisition_safety_margin_minutes": config["execution"]["acquisition_safety_margin_minutes"],
         "acquisition_started_epoch": int(time.time()),
+        "code_commit_sha": os.environ.get("GITHUB_SHA", "local"),
+        "config_sha256": hashlib.sha256((ROOT / "config/langid32.toml").read_bytes()).hexdigest(),
+        "source_register_sha256": hashlib.sha256((ROOT / "docs/source-register.md").read_bytes()).hexdigest(),
+        "pipeline_contract_sha256": hashlib.sha256((ROOT / "docs/pipeline-contract.md").read_bytes()).hexdigest(),
     }
+    for name, snapshot in config["historical_snapshots"].items():
+        values[f"historical_{name}_run_id"] = snapshot["run_id"]
+        values[f"historical_{name}_artifact_name"] = snapshot["artifact_name"]
     output = os.environ.get("GITHUB_OUTPUT")
     if not output:
         raise SystemExit("GITHUB_OUTPUT is required")
