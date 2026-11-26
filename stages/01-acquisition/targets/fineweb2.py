@@ -11,7 +11,7 @@ CONFIGS = {
     "ell_Grek", "hun_Latn", "gle_Latn", "ita_Latn", "lvs_Latn",
     "lit_Latn", "mlt_Latn", "pol_Latn", "por_Latn", "ron_Latn",
     "slk_Latn", "slv_Latn", "spa_Latn", "swe_Latn", "nob_Latn",
-    "nno_Latn", "rus_Cyrl", "jpn_Jpan", "cmn_Hani", "kor_Hang",
+    "nno_Latn", "isl_Latn", "rus_Cyrl", "jpn_Jpan", "cmn_Hani", "kor_Hang",
     "arb_Arab", "tur_Latn",
 }
 
