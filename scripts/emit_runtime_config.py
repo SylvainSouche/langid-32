@@ -31,6 +31,7 @@ def main() -> None:
         "config_sha256": hashlib.sha256((ROOT / "config/langid32.toml").read_bytes()).hexdigest(),
         "source_register_sha256": hashlib.sha256((ROOT / "docs/source-register.md").read_bytes()).hexdigest(),
         "pipeline_contract_sha256": hashlib.sha256((ROOT / "docs/pipeline-contract.md").read_bytes()).hexdigest(),
+        "pipeline_trigger_sha256": hashlib.sha256((ROOT / "pipeline-trigger.json").read_bytes()).hexdigest(),
     }
     for name, snapshot in config["historical_snapshots"].items():
         values[f"historical_{name}_run_id"] = snapshot["run_id"]
@@ -46,7 +47,9 @@ def main() -> None:
             "config_sha256": values["config_sha256"],
             "source_register_sha256": values["source_register_sha256"],
             "pipeline_contract_sha256": values["pipeline_contract_sha256"],
+            "pipeline_trigger_sha256": values["pipeline_trigger_sha256"],
         },
+        "pipeline_trigger": json.loads((ROOT / "pipeline-trigger.json").read_text(encoding="utf-8")),
         "languages": config["project"]["languages"],
         "source_revision_plan": {
             "source_rules": config["acquisition"]["source_rules"],
