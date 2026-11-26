@@ -29,3 +29,6 @@ jobs:
           name: greynir-corpus-audit-${{ github.run_id }}
           path: greynir-corpus/reports/greynir-corpus-audit.json
           retention-days: 90
+      - name: Remove hydrated Greynir source tree
+        if: always()
+        run: rm -rf greynir-corpus
