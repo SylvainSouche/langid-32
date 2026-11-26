@@ -255,7 +255,7 @@ consensus_mean_weight = 1.0
 consensus_disagreement_penalty = 0.5
 disagreement_standard_deviation = "population"
 # Normalize each judge over the full filtered assessment pool, then prune the
-# bottom quarter by normalized consensus. Final 30k/source selection is deferred.
+# bottom quarter by normalized consensus. Final 35k/language selection is deferred.
 selection_effect = "bottom_quantile_pruning"
 apply_quality_floor = false
 prune_bottom_quantile = 0.25
