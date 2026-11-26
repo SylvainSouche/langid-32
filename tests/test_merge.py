@@ -176,3 +176,37 @@ def test_source_intake_cap_is_independent_for_each_language(tmp_path):
     internal = [json.loads(line) for line in (args.output / "records.jsonl").read_text().splitlines()]
     assert sum(row["language"] == "fr" for row in internal) == 20
     assert sum(row["language"] == "en" for row in internal) == 20
+
+def test_original_source_identity_preserves_independent_quotas_within_family(tmp_path):
+    source = tmp_path / "source-family.jsonl"
+    rows = []
+    for source_id in ("source-A", "source-B"):
+        for i in range(25):
+            row = _row(f"Unique sentence {source_id} number {i}", "fr", "family", f"{source_id}:doc{i}")
+            row["provenance"]["source_original_name"] = source_id
+            rows.append(row)
+    source.write_text("".join(json.dumps(row) + "\n" for row in rows))
+    args = _args(tmp_path, [source])
+    args.max_per_language = 0
+    args.max_sentences_per_source = 20
+    args.validation_fraction = 0
+    args.test_fraction = 0
+    merge(args)
+    manifest = json.loads((args.output / "manifest.json").read_text())
+    intake = manifest["source_intake_counts_before_global_dedup"]
+    assert intake["fr:source-A"] == 20
+    assert intake["fr:source-B"] == 20
+    assert manifest["group_counts_by_source"] == {"source-A": 20, "source-B": 20}
+    assert sum(manifest["source_counts"].values()) == 40
+
+
+def test_source_balancing_uses_original_sources_not_family_labels():
+    from langid32.merge import _select_source_balanced
+
+    rows = [
+        {"source": "family", "provenance": {"source_original_name": "source-A"}},
+        {"source": "family", "provenance": {"source_original_name": "source-B"}},
+    ]
+    selected, counts = _select_source_balanced(rows, 2, 0.5, 0.5)
+    assert len(selected) == 2
+    assert counts == {"source-A": 1, "source-B": 1}
