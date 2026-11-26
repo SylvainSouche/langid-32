@@ -74,6 +74,23 @@ def wait_for_new_threads_to_exit(existing_threads, timeout_seconds=30, quiet_per
         )
 
 
+
+def stop_tqdm_monitors(timeout_seconds=10):
+    """Stop tqdm's daemon monitor threads before CPython finalization."""
+    from tqdm._monitor import TMonitor
+
+    monitors = list(getattr(TMonitor, "_instances", ()))
+    for monitor in monitors:
+        monitor.exit()
+    for monitor in monitors:
+        monitor.join(timeout=timeout_seconds)
+    alive = [monitor.name for monitor in monitors if monitor.is_alive()]
+    if alive:
+        raise RuntimeError(
+            "tqdm monitor threads did not stop cleanly: " + ", ".join(alive)
+        )
+
+
 def check_global_deadline():
     """Abort long-running acquisition loops before consuming the workflow safety reserve."""
     started = int(__import__("os").environ.get("LANGID32_ACQUISITION_STARTED_EPOCH", "0"))
@@ -1095,6 +1112,10 @@ def main():
             import pyarrow as pa
             pa.set_cpu_count(1)
             pa.set_io_thread_count(1)
+            # datasets uses tqdm; its global daemon TMonitor threads otherwise
+            # survive iterator closure and block a clean interpreter shutdown.
+            import tqdm
+            tqdm.tqdm.monitor_interval = 0
             from datasets import load_dataset
             arabic_bucket = ("ar", "un_arabic_english_filtered:text_ar")
             if not quota_reached(arabic_bucket):
@@ -1179,6 +1200,7 @@ def main():
                     import gc
                     gc.collect()
                     gc.collect()
+                    stop_tqdm_monitors()
                     wait_for_new_threads_to_exit(
                         arabic_preexisting_threads, timeout_seconds=30,
                         quiet_period_seconds=1,
