@@ -376,7 +376,7 @@ def merge(args):
             duplicate_by_source_pair[f"{original}->{row['source']}"] += 1
             continue
         seen_text.add(key)
-        first_source[key] = row["source"]
+        first_source[key] = original_source_identity(row)
         previous = group_splits.setdefault(row["split_group_id"], row["split"])
         if previous != row["split"]:
             raise ValueError(f"split-group inconsistency: {row['split_group_id']}")
