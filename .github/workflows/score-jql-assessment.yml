@@ -15,6 +15,10 @@ on:
         required: true
         type: string
         default: "langid-32-jql-assessment-full-encrypted"
+      resume_ratings_run_id:
+        description: "Optional previous JQL scoring workflow run whose partial shard ratings should be resumed"
+        required: false
+        type: string
 
 permissions:
   actions: read
@@ -29,6 +33,8 @@ jobs:
     if: ${{ github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') }}
     runs-on: ubuntu-latest
     outputs:
+      source_sha: ${{ steps.source.outputs.head_sha }}
+      source_run_id: ${{ steps.source.outputs.run_id }}
       matrix: ${{ steps.config.outputs.matrix }}
       max_parallel: ${{ steps.config.outputs.max_parallel }}
       max_seconds: ${{ steps.config.outputs.max_seconds }}
@@ -38,9 +44,29 @@ jobs:
       short_retention_days: ${{ steps.config.outputs.short_retention_days }}
       retention_days: ${{ steps.config.outputs.retention_days }}
     steps:
+      - id: source
+        name: Resolve and validate the exact successful staged-pipeline run
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_RUN_ID: ${{ steps.source.outputs.run_id }}
+        run: |
+          set -euo pipefail
+          response="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$SOURCE_RUN_ID")"
+          head_sha="$(printf '%s' "$response" | jq -r '.head_sha')"
+          head_branch="$(printf '%s' "$response" | jq -r '.head_branch')"
+          workflow_name="$(printf '%s' "$response" | jq -r '.name')"
+          status="$(printf '%s' "$response" | jq -r '.status')"
+          conclusion="$(printf '%s' "$response" | jq -r '.conclusion')"
+          test "$workflow_name" = "langid-32 staged corpus pipeline"
+          test "$head_branch" = "main"
+          test "$status" = "completed"
+          test "$conclusion" = "success"
+          [[ "$head_sha" =~ ^[0-9a-f]{40}$ ]]
+          echo "head_sha=$head_sha" >> "$GITHUB_OUTPUT"
+          echo "run_id=$SOURCE_RUN_ID" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          ref: ${{ steps.source.outputs.head_sha }}
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -104,7 +130,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          ref: ${{ needs.prepare.outputs.source_sha }}
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ needs.prepare.outputs.python_version }}
@@ -127,6 +153,19 @@ jobs:
         env:
           LANGID32_CHECKPOINT_KEY: ${{ secrets.LANGID32_CHECKPOINT_KEY }}
         run: python scripts/checkpoint.py unpack --root jql-work --archive encrypted/jql-shards.bin
+      - name: Restore partial ratings from a previous scoring run when requested
+        if: ${{ inputs.resume_ratings_run_id != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RESUME_RUN_ID: ${{ inputs.resume_ratings_run_id }}
+          SHARD_INDEX: ${{ matrix.index }}
+        run: |
+          mkdir -p previous ratings
+          if gh run download "$RESUME_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "jql-ratings-$SHARD_INDEX" --dir previous; then
+            find previous -type f -name "shard-$SHARD_INDEX.csv*" -exec cp {} ratings/ \\;
+          else
+            echo "No previous partial artifact for shard $SHARD_INDEX; starting that shard from scratch."
+          fi
       - name: Score all three JQL heads in resumable one-hour batches
         run: |
           set +e
