@@ -36,7 +36,7 @@ def sha256_file(path: Path) -> str:
 
 def write_manifest(path: Path, manifest: dict) -> None:
     temporary = path.with_suffix(path.suffix + ".tmp")
-    temporary.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
+    temporary.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     temporary.replace(path)
 
 
@@ -116,6 +116,7 @@ def main():
     frame = pd.read_parquet(args.input, columns=["id", "lang", "sentence"])
     if args.max_rows:
         frame = frame.head(args.max_rows)
+    input_rows = int(len(frame))
     if frame.empty:
         raise SystemExit("Input Parquet contains no rows")
     if frame[["id", "lang", "sentence"]].isna().any().any():
@@ -207,7 +208,7 @@ def main():
                 completed_ids.add(row_id)
         frame = frame.loc[~frame["id"].astype(str).isin(completed_ids)].copy()
     if frame.empty:
-        manifest = {**provenance, "schema_version": 1, "input_rows": int(len(pd.read_parquet(args.input, columns=["id"]))),
+        manifest = {**provenance, "schema_version": 1, "input_rows": input_rows,
                     "scored_rows": len(completed_ids), "updated_at": datetime.now(timezone.utc).isoformat()}
         write_manifest(manifest_path, manifest)
         print(f"All requested rows already have ratings in {args.output}")
