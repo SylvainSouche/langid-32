@@ -74,3 +74,30 @@ def test_pinned_hf_iterable_dataset_supports_json_checkpoint_and_restore():
     resumed = IterableDataset.from_generator(rows)
     resumed.load_state_dict(state)
     assert next(iter(resumed)) == {"id": 2}
+
+
+def test_tqdm_cleanup_stops_live_monitor_threads_not_in_registry():
+    import threading
+    import time
+
+    stopped = threading.Event()
+
+    class OrphanedMonitor(threading.Thread):
+        def __init__(self):
+            super().__init__(name="tqdm_monitor", daemon=True)
+
+        def run(self):
+            stopped.wait(timeout=5)
+
+        def exit(self):
+            stopped.set()
+
+    monitor = OrphanedMonitor()
+    monitor.start()
+    try:
+        MODULE.stop_tqdm_monitors(timeout_seconds=2)
+        assert not monitor.is_alive()
+    finally:
+        if monitor.is_alive():
+            monitor.exit()
+            monitor.join(timeout=2)
