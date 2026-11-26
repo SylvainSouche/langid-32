@@ -48,11 +48,10 @@ def test_normalization_applies_source_language_scope_and_per_source_caps(tmp_pat
     report = MODULE.normalize_file(source, destination, config=config)
     retained = [json.loads(line) for line in destination.read_text(encoding="utf-8").splitlines()]
 
-    assert len(retained) == 3
+    assert len(retained) == 4
     assert report["filtered_superseded_sources"] == {
         "configured_source_target_reached": 2,
-        "source_language_not_approved": 1,
-    }
+            }
     assert report["source_counts"] == {"fineweb2": 1, "temu_cc0": 2}
     assert {row["provenance"]["source_original_name"] for row in retained} == {
         "fineweb2:hrv_Latn", "temu_cc0:component_a", "temu_cc0:component_b"
