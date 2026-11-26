@@ -65,6 +65,7 @@ def load_head(path: str, device: torch.device, dtype: torch.dtype, jql_cfg: dict
 
 
 def main():
+    process_started = time.monotonic()
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--input", required=True, type=Path, help="Input Parquet")
     ap.add_argument("--output", required=True, type=Path, help="Output CSV")
@@ -74,6 +75,7 @@ def main():
     ap.add_argument("--max-rows", type=int, default=None, help="Optional smoke-test row limit")
     ap.add_argument("--torch-threads", type=int, default=None, help="CPU intra-op threads")
     ap.add_argument("--max-seconds", type=int, default=None, help="Maximum inference time for this resumable batch")
+    ap.add_argument("--max-runtime-seconds", type=int, default=None, help="Hard cap for the complete process invocation, including model loading")
     ap.add_argument("--resume", action="store_true", help="Append to an existing ratings CSV and skip completed IDs")
     ap.add_argument("--config", type=Path, default=ROOT / "config/langid32.toml")
     ap.add_argument("--head-repo", default=None)
@@ -110,6 +112,8 @@ def main():
         raise SystemExit("--torch-threads must be positive")
     if args.max_seconds < 1:
         raise SystemExit("--max-seconds must be positive")
+    if args.max_runtime_seconds is not None and args.max_runtime_seconds < 1:
+        raise SystemExit("--max-runtime-seconds must be positive")
     torch.set_num_threads(args.torch_threads)
     if not args.input.is_file():
         raise SystemExit(f"Input not found: {args.input}")
@@ -248,7 +252,12 @@ def main():
         batch_started = time.monotonic()
 
         for start in range(0, len(texts), args.batch_size):
-            if time.monotonic() - batch_started >= args.max_seconds:
+            batch_limit_reached = time.monotonic() - batch_started >= args.max_seconds
+            runtime_limit_reached = (
+                args.max_runtime_seconds is not None
+                and time.monotonic() - process_started >= args.max_runtime_seconds
+            )
+            if batch_limit_reached or runtime_limit_reached:
                 stream.flush()
                 os.fsync(stream.fileno())
                 manifest = {**provenance, "schema_version": 1,
@@ -256,7 +265,11 @@ def main():
                             "scored_rows": len(completed_ids),
                             "updated_at": datetime.now(timezone.utc).isoformat()}
                 write_manifest(manifest_path, manifest)
-                print(f"Batch time limit reached; completed {start}/{len(texts)} remaining rows", flush=True)
+                reason = "invocation runtime budget" if runtime_limit_reached else "inference batch time"
+                print(
+                    f"{reason} reached; completed {start}/{len(texts)} remaining rows",
+                    flush=True,
+                )
                 raise SystemExit(75)
             batch_texts = texts[start:start + args.batch_size]
             tokens = tokenizer(
