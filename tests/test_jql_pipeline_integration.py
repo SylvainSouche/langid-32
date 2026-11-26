@@ -172,6 +172,12 @@ def test_full_candidate_to_global_jql_pruning_contract(tmp_path):
     pruned = pd.read_csv(pruned_csv)
     assert summary["rows"] == 8
     assert summary["ratings_rows"] == 8
+    scored_counts = {
+        (item["language"], item["source"]): item["count"]
+        for item in summary["scored_by_language_source"]
+    }
+    assert sum(scored_counts.values()) == 8
+    assert len(scored_counts) == 8
     assert summary["normalization_scope"] == "entire assessment corpus, all languages combined, independently per judge"
     assert summary["model_provenance"]["models"]["embedder_revision_resolved"] == embedder_revision
     assert pruning["scope"] == "global_all_languages_after_full_corpus_normalization"
