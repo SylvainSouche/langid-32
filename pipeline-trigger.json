@@ -1,9 +1,9 @@
 {
   "run_mode": "clean_full_pipeline",
-  "nonce": "debug-run-20261126-1528",
-  "config_sha256": "513ae5db39866234c46733628be2366195c706f4f05630a10b63e2d9574058bd",
-  "source_register_sha256": "0facb5065d1ae187f4a9eb1692903a69a0bfbc4e4f533f9aa669fee93a77e419",
-  "pipeline_contract_sha256": "3945534fcc358455c69d6aa38bd7c5b3d8587977b707b8f2ab1766933df236e9",
+  "nonce": "debug-run-20261126-1600",
+  "config_sha256": "d9f26f364e61a5cedba14570482a4d1e4ebc3886b36808c39fc36b02a8ed7951",
+  "source_register_sha256": "d1f1281750bf263fc0ea6005576c78dcc811749a1abea530ff0fcb61be171d7d",
+  "pipeline_contract_sha256": "1d85aadc5f72b2944645852b3c61ade8db6adae9dbdfb9cca088c039a82055b4",
   "artifact_reuse": false,
   "final_selection": "deferred",
   "privacy_review_required": true
