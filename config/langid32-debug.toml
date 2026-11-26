@@ -45,7 +45,7 @@ filename = "dgt-tm-2021-staged.jsonl"
 [acquisition]
 # First pass: stream up to this many eligible, unique records from EACH
 # individual source for EACH language. This is not a family-wide/candidate cap.
-first_pass_target_per_source_language = 20000
+first_pass_target_per_source_language = 200
 # Retain eligible unique sentences up to this cap per original source/language.
 # Source/language restrictions are not configured here; upstream availability determines each cell. Replenish from additional eligible material when needed.
 filter_before_quota = true
@@ -205,7 +205,7 @@ privacy_uncertain_action = "quarantine"
 
 [candidate]
 # Final corpus size and source mix are deferred until the post-JQL pool is reported.
-final_sentences_per_language = 35000
+final_sentences_per_language = 350
 final_source_target_per_language = 10000
 final_selection_status = "deferred_pending_user_review"
 [candidate.language_target_overrides]
