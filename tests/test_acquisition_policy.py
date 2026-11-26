@@ -127,5 +127,5 @@ def test_un_arabic_row_index_is_not_mislabelled_as_document_id():
     assert "source_record_id" not in provenance
     assert "source_document_id" not in provenance
     assert provenance["repo_commit"] == "a" * 40
-    assert provenance["publisher"] == "United Nations"
+    assert provenance["publisher_id"] == "united-nations"
     assert provenance["attribution_required"] is True
