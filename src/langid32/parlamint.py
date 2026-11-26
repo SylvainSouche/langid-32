@@ -1,0 +1,94 @@
+"""ParlaMint 4.0 TEI extraction with identity-bearing speaker metadata excluded."""
+from __future__ import annotations
+
+import tarfile
+import xml.etree.ElementTree as ET
+from pathlib import Path
+
+TEI = "{http://www.tei-c.org/ns/1.0}"
+XML_ID = "{http://www.w3.org/XML/1998/namespace}id"
+
+SOURCES = {
+    "is": {
+        "source": "parlamint_is",
+        "url": "https://www.clarin.si/repository/xmlui/bitstream/handle/11356/1859/ParlaMint-IS.tgz?isAllowed=y&sequence=16",
+        "md5": "59e4889f7f81b23cbdc96b827bea4a40",
+        "prefix": "ParlaMint-IS_",
+    },
+    "sl": {
+        "source": "parlamint_sl",
+        "url": "https://www.clarin.si/repository/xmlui/bitstream/handle/11356/1859/ParlaMint-SI.tgz?isAllowed=y&sequence=24",
+        "md5": "a710c3869b2aaa89da3b9eaa3c7eb83f",
+        "prefix": "ParlaMint-SI_",
+    },
+}
+
+
+def iter_utterances(archive_path: str | Path, language: str):
+    """Yield paragraph records from plain TEI session files; never expose speaker IDs/names."""
+    if language not in SOURCES:
+        raise ValueError(f"Unsupported ParlaMint language: {language}")
+    meta = SOURCES[language]
+    with tarfile.open(archive_path, "r:gz") as archive:
+        members = [
+            member for member in archive
+            if member.isfile()
+            and member.name.lower().endswith(".xml")
+            and Path(member.name).name.startswith(meta["prefix"])
+            and not member.name.lower().endswith(".ana.xml")
+            and "/listperson" not in member.name.lower()
+            and "/listorg" not in member.name.lower()
+            and "/taxonomy" not in member.name.lower()
+            and "/schema/" not in member.name.lower()
+            and "/samples/" not in member.name.lower()
+        ]
+        if not members:
+            raise RuntimeError(f"No plain ParlaMint {language.upper()} session XML files found")
+
+        for member in members:
+            stream = archive.extractfile(member)
+            if stream is None:
+                raise RuntimeError(f"Cannot read ParlaMint archive member {member.name}")
+            try:
+                for event, elem in ET.iterparse(stream, events=("end",)):
+                    if elem.tag != TEI + "u":
+                        continue
+                    utterance_id = elem.attrib.get(XML_ID)
+                    if not utterance_id:
+                        raise RuntimeError(
+                            f"ParlaMint utterance has no xml:id in {member.name}"
+                        )
+                    segments = elem.findall(".//" + TEI + "seg")
+                    if segments:
+                        for index, segment in enumerate(segments, 1):
+                            value = " ".join("".join(segment.itertext()).split())
+                            if value:
+                                segment_id = segment.attrib.get(XML_ID) or f"{utterance_id}.seg{index}"
+                                yield {
+                                    "text": value,
+                                    "group_id": utterance_id,
+                                    "provenance": {
+                                        "source_file": member.name,
+                                        "session_id": Path(member.name).stem,
+                                        "utterance_id": utterance_id,
+                                        "segment_id": segment_id,
+                                        "record_structure": "ParlaMint TEI utterance segment",
+                                    },
+                                }
+                    else:
+                        value = " ".join("".join(elem.itertext()).split())
+                        if value:
+                            yield {
+                                "text": value,
+                                "group_id": utterance_id,
+                                "provenance": {
+                                    "source_file": member.name,
+                                    "session_id": Path(member.name).stem,
+                                    "utterance_id": utterance_id,
+                                    "record_structure": "ParlaMint TEI utterance",
+                                },
+                            }
+                    # Clear the utterance after extraction to bound memory.
+                    elem.clear()
+            finally:
+                stream.close()
