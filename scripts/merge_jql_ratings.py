@@ -128,10 +128,19 @@ def read_score_manifests(
         if input_hash != manifest.get("input_sha256"):
             raise SystemExit(f"Input shard hash mismatch for {manifest_path.name}")
         provenance = {
+            "pipeline_source_sha": manifest.get("pipeline_source_sha"),
+            "pipeline_source_run_id": str(manifest.get("pipeline_source_run_id", "")),
             "models": manifest.get("models"),
             "head_checkpoint_sha256": manifest.get("head_checkpoint_sha256"),
             "scoring": manifest.get("scoring"),
         }
+        source_sha = provenance["pipeline_source_sha"]
+        if not isinstance(source_sha, str) or len(source_sha) != 40 or any(
+            ch not in "0123456789abcdef" for ch in source_sha.lower()
+        ):
+            raise SystemExit(f"Invalid source pipeline commit SHA in {manifest_path.name}")
+        if not provenance["pipeline_source_run_id"].isdigit():
+            raise SystemExit(f"Invalid source pipeline run ID in {manifest_path.name}")
         if not provenance["models"] or not provenance["head_checkpoint_sha256"] or not provenance["scoring"]:
             raise SystemExit(f"Incomplete model provenance in {manifest_path.name}")
         for key in ("embedder_revision_resolved",):
@@ -227,6 +236,12 @@ def main() -> None:
         if (scored_item["input_sha256"] != split_item["sha256"]
                 or scored_item["input_rows"] != int(split_item["rows"])):
             raise SystemExit(f"Scored shard provenance mismatch: {filename}")
+    expected_source_sha = os.environ.get("LANGID32_SOURCE_SHA")
+    expected_source_run_id = os.environ.get("LANGID32_SOURCE_RUN_ID")
+    if expected_source_sha and model_provenance["pipeline_source_sha"] != expected_source_sha:
+        raise SystemExit("JQL ratings were produced from a different staged-pipeline commit")
+    if expected_source_run_id and model_provenance["pipeline_source_run_id"] != expected_source_run_id:
+        raise SystemExit("JQL ratings were produced from a different staged-pipeline run")
     model_info = model_provenance["models"]
     if model_info.get("embedder_repository") != jql_config["embedder_model"]:
         raise SystemExit("JQL embedding repository does not match the authoritative config")
