@@ -293,7 +293,7 @@ def test_legacy_greynir_gold_exclusion_does_not_match_copper_or_silver(tmp_path)
             f"This is a sufficiently long Icelandic corpus sentence for {partition}.",
             "is", f"greynir_{partition}", f"greynir_{partition}:article-1",
         )
-        row["provenance"]["source_original_name"] = f"greynir_{partition}"
+        row["provenance"].pop("source_original_name", None)
         rows.append(row)
     source.write_text("".join(json.dumps(row) + "\n" for row in rows))
     registry = tmp_path / "exclusions.jsonl"
