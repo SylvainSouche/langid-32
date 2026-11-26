@@ -17,6 +17,8 @@ Target **30,000 usable records per language**: a 20,000-record core plus up to 1
 
 Source mix target: **30% preferred, 50% hard ceiling per source and language**. Any exception must be explicit, justified and reported; a single-source class is not considered balanced.
 
+The binding stage order, acquisition/privacy/JQL rules, execution limits, acceptance checks and workflow invocation procedure are in the [pipeline contract](docs/pipeline-contract.md). The 30,000-per-language target is a later human-approved selection target: the automated pipeline stops after full-pool JQL scoring and global bottom-25% pruning.
+
 ## Voluntary source-selection decision
 
 The project voluntarily does not use the Mozilla Data Collective repository or any data hosted there. We consider its contractual practices abusive. This is a project sourcing decision, not a legal finding about any other dataset.
