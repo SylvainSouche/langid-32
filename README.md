@@ -81,6 +81,7 @@ The binding stage order and acceptance criteria are in the [pipeline contract](d
 7. Stop for manual privacy and source-rights review.
 
 The final 30,000-per-language selection, 20k core plus 10k reserve labels, and 30% preferred / 50% hard per-source mix are deferred human decisions. The automated pipeline does not perform them. The accepted privacy implementation is heuristic; its output is held for manual review before any external release.
+The staged acquisition workflow does not yet cover every audited/registered source: IGC2024, Greynir Copper/Silver, MaCoCu, ParlaMint and Soranoha currently lack candidate-extraction adapters. Their status is recorded in the [source adapter coverage audit](docs/pipeline-contract.md#source-adapter-coverage-audit); do not assume they are present in the current candidate pool.
 
 Raw downloads and private provenance sidecars are not committed to Git. GitHub Actions artifacts are temporary preparation outputs, not public releases.
 
