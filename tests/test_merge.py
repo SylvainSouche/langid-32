@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 
+import pytest
+
 from langid32.merge import merge, split_for
 
 
