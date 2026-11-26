@@ -68,21 +68,19 @@ The waiting-source artifact contains useful independent candidates, but some cla
 
 See the [canonical source register](docs/source-register.md) for every source investigated or acquired, its measured status, rights position and retired routes. The [dated corpus status report](docs/corpus-status-2026-11-17.md) and [candidate audits](docs/candidate-audit-v5.md) preserve historical measurements; they are not current acquisition plans. The [v6 corpus policy](docs/corpus-policy-v6.md) defines selection rules.
 
-## Data preparation rules
+## Current staged data preparation rules
 
-All sources are staged independently with immutable release identifiers, retrieval dates, source URLs, file hashes, adapter versions, licence/terms and attribution requirements.
+The binding stage order and acceptance criteria are in the [pipeline contract](docs/pipeline-contract.md). In summary:
 
-The global merge is responsible for:
+1. Acquire current sources afresh and validate the four approved pinned historical snapshots before fresh acquisition begins.
+2. Normalize text/language, apply source quality checks and the accepted privacy screen, then enforce up to 20,000 eligible unique records per original source × language (with the explicit Gaois Irish 50,000-record exception).
+3. Build the complete candidate pool, preserve original-source provenance, remove within-language duplicates and remove every occurrence of cross-language text collisions.
+4. Assess **every** post-filter candidate row with the three JQL heads; no 1,000-per-language sampling.
+5. Independently quantile-normalize each judge over the full combined assessment corpus, calculate the agreed consensus and prune the global bottom 25%.
+6. Produce full per-language × original-source counts and encrypted review artifacts. Preserve document/group IDs for later split integrity.
+7. Stop for manual privacy and source-rights review.
 
-1. NFC and whitespace normalization, common length and byte limits, and language/script sanity checks.
-2. Privacy-pattern exclusions and source/document exclusions from the versioned registry.
-3. Exact deduplication within each language across **all** staged sources.
-4. Removal of every normalized text string found under more than one language label. No “first language wins” rule is used.
-5. Stable document/group-aware train, validation and test assignment before sample selection.
-6. Deterministic source-aware selection, per-language source-share reporting, and a 20k core plus 10k reserve.
-7. A private provenance sidecar, source manifests, hashes, counts and exclusion reports.
-
-The automated privacy patterns are not a complete privacy review. Phone-like and long numeric strings are flagged for further assessment; automated language checks do not replace human review. Defective records are discarded rather than silently repaired.
+The final 30,000-per-language selection, 20k core plus 10k reserve labels, and 30% preferred / 50% hard per-source mix are deferred human decisions. The automated pipeline does not perform them. The accepted privacy implementation is heuristic; its output is held for manual review before any external release.
 
 Raw downloads and private provenance sidecars are not committed to Git. GitHub Actions artifacts are temporary preparation outputs, not public releases.
 
@@ -131,22 +129,19 @@ Model benchmarking is deferred until corpus source diversity, quality, privacy a
 
 For project questions and rights notices: [abuse@souche.fr](mailto:abuse@souche.fr).
 
-## Local reproducible pipeline
+## Legacy local reproducible pipeline (historical pilots only)
 
-The Makefile orchestrates the Leipzig corpus stages as independent targets with explicit dependencies:
+The Makefile targets below orchestrate earlier Leipzig experiments. They are **not** the current staged corpus pipeline and must not be used to create the current candidate pool or final 30,000-per-language selection.
 
-`download -> filter -> anonymize -> count -> assess -> rate -> score-report`
+The current pipeline runs through GitHub Actions: `.github/workflows/langid32-pipeline.yml` performs preflight, fresh acquisition, candidate construction and full-pool assessment; `.github/workflows/score-jql-assessment.yml` then scores all three JQL heads, performs global normalization and bottom-25% pruning, and uploads encrypted review artifacts. It stops before final selection. Its exact push trigger and resume procedure are in the [pipeline contract](docs/pipeline-contract.md).
+
+For historical local experiments only:
 
 ```sh
 make help
 make install-corpus
-# Install the matching PyTorch build separately (Apple MPS or Windows CUDA).
 make install-jql
-make all LABELS=hr,is DEVICE=mps  # Apple Silicon; 6k-sentence pilot, one-hour JQL batch
-make all DEVICE=mps                 # Full Leipzig corpus, one-hour JQL batch
-make rate DEVICE=cuda    # Windows/NVIDIA; resumes the same rating output
+make all LABELS=hr,is DEVICE=mps
 ```
 
-Targets can be run individually (`make download`, `make filter`, `make anonymize`, `make count`, `make assess`, `make rate`, `make score-report`). Use `LABELS=hr,is` to acquire selected labels, `MAX_SECONDS=3600` to set the scoring window, and `BATCH_SIZE=64` to tune inference. Re-run `make rate` to continue; completed annotations are skipped. JQL inference is local-only and is not run on GitHub Actions.
-
-The anonymization stage currently performs pattern-based redaction of email addresses, URLs, IPv4 addresses and phone-like strings in sentence text. It is **not complete anonymization**: names, postal addresses and indirect identifiers require additional detection and review. Source provenance is retained in the local corpus for traceability. The filtering stage applies the agreed news-only Unicode decimal-digit rule, removes empty text and reports duplicates without silently dropping them. See [the JQL annotation and pipeline notes](docs/jql-edu-annotation.md).
+The local `make anonymize` and 34k JQL sample settings belong to that legacy workflow; they are not the accepted current privacy or JQL implementation. Do not use those outputs as substitutes for the current encrypted staged-pipeline artifacts.
