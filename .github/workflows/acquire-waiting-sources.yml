@@ -1,8 +1,5 @@
 name: Acquire and curate waiting language sources
 on:
-  push:
-    paths:
-      - "scripts/acquire_waiting_sources.py"
   workflow_dispatch:
 permissions:
   contents: read
