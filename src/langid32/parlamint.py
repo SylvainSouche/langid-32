@@ -8,6 +8,15 @@ from pathlib import Path
 TEI = "{http://www.tei-c.org/ns/1.0}"
 XML_ID = "{http://www.w3.org/XML/1998/namespace}id"
 
+SAFE_SPEAKER_ROLES = {"chair", "regular", "guest"}
+
+
+def _safe_speaker_roles(utterance: ET.Element) -> list[str]:
+    """Keep only the fixed non-identifying role vocabulary; discard speaker refs."""
+    raw = utterance.attrib.get("ana", "").split()
+    roles = {token.rsplit("#", 1)[-1].lower() for token in raw}
+    return sorted(roles & SAFE_SPEAKER_ROLES)
+
 SOURCES = {
     "is": {
         "source": "parlamint_is",
@@ -63,6 +72,7 @@ def iter_utterances(archive_path: str | Path, language: str):
                         raise RuntimeError(
                             f"ParlaMint utterance has no xml:id in {member.name}"
                         )
+                    speaker_roles = _safe_speaker_roles(elem)
                     segments = elem.findall(".//" + TEI + "seg")
                     if segments:
                         for index, segment in enumerate(segments, 1):
@@ -78,6 +88,7 @@ def iter_utterances(archive_path: str | Path, language: str):
                                         "utterance_id": utterance_id,
                                         "segment_id": segment_id,
                                         "record_structure": "ParlaMint TEI utterance segment",
+                                        **({"speaker_roles": speaker_roles} if speaker_roles else {}),
                                     },
                                 }
                     else:
@@ -91,6 +102,7 @@ def iter_utterances(archive_path: str | Path, language: str):
                                     "session_id": Path(member.name).stem,
                                     "utterance_id": utterance_id,
                                     "record_structure": "ParlaMint TEI utterance",
+                                    **({"speaker_roles": speaker_roles} if speaker_roles else {}),
                                 },
                             }
                     if len(stack) > 1:
