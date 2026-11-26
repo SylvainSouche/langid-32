@@ -43,6 +43,9 @@ Build a private, reproducible, multi-source candidate pool for all 34 configured
 
 - Assess **every row** in the post-filter candidate pool. Sampling is forbidden. The assessment manifest must prove exact one-to-one coverage of candidate IDs.
 - Score independently with Gemma, Mistral and Llama JQL heads. Preserve all three raw scores and model/repository immutable revisions.
+- Use the Snowflake Arctic Embed M v2.0 embedder pinned by the configured commit SHA and the balanced JQL-Edu heads from `JQL-AI/JQL-Edu-Heads`. Resolve the head repository's `main` selector to a commit SHA before downloading any checkpoint; use that immutable SHA for every download and require all shards to report the same resolved SHA.
+- Match the published inference recipe: CLS pooling, L2-normalized embeddings, 768→1000→1 regression heads, bfloat16 inference. Pin Python 3.11, PyTorch 2.6.0, Transformers 4.44.2 and Hugging Face Hub 0.26.5. Record exact runtime versions and checkpoint SHA-256 values in every shard manifest; reject drift at merge.
+- The heads were not trained on `ar`, `ja`, `ko`, `zh`, `nb` or `nn`. Score these rows as agreed, but preserve an explicit out-of-training-domain flag and report their counts separately; do not present them as in-training-language ratings.
 - Independently quantile-normalize each judge's scores over the **entire assessment corpus**, all languages and sources combined. Use average ranks for ties and map ranks through the standard-normal inverse CDF.
 - For each record calculate:
   `consensus = mean(gemma_z, mistral_z, llama_z) - 0.5 × population_std(gemma_z, mistral_z, llama_z)`.
@@ -91,37 +94,43 @@ Operational values currently recorded in `config/langid32.toml`:
 
 The shared acquisition budget plus reserve must remain within six hours. The JQL six-hour ceiling is also binding; do not reinterpret it as permission for a single six-hour uninterruptible job. Use small batches and resumable outputs.
 
-## 5. Implementation audit baseline (main, 2026-11-26)
+## 5. Implementation audit baseline and current status
 
-This is the observed state, not the desired state.
+The original audit baseline was `main` commit `1e6f8319b6cfd102c650c3b516cc4583d0d42730` on 2026-11-26. That baseline was not operational. The findings below record the corrections subsequently made on `main`; they do **not** claim a successful real-data end-to-end run.
 
-| Contract item | Observed implementation | Status |
+| Contract item | Current implementation on main | Status |
 |---|---|---|
-| Central TOML configuration and fail-closed 20k source/language quota checks | `config/langid32.toml`, `src/langid32/settings.py` | Implemented on recovery branch; branch consistency is broken in the current workflow |
-| Acquisition adapters, batching/state DB, revision pinning, retry/resume, encrypted checkpoints | Stage adapters, `acquisition_batches.py`, checkpoint/runtime scripts | Partly implemented; must be tested together on one pinned commit |
-| Privacy screening and provenance sanitization | `src/langid32/privacy.py`; acquisition and candidate call sites | Implemented heuristically; not exhaustive and not a substitute for human review |
-| Candidate normalization, privacy re-screen, source quota accounting, source manifest | `scripts/build_multisource_candidate.py` | Implemented on recovery branch; exact cross-source/cross-language and split behavior still needs contract tests and end-to-end proof |
-| Full-pool assessment Parquet | `scripts/sample_jql_assessment.py --all`; stage 03 invokes it | Implemented; it creates assessment input only, not judge scores |
-| Three-judge scoring | `scripts/score_jql_parquet.py` and separate shard workflow | Separate implementation exists; not integrated into the staged pipeline's terminal job |
-| Global quantile normalization and consensus formula | `scripts/merge_jql_ratings.py` | Implemented as a separate utility; coverage checks exist |
-| Bottom-25%-global pruning and per-source/language report | Merge utility supports pruned outputs when explicitly passed; config enables it | Utility capability exists; current staged workflow does not invoke it |
-| Final 30k/language selection deferred | Assessment summary says deferred; separate selector exists | Must remain disabled pending user approval |
-| Full workflow contract tests and same-commit integration verification | CI runs compileall, Make dry-run and pytest | Unit tests exist; no demonstrated full staged-workflow integration test |
-| One-command clean end-to-end run | `.github/workflows/langid32-pipeline.yml` | **Not currently operational**; see blocking findings below |
+| Central configuration and fail-closed policy validation | `config/langid32.toml`, `src/langid32/settings.py`; locks 34 language labels, source-local first-pass targets, Gaois 50k exception, all-row JQL, consensus/pruning, runtime versions, out-of-training flags and deferred final selection | Implemented; tests added |
+| Preflight evidence | `scripts/emit_runtime_config.py`, `scripts/validate_historical_artifacts.py`, `scripts/validate_pipeline_trigger.py`; machine-readable manifest records commit/config/source-register/contract/trigger hashes, historical pins, source plan, expected inputs/outputs and policy | Implemented; workflow uploads the evidence before acquisition |
+| Historical snapshots | `stages/01-acquisition/targets/historical.py`; exact four pinned artifacts, schema validation, hashes and per-original-source/language counts; current fresh acquisition jobs wait for historical validation | Implemented; V5, Tatoeba and DGT artifact contents were inspected directly; Leipzig artifact is too large for the connector's 512 MB download limit and will be fully checked by the workflow before fresh acquisition |
+| Fresh acquisition | Common Voice, waiting-source and Gaois adapters; immutable upstream revisions are resolved and recorded in source manifests; bounded batches, encrypted resumable checkpoints and retry handling | Implemented; no new full acquisition run yet |
+| Privacy | `src/langid32/privacy.py`, invoked at acquisition and candidate boundaries; provenance sanitization and multilingual pattern screening | Accepted implementation; manual review of the resulting pool remains required |
+| Candidate construction | `scripts/build_multisource_candidate.py`, `src/langid32/merge.py`; original-source identity, first-pass intake caps, global within-language deduplication, all-occurrence cross-language collision removal, provenance and count reports | Implemented; tests added; real full-pool output not yet produced |
+| Premature selection guard | Candidate merge rejects nonzero per-language final caps; `scripts/select_jql_consensus.py` fails closed pending user approval | Implemented; guard tests added |
+| Full-pool JQL assessment | `scripts/sample_jql_assessment.py --all`; records candidate input hash, assessment Parquet hash, row count and out-of-training-domain language flags | Implemented; no sampling path in the staged workflow |
+| Deterministic JQL sharding | `scripts/split_jql_parquet.py`; streaming Parquet batches, SQLite global ID uniqueness, balanced eight-shard plan, per-shard hashes and manifest | Implemented; unit and synthetic integration coverage added |
+| Three-judge scoring | `scripts/score_jql_parquet.py`; three balanced heads, bfloat16, pinned runtime, source pipeline SHA/run ID, immutable model revisions and checkpoint hashes in each shard manifest | Implemented; actual model inference on the full pool not yet verified |
+| Global normalization, consensus and pruning | `scripts/merge_jql_ratings.py`; validates exact split manifest, all candidate IDs, all three judge ratings, source run/commit, model/runtime provenance, global quantile normalization, consensus and exact global bottom-25% pruning | Implemented; synthetic end-to-end JQL integration test added |
+| JQL workflow integration and resumption | `.github/workflows/score-jql-assessment.yml`; automatic `workflow_run` after staged pipeline success, exact source-run SHA checkout, optional resume from previous scoring-run artifacts with provenance checks | Implemented; workflow syntax/CI verification pending |
+| Manual review hand-off | Text-bearing candidate/JQL outputs are encrypted before Actions artifact upload; final 30k selector is disabled | Implemented; no review artifact from a new full run yet |
+| Full real-data end-to-end proof | Staged acquisition → candidate → full-pool JQL scoring → merge/prune → encrypted hand-off | **Not yet verified**; do not describe the pipeline as production-verified until a complete run succeeds |
 
-### Blocking findings observed
+### Resolved findings from run #178
 
-1. The workflow file on `main` checks out `recovery/fix-acquisition-20261124` for config, Common Voice, waiting-source, candidate and JQL jobs, but checks out the default `main` branch for the historical job. This mixes code revisions within one run.
-2. The historical job on `main` executes `python3 scripts/emit_runtime_config.py`, but that file is absent from `main`. This exactly caused run #178 historical job failure. The file exists on the recovery branch.
-3. Run #178 (ID `45780510056`) had candidate and JQL jobs skipped. It did not produce a candidate pool, judge scores, a pruned pool or privacy-review output. FineWeb2 Croatian also encountered HTTP 429. The other successful acquisitions do not turn that run into a full pipeline.
-4. The staged workflow's JQL job only restores the candidate and invokes `stages/03-jql/run.py`, which builds the full assessment Parquet. It does not invoke the scoring shards, merge/normalization, consensus or bottom-25% pruning.
-5. The separate scoring workflow is not a reliable substitute for integration: its `workflow_run` trigger names a different upstream workflow title, and its current contract/trigger/artifact wiring must be reconciled with the staged workflow.
-6. The repository's older `docs/jql-edu-annotation.md` describes JQL as non-filtering QA, which conflicts with the later agreed project decision to globally prune the bottom 25% after full-pool scoring. This contract and the TOML encode the later decision; the stale documentation must be corrected, not followed.
-7. The workflow currently downloads and restores acquisition checkpoints as artifacts. Clean-run logic must explicitly distinguish same-run fresh acquisition outputs from the four approved historical source snapshots and must not consume prior failed-run acquisition artifacts.
-8. The current privacy patterns are heuristic. They cannot certify the pool as anonymous; the requested human privacy review remains a hard stop before any public release.
-9. The recovery branch is not a safe direct merge base: comparison against `main` reports a diverged history, 450 commits ahead and 6 behind (merge base `e57dc61dfb485a2fee13529ba5cd3cb88a5bea34`). It contains the missing runtime/config/privacy/acquisition/JQL code, but it also contains hundreds of commits and many unrelated workflow/source changes. Do not merge the branch wholesale or move `main` to it. Reconcile the required implementation into a clean branch based on current `main`, in reviewed, contract-checked increments.
+1. The mixed branch checkout was removed: the staged jobs use the workflow run's single commit; the downstream JQL workflow resolves and checks out the exact source pipeline run SHA.
+2. `scripts/emit_runtime_config.py` and the historical validation path are now present on `main`.
+3. Run #178 (ID `45780510056`) remains a failed partial acquisition attempt: candidate and JQL were skipped, and Croatian FineWeb2 received HTTP 429. Its artifacts are not inputs to a clean run.
+4. The downstream JQL workflow now performs sharding, three-head scoring, merge, normalization, consensus and global pruning; it no longer stops after building the assessment Parquet.
+5. Manual JQL resume is bound to the original successful staged run ID and commit. Shard manifests reject ratings from a different run, commit, shard hash, model revision, checkpoint hash or runtime.
+6. Stale 34k-sample documentation is marked historical; README and corpus policy now describe the full-pool staged pipeline and deferred final selection.
+7. The recovery branch was not merged wholesale. It diverged from `main` by 450 commits ahead and 6 behind; required implementation was reconciled into `main` in reviewed changes.
 
-**Conclusion:** do not trigger another full acquisition run until the branch pinning, missing historical runtime script, same-run artifact contract, integrated JQL scoring/merge/pruning, retry behavior and end-to-end tests have been repaired and verified.
+### Remaining verification gates
+
+- Latest CI must pass, including Python tests, the synthetic candidate→assessment→shard→three-rating-manifest→global-pruning integration test, CPU bfloat16 operation and actionlint over all workflows.
+- The historical job must validate the full Leipzig JSONL as well as the other three snapshots before any fresh acquisition job starts.
+- A clean real-data run must complete all acquisitions, candidate construction, every JQL shard, exact merge/pruning and encrypted artifact upload. The run must produce reconciled per-language × original-source counts.
+- The user then manually reviews privacy and source-rights outputs. No final 30k selection or publication follows automatically.
 
 ## 6. Mandatory change-control protocol
 
@@ -144,12 +153,33 @@ Required preflight/integration assertions include: every job uses the same commi
 
 ## 7. How to invoke the workflow without asking the user to click Run
 
-The staged workflow `.github/workflows/langid32-pipeline.yml` is configured for `push` to branch `main` and also declares `workflow_dispatch`.
+The staged workflow `.github/workflows/langid32-pipeline.yml` has two triggers:
 
-- **Repair-phase safety gate (current):** the automatic `push` trigger has been removed from `.github/workflows/langid32-pipeline.yml`; only `workflow_dispatch` remains. This prevents documentation merges and implementation commits from accidentally starting expensive acquisition while the pipeline is known broken. Do not manually dispatch during repair.
-- **Post-verification automated route:** once every contract preflight and integration assertion passes, restore `push` to `main` in the workflow and commit that reviewed change. Thereafter, create a meaningful, reviewed commit on `main` using the GitHub `create_file` or `update_file` action; that push triggers the staged workflow automatically. For an existing file, first fetch its current blob SHA and pass that SHA to `update_file`. For a new file, use `create_file`. Never use a no-op or unrelated edit just to trigger compute.
-- A merged PR to `main` also creates a push event; while the repair-phase safety gate is in place, it will not start the staged workflow.
-- Manual dispatch is available in the repository Actions page, selecting **langid-32 staged corpus pipeline**, then **Run workflow** on `main`. The GitHub connector available in this session exposes read and repository-write operations but no workflow-dispatch operation; do not pretend a dispatch occurred.
-- After the commit/push, fetch the new run ID from the Actions API and inspect every job, step, log and artifact. A successful trigger is not a successful pipeline. Wait for all stages to finish and verify the contract assertions before reporting success.
+- `workflow_dispatch` for an explicit manual run.
+- A guarded `push` trigger on `main`, restricted to changes to **`pipeline-trigger.json` only**. Ordinary code, documentation and config commits do not launch acquisition.
 
-**Current gate:** this invocation procedure is documented, but the staged workflow must remain untriggered until all blocking findings in §5 are resolved and preflight passes.
+**Assistant-controlled push route (preferred once every gate passes):**
+
+1. Re-fetch and verify the current contract, config, source register, all affected code and the latest passing CI checks.
+2. Calculate the exact SHA-256 values of `config/langid32.toml`, `docs/source-register.md` and `docs/pipeline-contract.md`.
+3. Update `pipeline-trigger.json` on `main` with:
+   - `run_mode: "clean_full_pipeline"`
+   - a fresh 12–80 character nonce
+   - those three exact hashes
+   - `artifact_reuse: false`
+   - `final_selection: "deferred"`
+   - `privacy_review_required: true`
+4. Commit that meaningful operational command to `main`. The resulting push to the single configured path triggers the staged workflow automatically.
+5. The first config job runs `scripts/validate_pipeline_trigger.py`; it verifies the push actually changed the trigger file, the branch is `main`, all hashes match the current sources of truth, no prior failed/partial artifact reuse is requested, and final selection remains deferred. It writes a validation record and uploads it with the preflight manifest.
+6. Retrieve the new run ID and inspect every job, step, log and artifact. A successful push or trigger is not a successful pipeline.
+
+The checked-in `pipeline-trigger.json` is currently **disabled**. Do not arm it until all remaining verification gates in §5 pass. The trigger file is a command, not a no-op edit; never change it merely to test whether GitHub Actions starts.
+
+**Downstream JQL scoring and resume:**
+
+- On successful completion of the staged pipeline, `.github/workflows/score-jql-assessment.yml` starts automatically through its `workflow_run` trigger.
+- It retrieves the source run metadata, verifies the workflow name, success conclusion and `main` branch, then checks out the exact source run commit SHA.
+- If a scoring job exceeds its work budget, its completed ratings and manifest are uploaded. A manual resume dispatch supplies the original successful `source_run_id` and optional `resume_ratings_run_id`; it checks out the original source commit and restores only that previous scoring run's shard artifact. The scorer/merge reject mismatched source run IDs, source SHAs, shard hashes, model revisions, checkpoint hashes or runtime versions.
+- The GitHub connector available in this session has repository read/write operations but no workflow-dispatch operation. The guarded `pipeline-trigger.json` commit is therefore the supported assistant-controlled launch route; do not claim a dispatch occurred when only a file was committed.
+
+**Current gate:** no full run has been launched from the new contract-compliant implementation. The trigger remains disabled until CI and the remaining preflight/integration checks pass.
