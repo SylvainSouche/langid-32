@@ -1089,6 +1089,12 @@ def main():
         elif args.source == "arabic":
             revisions["un_arabic"] = resolve_hf_revision("ymoslem/UN-Arabic-English-Filtered")
             arabic_preexisting_threads = set(threading.enumerate())
+            # Keep Arrow's native pools bounded for this streaming reader. The
+            # upstream iterable reader can otherwise leave native worker threads
+            # alive during CPython finalization (observed as PyGILState_Release).
+            import pyarrow as pa
+            pa.set_cpu_count(1)
+            pa.set_io_thread_count(1)
             from datasets import load_dataset
             arabic_bucket = ("ar", "un_arabic_english_filtered:text_ar")
             if not quota_reached(arabic_bucket):
