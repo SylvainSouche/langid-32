@@ -134,13 +134,13 @@ def test_staged_workflow_targets_and_referenced_scripts_exist_at_run_commit():
     targets = root / "stages/01-acquisition/targets"
 
     script_refs = set(re.findall(
-        r"(?:python3?|python)\\s+((?:scripts|stages)/[A-Za-z0-9_./-]+\\.py)",
+        r"(?:python3?|python)\s+((?:scripts|stages)/[A-Za-z0-9_./-]+\.py)",
         workflow,
     ))
     assert script_refs
     assert all((root / path).is_file() for path in script_refs)
 
-    matrix_targets = set(re.findall(r"^\\s*-\\s*target:\\s*([a-z0-9-]+)", workflow))
+    matrix_targets = set(re.findall(r"^\s*-\s*target:\s*([a-z0-9-]+)", workflow))
     assert matrix_targets
     assert all((targets / f"{name}.py").is_file() for name in matrix_targets)
     for target in matrix_targets - {"gaois"}:
@@ -149,7 +149,7 @@ def test_staged_workflow_targets_and_referenced_scripts_exist_at_run_commit():
     assert (root / "scripts/acquire_gaois_irish_legislation.py").is_file()
 
     checkout_blocks = re.findall(
-        r"- uses: actions/checkout@v4(.*?)(?=\\n\\s+- (?:uses:|name:)|\\Z)",
+        r"- uses: actions/checkout@v4(.*?)(?=\n\s+- (?:uses:|name:)|\Z)",
         workflow,
         flags=re.S,
     )
