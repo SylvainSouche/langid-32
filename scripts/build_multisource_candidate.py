@@ -7,8 +7,14 @@ import hashlib
 import json
 import subprocess
 import sys
-from collections import Counter
+import unicodedata
+from collections import Counter, defaultdict
 from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+from langid32.settings import load_config, acquisition_target, source_quota_key
+from langid32.privacy import screen_record, sanitize_provenance
 
 FAMILY_PREFIXES = (
     "temu_cc0",
@@ -50,11 +56,18 @@ def source_family(raw_source: str) -> tuple[str, str | None]:
     return raw_source, None
 
 
-def normalize_file(source_path: Path, destination: Path, *, filter_superseded=False):
+def normalize_file(source_path: Path, destination: Path, *, config=None, source_language_counts=None, source_language_seen=None, filter_superseded=False):
+    if config is None:
+        config = load_config()
     rows_in = 0
     rows_out = 0
     filtered = Counter()
     source_counts = Counter()
+    raw_source_counts = Counter()
+    if source_language_counts is None:
+        source_language_counts = Counter()
+    if source_language_seen is None:
+        source_language_seen = defaultdict(set)
     with source_path.open("r", encoding="utf-8") as source, destination.open(
         "w", encoding="utf-8", newline="\n"
     ) as output:
@@ -77,6 +90,48 @@ def normalize_file(source_path: Path, destination: Path, *, filter_superseded=Fa
                 raise ValueError(f"{source_path}:{line_number}: missing {', '.join(missing)}")
             if not isinstance(row.get("provenance"), dict):
                 raise ValueError(f"{source_path}:{line_number}: provenance object is required")
+            row, removed_top_metadata = sanitize_provenance(row)
+            row["provenance"], removed_provenance_metadata = sanitize_provenance(row["provenance"])
+            removed_metadata = set(removed_top_metadata) | set(removed_provenance_metadata)
+            if removed_metadata:
+                filtered["personal_metadata_fields_removed"] += len(removed_metadata)
+            text_rules = config["acquisition"]["text"]
+            normalized_text = unicodedata.normalize("NFC", " ".join(str(row["text"]).split()))
+            row["text"] = normalized_text
+            if (len(normalized_text) < text_rules["min_characters"]
+                    or len(normalized_text) > text_rules["max_characters"]
+                    or len(normalized_text.encode("utf-8")) > text_rules["max_utf8_bytes"]):
+                filtered["text_length_or_bytes"] += 1
+                continue
+            letter_count = sum(char.isalpha() for char in normalized_text)
+            if (letter_count < text_rules["min_letter_characters"]
+                    or letter_count / max(len(normalized_text), 1) < text_rules["min_letter_ratio"]):
+                filtered["text_letter_quality"] += 1
+                continue
+            privacy = screen_record(row, uncertain_action=text_rules["privacy_uncertain_action"])
+            if not privacy.accepted:
+                filtered["privacy_" + privacy.status] += 1
+                for flag in privacy.flags:
+                    filtered["privacy_flag_" + flag] += 1
+                continue
+            language = str(row["language"])
+            try:
+                source_limit = acquisition_target(config, raw_source, language)
+            except ValueError as exc:
+                reason = ("source_excluded_by_policy" if "excluded by source policy" in str(exc) else "source_not_registered" if "not registered" in str(exc) else "source_language_not_approved")
+                filtered[reason] += 1
+                continue
+            quota_key = source_quota_key(config, raw_source)
+            source_language_key = (quota_key, language)
+            if normalized_text in source_language_seen[source_language_key]:
+                filtered["duplicate_within_exact_source_language"] += 1
+                continue
+            if source_language_counts[source_language_key] >= source_limit:
+                filtered["configured_source_target_reached"] += 1
+                continue
+            source_language_seen[source_language_key].add(normalized_text)
+            source_language_counts[source_language_key] += 1
+            raw_source_counts[(raw_source, language)] += 1
             family, component = source_family(raw_source)
             provenance = row["provenance"]
             provenance["source_original_name"] = raw_source
@@ -135,6 +190,7 @@ def normalize_file(source_path: Path, destination: Path, *, filter_superseded=Fa
         "rows_out": rows_out,
         "filtered_superseded_sources": dict(filtered),
         "source_counts": dict(sorted(source_counts.items())),
+        "raw_source_language_counts": {f"{source}:{language}": count for (source, language), count in sorted(raw_source_counts.items())},
         "normalized_path": str(destination),
     }
 
@@ -149,15 +205,20 @@ def main():
     parser.add_argument("--dgt-dir", type=Path, required=True)
     parser.add_argument("--waiting-dir", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--config", type=Path, default=ROOT / "config/langid32.toml")
     parser.add_argument("--exclusions", type=Path, default=Path("data/source-exclusions.jsonl"))
-    parser.add_argument("--max-per-language", type=int, default=35000)
-    parser.add_argument("--core-per-language", type=int, default=35000)
-    parser.add_argument("--preferred-source-share", type=float, default=0.30)
-    parser.add_argument("--max-source-share", type=float, default=0.50)
-    parser.add_argument("--seed", default="langid-32-v6-2026-11-18")
+    parser.add_argument("--max-per-language", type=int, default=None)
+    parser.add_argument("--core-per-language", type=int, default=None)
+    parser.add_argument("--preferred-source-share", type=float, default=None)
+    parser.add_argument("--max-source-share", type=float, default=None)
+    parser.add_argument("--seed", default=None)
     parser.add_argument("--require-exact-counts", action="store_true",
                         help="Fail unless every language reaches every core split target")
     args = parser.parse_args()
+    cfg = load_config(args.config)
+    # Keep the complete eligible pool for JQL. Final 30k/language selection and
+    # source balancing are intentionally deferred until after global JQL pruning.
+    args.seed = args.seed or cfg["candidate"]["splits"]["seed"]
 
     v5_records = find_one(args.v5_dir, "records.jsonl")
     cv_records = find_one(args.common_voice_dir, "common_voice_candidates.jsonl")
@@ -182,9 +243,11 @@ def main():
 
     reports = []
     merge_inputs = []
+    source_language_counts = Counter()
+    source_language_seen = defaultdict(set)
     for label, path, filter_superseded in sources:
         destination = normalized_dir / f"{label}.jsonl"
-        reports.append(normalize_file(path, destination, filter_superseded=filter_superseded))
+        reports.append(normalize_file(path, destination, config=cfg, source_language_counts=source_language_counts, source_language_seen=source_language_seen, filter_superseded=filter_superseded))
         if destination.stat().st_size:
             merge_inputs.append(destination)
 
@@ -217,11 +280,12 @@ def main():
         },
         "inputs": reports,
         "normalized_input_count": len(merge_inputs),
+        "source_language_acquisition_counts": {f"{source}:{language}": count for (source, language), count in sorted(source_language_counts.items())},
         "normalized_inputs": [str(path) for path in merge_inputs],
         "merge_input": str(combined_path),
         "preselection": {"status": "disabled"},
         "combined_rows": combined_rows,
-        "source_family_policy": "component/config/file suffixes are preserved in provenance but quota accounting uses the dataset/release family",
+        "source_family_policy": "first-pass acquisition quotas and approved-language scopes are enforced on each original source identifier before normalization; candidate-stage balance accounting may then use source families",
         "v5_replacements": sorted(SUPERSEDED_V5_SOURCES),
     }
     (args.output / "input-manifest.json").write_text(
@@ -231,12 +295,8 @@ def main():
     command = [
         sys.executable, "-m", "langid32.merge",
         "--output", str(args.output / "candidate"),
+        "--config", str(args.config),
         "--exclusions", str(args.exclusions),
-        "--max-sentences-per-source", "20000",
-        "--max-per-language", str(args.max_per_language),
-        "--core-per-language", str(args.core_per_language),
-        "--preferred-source-share", str(args.preferred_source_share),
-        "--max-source-share", str(args.max_source_share),
         "--seed", args.seed,
     ]
     if args.require_exact_counts:
