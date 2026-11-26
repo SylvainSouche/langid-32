@@ -98,7 +98,9 @@ def test_waiting_source_adapter_uses_durable_file_batches_and_reports_shortfalls
     worker = (Path(__file__).resolve().parents[1] / "scripts/acquire_waiting_sources.py").read_text()
     assert 'temp_root = output_root / ".work"' in worker
     assert 'state_path = args.state_db or (output_root / f"acquisition-state-{policy_digest}.sqlite")' in worker
-    assert 'policy_digest = hashlib.sha256(' in worker
+    assert 'policy_hash = hashlib.sha256()' in worker
+    assert 'glob("*.py")' in worker
+    assert "policy_files" in worker
     assert "plan_file_batches(" in worker
     assert "next_batch(state_db" in worker
     assert "finish_batch(state_db" in worker
