@@ -35,7 +35,7 @@ def test_greynir_declares_all_copper_files_and_extracts_terminal_text(tmp_path):
     rows = list(iter_sentences(path, "copper"))
     assert len(rows) == 1
     assert rows[0]["text"] == "Hann segir sannleikann."
-    assert rows[0]["group_id"] == "abc-123.1"
+    assert rows[0]["group_id"] == "https://example.is/private/path"
     assert rows[0]["provenance"] == {
         "source_file": PARTITION_FILES["copper"],
         "source_partition": "copper",
