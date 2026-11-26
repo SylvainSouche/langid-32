@@ -13,36 +13,6 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "src"))
 from langid32.settings import load_config
 
-SNAPSHOTS = {
-    "v5": {
-        "run_id": 43950037392,
-        "artifact_id": 14266897039,
-        "artifact_name": "multisource-candidate-v5-fineweb-en",
-        "expires_at": "2026-11-30T20:30:01Z",
-        "filename": "records.jsonl",
-    },
-    "leipzig": {
-        "run_id": 44361364340,
-        "artifact_id": 14454427333,
-        "artifact_name": "leipzig-balanced-34-44361364340",
-        "expires_at": "2026-12-18T17:46:23Z",
-        "filename": "leipzig-candidates.jsonl",
-    },
-    "tatoeba": {
-        "run_id": 44121162591,
-        "artifact_id": 14345216923,
-        "artifact_name": "tatoeba-cc0-staged-weekly-2026-11-14",
-        "expires_at": "2026-12-01T16:03:33Z",
-        "filename": "tatoeba-cc0-staged.jsonl",
-    },
-    "dgt": {
-        "run_id": 44291075180,
-        "artifact_id": 14421763101,
-        "artifact_name": "dgt-tm-2021-staged-5k",
-        "expires_at": "2026-12-02T11:07:30Z",
-        "filename": "dgt-tm-2021-staged.jsonl",
-    },
-}
 REQUIRED_FIELDS = (
     "text", "language", "source", "source_release",
     "group_id", "licence_id", "text_origin", "provenance",
@@ -111,12 +81,13 @@ def main() -> None:
     args = parser.parse_args()
     cfg = load_config(args.config)
     languages = set(cfg["project"]["languages"])
+    args.root = args.root.resolve()
     manifest = {
         "schema_version": 1,
         "kind": "approved_historical_source_snapshots",
         "snapshots": {},
     }
-    for name, metadata in SNAPSHOTS.items():
+    for name, metadata in sorted(cfg["historical_snapshots"].items()):
         directory = args.root / "input" / name
         if not directory.is_dir():
             raise SystemExit(f"Missing historical snapshot directory: {directory}")
