@@ -71,6 +71,7 @@ def test_jql_contract_is_locked_to_full_pool_global_quartile_and_deferred_select
     assert config["jql"]["assessment_batch_size"] == 2000
     assert config["jql"]["shard_batch_rows"] == 8192
     assert config["jql"]["inference_batch_size"] == 8
+    assert config["jql"]["inference_dtype"] == "bfloat16"
     assert config["jql"]["shard_count"] == 8
     assert config["jql"]["max_parallel_shards"] == 4
     assert config["jql"]["job_timeout_minutes"] == 360
