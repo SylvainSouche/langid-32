@@ -32,10 +32,14 @@ def validate_acquisition_policy(config: dict[str, Any]) -> None:
         raise ValueError("Acquisition must apply quality and privacy filters before quota accounting")
     profile = config.get("profile", {})
     profile_name = profile.get("name", "release")
-    expected_target = int(profile.get("first_pass_target_per_source_language", 20000))
-    target = int(acquisition["first_pass_target_per_source_language"])
-    if target != expected_target or profile_name not in {"debug", "release"}:
-        raise ValueError(f"Invalid {profile_name!r} acquisition profile target: {target}; expected {expected_target}")
+    approved_profiles = {"debug": (200, 350), "release": (20000, 35000)}
+    if profile_name not in approved_profiles:
+        raise ValueError(f"Unknown acquisition profile: {profile_name!r}")
+    expected_target, expected_final = approved_profiles[profile_name]
+    if (int(profile.get("first_pass_target_per_source_language", -1)) != expected_target
+            or int(profile.get("final_sentences_per_language", -1)) != expected_final
+            or int(acquisition["first_pass_target_per_source_language"]) != expected_target):
+        raise ValueError(f"{profile_name} profile must use {expected_target} per source and {expected_final} per language")
     for source, rule in acquisition.get("source_rules", {}).items():
         if "languages" in rule:
             raise ValueError(f"Source-language allowlists are forbidden: {source}.languages")
@@ -131,7 +135,7 @@ def validate_jql_policy(config: dict[str, Any]) -> None:
 
     candidate = config["candidate"]
     balance = candidate["source_balance"]
-    expected_final = int(config.get("profile", {}).get("final_sentences_per_language", 35000))
+    expected_final = int(config["profile"]["final_sentences_per_language"])
     if int(candidate["final_sentences_per_language"]) != expected_final:
         raise ValueError(f"Final per-language target must match profile value {expected_final}")
     if candidate.get("final_selection_status") != "deferred_pending_user_review":
