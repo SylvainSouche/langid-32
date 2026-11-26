@@ -8,10 +8,12 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
-import sys
 import os
+import sys
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -21,8 +23,22 @@ from langid32.settings import load_config
 import pandas as pd
 import torch
 import torch.nn as nn
-from huggingface_hub import hf_hub_download
+from huggingface_hub import HfApi, hf_hub_download
 from transformers import AutoConfig, AutoModel, AutoTokenizer
+
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for block in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def write_manifest(path: Path, manifest: dict) -> None:
+    temporary = path.with_suffix(path.suffix + ".tmp")
+    temporary.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
+    temporary.replace(path)
+
 
 class RegressionHead(nn.Module):
     """Architecture from JQL-AI/JQL-Annotation-Pipeline."""
@@ -68,6 +84,8 @@ def main():
     args.head_repo = args.head_repo or jql_cfg["head_repository"]
     embedder_id = jql_cfg["embedder_model"]
     head_checkpoints = jql_cfg["head_checkpoints"]
+    embedder_revision_requested = str(jql_cfg.get("embedder_revision", "main"))
+    head_revision_requested = str(jql_cfg.get("head_repository_revision", "main"))
 
     if args.batch_size < 1:
         raise SystemExit("--batch-size must be positive")
@@ -105,28 +123,74 @@ def main():
 
     # float32 is the portable CPU/MPS baseline. The model card's published
     # embedding recipe is CLS pooling followed by L2 normalization.
+    # Resolve floating references once, then use only immutable commit SHAs for all downloads.
+    api = HfApi()
+    embedder_revision = api.model_info(embedder_id, revision=embedder_revision_requested).sha
+    head_revision = api.model_info(args.head_repo, revision=head_revision_requested).sha
+    if not embedder_revision or not head_revision:
+        raise SystemExit("Could not resolve immutable Hugging Face model revisions")
+
     dtype = torch.float32
-    tokenizer = AutoTokenizer.from_pretrained(embedder_id)
+    tokenizer = AutoTokenizer.from_pretrained(embedder_id, revision=embedder_revision)
     # The Arctic Embed remote implementation otherwise selects an xformers-only
     # memory-efficient attention path. Native PyTorch SDPA works on CPU and MPS.
-    config = AutoConfig.from_pretrained(embedder_id, trust_remote_code=True)
+    config = AutoConfig.from_pretrained(
+        embedder_id, trust_remote_code=True, revision=embedder_revision
+    )
     config.use_memory_efficient_attention = False
     config.unpad_inputs = False
     embedder = AutoModel.from_pretrained(
         embedder_id,
         config=config,
         trust_remote_code=True,
+        revision=embedder_revision,
         torch_dtype=dtype,
         add_pooling_layer=False,
         attn_implementation="sdpa",
     ).to(device).eval()
 
     heads = {}
+    checkpoint_hashes = {}
     for name in jql_cfg["judges"]:
-        checkpoint_path = hf_hub_download(repo_id=args.head_repo, filename=head_checkpoints[name])
-        heads[name] = load_head(checkpoint_path, device, jql_cfg)
+        checkpoint_path = Path(hf_hub_download(
+            repo_id=args.head_repo,
+            filename=head_checkpoints[name],
+            revision=head_revision,
+        ))
+        checkpoint_hashes[name] = sha256_file(checkpoint_path)
+        heads[name] = load_head(str(checkpoint_path), device, jql_cfg)
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
+    manifest_path = args.output.with_suffix(args.output.suffix + ".manifest.json")
+    provenance = {
+        "input_sha256": sha256_file(args.input),
+        "models": {
+            "embedder_repository": embedder_id,
+            "embedder_revision_requested": embedder_revision_requested,
+            "embedder_revision_resolved": embedder_revision,
+            "head_repository": args.head_repo,
+            "head_revision_requested": head_revision_requested,
+            "head_revision_resolved": head_revision,
+        },
+        "head_checkpoint_sha256": checkpoint_hashes,
+        "scoring": {
+            "judges": list(jql_cfg["judges"]),
+            "embedding_dimension": int(jql_cfg["embedding_dimension"]),
+            "head_hidden_dimension": int(jql_cfg["head_hidden_dimension"]),
+            "max_token_length": args.max_length,
+            "inference_batch_size": args.batch_size,
+            "dtype": "float32",
+            "pooling": "CLS",
+            "normalization": "L2",
+        },
+    }
+    if args.resume and args.output.is_file():
+        if not manifest_path.is_file():
+            raise SystemExit("Cannot resume ratings without their model/input provenance manifest")
+        previous_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        for key, value in provenance.items():
+            if previous_manifest.get(key) != value:
+                raise SystemExit(f"Resume provenance mismatch for {key}")
     completed_ids = set()
     if args.resume and args.output.is_file():
         with args.output.open(encoding="utf-8", newline="") as existing:
@@ -143,6 +207,9 @@ def main():
                 completed_ids.add(row_id)
         frame = frame.loc[~frame["id"].astype(str).isin(completed_ids)].copy()
     if frame.empty:
+        manifest = {**provenance, "schema_version": 1, "input_rows": int(len(pd.read_parquet(args.input, columns=["id"]))),
+                    "scored_rows": len(completed_ids), "updated_at": datetime.now(timezone.utc).isoformat()}
+        write_manifest(manifest_path, manifest)
         print(f"All requested rows already have ratings in {args.output}")
         return 0
 
@@ -160,6 +227,11 @@ def main():
             if time.monotonic() - batch_started >= args.max_seconds:
                 stream.flush()
                 os.fsync(stream.fileno())
+                manifest = {**provenance, "schema_version": 1,
+                            "input_rows": int(len(pd.read_parquet(args.input, columns=["id"]))),
+                            "scored_rows": len(completed_ids),
+                            "updated_at": datetime.now(timezone.utc).isoformat()}
+                write_manifest(manifest_path, manifest)
                 print(f"Batch time limit reached; completed {start}/{len(texts)} remaining rows", flush=True)
                 raise SystemExit(75)
             batch_texts = texts[start:start + args.batch_size]
@@ -193,10 +265,16 @@ def main():
                 })
             stream.flush()
             os.fsync(stream.fileno())
+            completed_ids.update(ids[start:start + len(batch_texts)])
+            manifest = {**provenance, "schema_version": 1,
+                        "input_rows": int(len(pd.read_parquet(args.input, columns=["id"]))),
+                        "scored_rows": len(completed_ids),
+                        "updated_at": datetime.now(timezone.utc).isoformat()}
+            write_manifest(manifest_path, manifest)
             print(f"Scored {min(start + len(batch_texts), len(texts))}/{len(texts)} remaining rows",
                   flush=True)
 
-    print(f"Wrote {len(texts)} ratings to {args.output}")
+    print(f"Wrote {len(completed_ids)} ratings to {args.output}")
     return 0
 
 
