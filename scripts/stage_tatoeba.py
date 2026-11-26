@@ -45,7 +45,7 @@ def sha256_file(path: Path, chunk_bytes: int) -> str:
 def stage(args):
     cfg = load_config(getattr(args, "config", None))
     source_rule = cfg["acquisition"]["source_rules"]["tatoeba_cc0"]
-    target_languages = tuple(source_rule["languages"])
+    target_languages = tuple(cfg["project"]["languages"])
     target_by_language = {
         language: (getattr(args, "target_per_language", None) or acquisition_target(cfg, "tatoeba_cc0", language))
         for language in target_languages
