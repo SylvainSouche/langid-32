@@ -1,7 +1,7 @@
 name: langid-32 staged corpus pipeline
+# Automatic push trigger is deliberately disabled while the pipeline is being repaired.
+# Re-enable push to main only after the pipeline contract preflight passes.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 permissions:
   actions: read
