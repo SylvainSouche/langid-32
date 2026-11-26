@@ -1,57 +1,108 @@
-name: Parallel JQL assessment and sentence-quality workflow
+name: Parallel JQL full-pool scoring and global pruning
 
 on:
   workflow_run:
-    workflows: ["Build full multisource candidate corpus and JQL assessment"]
+    workflows: ["langid-32 staged corpus pipeline"]
     types: [completed]
   workflow_dispatch:
     inputs:
       source_run_id:
-        description: "Run ID containing the JQL assessment Parquet artifact"
+        description: "Successful staged pipeline run ID containing the encrypted full JQL assessment"
         required: true
         type: string
-        default: "44563498916"
       artifact_name:
-        description: "Assessment artifact name"
+        description: "Encrypted assessment artifact name"
         required: true
         type: string
-        default: "langid-32-jql-assessment-full"
+        default: "langid-32-jql-assessment-full-encrypted"
 
 permissions:
   actions: read
   contents: read
 
 concurrency:
-  group: jql-full-assessment-${{ github.ref }}
+  group: jql-full-assessment-${{ github.event.workflow_run.id || inputs.source_run_id || github.ref }}
   cancel-in-progress: false
 
 jobs:
+  prepare:
+    if: ${{ github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') }}
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.config.outputs.matrix }}
+      max_parallel: ${{ steps.config.outputs.max_parallel }}
+      python_version: ${{ steps.config.outputs.python_version }}
+      short_retention_days: ${{ steps.config.outputs.short_retention_days }}
+      retention_days: ${{ steps.config.outputs.retention_days }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install assessment preparation dependencies
+        run: python -m pip install --upgrade pip pyarrow cryptography
+      - id: config
+        name: Read authoritative JQL shard configuration
+        run: python scripts/emit_jql_matrix.py
+      - name: Download and decrypt full assessment from the exact source run
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_RUN_ID: ${{ github.event.workflow_run.id || inputs.source_run_id }}
+          ARTIFACT_NAME: ${{ inputs.artifact_name || 'langid-32-jql-assessment-full-encrypted' }}
+          LANGID32_CHECKPOINT_KEY: ${{ secrets.LANGID32_CHECKPOINT_KEY }}
+        run: |
+          set -euo pipefail
+          mkdir -p source stage jql-work/out quality
+          gh run download "$SOURCE_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "$ARTIFACT_NAME" --dir source
+          archive="$(find source -type f -name final.bin -print -quit)"
+          test -n "$archive"
+          python scripts/checkpoint.py unpack --root stage --archive "$archive"
+          test -s stage/out/jql-assessment-full.parquet
+          cp stage/out/jql-assessment-full.parquet jql-work/out/jql-assessment-full.parquet
+          python scripts/split_jql_parquet.py \
+            --input jql-work/out/jql-assessment-full.parquet \
+            --output-dir jql-work/out/jql-shards \
+            --config config/langid32.toml
+          python scripts/check_sentence_boundaries.py \
+            --input jql-work/out/jql-assessment-full.parquet \
+            --output quality/sentence-boundary-flags.csv
+          python scripts/checkpoint.py pack --root jql-work --archive jql-shards.bin
+      - name: Upload encrypted assessment and shards
+        uses: actions/upload-artifact@v4
+        with:
+          name: jql-shards-encrypted
+          path: jql-shards.bin
+          if-no-files-found: error
+          retention-days: ${{ steps.config.outputs.short_retention_days }}
+      - name: Upload non-text sentence-boundary diagnostics
+        uses: actions/upload-artifact@v4
+        with:
+          name: jql-quality-flags
+          path: quality/sentence-boundary-flags.csv
+          if-no-files-found: error
+          retention-days: ${{ steps.config.outputs.short_retention_days }}
+
   score:
-    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    needs: prepare
     name: Score shard ${{ matrix.index }}
     runs-on: ubuntu-latest
-    timeout-minutes: 300
+    timeout-minutes: 360
     strategy:
       fail-fast: false
-      max-parallel: 4
-      matrix:
-        include:
-          - { index: 0, file: shard-00.parquet }
-          - { index: 1, file: shard-01.parquet }
-          - { index: 2, file: shard-02.parquet }
-          - { index: 3, file: shard-03.parquet }
-          - { index: 4, file: shard-04.parquet }
-          - { index: 5, file: shard-05.parquet }
-          - { index: 6, file: shard-06.parquet }
-          - { index: 7, file: shard-07.parquet }
+      max-parallel: ${{ fromJSON(needs.prepare.outputs.max_parallel) }}
+      matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
     env:
       HF_HOME: ${{ github.workspace }}/.cache/huggingface
       HF_HUB_DISABLE_TELEMETRY: "1"
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: ${{ needs.prepare.outputs.python_version }}
           cache: pip
       - name: Restore Hugging Face model cache
         uses: actions/cache@v4
@@ -62,153 +113,115 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
-          python -m pip install -r requirements-jql.txt pyarrow pandas
-      - name: Download and locally split source assessment
+          python -m pip install -r requirements-jql.txt cryptography
+      - name: Download and decrypt assessment shard set
         env:
-          GH_TOKEN: ${{ github.token }}
-          SOURCE_RUN_ID: ${{ github.event.workflow_run.id || inputs.source_run_id }}
-          ARTIFACT_NAME: ${{ inputs.artifact_name || 'langid-32-jql-assessment-full' }}
+          LANGID32_CHECKPOINT_KEY: ${{ secrets.LANGID32_CHECKPOINT_KEY }}
         run: |
-          mkdir -p input shards
-          gh run download "$SOURCE_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "$ARTIFACT_NAME" --dir input
-          mapfile -t parquet_files < <(find input -type f -name '*.parquet' -print)
-          if [ "${#parquet_files[@]}" -ne 1 ]; then
-            echo "Expected exactly one Parquet file; found ${#parquet_files[@]}"
-            find input -maxdepth 4 -type f -print
-            exit 1
-          fi
-          cp "${parquet_files[0]}" assessment.parquet
-          python scripts/split_jql_parquet.py --input assessment.parquet --output-dir shards --shards 8
-      - name: Score all three JQL heads for this shard
+          mkdir -p encrypted jql-work
+          # This artifact was produced by the prepare job in this same workflow run.
+          python -c "print('Waiting for same-run encrypted shard artifact')"
+      - uses: actions/download-artifact@v4
+        with:
+          name: jql-shards-encrypted
+          path: encrypted
+      - name: Restore encrypted shard set
+        env:
+          LANGID32_CHECKPOINT_KEY: ${{ secrets.LANGID32_CHECKPOINT_KEY }}
+        run: python scripts/checkpoint.py unpack --root jql-work --archive encrypted/jql-shards.bin
+      - name: Score all three JQL heads in resumable one-hour batches
         run: |
+          set +e
+          started=$SECONDS
+          output="ratings/shard-${{ matrix.index }}.csv"
           mkdir -p ratings
-          python scripts/score_jql_parquet.py \
-            --input "shards/${{ matrix.file }}" \
-            --output "ratings/shard-${{ matrix.index }}.csv" \
-            --device cpu \
-            --batch-size 8 \
-            --max-length 8192 \
-            --torch-threads 2
-      - name: Upload shard ratings
+          while true; do
+            if (( SECONDS - started >= 350 * 60 )); then
+              echo "Shard did not finish within the 350-minute work budget; preserving partial ratings."
+              exit 76
+            fi
+            python scripts/score_jql_parquet.py \
+              --input "jql-work/out/jql-shards/${{ matrix.file }}" \
+              --output "$output" \
+              --device cpu \
+              --config config/langid32.toml \
+              --max-seconds 3600 \
+              --resume
+            status=$?
+            if [ "$status" -eq 0 ]; then
+              exit 0
+            elif [ "$status" -eq 75 ]; then
+              continue
+            else
+              exit "$status"
+            fi
+          done
+      - name: Upload shard ratings, including partial diagnostics on failure
+        if: always() && hashFiles('ratings/*.csv') != ''
         uses: actions/upload-artifact@v4
         with:
           name: jql-ratings-${{ matrix.index }}
           path: ratings/shard-${{ matrix.index }}.csv
           if-no-files-found: error
-          retention-days: 2
-
-  boundary:
-    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
-    name: Sentence-boundary checks
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-          cache: pip
-      - name: Install boundary-check dependency
-        run: python -m pip install --upgrade pip pyarrow
-      - name: Download source assessment
-        env:
-          GH_TOKEN: ${{ github.token }}
-          SOURCE_RUN_ID: ${{ github.event.workflow_run.id || inputs.source_run_id }}
-          ARTIFACT_NAME: ${{ inputs.artifact_name || 'langid-32-jql-assessment-full' }}
-        run: |
-          mkdir -p input
-          gh run download "$SOURCE_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "$ARTIFACT_NAME" --dir input
-          mapfile -t parquet_files < <(find input -type f -name '*.parquet' -print)
-          if [ "${#parquet_files[@]}" -ne 1 ]; then
-            echo "Expected exactly one Parquet file; found ${#parquet_files[@]}"
-            find input -maxdepth 4 -type f -print
-            exit 1
-          fi
-          cp "${parquet_files[0]}" assessment.parquet
-      - name: Check capitalization and terminal punctuation
-        run: |
-          mkdir -p quality
-          python scripts/check_sentence_boundaries.py \
-            --input assessment.parquet \
-            --output quality/sentence-boundary-flags.csv
-      - name: Upload sentence-quality flags
-        uses: actions/upload-artifact@v4
-        with:
-          name: jql-quality-flags
-          path: quality/sentence-boundary-flags.csv
-          if-no-files-found: error
-          retention-days: 2
+          retention-days: ${{ needs.prepare.outputs.short_retention_days }}
+          overwrite: true
 
   merge:
-    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
-    name: Normalize, calculate consensus and publish results
-    needs: [score, boundary]
+    needs: [prepare, score]
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: ${{ needs.prepare.outputs.python_version }}
           cache: pip
-      - name: Install merge dependencies
-        run: python -m pip install --upgrade pip pyarrow pandas
-      - name: Download baseline core source proportions
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          mkdir -p baseline
-          gh run download 44942553391 --repo "$GITHUB_REPOSITORY" --name langid-32-jql-assessment-full --dir baseline
-          test -s baseline/candidate/manifest.json
-      - name: Download source assessment for ID and language validation
-        env:
-          GH_TOKEN: ${{ github.token }}
-          SOURCE_RUN_ID: ${{ github.event.workflow_run.id || inputs.source_run_id }}
-          ARTIFACT_NAME: ${{ inputs.artifact_name || 'langid-32-jql-assessment-full' }}
-        run: |
-          mkdir -p input
-          gh run download "$SOURCE_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "$ARTIFACT_NAME" --dir input
-          mapfile -t parquet_files < <(find input -type f -name '*.parquet' -print)
-          if [ "${#parquet_files[@]}" -ne 1 ]; then
-            echo "Expected exactly one Parquet file; found ${#parquet_files[@]}"
-            find input -maxdepth 4 -type f -print
-            exit 1
-          fi
-          cp "${parquet_files[0]}" assessment.parquet
-      - name: Download all sharded ratings
-        uses: actions/download-artifact@v4
+      - name: Install merge and encryption dependencies
+        run: python -m pip install --upgrade pip pyarrow pandas cryptography
+      - uses: actions/download-artifact@v4
+        with:
+          name: jql-shards-encrypted
+          path: encrypted
+      - uses: actions/download-artifact@v4
         with:
           pattern: jql-ratings-*
           path: ratings
           merge-multiple: true
-      - name: Download sentence-quality flags
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
           name: jql-quality-flags
           path: quality
-      - name: Validate coverage, normalize and calculate consensus
+      - name: Restore assessment and validate complete three-judge coverage
+        env:
+          LANGID32_CHECKPOINT_KEY: ${{ secrets.LANGID32_CHECKPOINT_KEY }}
+        run: python scripts/checkpoint.py unpack --root jql-work --archive encrypted/jql-shards.bin
+      - name: Normalize, calculate consensus and prune the global bottom quarter
         run: |
-          mkdir -p out
+          mkdir -p results result-work/out
           python scripts/merge_jql_ratings.py \
-            --input assessment.parquet \
+            --input jql-work/out/jql-assessment-full.parquet \
             --ratings-dir ratings \
             --quality quality/sentence-boundary-flags.csv \
-            --output-csv out/jql-consensus-34k.csv \
-            --output-parquet out/jql-consensus-34k.parquet \
-            --summary out/jql-consensus-34k-summary.json
-      - name: Apply global 25th-percentile quality floor and restore baseline source proportions
-        run: |
-          python scripts/select_jql_consensus.py \
-            --consensus out/jql-consensus-34k.parquet \
-            --baseline-manifest baseline/candidate/manifest.json \
-            --output-dir out/selected \
-            --target-per-language 25000 \
-            --minimum-candidate-per-language 35000 \
-            --global-quantile 0.25
-      - name: Upload final assessment outputs
+            --output-csv results/jql-consensus-full.csv \
+            --output-parquet results/jql-consensus-full.parquet \
+            --summary results/jql-consensus-full-summary.json \
+            --include-text \
+            --pruned-output-csv results/jql-consensus-pruned.csv \
+            --pruned-output-parquet results/jql-consensus-pruned.parquet \
+            --pruning-summary results/jql-pruning-summary.json \
+            --config config/langid32.toml
+          cp jql-work/out/jql-assessment-full.parquet result-work/out/
+          cp -R results/. result-work/out/
+      - name: Encrypt full and pruned JQL outputs
+        env:
+          LANGID32_CHECKPOINT_KEY: ${{ secrets.LANGID32_CHECKPOINT_KEY }}
+        run: python scripts/checkpoint.py pack --root result-work --archive jql-pruned-pool.bin
+      - name: Upload encrypted full and pruned JQL outputs
         uses: actions/upload-artifact@v4
         with:
-          name: langid-32-jql-consensus-34k
-          path: out/
+          name: langid-32-jql-pruned-pool-encrypted
+          path: jql-pruned-pool.bin
           if-no-files-found: error
-          retention-days: 30
+          retention-days: ${{ needs.prepare.outputs.retention_days }}
