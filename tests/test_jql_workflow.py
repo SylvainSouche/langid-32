@@ -1,4 +1,7 @@
 from statistics import mean
+from pathlib import Path
+import subprocess
+import sys
 
 from scripts.check_sentence_boundaries import (
     capitalization_status,
@@ -25,3 +28,15 @@ def test_quantile_normalization_is_monotonic_and_tie_safe():
     result = quantile_normalize([10.0, 20.0, 20.0, 40.0])
     assert result[0] < result[1] == result[2] < result[3]
     assert abs(mean(result)) < 1e-12
+
+
+def test_final_30k_selection_is_fail_closed_until_user_approval():
+    script = Path(__file__).resolve().parents[1] / "scripts" / "select_jql_consensus.py"
+    result = subprocess.run(
+        [sys.executable, str(script)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode != 0
+    assert "FINAL SELECTION DISABLED BY CONTRACT" in result.stderr
