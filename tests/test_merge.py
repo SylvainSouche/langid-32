@@ -308,5 +308,5 @@ def test_legacy_greynir_gold_exclusion_does_not_match_copper_or_silver(tmp_path)
     manifest = json.loads((args.output / "manifest.json").read_text())
     retained = [json.loads(line) for line in
                 (args.output / "records.jsonl").read_text().splitlines()]
-    assert manifest["rejected"]["source_exclusion_registry"] == 0
+    assert manifest["rejected"]["exclusion_rules_matched"] == 0
     assert {row["source"] for row in retained} == {"greynir_copper", "greynir_silver"}
