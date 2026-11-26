@@ -156,13 +156,18 @@ def main():
                                 "english_segment_sha256": hashlib.sha256(english.encode("utf-8")).hexdigest() if english else None,
                                 "english_segment_characters": len(english) if english else 0,
                             }
+                            safe_provenance, removed_fields = sanitize_provenance(provenance)
+                            totals["personal_metadata_fields_removed"] += len(removed_fields)
+                            safe_provenance["source_original_name"] = "gaois_irish_legislation"
+                            safe_provenance["rights_status"] = "attribution_required"
+                            safe_provenance["privacy_flags"] = list(privacy.flags)
                             row = {
                                 "text": ga, "language": "ga", "source": "gaois_irish_legislation",
                                 "source_release": "Gaois-Parallel-English-Irish-Legislation@sha256:pending",
                                 "group_id": group_id,
                                 "licence_id": "CC-BY-4.0 (DCU/Gaois derivative TMX)",
                                 "text_origin": "Irish legal/administrative translation-memory segment",
-                                "provenance": provenance,
+                                "provenance": safe_provenance,
                             }
                             rank_material = "\0".join((args.seed, group_id, digest))
                             rank = int(hashlib.sha256(rank_material.encode()).hexdigest(), 16)
@@ -189,7 +194,9 @@ def main():
             "licence_scope": "CC BY 4.0 applies to the derivative machine-readable aligned translation memories; original legislation remains Government of Ireland copyright.",
             "attribution": "Fiontar & Scoil na Gaeilge, Dublin City University (DCU), Gaois",
             "downloads": downloads, "combined_release_sha256": combined,
+            "source_original_name": "gaois_irish_legislation",
             "counts": totals, "sample_cap": args.max_sample, "seed": args.seed,
+            "privacy_policy": "shared langid32.privacy screen_text before deduplication and the 50,000 source-language quota; provenance sanitized before output",
             "candidate_file": str(args.out),
             "sampling": "Exact NFC/whitespace-normalized Irish text dedup across all six archives, then deterministic SHA-256 priority sample; English side is not emitted.",
             "provenance": "Each candidate retains archive component/hash/URL, TMX member, translation-unit ID/index, export date and English-side hash."
