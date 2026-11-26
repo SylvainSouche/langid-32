@@ -67,7 +67,7 @@ Historical pilot: 259,352 rows across 33 labels; it is not reused as a current c
 
 ### FineWeb2 v2.1.1
 
-**Description.** Multilingual Common Crawl-derived web-text dataset. The historical v5 artifact contains 510,702 FineWeb2 rows across 31 labels. A historical waiting-source artifact also contains FineWeb2 samples for Catalan and Icelandic. The current configuration and workflow schedule all 31 FineWeb2 non-English subsets available for project labels; no project-language allowlist is applied.
+**Description.** Multilingual Common Crawl-derived web-text dataset. The historical v5 artifact contains 510,702 FineWeb2 rows across 31 labels. A historical waiting-source artifact also contains FineWeb2 samples for Catalan and Icelandic. The current configuration and workflow schedule all 33 FineWeb2 non-English project-language subsets; no project-language allowlist is applied.
 
 **Sentence matrix.** Historical v5 total: 510,702 rows across 31 labels; the checked-in summary does not provide a complete 31-language breakdown. Current fresh matrix: all 31 available non-English project subsets are scheduled; exact eligible sentence counts are not yet measured by a successful clean full run. English is naturally separate in FineWeb, not a FineWeb2 language subset.
 
