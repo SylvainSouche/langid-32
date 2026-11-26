@@ -13,6 +13,7 @@ import shutil
 import subprocess
 import tarfile
 import tempfile
+import threading
 import time
 import unicodedata
 import urllib.request
@@ -37,6 +38,40 @@ SOURCE_FAMILIES = (
     "temu_cc0", "bsc_legal", "maalfrid2026", "fineweb2",
     "un_arabic_english_filtered",
 )
+
+
+def wait_for_new_threads_to_exit(existing_threads, timeout_seconds=30, quiet_period_seconds=1):
+    """Wait for threads created by a source adapter to finish before interpreter shutdown."""
+    deadline = time.monotonic() + timeout_seconds
+    quiet_since = None
+    current = threading.current_thread()
+    while time.monotonic() < deadline:
+        active = [
+            thread for thread in threading.enumerate()
+            if thread is not current and thread not in existing_threads and thread.is_alive()
+        ]
+        if active:
+            quiet_since = None
+            remaining = max(0.0, deadline - time.monotonic())
+            for thread in active:
+                thread.join(timeout=min(0.1, remaining))
+        else:
+            if quiet_since is None:
+                quiet_since = time.monotonic()
+            if time.monotonic() - quiet_since >= quiet_period_seconds:
+                return
+            time.sleep(0.05)
+    active = [
+        thread for thread in threading.enumerate()
+        if thread is not current and thread not in existing_threads and thread.is_alive()
+    ]
+    if active:
+        details = ", ".join(
+            f"{thread.name}(daemon={thread.daemon})" for thread in active
+        )
+        raise RuntimeError(
+            f"Source adapter background threads did not stop before shutdown: {details}"
+        )
 
 
 def check_global_deadline():
@@ -1053,6 +1088,7 @@ def main():
 
         elif args.source == "arabic":
             revisions["un_arabic"] = resolve_hf_revision("ymoslem/UN-Arabic-English-Filtered")
+            arabic_preexisting_threads = set(threading.enumerate())
             from datasets import load_dataset
             arabic_bucket = ("ar", "un_arabic_english_filtered:text_ar")
             if not quota_reached(arabic_bucket):
@@ -1096,6 +1132,7 @@ def main():
                         )
                         temporary.replace(state_path)
                     stream_exhausted = True
+                    item = None
                     # Keep the iterator explicit: HF streaming iterables may own
                     # background/native resources that must be released before
                     # interpreter finalization (notably on early quota stops).
@@ -1125,13 +1162,22 @@ def main():
                         close = getattr(iterator, "close", None)
                         if callable(close):
                             close()
+                        # The bound method retains the iterator until deleted.
+                        del close
                         del iterator
                     persist_arabic_stream_state()
-                    # Release HF dataset/stream references and collect before
-                    # the process exits; do not suppress shutdown errors.
+                    # Drop loop and closure references before collecting.
+                    item = None
+                    del persist_arabic_stream_state
                     del dataset
                     import gc
                     gc.collect()
+                    gc.collect()
+                    wait_for_new_threads_to_exit(
+                        arabic_preexisting_threads, timeout_seconds=30,
+                        quiet_period_seconds=1,
+                    )
+                    del arabic_preexisting_threads
                     if stream_exhausted:
                         finish_remote_file(arabic_bucket, remote_batch)
                     else:
