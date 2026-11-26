@@ -24,7 +24,6 @@ permissions:
   actions: read
   contents: read
 env:
-  LANGID32_CONFIG: config/langid32-debug.toml
 
 concurrency:
   group: jql-full-assessment-${{ github.event.workflow_run.id || inputs.source_run_id || github.ref }}
@@ -37,6 +36,8 @@ jobs:
     outputs:
       source_sha: ${{ steps.source.outputs.head_sha }}
       source_run_id: ${{ steps.source.outputs.run_id }}
+      config_path: ${{ steps.profile.outputs.config_path }}
+      config_sha256: ${{ steps.profile.outputs.config_sha256 }}
       matrix: ${{ steps.config.outputs.matrix }}
       max_parallel: ${{ steps.config.outputs.max_parallel }}
       max_seconds: ${{ steps.config.outputs.max_seconds }}
@@ -75,6 +76,26 @@ jobs:
           python-version: "3.12"
       - name: Install assessment preparation dependencies
         run: python -m pip install --upgrade pip pyarrow cryptography
+      - id: profile
+        name: Bind JQL to the exact source run configuration
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_RUN_ID: ${{ steps.source.outputs.run_id }}
+        run: |
+          set -euo pipefail
+          mkdir -p source-preflight
+          gh run download "$SOURCE_RUN_ID" --repo "$GITHUB_REPOSITORY" --name langid-32-pipeline-preflight --dir source-preflight
+          manifest="$(find source-preflight -name preflight-manifest.json -print -quit)"
+          test -n "$manifest"
+          config_path="$(jq -r '.config_path' "$manifest")"
+          config_sha256="$(jq -r '.policy_hashes.config_sha256' "$manifest")"
+          test -n "$config_path"
+          test -f "$config_path"
+          actual_sha256="$(sha256sum "$config_path" | cut -d ' ' -f 1)"
+          test "$actual_sha256" = "$config_sha256"
+          echo "config_path=$config_path" >> "$GITHUB_OUTPUT"
+          echo "config_sha256=$config_sha256" >> "$GITHUB_OUTPUT"
+          echo "LANGID32_CONFIG=$config_path" >> "$GITHUB_ENV"
       - id: config
         name: Read authoritative JQL shard configuration
         run: python scripts/emit_jql_matrix.py
@@ -230,6 +251,8 @@ jobs:
   merge:
     needs: [prepare, score]
     runs-on: ubuntu-latest
+    env:
+      LANGID32_CONFIG: ${{ needs.prepare.outputs.config_path }}
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
