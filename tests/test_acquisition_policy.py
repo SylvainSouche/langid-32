@@ -110,3 +110,20 @@ def test_waiting_source_record_rights_status_preserves_registered_holds():
     assert "**STAGED / HOLD**" in register
     assert "| **UN Arabic-English Filtered**" in register
     assert "**STAGED / ATTRIBUTION + PROVENANCE HOLD;" in register
+
+
+
+def test_un_arabic_row_index_is_not_mislabelled_as_document_id():
+    from scripts.acquire_waiting_sources import un_arabic_provenance
+
+    provenance = un_arabic_provenance(
+        {"text_ar": "نص عربي", "text_en": "English translation"},
+        12345,
+        "a" * 40,
+    )
+    assert provenance["source_row_index"] == 12345
+    assert "source_record_id" not in provenance
+    assert "source_document_id" not in provenance
+    assert provenance["repo_commit"] == "a" * 40
+    assert provenance["publisher"] == "United Nations"
+    assert provenance["attribution_required"] is True
