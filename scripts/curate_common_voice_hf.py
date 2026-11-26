@@ -98,6 +98,11 @@ def main() -> None:
         source_meta = locale_metadata.get(language)
         if not source_meta or not source_meta.get("repo_commit"):
             raise RuntimeError(f"Missing resolved HF repository metadata for {language}")
+        if source_meta["repo_commit"] != download_manifest.get("revision_resolved"):
+            raise RuntimeError(
+                f"Common Voice {language} file commit {source_meta['repo_commit']} "
+                f"does not match resolved repository commit {download_manifest.get('revision_resolved')}"
+            )
         actual_bytes = path.stat().st_size
         actual_sha256 = file_sha256(path)
         if actual_bytes != int(source_meta["bytes"]) or actual_sha256 != source_meta["sha256"]:
