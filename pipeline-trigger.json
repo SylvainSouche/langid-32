@@ -1,7 +1,7 @@
 {
   "run_mode": "clean_full_pipeline",
-  "nonce": "debug-run-20261126-1745",
-  "config_sha256": "448f88324251e22ef43ab9991b528b0c1224607633329f1ddf59fe7ae5092fb7",
+  "nonce": "debug-run-20261126-1814-locale-arabic-fix",
+  "config_sha256": "5af36582f68c06bccbb6b9f606bd13e1964aa863b2b25a55306ded992b997e48",
   "source_register_sha256": "0facb5065d1ae187f4a9eb1692903a69a0bfbc4e4f533f9aa669fee93a77e419",
   "pipeline_contract_sha256": "3945534fcc358455c69d6aa38bd7c5b3d8587977b707b8f2ab1766933df236e9",
   "artifact_reuse": false,
