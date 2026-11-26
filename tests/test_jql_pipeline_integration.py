@@ -95,6 +95,8 @@ def test_full_candidate_to_global_jql_pruning_contract(tmp_path):
             })
         manifest = {
             "schema_version": 1,
+            "pipeline_source_sha": "f" * 40,
+            "pipeline_source_run_id": "123456",
             "input_file": shard["file"],
             "input_sha256": hashlib.sha256(shard_path.read_bytes()).hexdigest(),
             "input_rows": 1,
@@ -155,6 +157,7 @@ def test_full_candidate_to_global_jql_pruning_contract(tmp_path):
         "--pruned-output-csv", pruned_csv,
         "--pruned-output-parquet", pruned_parquet,
         "--pruning-summary", pruning_summary,
+        env={"LANGID32_SOURCE_SHA": "f" * 40, "LANGID32_SOURCE_RUN_ID": "123456"},
     )
 
     summary = json.loads(full_summary.read_text())
