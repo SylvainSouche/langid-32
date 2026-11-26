@@ -48,7 +48,7 @@ jobs:
         name: Resolve and validate the exact successful staged-pipeline run
         env:
           GH_TOKEN: ${{ github.token }}
-          SOURCE_RUN_ID: ${{ steps.source.outputs.run_id }}
+          SOURCE_RUN_ID: ${{ github.event.workflow_run.id || inputs.source_run_id }}
         run: |
           set -euo pipefail
           response="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$SOURCE_RUN_ID")"
@@ -78,7 +78,7 @@ jobs:
       - name: Download and decrypt full assessment from the exact source run
         env:
           GH_TOKEN: ${{ github.token }}
-          SOURCE_RUN_ID: ${{ github.event.workflow_run.id || inputs.source_run_id }}
+          SOURCE_RUN_ID: ${{ steps.source.outputs.run_id }}
           ARTIFACT_NAME: ${{ inputs.artifact_name || 'langid-32-jql-assessment-full-encrypted' }}
           LANGID32_CHECKPOINT_KEY: ${{ secrets.LANGID32_CHECKPOINT_KEY }}
         run: |
@@ -210,7 +210,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          ref: ${{ needs.prepare.outputs.source_sha }}
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ needs.prepare.outputs.python_version }}
