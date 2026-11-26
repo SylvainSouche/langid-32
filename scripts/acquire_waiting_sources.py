@@ -1096,28 +1096,42 @@ def main():
                         )
                         temporary.replace(state_path)
                     stream_exhausted = True
-                    for item in dataset:
-                        if quota_reached(arabic_bucket):
-                            stream_exhausted = False
-                            break
-                        record_id = item.get("id")
-                        document_url = item.get("url") or item.get("source_url")
-                        group_identity = str(
-                            record_id or document_url
-                            or f"row:{processed}"
-                        )
-                        provenance = un_arabic_provenance(
-                            item, processed, revisions["un_arabic"]
-                        )
-                        add("ar", "un_arabic_english_filtered:text_ar",
-                            item.get("text_ar"), group_identity, provenance,
-                            source_record_id_from_group=False)
-                        processed += 1
-                        if processed % 512 == 0:
-                            persist_arabic_stream_state()
-                        if processed and processed % 100000 == 0:
-                            print(f"Arabic pairs streamed: {processed}", flush=True)
+                    # Keep the iterator explicit: HF streaming iterables may own
+                    # background/native resources that must be released before
+                    # interpreter finalization (notably on early quota stops).
+                    iterator = iter(dataset)
+                    try:
+                        for item in iterator:
+                            if quota_reached(arabic_bucket):
+                                stream_exhausted = False
+                                break
+                            record_id = item.get("id")
+                            document_url = item.get("url") or item.get("source_url")
+                            group_identity = str(
+                                record_id or document_url or f"row:{processed}"
+                            )
+                            provenance = un_arabic_provenance(
+                                item, processed, revisions["un_arabic"]
+                            )
+                            add("ar", "un_arabic_english_filtered:text_ar",
+                                item.get("text_ar"), group_identity, provenance,
+                                source_record_id_from_group=False)
+                            processed += 1
+                            if processed % 512 == 0:
+                                persist_arabic_stream_state()
+                            if processed and processed % 100000 == 0:
+                                print(f"Arabic pairs streamed: {processed}", flush=True)
+                    finally:
+                        close = getattr(iterator, "close", None)
+                        if callable(close):
+                            close()
+                        del iterator
                     persist_arabic_stream_state()
+                    # Release HF dataset/stream references and collect before
+                    # the process exits; do not suppress shutdown errors.
+                    del dataset
+                    import gc
+                    gc.collect()
                     if stream_exhausted:
                         finish_remote_file(arabic_bucket, remote_batch)
                     else:
