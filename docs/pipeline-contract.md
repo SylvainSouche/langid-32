@@ -56,12 +56,14 @@ Build a private, reproducible, multi-source candidate pool for all 34 configured
 
 - Produce the complete private candidate/assessment artefacts and machine-readable manifests/reports, including per-language × original-source counts before and after every exclusion/pruning stage.
 - Stop. Do not select the final 30,000 per language, publish, push text to Hugging Face, or release provenance until the user has reviewed privacy, source rights and source balance and explicitly approved the next step.
+- The deferred final selection target is 30,000 per language. The agreed source-mix rule for that later selection is 30% preferred and 50% hard maximum per original source within each language; document any underfill or single-source exception. Do not apply this balancing before global JQL pruning.
 
 ## 3. Privacy and rights constraints
 
 - Screen sentence text and provenance metadata at acquisition and candidate boundaries. Remove personal contributor/author/contact/speaker/user identifiers from metadata; do not expose their values in logs or reports.
 - Reject high-confidence identifiers and quarantine ambiguous personal-name/source privacy-flag cases. Keep only non-identifying source/document references needed for audit.
-- The privacy implementation is deterministic heuristic screening, **not exhaustive multilingual NER or proof of anonymization**. Human review remains mandatory before any external release.
+- The user has accepted the current deterministic multilingual privacy-screening implementation for private pipeline use. Do not reopen its implementation acceptance or block private candidate/JQL processing on replacing it.
+- The screen is **not exhaustive multilingual NER or proof of anonymization**. The user will manually review the actual resulting pool; that review is a hard stop before any external release. Do not publish or redistribute before that review and explicit approval.
 - Preserve source-specific rights/attribution status. In particular, FineWeb2 remains technical-candidate-only while underlying web-text rights are unresolved; Korean Wikipedia remains on share-alike compatibility hold; Målfrid remains on database/third-party-rights hold; any other hold in the source register remains binding.
 - Do not infer a passage licence from a hosting page, dataset wrapper or compilation licence. Do not relabel mixed-rights content CC0.
 - Common Voice scope is HF-hosted Common Voice 22 text only, CC0 dataset-level terms: no audio, speaker IDs or demographic data. Do not use Mozilla Data Collective data/repository. Keep the approved locales and source limitations in the source register; do not invent a Croatian Common Voice input.
