@@ -224,7 +224,10 @@ final_selection_status = "deferred_pending_user_review"
 # Set overrides only after reviewing post-pruning per-language/source availability.
 
 [candidate.source_balance]
+# Applied only in the later, user-approved final selection; never before JQL pruning.
 enabled = false
+preferred_share = 0.30
+hard_max_share = 0.50
 
 [candidate.splits]
 validation_fraction = 0.10
