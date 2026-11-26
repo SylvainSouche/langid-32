@@ -1,6 +1,7 @@
 """ParlaMint 4.0 TEI extraction with identity-bearing speaker metadata excluded."""
 from __future__ import annotations
 
+import re
 import tarfile
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -56,6 +57,10 @@ def iter_utterances(archive_path: str | Path, language: str):
 
         for member in members:
             session_id = Path(member.name).stem
+            date_match = re.search(r"_(\\d{4}-\\d{2}-\\d{2})(?:_|$)", session_id)
+            if date_match is None:
+                raise RuntimeError(f"ParlaMint session filename lacks a date: {member.name}")
+            session_date = date_match.group(1)
             stream = archive.extractfile(member)
             if stream is None:
                 raise RuntimeError(f"Cannot read ParlaMint archive member {member.name}")
@@ -86,6 +91,8 @@ def iter_utterances(archive_path: str | Path, language: str):
                                     "provenance": {
                                         "source_file": member.name,
                                         "session_id": session_id,
+                                        "session_date": session_date,
+                                        "publisher": "ParlaMint consortium / CLARIN.SI",
                                         "utterance_id": utterance_id,
                                         "segment_id": segment_id,
                                         "record_structure": "ParlaMint TEI utterance segment",
