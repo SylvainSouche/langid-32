@@ -26,6 +26,8 @@ def test_common_voice_script_policy_covers_enabled_locales():
 
 def test_common_voice_checkpoint_is_bound_to_acquisition_policy():
     source = SCRIPT.read_text(encoding="utf-8")
-    assert "policy_digest = hashlib.sha256(" in source
+    assert "policy_hash = hashlib.sha256()" in source
+    assert "download_common_voice_hf.py" in source
+    assert "targets/common-voice.py" in source
     assert "common-voice-acquisition-{resolved_revision[:12]}-{policy_digest}.sqlite" in source
     assert '"acquisition_policy_digest": policy_digest' in source
