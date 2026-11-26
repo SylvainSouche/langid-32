@@ -120,7 +120,7 @@ jobs:
     needs: prepare
     name: Score shard ${{ matrix.index }}
     runs-on: ubuntu-latest
-    timeout-minutes: ${{ needs.prepare.outputs.job_timeout_minutes }}
+    timeout-minutes: ${{ fromJSON(needs.prepare.outputs.job_timeout_minutes) }}
     strategy:
       fail-fast: false
       max-parallel: ${{ fromJSON(needs.prepare.outputs.max_parallel) }}
@@ -167,7 +167,7 @@ jobs:
         run: |
           mkdir -p previous ratings
           if gh run download "$RESUME_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "jql-ratings-$SHARD_INDEX" --dir previous; then
-            find previous -type f -name "shard-$SHARD_INDEX.csv*" -exec cp {} ratings/ \\;
+            find previous -type f -name "shard-$SHARD_INDEX.csv*" -exec cp {} ratings/ \;
           else
             echo "No previous partial artifact for shard $SHARD_INDEX; starting that shard from scratch."
           fi
