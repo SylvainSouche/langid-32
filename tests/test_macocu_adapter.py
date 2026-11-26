@@ -24,9 +24,9 @@ def test_macocu_extracts_paragraph_metadata_and_flags_before_filtering(tmp_path)
         <p id="macocu.hr.doc1.3" quality="good" lm_score="0.88"
            heading="no" lang="hr" contains_sensitive="true">Osobni podatci</p>
         <p id="macocu.hr.doc1.4" quality="short" lm_score="0.43"
-           heading="no" lang="hr" contains_sensitive="false">Kratko</p>
+           lang="hr" contains_sensitive="false">Kratko</p>
         <p id="macocu.hr.doc1.5" quality="good" lm_score="0.84"
-           heading="no" lang="en" contains_sensitive="false">Wrong language</p>
+           heading="no" contains_sensitive="false">Unknown language</p>
       </doc>
     </corpus>"""
     _archive(path, xml)
@@ -50,7 +50,8 @@ def test_macocu_extracts_paragraph_metadata_and_flags_before_filtering(tmp_path)
     assert rows[1]["provenance"]["paragraph_heading"] is True
     assert rows[2]["provenance"]["paragraph_sensitive"] is True
     assert rows[3]["provenance"]["paragraph_quality"] == "short"
-    assert rows[4]["provenance"]["paragraph_language"] == "en"
+    assert rows[3]["provenance"]["paragraph_heading"] is False
+    assert rows[4]["provenance"]["paragraph_language"] is None
 
 
 def test_macocu_fails_closed_when_sensitive_flag_is_missing(tmp_path):
