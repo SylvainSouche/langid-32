@@ -103,7 +103,7 @@ target = 200
 status = "include_attribution_and_source_provenance"
 
 [acquisition.source_rules.gaois_irish_legislation]
-# Explicitly accepted source-specific candidate sample: 50k Irish-side rows, not a final selection.
+# Debug profile caps this Irish-side source at 200 rows; release retains the approved 50,000-row exception.
 target = 200
 status = "include_cc_by_4_0_derivative_original_legislation_rights_review"
 
