@@ -70,3 +70,12 @@ def test_jql_scoring_invocation_cannot_overrun_job_upload_budget():
     assert 'process_started = time.monotonic()' in scorer
     assert 'runtime_limit_reached' in scorer
     assert 'args.max_seconds' in scorer
+
+
+
+def test_downstream_jql_jobs_checkout_the_exact_source_pipeline_commit():
+    root = Path(__file__).resolve().parents[1]
+    workflow = (root / ".github/workflows/score-jql-assessment.yml").read_text(encoding="utf-8")
+    assert "ref: ${{ steps.source.outputs.head_sha }}" in workflow
+    assert workflow.count("ref: ${{ needs.prepare.outputs.source_sha }}") == 2
+    assert "source_sha: ${{ steps.source.outputs.head_sha }}" in workflow
