@@ -9,11 +9,23 @@ jobs:
   config:
     runs-on: ubuntu-latest
     outputs:
-      acquisition_max_parallel_source_tasks: "${{  steps.runtime.outputs.acquisition_max_parallel_source_tasks  }}"
-      acquisition_job_timeout_minutes: "${{  steps.runtime.outputs.acquisition_job_timeout_minutes  }}"
-      acquisition_global_budget_minutes: "${{  steps.runtime.outputs.acquisition_global_budget_minutes  }}"
-      acquisition_safety_margin_minutes: "${{  steps.runtime.outputs.acquisition_safety_margin_minutes  }}"
-      acquisition_started_epoch: "${{  steps.runtime.outputs.acquisition_started_epoch  }}"
+      acquisition_max_parallel_source_tasks: "${{ steps.runtime.outputs.acquisition_max_parallel_source_tasks }}"
+      acquisition_job_timeout_minutes: "${{ steps.runtime.outputs.acquisition_job_timeout_minutes }}"
+      acquisition_global_budget_minutes: "${{ steps.runtime.outputs.acquisition_global_budget_minutes }}"
+      acquisition_safety_margin_minutes: "${{ steps.runtime.outputs.acquisition_safety_margin_minutes }}"
+      acquisition_started_epoch: "${{ steps.runtime.outputs.acquisition_started_epoch }}"
+      code_commit_sha: "${{ steps.runtime.outputs.code_commit_sha }}"
+      config_sha256: "${{ steps.runtime.outputs.config_sha256 }}"
+      source_register_sha256: "${{ steps.runtime.outputs.source_register_sha256 }}"
+      pipeline_contract_sha256: "${{ steps.runtime.outputs.pipeline_contract_sha256 }}"
+      historical_v5_run_id: "${{ steps.runtime.outputs.historical_v5_run_id }}"
+      historical_v5_artifact_name: "${{ steps.runtime.outputs.historical_v5_artifact_name }}"
+      historical_leipzig_run_id: "${{ steps.runtime.outputs.historical_leipzig_run_id }}"
+      historical_leipzig_artifact_name: "${{ steps.runtime.outputs.historical_leipzig_artifact_name }}"
+      historical_tatoeba_run_id: "${{ steps.runtime.outputs.historical_tatoeba_run_id }}"
+      historical_tatoeba_artifact_name: "${{ steps.runtime.outputs.historical_tatoeba_artifact_name }}"
+      historical_dgt_run_id: "${{ steps.runtime.outputs.historical_dgt_run_id }}"
+      historical_dgt_artifact_name: "${{ steps.runtime.outputs.historical_dgt_artifact_name }}"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -21,6 +33,13 @@ jobs:
           python-version: "3.12"
       - id: runtime
         run: python3 scripts/emit_runtime_config.py
+      - name: Fail-closed preflight before any acquisition
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LANGID32_CHECKPOINT_KEY: ${{ secrets.LANGID32_CHECKPOINT_KEY }}
+        run: |
+          python3 -c 'import os,sys; k=os.environ.get("LANGID32_CHECKPOINT_KEY",""); sys.exit(0 if len(k)>=32 else "LANGID32_CHECKPOINT_KEY is missing or shorter than 32 characters")'
+          python3 scripts/validate_historical_artifacts.py
   historical:
     if: github.ref == 'refs/heads/main'
     needs: [config]
@@ -48,29 +67,29 @@ jobs:
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
           repository: "${{ github.repository }}"
-          run-id: "43950037392"
-          name: multisource-candidate-v5-fineweb-en
+          run-id: "${{ needs.config.outputs.historical_v5_run_id }}"
+          name: "${{ needs.config.outputs.historical_v5_artifact_name }}"
           path: input/v5
       - uses: actions/download-artifact@v4
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
           repository: "${{ github.repository }}"
-          run-id: "44361364340"
-          name: leipzig-balanced-34-44361364340
+          run-id: "${{ needs.config.outputs.historical_leipzig_run_id }}"
+          name: "${{ needs.config.outputs.historical_leipzig_artifact_name }}"
           path: input/leipzig
       - uses: actions/download-artifact@v4
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
           repository: "${{ github.repository }}"
-          run-id: "44121162591"
-          name: tatoeba-cc0-staged-weekly-2026-11-14
+          run-id: "${{ needs.config.outputs.historical_tatoeba_run_id }}"
+          name: "${{ needs.config.outputs.historical_tatoeba_artifact_name }}"
           path: input/tatoeba
       - uses: actions/download-artifact@v4
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
           repository: "${{ github.repository }}"
-          run-id: "44291075180"
-          name: dgt-tm-2021-staged-5k
+          run-id: "${{ needs.config.outputs.historical_dgt_run_id }}"
+          name: "${{ needs.config.outputs.historical_dgt_artifact_name }}"
           path: input/dgt
       - name: Validate historical target
         id: acquire
