@@ -23,8 +23,7 @@ def test_source_and_language_overrides_are_explicit_and_inherit_defaults():
     assert acquisition_target(config, "gaois_irish_legislation", "ga") == 50000
     with pytest.raises(ValueError):
         acquisition_target(config, "greynir_gold_dev_test", "is")
-    with pytest.raises(ValueError):
-        acquisition_target(config, "fineweb2:cat_Latn", "ca")
+    assert acquisition_target(config, "fineweb2:cat_Latn", "ca") == 20000
     with pytest.raises(ValueError):
         acquisition_target(config, "fineweb", "en")
     with pytest.raises(ValueError):
