@@ -1,9 +1,5 @@
 name: Acquire Leipzig news + Wikipedia samples (34 labels)
 on:
-  push:
-    paths:
-      - "scripts/acquire_leipzig_balanced.py"
-      - ".github/workflows/acquire-leipzig-balanced.yml"
   workflow_dispatch:
 permissions:
   contents: read
