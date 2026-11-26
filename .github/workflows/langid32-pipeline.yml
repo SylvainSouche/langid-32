@@ -49,24 +49,28 @@ jobs:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
           repository: "${{ github.repository }}"
           run-id: "43950037392"
+          name: multisource-candidate-v5-fineweb-en
           path: input/v5
       - uses: actions/download-artifact@v4
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
           repository: "${{ github.repository }}"
           run-id: "44361364340"
+          name: leipzig-balanced-34-44361364340
           path: input/leipzig
       - uses: actions/download-artifact@v4
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
           repository: "${{ github.repository }}"
           run-id: "44121162591"
+          name: tatoeba-cc0-staged-weekly-2026-11-14
           path: input/tatoeba
       - uses: actions/download-artifact@v4
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
           repository: "${{ github.repository }}"
           run-id: "44291075180"
+          name: dgt-tm-2021-staged-5k
           path: input/dgt
       - name: Validate historical target
         id: acquire
