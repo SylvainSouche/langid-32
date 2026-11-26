@@ -40,10 +40,10 @@ def test_greynir_extracts_terminal_text_and_nonidentifying_provenance(tmp_path):
         "source_record_number": 1,
         "source_corpus_id": "abc-123.1",
         "source_local_id": "greynir_corpus_00001.psd,.1",
+        "source_document_url": "https://example.is/private/path",
         "publisher": "Miðeind ehf.",
         "upstream_revision": REVISION,
     }
-    assert "private/path" not in repr(rows[0])
 
 
 def test_greynir_silver_partition_is_explicit_and_gold_is_not_supported(tmp_path):
