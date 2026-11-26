@@ -54,7 +54,7 @@ def main() -> None:
     parser.add_argument("--config", type=Path, default=ROOT / "config/langid32.toml")
     args = parser.parse_args()
     cfg = load_config(args.config)
-    languages = tuple(cfg["languages"])
+    languages = tuple(cfg["project"]["languages"])
     if not languages:
         raise SystemExit("No Common Voice target languages are configured.")
     text_rules = cfg["acquisition"]["source_rules"]["common_voice_v22"]["text"]
