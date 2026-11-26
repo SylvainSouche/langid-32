@@ -15,7 +15,7 @@ from langid32.settings import load_config
 
 
 def main() -> None:
-    config_path = Path(os.environ.get("LANGID32_CONFIG", ROOT / "config/langid32.toml"))
+    config_path = Path(os.environ.get("LANGID32_CONFIG", ROOT / "config/langid32.toml")).resolve()
     config = load_config(config_path)
     values = {
         "python_version": config["execution"]["python_version"],
@@ -89,7 +89,7 @@ def main() -> None:
             "cross-source and cross-language candidate construction",
             "full-pool JQL assessment",
             "three-judge scoring, global normalization and bottom-25% pruning",
-            "manual privacy/source-rights review hand-off; final 30k selection deferred",
+            "manual privacy/source-rights review hand-off; final 35k selection deferred",
         ],
     }
     manifest_path = ROOT / "out" / "preflight-manifest.json"
