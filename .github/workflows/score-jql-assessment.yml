@@ -23,7 +23,6 @@ on:
 permissions:
   actions: read
   contents: read
-env:
 
 concurrency:
   group: jql-full-assessment-${{ github.event.workflow_run.id || inputs.source_run_id || github.ref }}
