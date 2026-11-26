@@ -16,18 +16,21 @@ SOURCES = {
         "source": "macocu_hr_2",
         "url": "https://www.clarin.si/repository/xmlui/bitstream/handle/11356/1806/MaCoCu-hr-2.0.xml.zip?isAllowed=y&sequence=3",
         "md5": "fea674896b4f36c8cc59fc0b4c3976a7",
+        "sha256": "6ea86d64c737cdcb99711ad91d37a6fd659a71ae034f9a56cfdae24182364679",
         "xml_member": "MaCoCu-hr-2.0.xml",
     },
     "mt": {
         "source": "macocu_mt_2",
         "url": "https://www.clarin.si/repository/xmlui/bitstream/handle/11356/1803/MaCoCu-mt-2.0.xml.zip?isAllowed=y&sequence=3",
         "md5": "e7dd66e2df6c3e832680e6407a6a2565",
+        "sha256": "56cb0058d2d23609821d115b6a8221ddac77217558631e1afce2f8355543045e",
         "xml_member": "MaCoCu-mt-2.0.xml",
     },
     "sl": {
         "source": "macocu_sl_2",
         "url": "https://www.clarin.si/repository/xmlui/bitstream/handle/11356/1795/MaCoCu-sl-2.0.xml.zip?isAllowed=y&sequence=9",
         "md5": "b2c73ad9a16de41790add26ab588afa0",
+        "sha256": "638a0ff6d68211293dd2b54a6da2bd52a190f37480474c9b8efb20aa27d7c47f",
         "xml_member": "MaCoCu-sl-2.0.xml",
     },
 }
@@ -112,7 +115,8 @@ def iter_paragraphs(archive_path: str | Path, language: str):
                         raise RuntimeError("MaCoCu paragraph occurs outside a document")
                     attrs = _attrs(element)
                     paragraph_id = _required(attrs, "id", "paragraph_id")
-                    paragraph_language = _required(attrs, "lang", "language").lower()
+                    language_value = attrs.get("lang") or attrs.get("language")
+                    paragraph_language = language_value.strip().lower() if language_value else None
                     quality = _required(attrs, "quality", "quality_label")
                     fluency_raw = _required(attrs, "lm_score", "fluency", "fluency_score")
                     try:
@@ -121,7 +125,8 @@ def iter_paragraphs(archive_path: str | Path, language: str):
                         raise RuntimeError(f"Invalid MaCoCu fluency score: {fluency_raw!r}") from exc
                     if not 0.0 <= fluency <= 1.0:
                         raise RuntimeError(f"MaCoCu fluency score outside [0,1]: {fluency}")
-                    heading = _boolean(_required(attrs, "heading", "is_heading"), "heading")
+                    heading_value = attrs.get("heading", attrs.get("is_heading"))
+                    heading = _boolean(heading_value, "heading") if heading_value is not None else False
                     sensitive = _sensitive_flag(attrs)
                     text = " ".join("".join(element.itertext()).split())
                     if text:
