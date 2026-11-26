@@ -13,7 +13,7 @@ Hugging Face Hub/direct HTTPS; transcript/<locale>/validated_sentences.tsv; down
 
 ## File types and structure
 
-UTF-8 TSV: sentence_id, sentence, validation/use metadata; project adds source_locale.
+UTF-8 TSV fields: `sentence_id`, `sentence`, `variant`, `sentence_domain`, `source`, `is_used`, `clips_count`; project adds `source_locale`. The [official Common Voice Scripted Speech schema](https://github.com/common-voice/cv-dataset/blob/main/datasets/scripted-speech/README.md) distinguishes `validated_sentences.tsv` from clip TSVs: the former contains sentence-level fields only, while clip TSVs carry `client_id`, audio `path`, and optional age/gender/accent. The downloader fetches only `validated_sentences.tsv`, so those contributor/audio fields are not retrieved.
 
 ## Distribution conditions and rights
 
