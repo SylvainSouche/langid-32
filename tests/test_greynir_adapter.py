@@ -2,7 +2,7 @@ import gzip
 
 import pytest
 
-from src.langid32.greynir import COPPER_FILES, PARTITION_FILES, REVISION, _terminals, iter_sentences
+from src.langid32.greynir import COPPER_FILES, LFS_POINTERS, PARTITION_FILES, REVISION, _terminals, iter_sentences
 
 
 def _write(path, records):
@@ -13,6 +13,8 @@ def _write(path, records):
 def test_greynir_declares_all_copper_files_and_extracts_terminal_text(tmp_path):
     assert len(COPPER_FILES) == 10
     assert COPPER_FILES[0] == PARTITION_FILES["copper"]
+    assert set(LFS_POINTERS) == set(COPPER_FILES) | {PARTITION_FILES["silver"]}
+    assert LFS_POINTERS[PARTITION_FILES["copper"]][0] == "09726a43b1a4b025960f221db49a6433337667ae42eb88df11d4e2565db724e0"
     path = tmp_path / "copper01.gz"
     _write(path, [
         """( (META (ID-CORPUS abc-123.1)
