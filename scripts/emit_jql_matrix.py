@@ -17,6 +17,7 @@ def main() -> None:
     count = int(config["jql"]["shard_count"])
     parallel = int(config["jql"]["max_parallel_shards"])
     max_seconds = int(config["jql"]["max_seconds"])
+    shard_batch_rows = int(config["jql"]["shard_batch_rows"])
     job_timeout = int(config["jql"]["job_timeout_minutes"])
     work_budget = job_timeout - int(config["jql"]["upload_buffer_minutes"])
     python_version = config["jql"]["python_version"]
@@ -30,12 +31,13 @@ def main() -> None:
         stream.write("matrix=" + json.dumps(matrix, separators=(",", ":")) + chr(10))
         stream.write(f"max_parallel={parallel}" + chr(10))
         stream.write(f"max_seconds={max_seconds}" + chr(10))
+        stream.write(f"shard_batch_rows={shard_batch_rows}" + chr(10))
         stream.write(f"job_timeout_minutes={job_timeout}" + chr(10))
         stream.write(f"work_budget_minutes={work_budget}" + chr(10))
         stream.write(f"python_version={python_version}" + chr(10))
         stream.write(f"short_retention_days={short_retention}" + chr(10))
         stream.write(f"retention_days={retention}" + chr(10))
-    print(json.dumps({"shards": count, "max_parallel": parallel, "max_seconds": max_seconds, "job_timeout_minutes": job_timeout, "work_budget_minutes": work_budget, "python_version": python_version, "short_retention_days": short_retention, "retention_days": retention, "matrix": matrix}))
+    print(json.dumps({"shards": count, "max_parallel": parallel, "max_seconds": max_seconds, "shard_batch_rows": shard_batch_rows, "job_timeout_minutes": job_timeout, "work_budget_minutes": work_budget, "python_version": python_version, "short_retention_days": short_retention, "retention_days": retention, "matrix": matrix}))
 
 
 if __name__ == "__main__":
