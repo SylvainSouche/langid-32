@@ -16,8 +16,9 @@ def test_un_arabic_row_index_is_not_misrepresented_as_source_document_id():
         17,
         "a" * 40,
     )
-    safe = MODULE.sanitize_provenance(provenance)
+    safe, removed = MODULE.sanitize_provenance(provenance)
 
+    assert removed == []
     assert safe["source_row_index"] == 17
     assert "source_record_id" not in safe
     assert "source_document_url" not in safe
