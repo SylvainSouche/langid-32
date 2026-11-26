@@ -1208,7 +1208,8 @@ def main():
             raise SystemExit(
                 f"Acquisition incomplete: {len(failures)} source errors, "
                 f"{len(incomplete_tasks)} unfinished source/language tasks; "
-                "the encrypted checkpoint preserves partial progress for resumption."
+                "the encrypted checkpoint preserves partial progress for inspection only; "
+                "clean pipeline reruns do not restore failed or partial acquisition artifacts."
             )
     finally:
         state_db.close()
