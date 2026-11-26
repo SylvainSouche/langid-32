@@ -164,6 +164,7 @@ def main():
     args.output.parent.mkdir(parents=True, exist_ok=True)
     manifest_path = args.output.with_suffix(args.output.suffix + ".manifest.json")
     provenance = {
+        "input_file": args.input.name,
         "input_sha256": sha256_file(args.input),
         "models": {
             "embedder_repository": embedder_id,
