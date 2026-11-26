@@ -27,11 +27,25 @@ def norm(value: str) -> str:
 
 
 def script_ratio(text: str, script: str) -> float:
+    """Return the share of letters belonging to the configured Unicode script."""
     letters = [char for char in text if char.isalpha()]
     if not letters:
         return 0.0
-    prefix = script.upper() + " "
-    matched = sum(unicodedata.name(char, "").startswith(prefix) for char in letters)
+    script = script.upper()
+    prefixes = {
+        "LATIN": ("LATIN ",),
+        "GREEK": ("GREEK ",),
+        "CYRILLIC": ("CYRILLIC ",),
+        "ARABIC": ("ARABIC ",),
+        "HAN": ("CJK UNIFIED IDEOGRAPH-", "CJK COMPATIBILITY IDEOGRAPH-"),
+        "HANGUL": ("HANGUL ",),
+        # Japanese text legitimately mixes Kanji, Hiragana and Katakana.
+        "JAPANESE": ("CJK UNIFIED IDEOGRAPH-", "CJK COMPATIBILITY IDEOGRAPH-",
+                     "HIRAGANA ", "KATAKANA "),
+    }
+    if script not in prefixes:
+        raise ValueError(f"Unsupported Common Voice Unicode script {script!r}")
+    matched = sum(unicodedata.name(char, "").startswith(prefixes[script]) for char in letters)
     return matched / len(letters)
 
 
