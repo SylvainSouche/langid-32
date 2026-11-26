@@ -33,7 +33,7 @@ The later `docs/pipeline-contract.md` defines a specific exception for the stage
 
 The four pinned historical snapshots listed below are an explicit, previously accepted exception: they are existing, unencrypted source artifacts. They are downloaded from their pinned successful runs, validated, and included in the new pipeline's encrypted checkpoint before any new artifact upload. They are not re-uploaded as plaintext.
 
-This exception applies only to `.github/workflows/langid32-pipeline.yml` and its downstream `.github/workflows/score-jql-assessment.yml`. It does not relax the metadata-only rule for unrelated workflows or authorize publication/re-hosting of source text.
+The legacy standalone Leipzig workflows that uploaded samples and original archives in plaintext (`acquire-leipzig-balanced.yml` and `acquire-leipzig-corpora.yml`) have been retired. The one pinned Leipzig snapshot remains an existing historical input; no new plaintext Leipzig artifact is produced. This exception applies only to `.github/workflows/langid32-pipeline.yml` and its downstream `.github/workflows/score-jql-assessment.yml`. It does not relax the metadata-only rule for unrelated workflows or authorize publication/re-hosting of source text.
 
 ## Existing artifacts requiring an owner decision
 
