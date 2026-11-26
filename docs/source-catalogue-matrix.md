@@ -63,7 +63,7 @@ Historical pilot: 259,352 rows across 33 labels; it is not reused as a current c
 
 **Licence and attribution.** Leipzig's official downloadable-corpora usage statement declares CC BY 4.0. Attribute Leipzig, link the licence/usage statement, cite Goldhahn et al. (LREC 2012), and preserve archive IDs, hashes, sentence/source mappings, URLs and timestamps.
 
-**Pending questions/checks.** The six-language allowlist has been removed from the config and workflow. All 31 FineWeb2 subsets and all configured Leipzig language labels are now scheduled; the remaining verification is that the adapter and source manifest report actual upstream availability rather than filtering by project policy. The pinned artifact's complete JSONL validation remains a preflight gate because the 1.45 GB artifact exceeded the connector's 512 MB inspection limit. Report exact per-language × source counts after validation; do not treat the historical 3,000-per-source counts as current caps.
+**Pending questions/checks.** The six-language allowlist has been removed from the config and workflow. All 33 FineWeb2 project-language subsets and all configured Leipzig language labels are now scheduled; the remaining verification is that the adapter and source manifest report actual upstream availability rather than filtering by project policy. The pinned artifact's complete JSONL validation remains a preflight gate because the 1.45 GB artifact exceeded the connector's 512 MB inspection limit. Report exact per-language × source counts after validation; do not treat the historical 3,000-per-source counts as current caps.
 
 ### FineWeb2 v2.1.1
 
