@@ -79,7 +79,7 @@ def main():
     p.add_argument("--config",type=Path,default=Path(os.environ.get("LANGID32_CONFIG", ROOT / "config/langid32.toml")))
     a=p.parse_args()
     cfg = load_config(a.config)
-    project_languages = set(cfg["languages"])
+    project_languages = set(cfg["project"]["languages"])
     requested = a.languages if a.languages is not None else ",".join(sorted(project_languages))
     wanted=[x.strip() for x in requested.split(",") if x.strip()]
     unknown=sorted(set(wanted)-project_languages)
