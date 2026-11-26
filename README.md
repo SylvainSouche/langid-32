@@ -23,13 +23,13 @@ The binding stage order, acquisition/privacy/JQL rules, execution limits, accept
 
 The project voluntarily does not use the Mozilla Data Collective repository or any data hosted there. We consider its contractual practices abusive. This is a project sourcing decision, not a legal finding about any other dataset.
 
-## Corpus status — 23 November 2026
+## Historical staging and source-audit snapshot — 18–23 November 2026
 
 **Preparation only — not release-ready.**
 
-No public corpus data has been uploaded to the Hugging Face dataset repository. No language is currently release-cleared.
+No public corpus data has been uploaded to the Hugging Face dataset repository. No language is currently release-cleared. The measurements below are historical staging/audit evidence, not output from the current staged pipeline. Run #178 (26 November) completed only partial acquisition; candidate and JQL jobs were skipped. No full current candidate pool or JQL-pruned output exists yet.
 
-Measured technical staging currently includes:
+Historical technical staging snapshot included:
 
 | Staging set | Rows | Meaning |
 |---|---:|---|
@@ -41,7 +41,7 @@ Measured technical staging currently includes:
 
 These are **separate staging artifacts and must not be summed**. They have not all been globally deduplicated against one another. They are not final usable-record counts.
 
-The table above is the **18 November candidate-staging snapshot**. The upstream source audits below were run after that snapshot; their measured source volume is not yet integrated into the waiting-source artifact or the global candidate build.
+The table above is the **18 November candidate-staging snapshot**. These separate artifacts were not globally deduplicated together and must not be treated as the current pipeline's candidate pool. The upstream source audits below were run after that snapshot; their measured source volume is not automatically integrated into the current staged workflow.
 
 ### Upstream source audits completed or underway on 23 November
 
@@ -56,7 +56,7 @@ The table above is the **18 November candidate-staging snapshot**. The upstream 
 - **Korean:** cleaned 2026-07-01 Wikipedia release: 593,006 articles and 17.77M heuristic sentence segments. Its CC BY-SA 4.0/GFDL terms remain a compatibility decision, not a CC BY/CC0 source.
 - **Arabic:** the official UN download route currently redirects to the landing page rather than returning the archive. A full audit of all 19.28M train rows plus dev/test in the CC BY 4.0 HF derivative is now running; its schema still lacks source document IDs/URLs and row-level provenance.
 
-These are **upstream audit measures**, not final usable-record counts. They must still pass the global normalization, privacy, language/content, cross-source deduplication, source quota and rights gates before they can affect the 20k core or 10k reserve.
+These are **upstream audit measures**, not final usable-record counts. They must still pass the active acquisition adapter, normalization, accepted privacy screen, language/content and candidate-boundary deduplication gates before they can enter the current JQL assessment. The final 20k core / 10k reserve labels and 30k-per-language source-balanced selection remain deferred until after JQL pruning, manual privacy/rights review and explicit approval.
 
 The waiting-source artifact contains useful independent candidates, but some classes remain concentrated in one source and several licences or underlying-text rights remain under review. In particular:
 
