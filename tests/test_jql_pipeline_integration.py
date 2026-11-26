@@ -175,5 +175,7 @@ def test_full_candidate_to_global_jql_pruning_contract(tmp_path):
     from collections import Counter
     full_counts = Counter(full["source-variant"])
     retained_counts = Counter(pruned["source-variant"])
-    pruned_counts = Counter(item["source"] for item in pruning["pruned_by_language_source"])
+    pruned_counts = Counter()
+    for item in pruning["pruned_by_language_source"]:
+        pruned_counts[item["source"]] += item["count"]
     assert retained_counts + pruned_counts == full_counts
