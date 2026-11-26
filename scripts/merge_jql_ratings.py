@@ -236,7 +236,7 @@ def main() -> None:
         raise SystemExit("JQL head repository does not match the authoritative config")
     if model_info.get("head_revision_requested") != jql_config["head_repository_revision"]:
         raise SystemExit("JQL head repository revision request does not match the authoritative config")
-    if model_provenance["scoring"].get("judges") != JUDGES:
+    if tuple(model_provenance["scoring"].get("judges", [])) != JUDGES:
         raise SystemExit("JQL judge set does not match the authoritative config")
     checkpoint_hashes = model_provenance["head_checkpoint_sha256"]
     if set(checkpoint_hashes) != set(JUDGES) or any(
