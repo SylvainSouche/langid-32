@@ -1,6 +1,8 @@
 # Corpus v6 acquisition and selection policy
 
-Status: approved project policy, 2026-11-16.
+Status: approved project policy, 2026-11-16. Current execution boundary: the automated pipeline stops after full-pool JQL scoring and global bottom-25% pruning. The 30,000-per-language selection below is a later, user-approved-only phase; it is **not** performed by the current pipeline.
+
+The current first-pass acquisition target is a separate control: up to 20,000 eligible unique records per original source × language after source-local normalization, quality and privacy screening. This is an intake cap, not the final 30,000-per-language selection and not a guarantee that 20,000 remain after global deduplication and cross-language collision removal.
 
 ## Target and retention
 
@@ -14,8 +16,8 @@ Status: approved project policy, 2026-11-16.
 - Aim for no single source to exceed **30%** of a language's 30,000-record pool (9,000 records).
 - **Hard ceiling: 50%** per source (15,000 records) for every language where sufficient alternatives exist.
 - Exceed 50% only for a documented low-resource exception: the language cannot reach the target from available eligible alternatives. Record the language, source, actual share, alternatives attempted, and remaining deficit.
-- Apply quotas after all source adapters have run, and after normalization, privacy exclusion and global duplicate exclusion. Do not let the first source ingested automatically win a quota.
-- Source means a distinct dataset/release family, not an individual archive shard, locale file, domain, or workflow artifact.
+- For the **final selection only**, apply source-share quotas after all source adapters have run, after normalization, privacy exclusion, within-language global deduplication and cross-language collision removal. Do not let the first source ingested automatically win a quota.
+- Source means the original dataset/release identity carried in `provenance.source_original_name`. A normalized family label is for display/grouping only and never merges quotas. Archive shards and workflow artifacts are not separate sources.
 
 ## Mandatory exclusions
 
@@ -25,17 +27,20 @@ Remove a record entirely (do not redact or repair it) if it:
 
 For cross-language collisions, remove **every occurrence of the colliding normalized string from every language**. Do not keep the first language, majority label, or earliest source. Within-language exact duplicates are also reduced to one record, retaining deterministic provenance for the kept copy.
 
-These exclusions are applied globally across all staged sources before quota selection. Report excluded counts by source and language, without exposing the matched personal text in reports.
+These exclusions are applied globally across all staged sources before **final source-share selection**. The earlier first-pass acquisition cap is applied independently inside each source adapter after its own quality/privacy filtering. Report excluded counts by original source and language, without exposing the matched personal text in reports.
 
 ## Selection order
 
-1. Acquire and stage all eligible sources with immutable release identifiers and file hashes.
-2. Apply shared NFC and whitespace normalization and common length/script sanity checks.
-3. Remove PII/identifier matches and all cross-language collision strings; remove within-language duplicates.
-4. Split by stable document/group before selecting records; preserve source group boundaries across languages where applicable.
-5. Select up to 30,000 per language using deterministic seeded sampling and source quotas. Prefer source diversity up to the 30% target; never exceed 50%.
-6. Label records 1–20,000 per language as core and 20,001–30,000 as reserve. Keep reserve separate from train/validation/test until explicitly promoted.
-7. Produce per-language/source counts, exclusions, group counts, domain mix, licence/provenance manifest, hashes and a validation report.
+1. Acquire and stage eligible sources with immutable release identifiers and file hashes. During this first pass, each original source × language may contribute up to 20,000 eligible unique rows after source-local quality/privacy screening.
+2. Apply shared NFC and whitespace normalization and common length/script sanity checks at the candidate boundary.
+3. Remove PII/identifier matches, within-language exact duplicates and every occurrence of cross-language collision strings across the complete combined candidate pool.
+4. Preserve stable document/group IDs and source provenance. Actual split assignment is deferred until the final selection phase.
+5. Score every post-filter candidate row with Gemma, Mistral and Llama JQL heads; independently quantile-normalize each judge over the complete combined assessment corpus; calculate the agreed consensus; remove the global bottom 25%.
+6. **After manual privacy and source-rights review and explicit user approval only**, select up to 30,000 per language from the JQL-pruned pool using deterministic sampling and original-source quotas. Prefer source diversity up to 30% per source × language; never exceed 50% absent a documented low-resource exception.
+7. Label records 1–20,000 per language as core and 20,001–30,000 as reserve. Keep reserve separate from train/validation/test until explicitly promoted.
+8. Produce per-language/original-source counts, exclusions, group counts, domain mix, licence/provenance manifest, hashes and a validation report.
+
+The current automated workflow stops after step 5 and its reports. Steps 6–8 require the separate human approval described in the pipeline contract.
 
 ## Source priority and acquisition status
 
