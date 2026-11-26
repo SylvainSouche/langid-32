@@ -18,10 +18,13 @@ from urllib.parse import urlparse
 from collections import Counter, defaultdict
 from pathlib import Path
 
-LANGUAGES = (
-    "bg hr cs da nl en et fi fr de el hu ga it lv lt mt pl pt ro sk sl es sv "
-    "nb nn ru ja zh ko ar tr ca is"
-).split()
+from langid32.settings import load_config
+from langid32.privacy import screen_record, sanitize_provenance
+
+CONFIG = load_config()
+LANGUAGES = tuple(CONFIG["project"]["languages"])
+TEXT_RULES = CONFIG["acquisition"]["text"]
+PRIVACY_RULES = CONFIG["candidate"]["privacy"]
 SPLITS = ("train", "validation", "test")
 EMAIL_RE = re.compile(r"(?i)(?<![\w.+-])[\w.+-]+@[\w.-]+\.[A-Z]{2,}(?![A-Za-z0-9_.-])")
 URL_RE = re.compile(
@@ -33,17 +36,17 @@ IPV4_RE = re.compile(
     r"\b(?:(?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\.){3}"
     r"(?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\b"
 )
-PHONE_CANDIDATE_RE = re.compile(r"(?<!\w)\+?\d[\d -]{7,}\d(?!\w)")
-LONG_NUMBER_RE = re.compile(r"\d{9,}")
+PHONE_CANDIDATE_RE = re.compile(r"(?<!\w)\+?\d[\d -]{" + str(PRIVACY_RULES["phone_candidate_min_intervening_characters"]) + r",}\d(?!\w)")
+LONG_NUMBER_RE = re.compile(r"\d{" + str(PRIVACY_RULES["long_numeric_min_digits"]) + r",}")
 
 
 def has_phone_like(text: str) -> bool:
     for match in PHONE_CANDIDATE_RE.finditer(text):
         value = match.group()
         digits = re.sub(r"\D", "", value)
-        if not 9 <= len(digits) <= 15:
+        if not PRIVACY_RULES["phone_min_digits"] <= len(digits) <= PRIVACY_RULES["phone_max_digits"]:
             continue
-        if value.count(" ") + value.count("-") < 2 and "+" not in value:
+        if value.count(" ") + value.count("-") < PRIVACY_RULES["phone_min_separators"] and "+" not in value:
             continue
         if re.fullmatch(r"\d{4}[-/]\d{1,2}[-/]\d{1,2}", value):
             continue
@@ -161,7 +164,7 @@ def read_inputs(paths: list[Path], args):
     rows = []
     source_seen = defaultdict(set)
     source_retained = Counter()
-    source_limit = getattr(args, "max_sentences_per_source", 20000)
+    source_limit = getattr(args, "max_sentences_per_source", 0)
     exclusions_path = getattr(args, "exclusions", None)
     exclusions = load_exclusions(exclusions_path)
     for path in paths:
@@ -178,6 +181,19 @@ def read_inputs(paths: list[Path], args):
                 missing = [key for key in required if not row.get(key)]
                 if missing:
                     raise ValueError(f"{path}:{line_number}: missing {', '.join(missing)}")
+                row, removed_top_metadata = sanitize_provenance(row)
+                row["provenance"], removed_provenance_metadata = sanitize_provenance(
+                    row.get("provenance") if isinstance(row.get("provenance"), dict) else {}
+                )
+                removed_metadata = set(removed_top_metadata) | set(removed_provenance_metadata)
+                if removed_metadata:
+                    rejected["personal_metadata_fields_removed"] += len(removed_metadata)
+                privacy_result = screen_record(row, uncertain_action=CONFIG["acquisition"]["text"]["privacy_uncertain_action"])
+                if not privacy_result.accepted:
+                    rejected["privacy_" + privacy_result.status] += 1
+                    for flag in privacy_result.flags:
+                        rejected["privacy_flag_" + flag] += 1
+                    continue
                 language = str(row["language"]).lower()
                 if language not in LANGUAGES:
                     rejected["language_not_in_target_set"] += 1
@@ -192,13 +208,13 @@ def read_inputs(paths: list[Path], args):
                 if len(text.encode("utf-8")) > args.max_bytes:
                     rejected["outside_byte_limit"] += 1
                     continue
-                if EMAIL_RE.search(text):
+                if TEXT_RULES["exclude_email"] and EMAIL_RE.search(text):
                     rejected["email_excluded"] += 1
                     continue
-                if URL_RE.search(text) or WEB_FRAGMENT_RE.search(text) or HTTP_FRAGMENT_RE.search(text):
+                if TEXT_RULES["exclude_url"] and (URL_RE.search(text) or WEB_FRAGMENT_RE.search(text) or HTTP_FRAGMENT_RE.search(text)):
                     rejected["url_excluded"] += 1
                     continue
-                if IPV4_RE.search(text):
+                if TEXT_RULES["exclude_ipv4"] and IPV4_RE.search(text):
                     rejected["ipv4_excluded"] += 1
                     continue
                 provenance = row.get("provenance", {})
@@ -285,7 +301,7 @@ def read_inputs(paths: list[Path], args):
 
 
 def _select_source_balanced(bucket, target, preferred_share, hard_share):
-    """Select a split bucket with a preferred 30% source share and hard ceiling."""
+    """Select a split bucket using configured preferred and hard source-share ceilings."""
     if target is None:
         return list(bucket), Counter()
     if target <= 0:
@@ -357,14 +373,21 @@ def merge(args):
             raise ValueError(f"split-group inconsistency: {row['split_group_id']}")
         selected.append(row)
 
-    preferred_share = getattr(args, "preferred_source_share", 0.30)
-    hard_share = getattr(args, "max_source_share", 0.50)
+    cfg = load_config(getattr(args, "config", None))
+    balance_cfg = cfg["candidate"]["source_balance"]
+    preferred_share = getattr(args, "preferred_source_share", None)
+    preferred_share = preferred_share if preferred_share is not None else balance_cfg.get("preferred_max_share_per_language_and_split", 1.0)
+    hard_share = getattr(args, "max_source_share", None)
+    hard_share = hard_share if hard_share is not None else balance_cfg.get("hard_max_share_per_language_and_split", 1.0)
     if not 0 < preferred_share <= hard_share <= 1:
         raise ValueError("source shares must satisfy 0 < preferred <= maximum <= 1")
 
     if args.max_per_language:
         total_target = args.max_per_language
-        core_target = min(getattr(args, "core_per_language", 20000), total_target)
+        configured_core_target = getattr(args, "core_per_language", None)
+        if configured_core_target is None:
+            configured_core_target = cfg["candidate"]["minimum_candidates_per_language"]
+        core_target = min(configured_core_target, total_target)
         reserve_target = total_target - core_target
         core_caps = {
             "train": max(0, core_target
@@ -482,7 +505,35 @@ def merge(args):
             if counts[f"{language}:{split}"] != core_caps[split]
         }
         if shortfalls:
-            raise ValueError(f"exact per-language core split target not met: {shortfalls}")
+            available_by_source = defaultdict(Counter)
+            for (language, split), bucket in by_bucket.items():
+                for row in bucket:
+                    available_by_source[f"{language}:{split}"][row["source"]] += 1
+            diagnostic = {
+                "status": "candidate_incomplete",
+                "exact_split_shortfalls": shortfalls,
+                "available_after_global_dedup_by_language_split_source": {
+                    key: dict(sorted(value.items()))
+                    for key, value in sorted(available_by_source.items())
+                },
+                "selected_core_and_reserve_by_source": dict(sorted(source_counts.items())),
+                "source_intake_counts_before_global_dedup": {
+                    f"{language}:{source}": count
+                    for (language, source), count in sorted(source_intake_counts.items())
+                },
+                "rejected": dict(sorted(rejected.items())),
+                "cross_language_collision_strings_removed": len(cross_language_texts),
+                "source_quota_shortfalls": source_quota_shortfalls,
+            }
+            diagnostic_path = output / "candidate-diagnostics.json"
+            diagnostic_path.write_text(
+                json.dumps(diagnostic, ensure_ascii=False, indent=2) + "\\n",
+                encoding="utf-8",
+            )
+            print(json.dumps(diagnostic, ensure_ascii=False, indent=2), flush=True)
+            raise ValueError(
+                f"exact per-language core split target not met; diagnostics: {diagnostic_path}"
+            )
 
     internal_path = output / "records.jsonl"
     with internal_path.open("w", encoding="utf-8", newline="\n") as stream:
@@ -535,7 +586,7 @@ def merge(args):
                 "policy": "fill to preferred share per source first; relax only as needed up to hard maximum; underfill rather than exceed hard maximum",
             },
             "reserve_policy": "reserve is emitted separately without a train/validation/test split and excludes every split group selected into core",
-            "privacy_filters": "exclude email, URL and IPv4 matches; retain phone-like and 9+ digit sequences with flags",
+            "privacy_filters": "shared conservative PII screen before per-source quota accounting; email, URL, IP, phone, address and contextual personal-name matches rejected or quarantined",
             "source_exclusion_registry": str(exclusions_path) if exclusions_path else None,
             "exclusion_matching": "document, exact URL/hash, domain, archive batch or source dataset; any matched group/split group is cascaded out",
         },
@@ -567,9 +618,14 @@ def merge(args):
             "must be reviewed independently before publication or redistribution."
         ),
         "privacy_note": (
-            "Email, URL and IPv4 matches are excluded in the global merge. "
-            "Phone-like and 9+ digit sequences are retained with flags. The provenance "
-            "sidecar is internal; full PII review is still required."
+            "The shared deterministic privacy gate runs before per-source acquisition quotas and again "
+            "during global merge. High-confidence email, URL, IPv4/IPv6, phone, long-identifier, "
+            "street-address and contextual personal-name matches are rejected; ambiguous personal-name "
+            "candidates and upstream sensitive-data flags are quarantined. Contributor names, author names, "
+            "contact identifiers and person-bearing title metadata are removed from provenance while "
+            "non-identifying speaker references and roles are retained. The screen is conservative "
+            "and does not claim perfect multilingual named-entity recognition; human review remains "
+            "necessary before any external release."
         ),
     }
     (output / "manifest.json").write_text(
@@ -589,25 +645,37 @@ def main():
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--exclusions", type=Path, default=None,
                         help="Active source/document exclusion registry (JSONL or CSV)")
-    parser.add_argument("--min-chars", type=int, default=12)
-    parser.add_argument("--max-chars", type=int, default=500)
-    parser.add_argument("--max-bytes", type=int, default=1500)
-    parser.add_argument("--max-sentences-per-source", type=int, default=20000,
-                        help="Maximum screened unique records retained from each source before global merge/JQL")
-    parser.add_argument("--max-per-language", type=int, default=30000,
-                        help="Total candidate pool per language; 0 disables all caps")
-    parser.add_argument("--core-per-language", type=int, default=20000,
-                        help="Core pool per language; remainder is held separately as reserve")
-    parser.add_argument("--preferred-source-share", type=float, default=0.30,
-                        help="Preferred maximum share for one source in a language/split bucket")
-    parser.add_argument("--max-source-share", type=float, default=0.50,
-                        help="Hard maximum share for one source in a language/split bucket")
-    parser.add_argument("--validation-fraction", type=float, default=0.10)
-    parser.add_argument("--test-fraction", type=float, default=0.10)
-    parser.add_argument("--seed", default="langid-32-fineweb2-v1")
+    parser.add_argument("--config", type=Path, default=None)
+    parser.add_argument("--min-chars", type=int, default=None)
+    parser.add_argument("--max-chars", type=int, default=None)
+    parser.add_argument("--max-bytes", type=int, default=None)
+    parser.add_argument("--max-sentences-per-source", type=int, default=None,
+                        help="0 disables a second-stage cap; acquisition limits are source-specific")
+    parser.add_argument("--max-per-language", type=int, default=None)
+    parser.add_argument("--core-per-language", type=int, default=None)
+    parser.add_argument("--preferred-source-share", type=float, default=None)
+    parser.add_argument("--max-source-share", type=float, default=None)
+    parser.add_argument("--validation-fraction", type=float, default=None)
+    parser.add_argument("--test-fraction", type=float, default=None)
+    parser.add_argument("--seed", default=None)
     parser.add_argument("--require-exact-counts", action="store_true",
                         help="Fail unless every target language reaches every split cap")
     args = parser.parse_args()
+    cfg = load_config(args.config)
+    text_cfg = cfg["candidate"]["text"]
+    split_cfg = cfg["candidate"]["splits"]
+    balance_cfg = cfg["candidate"]["source_balance"]
+    args.min_chars = args.min_chars if args.min_chars is not None else text_cfg["min_characters"]
+    args.max_chars = args.max_chars if args.max_chars is not None else text_cfg["max_characters"]
+    args.max_bytes = args.max_bytes if args.max_bytes is not None else text_cfg["max_utf8_bytes"]
+    args.max_sentences_per_source = args.max_sentences_per_source if args.max_sentences_per_source is not None else balance_cfg.get("max_sentences_per_source_after_acquisition", 0)
+    args.max_per_language = args.max_per_language if args.max_per_language is not None else 0
+    args.core_per_language = args.core_per_language if args.core_per_language is not None else 0
+    args.preferred_source_share = args.preferred_source_share if args.preferred_source_share is not None else balance_cfg.get("preferred_max_share_per_language_and_split", 1.0)
+    args.max_source_share = args.max_source_share if args.max_source_share is not None else balance_cfg.get("hard_max_share_per_language_and_split", 1.0)
+    args.validation_fraction = args.validation_fraction if args.validation_fraction is not None else split_cfg["validation_fraction"]
+    args.test_fraction = args.test_fraction if args.test_fraction is not None else split_cfg["test_fraction"]
+    args.seed = args.seed or split_cfg["seed"]
     if args.min_chars < 1 or args.max_chars < args.min_chars or args.max_bytes < 1:
         parser.error("invalid text length limits")
     if args.max_sentences_per_source < 0:
