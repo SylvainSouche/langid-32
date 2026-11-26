@@ -16,6 +16,19 @@ PARTITION_FILES = {
     "copper": COPPER_FILES[0],
     "silver": "psd/silver/silver.gz",
 }
+LFS_POINTERS = {
+    "psd/copper/copper01.gz": ("09726a43b1a4b025960f221db49a6433337667ae42eb88df11d4e2565db724e0", 206750987),
+    "psd/copper/copper02.gz": ("fc84fb46d1e71fcdb4a192fdd8dfb811e9fa9183e4bbfaa962e8d7a3f7b1a5cf", 207327631),
+    "psd/copper/copper03.gz": ("708269274c4610266d986f929fa922931d8a07cb871f271bbdeb889f70b559e7", 206664163),
+    "psd/copper/copper04.gz": ("28a952a0a9471ce68af7d1f68b35227f88067261070e81064c818d25248807f3", 206643909),
+    "psd/copper/copper05.gz": ("ebfd66098580adf7bfb0b2e9d6df3a73af7997e77aa3aaf123f71e57f2652d2a", 206684798),
+    "psd/copper/copper06.gz": ("b1288f576c456933edc020d7bc32288c1d40992ab51c6a6c4ed458a28b586c7f", 206303316),
+    "psd/copper/copper07.gz": ("f0877ef4ba19009749a370d417612a4f7723b3602451cec4843060bc0107bdec", 206406085),
+    "psd/copper/copper08.gz": ("b2d8e513df3f7d70800243c0d51b4f11241b0e7ea52e53b1d47232b402403470", 206286129),
+    "psd/copper/copper09.gz": ("8b3eb1c2e385e7c2abeb2cfba85e5f605c351e82df67e7aa19bec755fbe1bbe7", 206533799),
+    "psd/copper/copper10.gz": ("3abdbd0d84c491207ba18531a593f4117e63b4c7605f1323f08fe2e494b71403", 206029600),
+    "psd/silver/silver.gz": ("e0117d5231b0255a9b339b2d638df54414ce940777b4412492f5794cecf443dc", 134779431),
+}
 UPSTREAM = "https://github.com/mideind/GreynirCorpus"
 
 TOKEN = re.compile(r"\(|\)|[^\s()]+")
