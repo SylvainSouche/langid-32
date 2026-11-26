@@ -172,10 +172,15 @@ def main() -> None:
                         continue
                     sid = (row.get("sentence_id") or "").strip()
                     locale = (row.get("source_locale") or "").strip()
-                    if not sid or locale != language:
+                    # Common Voice upstream locale codes are not always identical
+                    # to project labels (ga-IE→ga, sv-SE→sv, nb-NO→nb,
+                    # nn-NO→nn, and both zh-CN/zh-TW→zh). Validate against the
+                    # exact locale list recorded by the immutable download manifest.
+                    allowed_locales = set(source_meta.get("locales", []))
+                    if not sid or not locale or locale not in allowed_locales:
                         raise ValueError(
-                            f"{path}: expected non-empty sentence_id and source_locale={language!r}, "
-                            f"got {sid!r}/{locale!r}"
+                            f"{path}: expected non-empty sentence_id and one of "
+                            f"source locales {sorted(allowed_locales)!r}, got {sid!r}/{locale!r}"
                         )
                     group = f"common_voice_v22:{locale}:{sid}"
                     provenance = {
