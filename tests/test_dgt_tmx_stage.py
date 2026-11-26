@@ -22,7 +22,7 @@ def test_stage_dgt_tmx_keeps_document_group_across_languages(tmp_path):
     import argparse
     output = tmp_path / "dgt.jsonl"
     args = argparse.Namespace(
-        archives=[archive], output=output, source_release="fixture",
+        archives=[archive], output=output, source_release="fixture", languages=["en", "fr"],
         target_per_language=10, max_per_document_language=20,
         min_chars=1, max_chars=500, max_bytes=1500,
     )
