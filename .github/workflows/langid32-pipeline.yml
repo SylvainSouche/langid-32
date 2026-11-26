@@ -189,6 +189,7 @@ jobs:
             config: slv_Latn
           - target: arabic
           - target: gaois
+          - target: parlamint
     steps:
       - uses: actions/checkout@v4
       - id: runtime
