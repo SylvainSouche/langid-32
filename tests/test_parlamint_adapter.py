@@ -33,5 +33,6 @@ def test_parlamint_extracts_paragraph_segments_without_speaker_identity(tmp_path
     ]
     assert all(row["provenance"]["session_date"] == "2024-01-01" for row in rows)
     assert all(row["provenance"]["publisher"] == "ParlaMint consortium / CLARIN.SI" for row in rows)
+    assert all("speaker-private" not in repr(row) for row in rows)
     assert all("private-speaker" not in repr(row) for row in rows)
     assert {row["group_id"] for row in rows} == {"ParlaMint-IS_2024-01-01-16"}
