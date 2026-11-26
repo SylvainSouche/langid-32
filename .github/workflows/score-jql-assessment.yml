@@ -38,6 +38,7 @@ jobs:
       matrix: ${{ steps.config.outputs.matrix }}
       max_parallel: ${{ steps.config.outputs.max_parallel }}
       max_seconds: ${{ steps.config.outputs.max_seconds }}
+      shard_batch_rows: ${{ steps.config.outputs.shard_batch_rows }}
       job_timeout_minutes: ${{ steps.config.outputs.job_timeout_minutes }}
       work_budget_minutes: ${{ steps.config.outputs.work_budget_minutes }}
       python_version: ${{ steps.config.outputs.python_version }}
@@ -81,6 +82,7 @@ jobs:
           SOURCE_RUN_ID: ${{ steps.source.outputs.run_id }}
           ARTIFACT_NAME: ${{ inputs.artifact_name || 'langid-32-jql-assessment-full-encrypted' }}
           LANGID32_CHECKPOINT_KEY: ${{ secrets.LANGID32_CHECKPOINT_KEY }}
+          JQL_SHARD_BATCH_ROWS: ${{ steps.config.outputs.shard_batch_rows }}
         run: |
           set -euo pipefail
           mkdir -p source stage jql-work/out quality
@@ -93,6 +95,7 @@ jobs:
           python scripts/split_jql_parquet.py \
             --input jql-work/out/jql-assessment-full.parquet \
             --output-dir jql-work/out/jql-shards \
+            --batch-rows "$JQL_SHARD_BATCH_ROWS" \
             --config config/langid32.toml
           python scripts/check_sentence_boundaries.py \
             --input jql-work/out/jql-assessment-full.parquet \
