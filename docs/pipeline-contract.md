@@ -213,7 +213,7 @@ The staged workflow `.github/workflows/langid32-pipeline.yml` has two triggers:
    - `final_selection: "deferred"`
    - `privacy_review_required: true`
 4. Commit that meaningful operational command to `main`. The resulting push to the single configured path triggers the staged workflow automatically.
-5. The first config job runs `scripts/validate_pipeline_trigger.py`; it verifies the push actually changed the trigger file, the branch is `main`, all hashes match the current sources of truth, no prior failed/partial artifact reuse is requested, and final selection remains deferred. It writes a validation record and uploads it with the preflight manifest.
+5. The first config job runs `scripts/validate_pipeline_trigger.py`; it verifies the branch is `main`, the complete push-event commit list contains exactly one changed path (`pipeline-trigger.json`) and is not truncated, all hashes match the current sources of truth, no prior failed/partial acquisition artifact reuse is requested, and final selection remains deferred. It writes a validation record and uploads it with the preflight manifest.
 6. Retrieve the new run ID and inspect every job, step, log and artifact. A successful push or trigger is not a successful pipeline.
 
 The checked-in `pipeline-trigger.json` is currently **disabled**. Do not arm it until all pre-launch gates in §5 pass. The first-full-run data gate and run-acceptance checks in §5 are verified by the triggered run itself; they are not pre-launch blockers. The trigger file is a command, not a no-op edit; never change it merely to test whether GitHub Actions starts.
