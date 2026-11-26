@@ -228,7 +228,7 @@ def main() -> None:
     expected_domain_status = frame["lang"].astype(str).map(
         lambda language: "out_of_training_domain" if language in out_of_training else "training_domain"
     )
-    if not frame["jql_training_domain_status"].astype(str).equals(expected_domain_status):
+    if not (frame["jql_training_domain_status"].astype(str) == expected_domain_status).all():
         raise SystemExit("JQL training-domain flags do not match the configured language coverage")
     ratings, rating_file_rows = read_rating_files(args.ratings_dir)
     model_provenance, shard_manifests = read_score_manifests(
