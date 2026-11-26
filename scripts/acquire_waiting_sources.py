@@ -278,7 +278,7 @@ def main():
             item = next((row for row in downloads if f"ParlaMint-{language.upper()}.tgz" in row["url"]), None)
             revision = f"sha256:{item['sha256']}" if item else "archive-hash-unresolved"
             return (f"ParlaMint-4.0-{language}@{revision}", "CC-BY-4.0",
-                    "parliamentary utterance paragraph from ParlaMint 4.0 TEI",
+                    "ParlaMint 4.0 TEI parliamentary utterance; attribution: ParlaMint consortium / CLARIN.SI",
                     "declared_cc_by_4_0_accepted")
 
         if source.startswith("macocu_"):
