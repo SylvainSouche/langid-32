@@ -75,7 +75,8 @@ languages = ["is"]
 status = "include_attribution_and_source_provenance"
 
 [acquisition.source_rules.gaois_irish_legislation]
-target = 20000
+# Explicitly accepted source-specific candidate sample: 50k Irish-side rows, not a final selection.
+target = 50000
 languages = ["ga"]
 status = "include_cc_by_4_0_derivative_original_legislation_rights_review"
 
