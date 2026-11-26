@@ -238,6 +238,8 @@ jobs:
           - target: fineweb2
             config: nno_Latn
           - target: fineweb2
+            config: isl_Latn
+          - target: fineweb2
             config: rus_Cyrl
           - target: fineweb2
             config: jpn_Jpan
