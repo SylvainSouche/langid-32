@@ -154,7 +154,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: jql-ratings-${{ matrix.index }}
-          path: ratings/shard-${{ matrix.index }}.csv
+          path: ratings/
           if-no-files-found: error
           retention-days: ${{ needs.prepare.outputs.short_retention_days }}
           overwrite: true
@@ -197,6 +197,7 @@ jobs:
             --input jql-work/out/jql-assessment-full.parquet \
             --ratings-dir ratings \
             --quality quality/sentence-boundary-flags.csv \
+            --shards-dir jql-work/out/jql-shards \
             --output-csv results/jql-consensus-full.csv \
             --output-parquet results/jql-consensus-full.parquet \
             --summary results/jql-consensus-full-summary.json \
