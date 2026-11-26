@@ -386,6 +386,12 @@ def main() -> None:
         "split_manifest_sha256": sha256(args.shards_dir / "manifest.json", chunk_bytes),
         "shard_manifests": shard_manifests,
         "ratings_rows": len(ratings),
+        "scored_by_language_source": [
+            {"language": str(language), "source": str(source), "count": int(count)}
+            for (language, source), count in frame.groupby(
+                ["lang", "source-variant"], dropna=False
+            ).size().items()
+        ],
         "quantile_normalization": "average ranks mapped through standard-normal inverse CDF; ties share average rank",
         "normalization_scope": "entire assessment corpus, all languages combined, independently per judge",
         "jql_out_of_training_languages": list(jql_config["out_of_training_languages"]),
