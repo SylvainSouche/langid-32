@@ -1057,8 +1057,9 @@ def main():
                         "ymoslem/UN-Arabic-English-Filtered", split="train",
                         streaming=True, revision=revisions["un_arabic"],
                     )
-                    # Persist the HF iterable cursor beside the acquisition state DB so an
-                    # encrypted failure checkpoint can resume without replaying the full stream.
+                    # Persist the HF iterable cursor beside the acquisition state DB so
+                    # encrypted failure checkpoints retain exact progress; clean full reruns
+                    # intentionally never restore checkpoints from earlier runs.
                     state_path = output_root / f"un-arabic-stream-state-{revisions['un_arabic'][:12]}-{policy_digest}.json"
                     processed = 0
                     if state_path.is_file():
@@ -1112,7 +1113,7 @@ def main():
                     if stream_exhausted:
                         finish_remote_file(arabic_bucket, remote_batch)
                     else:
-                        notes.append("Arabic stream paused at quota; its revision-pinned cursor remains resumable.")
+                        notes.append("Arabic stream paused at quota; its revision-pinned cursor is captured in the encrypted checkpoint; clean full reruns do not restore it.")
             notes.append("HF dataset card declares CC BY 4.0; derivative attribution and source-document provenance remain on hold pending review.")
 
         else:
