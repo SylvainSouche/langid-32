@@ -54,3 +54,23 @@ def test_un_arabic_stream_cursor_is_stored_inside_checkpointed_source_directory(
     source = SCRIPT.read_text(encoding="utf-8")
     assert 'state_path = output_root / f"un-arabic-stream-state-' in source
     assert 'source_record_id_from_group=False' in source
+
+
+
+def test_pinned_hf_iterable_dataset_supports_json_checkpoint_and_restore():
+    import json
+    from datasets import IterableDataset
+
+    def rows():
+        yield {"id": 1}
+        yield {"id": 2}
+
+    dataset = IterableDataset.from_generator(rows)
+    iterator = iter(dataset)
+    assert next(iterator) == {"id": 1}
+    state = dataset.state_dict()
+    json.dumps(state)
+
+    resumed = IterableDataset.from_generator(rows)
+    resumed.load_state_dict(state)
+    assert next(iter(resumed)) == {"id": 2}
