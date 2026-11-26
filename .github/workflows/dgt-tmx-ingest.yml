@@ -2,12 +2,6 @@ name: Ingest DGT-TM 2021 source sample
 # Refresh run requested 2026-11-17: re-download official DGT-TM 2021 archives and recompute usable counts.
 
 on:
-  push:
-    paths:
-      - "src/langid32/dgt_tmx_stage.py"
-      - "src/langid32/merge.py"
-      - "tests/test_dgt_tmx_stage.py"
-      - "pyproject.toml"
   workflow_dispatch:
 
 permissions:
