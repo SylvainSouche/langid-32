@@ -1,10 +1,6 @@
 name: Audit Gaois Irish legislation corpus
 on:
-  push:
-    paths:
-      - "scripts/audit_gaois_irish_legislation.py"
-      - "scripts/acquire_gaois_irish_legislation.py"
-      - ".github/workflows/audit-gaois-irish-legislation.yml"
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
