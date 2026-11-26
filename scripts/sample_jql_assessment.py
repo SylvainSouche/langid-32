@@ -6,9 +6,14 @@ import argparse
 import hashlib
 import json
 import sqlite3
+import sys
 import unicodedata
 from collections import Counter
 from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+from langid32.settings import load_config
 
 
 def sentence_id(language: str, source: str, sentence: str) -> str:
@@ -40,7 +45,10 @@ def main() -> None:
     parser.add_argument("--summary", required=True, type=Path)
     parser.add_argument("--all", action="store_true", help="Required: sampling is forbidden")
     parser.add_argument("--batch-size", type=int, default=8192)
+    parser.add_argument("--config", type=Path, default=ROOT / "config/langid32.toml")
     args = parser.parse_args()
+    config = load_config(args.config)
+    out_of_training = set(config["jql"]["out_of_training_languages"])
     if not args.all:
         parser.error("--all is mandatory")
     if args.batch_size < 1:
@@ -57,6 +65,7 @@ def main() -> None:
     schema = pa.schema([
         ("id", pa.string()), ("lang", pa.string()), ("sentence", pa.string()),
         ("source", pa.string()), ("source-variant", pa.string()),
+        ("jql_training_domain_status", pa.string()),
     ])
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.summary.parent.mkdir(parents=True, exist_ok=True)
@@ -102,6 +111,9 @@ def main() -> None:
                     batch.append({
                         "id": ident, "lang": language, "sentence": sentence,
                         "source": source, "source-variant": original_source,
+                        "jql_training_domain_status": (
+                            "out_of_training_domain" if language in out_of_training else "training_domain"
+                        ),
                     })
                     counts[(language, original_source)] += 1
                     rows += 1
@@ -122,6 +134,12 @@ def main() -> None:
             "unique_ids": rows,
             "assessment_parquet_sha256": sha256_file(args.output),
             "source_identity": "provenance.source_original_name, falling back to source only when no family mapping exists",
+            "jql_out_of_training_languages": sorted(out_of_training),
+            "out_of_training_domain_counts_by_language_source": [
+                {"language": language, "source": source, "count": count}
+                for (language, source), count in sorted(counts.items())
+                if language in out_of_training
+            ],
             "final_30k_selection": "deferred_pending_user_review",
             "counts_by_language_source": [
                 {"language": language, "source": source, "count": count}
