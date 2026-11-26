@@ -264,3 +264,21 @@ def test_source_exclusion_registry_domain_matches_source_document_url(tmp_path):
     merge(args)
     manifest = json.loads((args.output / "manifest.json").read_text())
     assert manifest["rejected"]["source_exclusion_registry"] == 1
+
+
+
+def test_source_exclusion_registry_matches_source_archive_url(tmp_path):
+    source = tmp_path / "archive-url.jsonl"
+    row = _row("Sentence from a Gaois archive", "ga", "gaois_irish_legislation", "gaois_irish_legislation:tu1")
+    row["provenance"]["source_archive_url"] = "https://www.gaois.ie/assets/tmx/legislation.zip"
+    source.write_text(json.dumps(row) + "\n")
+    registry = tmp_path / "exclusions.jsonl"
+    registry.write_text(json.dumps({
+        "scope": "domain", "domain": "gaois.ie",
+        "reason_code": "archive_takedown", "effective_at": "2026-11-26",
+    }) + "\n")
+    args = _args(tmp_path, [source])
+    args.exclusions = registry
+    merge(args)
+    manifest = json.loads((args.output / "manifest.json").read_text())
+    assert manifest["rejected"]["source_exclusion_registry"] == 1
