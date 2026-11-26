@@ -57,7 +57,7 @@ def main() -> None:
         if trigger.get("artifact_reuse") is not False:
             raise SystemExit("Clean pipeline runs must not reuse prior failed/partial acquisition artifacts")
         if trigger.get("final_selection") != "deferred":
-            raise SystemExit("Final 30,000-per-language selection must remain deferred")
+            raise SystemExit("Final selection must remain deferred (35,000 release / 350 debug target)")
         if trigger.get("privacy_review_required") is not True:
             raise SystemExit("Manual privacy review must remain a required stop")
         result = {
