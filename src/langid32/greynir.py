@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import gzip
 import re
+import unicodedata
 from pathlib import Path
 
 REVISION = "deb60c4b2775a4e0c709a6890c28678b913f44aa"
@@ -32,7 +33,8 @@ LFS_POINTERS = {
 UPSTREAM = "https://github.com/mideind/GreynirCorpus"
 
 TOKEN = re.compile(r"\(|\)|[^\s()]+")
-PUNCTUATION = re.compile(r"^[.,;:!?…]+$")
+def is_punctuation_token(value: str) -> bool:
+    return bool(value) and all(unicodedata.category(char).startswith("P") for char in value)
 
 
 def _record_blocks(stream):
@@ -128,7 +130,7 @@ def _terminals(node) -> list[str]:
             break
     if leading_tokens:
         if label == "grm":
-            result.extend(token for token in leading_tokens if PUNCTUATION.fullmatch(token))
+            result.extend(token for token in leading_tokens if is_punctuation_token(token))
         else:
             result.extend(leading_tokens)
         return result
