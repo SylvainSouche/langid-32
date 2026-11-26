@@ -105,10 +105,19 @@ def _terminals(node) -> list[str]:
     if label in {"lemma", "exp_seg", "META", "ID-CORPUS", "ID-LOCAL", "URL", "COMMENT"}:
         return result
     children = node[1:]
-    if children and isinstance(children[0], str):
-        value = children[0].strip()
-        if value and (label != "grm" or PUNCTUATION.fullmatch(value)):
-            result.append(value)
+    leading_tokens = []
+    for child in children:
+        if isinstance(child, str):
+            value = child.strip()
+            if value:
+                leading_tokens.append(value)
+        else:
+            break
+    if leading_tokens:
+        if label == "grm":
+            result.extend(token for token in leading_tokens if PUNCTUATION.fullmatch(token))
+        else:
+            result.extend(leading_tokens)
         return result
     for child in children:
         if isinstance(child, list):
