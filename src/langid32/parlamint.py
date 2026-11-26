@@ -57,7 +57,7 @@ def iter_utterances(archive_path: str | Path, language: str):
 
         for member in members:
             session_id = Path(member.name).stem
-            date_match = re.search(r"_(\d{4}-\d{2}-\d{2})(?:_|$)", session_id)
+            date_match = re.search(r"_(\d{4}-\d{2}-\d{2})(?:-|_|$)", session_id)
             if date_match is None:
                 raise RuntimeError(f"ParlaMint session filename lacks a date: {member.name}")
             session_date = date_match.group(1)
