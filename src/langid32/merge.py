@@ -384,6 +384,11 @@ def merge(args):
 
     cfg = load_config(getattr(args, "config", None))
     balance_cfg = cfg["candidate"]["source_balance"]
+    if int(getattr(args, "max_per_language", 0) or 0) > 0 or balance_cfg.get("enabled") is True:
+        raise SystemExit(
+            "Pre-JQL per-language selection/source balancing is disabled by contract; "
+            "the candidate stage must retain the complete eligible pool."
+        )
     preferred_share = getattr(args, "preferred_source_share", None)
     preferred_share = preferred_share if preferred_share is not None else balance_cfg.get("preferred_max_share_per_language_and_split", 1.0)
     hard_share = getattr(args, "max_source_share", None)
