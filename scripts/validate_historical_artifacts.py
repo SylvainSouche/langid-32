@@ -41,7 +41,7 @@ def main() -> None:
     token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
     if not repository or not token:
         raise SystemExit("GITHUB_REPOSITORY and GH_TOKEN are required for historical preflight")
-    config = load_config(ROOT / "config/langid32.toml")
+    config = load_config()
     now = datetime.now(timezone.utc)
     verified = []
     for name, pin in sorted(config["historical_snapshots"].items()):
