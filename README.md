@@ -13,11 +13,11 @@ Build a balanced, reproducible text corpus for 34 language labels:
 - Norwegian Bokmål (`nb`) and Nynorsk (`nn`) as separate labels.
 - Chinese (`zh`), combining the intended Simplified and Traditional source varieties.
 
-Target **30,000 usable records per language**: a 20,000-record core plus up to 10,000 reserve. A language must have at least 20,000 usable records to meet the minimum. These target counts are evaluated only after normalization, privacy filtering, language/content checks, global exact deduplication, full-pool JQL pruning and the later final source-share selection; that final selection is deferred pending explicit approval.
+Target **35,000 usable records per language**. A language must have at least 20,000 usable records to meet the minimum. This target is evaluated only after normalization, privacy filtering, language/content checks, global exact deduplication and full-pool JQL pruning; final source-share selection remains deferred pending explicit approval.
 
 Source mix target: **30% preferred, 50% hard ceiling per source and language**. Any exception must be explicit, justified and reported; a single-source class is not considered balanced.
 
-The binding stage order, acquisition/privacy/JQL rules, execution limits, acceptance checks and workflow invocation procedure are in the [pipeline contract](docs/pipeline-contract.md). The 30,000-per-language target is a later human-approved selection target: the automated pipeline stops after full-pool JQL scoring and global bottom-25% pruning.
+The binding stage order, acquisition/privacy/JQL rules, execution limits, acceptance checks and workflow invocation procedure are in the [pipeline contract](docs/pipeline-contract.md). The 35,000-per-language target is a later human-approved selection target: the automated pipeline stops after full-pool JQL scoring and global bottom-25% pruning.
 
 ## Voluntary source-selection decision
 
@@ -56,7 +56,7 @@ The table above is the **18 November candidate-staging snapshot**. These separat
 - **Korean:** cleaned 2026-07-01 Wikipedia release: 593,006 articles and 17.77M heuristic sentence segments. Its CC BY-SA 4.0/GFDL terms remain a compatibility decision, not a CC BY/CC0 source.
 - **Arabic:** the official UN download route currently redirects to the landing page rather than returning the archive. A full audit of all 19.28M train rows plus dev/test in the CC BY 4.0 HF derivative is now running; its schema still lacks source document IDs/URLs and row-level provenance.
 
-These are **upstream audit measures**, not final usable-record counts. They must still pass the active acquisition adapter, normalization, accepted privacy screen, language/content and candidate-boundary deduplication gates before they can enter the current JQL assessment. The final 20k core / 10k reserve labels and 30k-per-language source-balanced selection remain deferred until after JQL pruning, manual privacy/rights review and explicit approval.
+These are **upstream audit measures**, not final usable-record counts. They must still pass the active acquisition adapter, normalization, accepted privacy screen, language/content and candidate-boundary deduplication gates before they can enter the current JQL assessment. The final 35k-per-language source-balanced selection remains deferred until after JQL pruning, manual privacy/rights review and explicit approval.
 
 The waiting-source artifact contains useful independent candidates, but some classes remain concentrated in one source and several licences or underlying-text rights remain under review. In particular:
 
@@ -80,7 +80,7 @@ The binding stage order and acceptance criteria are in the [pipeline contract](d
 6. Produce full per-language × original-source counts and encrypted review artifacts. Preserve document/group IDs for later split integrity.
 7. Stop for manual privacy and source-rights review.
 
-The final 30,000-per-language selection, 20k core plus 10k reserve labels, and 30% preferred / 50% hard per-source mix are deferred human decisions. The automated pipeline does not perform them. The accepted privacy implementation is heuristic; its output is held for manual review before any external release.
+The final 35,000-per-language selection and 30% preferred / 50% hard per-source mix are deferred human decisions. The automated pipeline does not perform them. The accepted privacy implementation is heuristic; its output is held for manual review before any external release.
 The staged acquisition workflow does not yet cover every audited/registered source: Greynir Copper/Silver, MaCoCu, ParlaMint and Soranoha currently lack candidate-extraction adapters. IGC2024 Filtered-1 is acquired through the Icelandic waiting-source adapter. Their status is recorded in the [source adapter coverage audit](docs/pipeline-contract.md#source-adapter-coverage-audit); do not assume they are present in the current candidate pool.
 
 Raw downloads and private provenance sidecars are not committed to Git. GitHub Actions artifacts are temporary preparation outputs, not public releases.
@@ -132,7 +132,7 @@ For project questions and rights notices: [abuse@souche.fr](mailto:abuse@souche.
 
 ## Legacy local reproducible pipeline (historical pilots only)
 
-The Makefile targets below orchestrate earlier Leipzig experiments. They are **not** the current staged corpus pipeline and must not be used to create the current candidate pool or final 30,000-per-language selection.
+The Makefile targets below orchestrate earlier Leipzig experiments. They are **not** the current staged corpus pipeline and must not be used to create the current candidate pool or final 35,000-per-language selection.
 
 The current pipeline runs through GitHub Actions: `.github/workflows/langid32-pipeline.yml` performs preflight, fresh acquisition, candidate construction and full-pool assessment; `.github/workflows/score-jql-assessment.yml` then scores all three JQL heads, performs global normalization and bottom-25% pruning, and uploads encrypted review artifacts. It stops before final selection. Its exact push trigger and resume procedure are in the [pipeline contract](docs/pipeline-contract.md).
 
