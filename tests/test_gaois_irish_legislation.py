@@ -90,6 +90,9 @@ def test_gaois_emits_only_deterministic_irish_sample_and_hashes_english_side(tmp
     assert "English translation" not in serialized
     assert all(row["provenance"]["english_segment_sha256"] for row in rows)
     assert all(row["provenance"]["english_segment_characters"] > 0 for row in rows)
+    assert all(row["provenance"]["publisher_id"] == "dcu-fiontar-scoil-na-gaeilge-gaois" for row in rows)
+    assert all(row["provenance"]["attribution_required"] is True for row in rows)
+    assert all("publisher" not in row["provenance"] for row in rows)
     assert all(row["source_release"].endswith(manifest["combined_release_sha256"]) for row in rows)
     assert manifest["combined_release_sha256"] == MODULE.EXPECTED_COMBINED_SHA256
 
