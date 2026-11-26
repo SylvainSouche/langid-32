@@ -835,24 +835,24 @@ def main():
                 UPSTREAM as GREYNIR_UPSTREAM, iter_sentences,
             )
             repository = temp_root / "GreynirCorpus"
+            shutil.rmtree(repository, ignore_errors=True)
             try:
-                if not repository.exists():
-                    subprocess.run(["git", "init", str(repository)], check=True)
-                    subprocess.run([
-                        "git", "-C", str(repository), "remote", "add",
-                        "origin", GREYNIR_UPSTREAM + ".git",
-                    ], check=True)
-                    subprocess.run([
-                        "git", "-C", str(repository), "lfs", "install", "--local",
-                    ], check=True)
-                    subprocess.run([
-                        "git", "-C", str(repository), "fetch", "--depth=1",
-                        "origin", GREYNIR_REVISION,
-                    ], check=True)
-                    lfs_env = {**__import__("os").environ, "GIT_LFS_SKIP_SMUDGE": "1"}
-                    subprocess.run([
-                        "git", "-C", str(repository), "checkout", "--detach", "FETCH_HEAD",
-                    ], check=True, env=lfs_env)
+                subprocess.run(["git", "init", str(repository)], check=True)
+                subprocess.run([
+                    "git", "-C", str(repository), "remote", "add",
+                    "origin", GREYNIR_UPSTREAM + ".git",
+                ], check=True)
+                subprocess.run([
+                    "git", "-C", str(repository), "lfs", "install", "--local",
+                ], check=True)
+                subprocess.run([
+                    "git", "-C", str(repository), "fetch", "--depth=1",
+                    "origin", GREYNIR_REVISION,
+                ], check=True)
+                lfs_env = {**__import__("os").environ, "GIT_LFS_SKIP_SMUDGE": "1"}
+                subprocess.run([
+                    "git", "-C", str(repository), "checkout", "--detach", "FETCH_HEAD",
+                ], check=True, env=lfs_env)
 
                 for partition in ("copper", "silver"):
                     source = f"greynir_{partition}"
