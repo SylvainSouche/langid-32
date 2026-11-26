@@ -177,6 +177,22 @@ def main() -> None:
     model_provenance, shard_manifests = read_score_manifests(
         args.ratings_dir, rating_file_rows, args.shards_dir, int(jql_config["shard_count"])
     )
+    model_info = model_provenance["models"]
+    if model_info.get("embedder_repository") != jql_config["embedder_model"]:
+        raise SystemExit("JQL embedding repository does not match the authoritative config")
+    if model_info.get("embedder_revision_resolved") != jql_config["embedder_revision"]:
+        raise SystemExit("JQL embedding model revision does not match the configured immutable pin")
+    if model_info.get("head_repository") != jql_config["head_repository"]:
+        raise SystemExit("JQL head repository does not match the authoritative config")
+    if model_info.get("head_revision_requested") != jql_config["head_repository_revision"]:
+        raise SystemExit("JQL head repository revision request does not match the authoritative config")
+    if model_provenance["scoring"].get("judges") != JUDGES:
+        raise SystemExit("JQL judge set does not match the authoritative config")
+    checkpoint_hashes = model_provenance["head_checkpoint_sha256"]
+    if set(checkpoint_hashes) != set(JUDGES) or any(
+        not isinstance(value, str) or len(value) != 64 for value in checkpoint_hashes.values()
+    ):
+        raise SystemExit("JQL checkpoint hashes are missing or malformed")
     expected, actual = set(frame["id"]), set(ratings)
     if sum(item["input_rows"] for item in shard_manifests) != len(frame):
         raise SystemExit("JQL shard row counts do not sum to the complete assessment row count")
