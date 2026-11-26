@@ -89,6 +89,7 @@ def validate_acquisition_policy(config: dict[str, Any]) -> None:
 
 def validate_jql_policy(config: dict[str, Any]) -> None:
     """Lock the accepted full-pool JQL policy and deferred final-selection boundary."""
+    profile_name = config.get("profile", {}).get("name", "release")
     jql = config["jql"]
     expected_judges = ["gemma", "mistral", "llama"]
     if jql.get("enabled") is not True or jql.get("judges") != expected_judges:
