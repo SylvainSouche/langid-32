@@ -293,6 +293,9 @@ cpu_torch_threads = 2
 shard_count = 8
 max_parallel_shards = 4
 python_version = "3.11"
+torch_version = "2.6.0"
+transformers_version = "4.44.2"
+huggingface_hub_version = "0.26.5"
 short_artifact_retention_days = 2
 
 [quality]
