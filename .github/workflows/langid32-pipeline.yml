@@ -190,6 +190,7 @@ jobs:
           - target: arabic
           - target: gaois
           - target: parlamint
+          - target: macocu
     steps:
       - uses: actions/checkout@v4
       - id: runtime
