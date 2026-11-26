@@ -190,3 +190,19 @@ def test_plaintext_leipzig_upload_workflows_are_retired():
         content = path.read_text(encoding="utf-8")
         assert "path: out/leipzig/" not in content, path.name
         assert "path: out/leipzig/**" not in content, path.name
+
+
+
+def test_legacy_waiting_source_and_greynir_audits_remain_metadata_only_and_cleaned():
+    root = Path(__file__).resolve().parents[1]
+    waiting = (root / ".github/workflows/acquire-waiting-sources.yml").read_text(encoding="utf-8")
+    assert "datasets==3.3.2" in waiting
+    assert "huggingface_hub==0.26.5" in waiting
+    assert "pyarrow==19.0.1" in waiting
+    assert "path: out/*/manifest.json" in waiting
+    assert "path: out/**" not in waiting
+    assert "rm -rf out input .cache" in waiting
+
+    greynir = (root / ".github/workflows/audit-greynir-corpus.yml").read_text(encoding="utf-8")
+    assert "path: greynir-corpus/reports/greynir-corpus-audit.json" in greynir
+    assert "rm -rf greynir-corpus" in greynir
