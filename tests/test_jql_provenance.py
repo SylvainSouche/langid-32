@@ -34,7 +34,13 @@ def _write_manifest(directory, shards_dir, index, *, head_revision="b" * 40, sou
             "mistral": "d" * 64,
             "llama": "e" * 64,
         },
-        "scoring": {"judges": ["gemma", "mistral", "llama"], "dtype": "float32"},
+        "scoring": {"judges": ["gemma", "mistral", "llama"], "dtype": "bfloat16"},
+        "runtime": {
+            "python_version": "3.11.9",
+            "torch_version": "2.6.0+cpu",
+            "transformers_version": "4.44.2",
+            "huggingface_hub_version": "0.26.5",
+        },
     }
     (directory / f"{csv_name}.manifest.json").write_text(json.dumps(manifest))
     return csv_name
