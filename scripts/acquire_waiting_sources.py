@@ -935,7 +935,18 @@ def main():
                         f"MaCoCu {language.upper()} archive MD5 mismatch: "
                         f"{md5.hexdigest()} != {meta['md5']}"
                     )
-                downloads.append({**download, "catalogue_md5": meta["md5"], "md5_matches": True})
+                if download["sha256"] != meta["sha256"]:
+                    raise RuntimeError(
+                        f"MaCoCu {language.upper()} archive SHA-256 mismatch: "
+                        f"{download['sha256']} != {meta['sha256']}"
+                    )
+                downloads.append({
+                    **download,
+                    "catalogue_md5": meta["md5"],
+                    "catalogue_sha256": meta["sha256"],
+                    "md5_matches": True,
+                    "sha256_matches": True,
+                })
                 for record in iter_paragraphs(archive, language):
                     if quota_reached(bucket_key):
                         break
