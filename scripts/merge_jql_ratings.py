@@ -218,10 +218,18 @@ def main() -> None:
         import pandas as pd
     except ImportError as exc:
         raise SystemExit("Install pandas and pyarrow: python -m pip install pandas pyarrow") from exc
-    frame = pd.read_parquet(args.input, columns=["id", "lang", "sentence", "source", "source-variant"])
+    frame = pd.read_parquet(args.input, columns=[
+        "id", "lang", "sentence", "source", "source-variant", "jql_training_domain_status"
+    ])
     if frame["id"].isna().any() or frame["id"].astype(str).duplicated().any():
         raise SystemExit("Input IDs must be non-null and unique")
     frame["id"] = frame["id"].astype(str)
+    out_of_training = set(jql_config["out_of_training_languages"])
+    expected_domain_status = frame["lang"].astype(str).map(
+        lambda language: "out_of_training_domain" if language in out_of_training else "training_domain"
+    )
+    if not frame["jql_training_domain_status"].astype(str).equals(expected_domain_status):
+        raise SystemExit("JQL training-domain flags do not match the configured language coverage")
     ratings, rating_file_rows = read_rating_files(args.ratings_dir)
     model_provenance, shard_manifests = read_score_manifests(
         args.ratings_dir, rating_file_rows, args.shards_dir, int(jql_config["shard_count"])
@@ -305,7 +313,7 @@ def main() -> None:
         lambda key: quality[key]["terminal_punctuation"]
     )
     columns = [
-        "id", "lang", "source", "source-variant",
+        "id", "lang", "source", "source-variant", "jql_training_domain_status",
         "gemma_raw", "mistral_raw", "llama_raw",
         "gemma_z", "mistral_z", "llama_z",
         "jql_mean", "jql_disagreement", "jql_consensus",
@@ -348,6 +356,8 @@ def main() -> None:
             "pruned_by_language_source": grouped_counts(frame.loc[frame["id"].astype(str).isin(pruned_ids)]),
             "retained_by_language_source": grouped_counts(retained),
             "source_field": "source-variant (original source identifier)",
+            "out_of_training_domain_rows_pruned": int((frame.loc[frame["id"].astype(str).isin(pruned_ids), "jql_training_domain_status"] == "out_of_training_domain").sum()),
+            "out_of_training_domain_rows_retained": int((retained["jql_training_domain_status"] == "out_of_training_domain").sum()),
             "tie_break": "consensus ascending then id ascending; exact deterministic row count",
             "final_30k_selection": "deferred_pending_user_review",
         }
@@ -365,6 +375,13 @@ def main() -> None:
         "ratings_rows": len(ratings),
         "quantile_normalization": "average ranks mapped through standard-normal inverse CDF; ties share average rank",
         "normalization_scope": "entire assessment corpus, all languages combined, independently per judge",
+        "jql_out_of_training_languages": sorted(out_of_training),
+        "jql_training_domain_counts_by_language_source": [
+            {"language": str(language), "source": str(source), "domain_status": str(status), "count": int(count)}
+            for (language, source, status), count in frame.groupby(
+                ["lang", "source-variant", "jql_training_domain_status"], dropna=False
+            ).size().items()
+        ],
         "consensus_formula": "mean(gemma_z,mistral_z,llama_z) - 0.5 * population_std(gemma_z,mistral_z,llama_z)",
         "consensus_mean_weight": mean_weight,
         "consensus_penalty": penalty,
