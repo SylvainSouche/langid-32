@@ -43,8 +43,8 @@ def test_common_voice_curation_retains_safe_sentence_provenance_only(tmp_path, m
     locale_dir = input_root / "fi"
     locale_dir.mkdir(parents=True)
     tsv_content = (
-        "sentence_id\\tsentence\\tvariant\\tsentence_domain\\tsource\\tis_used\\tclips_count\\tsource_locale\\n"
-        "fi-1\\tTämä on riittävän pitkä suomenkielinen testilause.\\tstandard\\teveryday\\tuser\\ttrue\\t2\\tfi\\n"
+        "sentence_id\tsentence\tvariant\tsentence_domain\tsource\tis_used\tclips_count\tsource_locale\n"
+        "fi-1\tTämä on riittävän pitkä suomenkielinen testilause.\tstandard\teveryday\tuser\ttrue\t2\tfi\n"
     )
     tsv_bytes = tsv_content.encode("utf-8")
     (locale_dir / "validated_sentences.tsv").write_bytes(tsv_bytes)
