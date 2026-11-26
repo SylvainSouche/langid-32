@@ -116,9 +116,15 @@ def test_full_candidate_to_global_jql_pruning_contract(tmp_path):
                 "head_hidden_dimension": config["jql"]["head_hidden_dimension"],
                 "max_token_length": config["jql"]["max_token_length"],
                 "inference_batch_size": config["jql"]["inference_batch_size"],
-                "dtype": "float32",
+                "dtype": "bfloat16",
                 "pooling": "CLS",
                 "normalization": "L2",
+            },
+            "runtime": {
+                "python_version": "3.11.9",
+                "torch_version": "2.6.0+cpu",
+                "transformers_version": "4.44.2",
+                "huggingface_hub_version": "0.26.5",
             },
         }
         (ratings_dir / f"{ratings_name}.manifest.json").write_text(
