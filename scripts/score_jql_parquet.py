@@ -13,6 +13,7 @@ import json
 import os
 import sys
 import time
+import platform
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -23,6 +24,8 @@ from langid32.settings import load_config
 import pandas as pd
 import torch
 import torch.nn as nn
+import huggingface_hub
+import transformers
 from huggingface_hub import HfApi, hf_hub_download
 from transformers import AutoConfig, AutoModel, AutoTokenizer
 
@@ -52,13 +55,13 @@ class RegressionHead(nn.Module):
         return self.layer2(self.relu(self.layer1(x)))
 
 
-def load_head(path: str, device: torch.device, jql_cfg: dict) -> nn.Module:
+def load_head(path: str, device: torch.device, dtype: torch.dtype, jql_cfg: dict) -> nn.Module:
     model = RegressionHead(jql_cfg["embedding_dimension"], jql_cfg["head_hidden_dimension"])
     checkpoint = torch.load(path, map_location="cpu", weights_only=False)
     state = checkpoint.get("state_dict", checkpoint)
     # Lightning checkpoints from the upstream project use these unprefixed keys.
     model.load_state_dict(state, strict=True)
-    return model.to(device).eval()
+    return model.to(device=device, dtype=dtype).eval()
 
 
 def main():
@@ -122,8 +125,6 @@ def main():
     if frame[["id", "lang", "sentence"]].isna().any().any():
         raise SystemExit("Input contains null id/lang/sentence values")
 
-    # float32 is the portable CPU/MPS baseline. The model card's published
-    # embedding recipe is CLS pooling followed by L2 normalization.
     # Resolve floating references once, then use only immutable commit SHAs for all downloads.
     api = HfApi()
     embedder_revision = api.model_info(embedder_id, revision=embedder_revision_requested).sha
@@ -131,7 +132,11 @@ def main():
     if not embedder_revision or not head_revision:
         raise SystemExit("Could not resolve immutable Hugging Face model revisions")
 
-    dtype = torch.float32
+    dtype_map = {"bfloat16": torch.bfloat16, "float32": torch.float32}
+    dtype_name = str(jql_cfg["inference_dtype"])
+    if dtype_name not in dtype_map:
+        raise SystemExit(f"Unsupported configured JQL inference dtype: {dtype_name}")
+    dtype = dtype_map[dtype_name]
     tokenizer = AutoTokenizer.from_pretrained(embedder_id, revision=embedder_revision)
     # The Arctic Embed remote implementation otherwise selects an xformers-only
     # memory-efficient attention path. Native PyTorch SDPA works on CPU and MPS.
@@ -159,7 +164,7 @@ def main():
             revision=head_revision,
         ))
         checkpoint_hashes[name] = sha256_file(checkpoint_path)
-        heads[name] = load_head(str(checkpoint_path), device, jql_cfg)
+        heads[name] = load_head(str(checkpoint_path), device, dtype, jql_cfg)
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     manifest_path = args.output.with_suffix(args.output.suffix + ".manifest.json")
@@ -183,9 +188,15 @@ def main():
             "head_hidden_dimension": int(jql_cfg["head_hidden_dimension"]),
             "max_token_length": args.max_length,
             "inference_batch_size": args.batch_size,
-            "dtype": "float32",
+            "dtype": dtype_name,
             "pooling": "CLS",
             "normalization": "L2",
+        },
+        "runtime": {
+            "python_version": platform.python_version(),
+            "torch_version": torch.__version__,
+            "transformers_version": transformers.__version__,
+            "huggingface_hub_version": huggingface_hub.__version__,
         },
     }
     if args.resume and args.output.is_file():
