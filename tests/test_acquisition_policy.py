@@ -98,3 +98,15 @@ def test_common_voice_hf_acquisition_is_enabled_for_configured_locales():
     workflow = (ROOT / ".github/workflows/langid32-pipeline.yml").read_text()
     assert "common-voice:\n    if: github.ref == 'refs/heads/main'" in workflow
     assert "if: false # Disabled until individual Common Voice locale terms" not in workflow
+
+
+
+def test_waiting_source_record_rights_status_preserves_registered_holds():
+    source = (ROOT / "scripts/acquire_waiting_sources.py").read_text(encoding="utf-8")
+    register = (ROOT / "docs/source-register.md").read_text(encoding="utf-8")
+    assert '"hold_constituent_terms_review"' in source
+    assert '"hold_attribution_and_source_provenance_review"' in source
+    assert "| **BSC-LT Legal Catalan-Spanish Parallel Corpus**" in register
+    assert "**STAGED / HOLD**" in register
+    assert "| **UN Arabic-English Filtered**" in register
+    assert "**STAGED / ATTRIBUTION + PROVENANCE HOLD**" in register
