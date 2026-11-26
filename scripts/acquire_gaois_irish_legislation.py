@@ -3,6 +3,11 @@
 from __future__ import annotations
 import argparse, hashlib, heapq, json, re, sqlite3, tempfile, unicodedata, zipfile
 from pathlib import Path
+import sys
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+from langid32.settings import load_config, acquisition_target
+from langid32.merge import EMAIL_RE, URL_RE, IPV4_RE, LONG_NUMBER_RE
 from urllib.request import Request, urlopen
 from xml.etree.ElementTree import iterparse
 
@@ -20,23 +25,27 @@ URL = re.compile(r"(?i)(https?://|www\.)\S+")
 NUMBER = re.compile(r"\d{9,}")
 IPV4 = re.compile(r"(?<![\w.])(?:\d{1,3}\.){3}\d{1,3}(?![\w.])")
 
-def clean(value):
+def clean(value, rules):
     text = " ".join(unicodedata.normalize("NFC", str(value or "")).split())
     letters = sum(ch.isalpha() for ch in text)
-    if (len(text) < 40 or len(text) > 12000 or letters < 25 or
-        letters / max(1, len(text)) < 0.45 or EMAIL.search(text) or
-        URL.search(text) or NUMBER.search(text) or IPV4.search(text)):
+    if (len(text) < rules["min_characters"] or len(text) > rules["max_characters"] or
+        letters < rules["min_alpha_characters"] or
+        letters / max(1, len(text)) < rules["min_alpha_ratio"] or
+        (rules["exclude_email"] and EMAIL_RE.search(text)) or
+        (rules["exclude_url"] and URL_RE.search(text)) or
+        (rules["exclude_long_numeric"] and LONG_NUMBER_RE.search(text)) or
+        (rules["exclude_ipv4"] and IPV4_RE.search(text))):
         return None
     return text
 
-def download(url, path):
+def download(url, path, execution):
     req = Request(url, headers={"User-Agent": "langid-32-source-acquisition/1.0"})
     digest = hashlib.sha256()
     size = 0
-    with urlopen(req, timeout=300) as response, path.open("wb") as out:
+    with urlopen(req, timeout=execution["http_read_timeout_seconds"]) as response, path.open("wb") as out:
         expected = int(response.headers.get("Content-Length") or 0)
         while True:
-            block = response.read(1024 * 1024)
+            block = response.read(execution["download_chunk_bytes"])
             if not block: break
             out.write(block); digest.update(block); size += len(block)
     if expected and size != expected:
@@ -46,9 +55,15 @@ def download(url, path):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", type=Path, required=True)
-    parser.add_argument("--max-sample", type=int, default=50000)
-    parser.add_argument("--seed", default="langid-32-gaois-2026-11-23")
+    parser.add_argument("--max-sample", type=int, default=None)
+    parser.add_argument("--seed", default=None)
+    parser.add_argument("--config", type=Path, default=ROOT / "config/langid32.toml")
     args = parser.parse_args()
+    cfg = load_config(args.config)
+    args.max_sample = args.max_sample if args.max_sample is not None else acquisition_target(cfg, "gaois_irish_legislation", "ga")
+    args.seed = args.seed or cfg["acquisition"]["seed"]
+    execution = cfg["execution"]
+    text_rules = cfg["acquisition"]["source_rules"]["gaois_irish_legislation"]["text"]
     args.out.parent.mkdir(parents=True, exist_ok=True)
     temp = Path(tempfile.mkdtemp(prefix="gaois-stage-"))
     db = sqlite3.connect(temp / "dedup.sqlite")
@@ -62,7 +77,7 @@ def main():
     try:
         for label, url in SOURCES:
             archive = temp / (label + ".zip")
-            info = download(url, archive)
+            info = download(url, archive, execution)
             downloads.append({"component": label, **info})
             with zipfile.ZipFile(archive) as zf:
                 for member in zf.namelist():
@@ -87,7 +102,7 @@ def main():
                                 tu.clear()
                                 continue
                             totals["irish_segments"] += 1
-                            ga = clean(raw_ga)
+                            ga = clean(raw_ga, text_rules)
                             if not ga:
                                 totals["filtered_irish_segments"] += 1
                                 tu.clear()
