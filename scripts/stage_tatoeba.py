@@ -22,7 +22,7 @@ from langid32.merge import (EMAIL_RE, HTTP_FRAGMENT_RE, IPV4_RE, LONG_NUMBER_RE,
 
 CODES = {
     "bg": ("bul",), "hr": ("hrv",), "cs": ("ces",), "da": ("dan",),
-    "nl": ("nld",), "en": ("eng",), "et": ("est",), "fi": ("fin",),
+    "nl": ("nld",), "en": ("eng",), "et": ("est",), "fi": ("fin",), "ca": ("cat",), "is": ("isl",),
     "fr": ("fra",), "de": ("deu",), "el": ("ell",), "hu": ("hun",),
     "ga": ("gle",), "it": ("ita",), "lv": ("lav",), "lt": ("lit",),
     "mt": ("mlt",), "pl": ("pol",), "pt": ("por",), "ro": ("ron",),
