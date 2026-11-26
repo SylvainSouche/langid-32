@@ -79,3 +79,15 @@ def test_downstream_jql_jobs_checkout_the_exact_source_pipeline_commit():
     assert "ref: ${{ steps.source.outputs.head_sha }}" in workflow
     assert workflow.count("ref: ${{ needs.prepare.outputs.source_sha }}") == 2
     assert "source_sha: ${{ steps.source.outputs.head_sha }}" in workflow
+
+
+
+def test_downstream_jql_jobs_delete_decrypted_text_after_upload():
+    root = Path(__file__).resolve().parents[1]
+    workflow = (root / ".github/workflows/score-jql-assessment.yml").read_text(encoding="utf-8")
+    assert "Remove plaintext assessment workspaces" in workflow
+    assert "rm -rf source stage jql-work quality jql-shards.bin" in workflow
+    assert "Remove plaintext shard workspace" in workflow
+    assert "rm -rf jql-work encrypted previous ratings" in workflow
+    assert "Remove plaintext scoring and merge workspaces" in workflow
+    assert "rm -rf jql-work encrypted ratings quality results result-work jql-pruned-pool.bin" in workflow
