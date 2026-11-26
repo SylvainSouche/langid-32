@@ -179,10 +179,17 @@ def main():
     cfg = load_config(args.config)
     waiting_text_rules = cfg["acquisition"]["source_rules"]["waiting_sources"]
     fineweb2_languages = {
-        "cat_Latn": "ca", "isl_Latn": "is", "nob_Latn": "nb",
-        "nno_Latn": "nn", "arb_Arab": "ar", "hrv_Latn": "hr",
-        "fin_Latn": "fi", "ell_Grek": "el", "mlt_Latn": "mt",
-        "slv_Latn": "sl",
+        "bul_Cyrl": "bg", "hrv_Latn": "hr", "cat_Latn": "ca",
+        "ces_Latn": "cs", "dan_Latn": "da", "nld_Latn": "nl",
+        "ekk_Latn": "et", "fin_Latn": "fi", "fra_Latn": "fr",
+        "deu_Latn": "de", "ell_Grek": "el", "hun_Latn": "hu",
+        "gle_Latn": "ga", "ita_Latn": "it", "lvs_Latn": "lv",
+        "lit_Latn": "lt", "mlt_Latn": "mt", "pol_Latn": "pl",
+        "por_Latn": "pt", "ron_Latn": "ro", "slk_Latn": "sk",
+        "slv_Latn": "sl", "spa_Latn": "es", "swe_Latn": "sv",
+        "nob_Latn": "nb", "nno_Latn": "nn", "rus_Cyrl": "ru",
+        "jpn_Jpan": "ja", "cmn_Hani": "zh", "kor_Hang": "ko",
+        "arb_Arab": "ar", "tur_Latn": "tr",
     }
     if args.source == "fineweb2" and args.fineweb2_config not in fineweb2_languages:
         parser.error("--fineweb2-config must name exactly one supported FineWeb-2 configuration")
