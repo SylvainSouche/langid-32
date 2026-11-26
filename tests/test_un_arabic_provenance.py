@@ -24,7 +24,7 @@ def test_un_arabic_row_index_is_not_misrepresented_as_source_document_id():
     assert "source_document_url" not in safe
     assert "text_en" not in safe
     assert "text_ar" not in safe
-    assert safe["publisher"] == "United Nations"
+    assert safe["publisher_id"] == "united-nations"
     assert safe["attribution_required"] is True
     assert safe["required_citation_id"] == "ziemski-junczys-dowmunt-pouliquen-2016"
 
