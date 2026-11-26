@@ -155,3 +155,15 @@ def test_staged_workflow_targets_and_referenced_scripts_exist_at_run_commit():
     )
     assert checkout_blocks
     assert all("ref:" not in block for block in checkout_blocks)
+
+
+
+def test_staged_pipeline_deletes_plaintext_after_encrypted_checkpoint_uploads():
+    root = Path(__file__).resolve().parents[1]
+    workflow = (root / ".github/workflows/langid32-pipeline.yml").read_text(encoding="utf-8")
+    assert workflow.count("Remove plaintext working files") == 5
+    assert "rm -rf input out checkpoint.bin" in workflow
+    assert "rm -rf input out .cache checkpoint.bin" in workflow
+    assert "rm -rf input out checkpoints candidate.bin" in workflow
+    assert "rm -rf input out checkpoint final.bin" in workflow
+    assert "HF_HOME: ${{ github.workspace }}/.cache/huggingface" in workflow
