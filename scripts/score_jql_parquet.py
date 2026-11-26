@@ -164,6 +164,8 @@ def main():
     args.output.parent.mkdir(parents=True, exist_ok=True)
     manifest_path = args.output.with_suffix(args.output.suffix + ".manifest.json")
     provenance = {
+        "pipeline_source_sha": os.environ.get("LANGID32_SOURCE_SHA", "local"),
+        "pipeline_source_run_id": os.environ.get("LANGID32_SOURCE_RUN_ID", "local"),
         "input_file": args.input.name,
         "input_sha256": sha256_file(args.input),
         "models": {
