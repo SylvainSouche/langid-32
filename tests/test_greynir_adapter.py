@@ -80,3 +80,5 @@ def test_greynir_rejects_unbalanced_records(tmp_path):
 def test_greynir_preserves_multiword_terminal_nodes():
     node = ["person_ef_kvk", "Anna", "Jónsdóttir", ["lemma", "Anna Jónsdóttir"]]
     assert _terminals(node) == ["Anna", "Jónsdóttir"]
+    assert _terminals(["grm", "„"]) == ["„"]
+    assert _terminals(["grm", "—"]) == ["—"]
