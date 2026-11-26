@@ -59,7 +59,7 @@ Historical pilot: 259,352 rows across 33 labels; it is not reused as a current c
 
 **Description.** Two distinct original sources: `leipzig_wikipedia` and `leipzig_news`. A pinned historical artifact contains the earlier 34-label acquisition. The historical source register says 3,000 news plus 3,000 Wikipedia sentences per language in the subset then retained. The pipeline no longer applies a project-language allowlist to either Leipzig source. The historical artifact is validated against all configured labels; only genuine upstream absence may yield an empty source/language cell.
 
-**Sentence matrix.** Historical artifact: 3,000 news + 3,000 Wikipedia rows for each of hr, fi, el, mt, sl, is (36,000 rows across these six labels if the artifact is exactly as described). The artifact also contains the earlier 34-label acquisition, but the source register/config do not provide a verified per-language/per-source breakdown for all 34 in the checked-in summary. For the other 28 labels: historical artifact rows exist, but current pipeline rules discard them. Do not describe those cells as source-empty.
+**Sentence matrix.** Historical artifact: 3,000 news + 3,000 Wikipedia rows for each of six labels in the historical balanced subset. The artifact also contains the earlier 34-label acquisition; the full per-language/per-source breakdown remains to be extracted. No labels are discarded by current project policy. The historical balanced subset is not evidence that other language/source cells are empty.
 
 **Licence and attribution.** Leipzig's official downloadable-corpora usage statement declares CC BY 4.0. Attribute Leipzig, link the licence/usage statement, cite Goldhahn et al. (LREC 2012), and preserve archive IDs, hashes, sentence/source mappings, URLs and timestamps.
 
@@ -129,7 +129,7 @@ Historical pilot: 259,352 rows across 33 labels; it is not reused as a current c
 
 **Description.** TEI parliamentary corpora. Audit reports 928 Icelandic and 1,572 Slovenian session files; Turkish is also listed in the source inventory. Adapter groups segment-bearing utterances and fallback utterance records by session, preserves session/date and utterance/segment IDs, and keeps only the non-identifying role whitelist (chair, regular, guest). It excludes speaker references and person metadata.
 
-**Sentence matrix.** is: sentence count not measured; sl: sentence count not measured; tr: sentence count not measured. Session-file counts are not sentence counts. The adapter coverage table in the pipeline contract lists only IS/SI while the source register lists IS/SI/TR; reconcile the Turkish coverage in the workflow matrix/config before claiming it is active.
+**Sentence matrix.** is: sentence count not measured; sl: sentence count not measured; tr: sentence count not measured. Session-file counts are not sentence counts. The adapter now covers all three audited national releases (IS/SI/TR); verify Turkish production parsing and quota/exhaustion in the clean run.
 
 **Licence and attribution.** ParlaMint/CLARIN.SI attribution is required; inspect the exact national-corpus licence/terms in the pinned release manifest rather than assuming one blanket licence for every national corpus.
 
