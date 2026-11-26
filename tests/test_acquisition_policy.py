@@ -148,3 +148,15 @@ def test_acquisition_streaming_dependencies_are_config_pinned_and_used():
     assert '"datasets==3.3.2"' in ci
     assert '"huggingface_hub==0.26.5"' in ci
     assert '"pyarrow==19.0.1"' in ci
+
+
+
+def test_leipzig_historical_snapshot_is_restricted_to_six_current_languages():
+    config = load_config(ROOT / "config/langid32.toml")
+    expected = ["hr", "fi", "el", "mt", "sl", "is"]
+    rules = config["acquisition"]["source_rules"]
+    assert rules["leipzig_news"]["languages"] == expected
+    assert rules["leipzig_wikipedia"]["languages"] == expected
+    register = (ROOT / "docs/source-register.md").read_text(encoding="utf-8")
+    assert "Current pipeline allowlist is exactly" in register
+    assert "All 34 langid-32 labels targeted" not in register
