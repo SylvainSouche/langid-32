@@ -8,17 +8,21 @@ import hashlib
 import json
 import math
 import statistics
+import sys
 from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+from langid32.settings import load_config
 from statistics import NormalDist
 
-JUDGES = ("gemma", "mistral", "llama")
-PENALTY = 0.5
+JUDGES = tuple(load_config()["jql"]["judges"])
 
 
-def sha256(path: Path) -> str:
+def sha256(path: Path, chunk_bytes: int) -> str:
     h = hashlib.sha256()
     with path.open("rb") as stream:
-        for block in iter(lambda: stream.read(1024 * 1024), b""):
+        for block in iter(lambda: stream.read(chunk_bytes), b""):
             h.update(block)
     return h.hexdigest()
 
@@ -45,8 +49,10 @@ def read_rating_files(directory: Path) -> dict[str, dict]:
     return merged
 
 
-def quantile_normalize(values: list[float]) -> list[float]:
+def quantile_normalize(values: list[float], epsilon: float | None = None) -> list[float]:
     """Map average ranks to standard-normal quantiles; ties receive the same score."""
+    if epsilon is None:
+        epsilon = load_config()["jql"]["quantile_epsilon"]
     n = len(values)
     if n == 0:
         return []
@@ -60,7 +66,7 @@ def quantile_normalize(values: list[float]) -> list[float]:
             end += 1
         average_rank = ((pos + 1) + end) / 2.0  # 1-based ranks
         probability = (average_rank - 0.5) / n
-        z = normal.inv_cdf(min(1.0 - 1e-15, max(1e-15, probability)))
+        z = normal.inv_cdf(min(1.0 - epsilon, max(epsilon, probability)))
         for k in range(pos, end):
             result[order[k]] = z
         pos = end
@@ -75,8 +81,17 @@ def main() -> None:
     ap.add_argument("--output-csv", required=True, type=Path)
     ap.add_argument("--output-parquet", type=Path)
     ap.add_argument("--summary", type=Path)
-    ap.add_argument("--include-text", action="store_true", help="Include sentence text in output (avoid for public Actions artifacts)")
+    ap.add_argument("--include-text", action="store_true", help="Include sentence text in output")
+    ap.add_argument("--pruned-output-csv", type=Path)
+    ap.add_argument("--pruned-output-parquet", type=Path)
+    ap.add_argument("--pruning-summary", type=Path)
+    ap.add_argument("--config", type=Path, default=ROOT / "config/langid32.toml")
     args = ap.parse_args()
+    full_config = load_config(args.config)
+    jql_config = full_config["jql"]
+    chunk_bytes = full_config["execution"]["download_chunk_bytes"]
+    penalty = float(jql_config["consensus_disagreement_penalty"])
+    mean_weight = float(jql_config["consensus_mean_weight"])
 
     if not args.input.is_file() or not args.quality.is_file():
         raise SystemExit("Input Parquet and quality CSV must both exist")
@@ -121,7 +136,7 @@ def main() -> None:
     z_columns = [f"{judge}_z" for judge in JUDGES]
     frame["jql_mean"] = frame[z_columns].mean(axis=1)
     frame["jql_disagreement"] = frame[z_columns].std(axis=1, ddof=0)
-    frame["jql_consensus"] = frame["jql_mean"] - PENALTY * frame["jql_disagreement"]
+    frame["jql_consensus"] = mean_weight * frame["jql_mean"] - penalty * frame["jql_disagreement"]
 
 
     frame["initial_capitalization"] = frame["id"].map(
@@ -147,15 +162,50 @@ def main() -> None:
         args.output_parquet.parent.mkdir(parents=True, exist_ok=True)
         frame.to_parquet(args.output_parquet, index=False, compression="zstd")
 
+    pruning_summary = None
+    if args.pruned_output_csv or args.pruned_output_parquet or args.pruning_summary:
+        quantile = float(jql_config["prune_bottom_quantile"])
+        if not 0.0 <= quantile < 1.0:
+            raise SystemExit(f"Invalid prune_bottom_quantile: {quantile}")
+        prune_count = int(len(frame) * quantile)
+        ordered = frame.sort_values(["jql_consensus", "id"], ascending=[True, True])
+        pruned_ids = set(ordered.head(prune_count)["id"].astype(str))
+        retained = frame.loc[~frame["id"].astype(str).isin(pruned_ids)].copy()
+        retained = retained.sort_values(["lang", "jql_consensus", "id"], ascending=[True, False, True])
+        if args.pruned_output_csv:
+            args.pruned_output_csv.parent.mkdir(parents=True, exist_ok=True)
+            retained.to_csv(args.pruned_output_csv, index=False, quoting=csv.QUOTE_MINIMAL)
+        if args.pruned_output_parquet:
+            args.pruned_output_parquet.parent.mkdir(parents=True, exist_ok=True)
+            retained.to_parquet(args.pruned_output_parquet, index=False, compression="zstd")
+        def grouped_counts(data):
+            grouped = data.groupby(["lang", "source-variant"], dropna=False).size()
+            return [{"language": str(lang), "source": str(source), "count": int(count)}
+                    for (lang, source), count in grouped.items()]
+        pruning_summary = {
+            "scope": "global_all_languages_after_full_corpus_normalization",
+            "quantile": quantile, "input_rows": int(len(frame)),
+            "pruned_rows": int(prune_count), "retained_rows": int(len(retained)),
+            "pruned_by_language_source": grouped_counts(frame.loc[frame["id"].astype(str).isin(pruned_ids)]),
+            "retained_by_language_source": grouped_counts(retained),
+            "source_field": "source-variant (original source identifier)",
+            "tie_break": "consensus ascending then id ascending; exact deterministic row count",
+            "final_30k_selection": "deferred_pending_user_review",
+        }
+        if args.pruning_summary:
+            args.pruning_summary.parent.mkdir(parents=True, exist_ok=True)
+            args.pruning_summary.write_text(json.dumps(pruning_summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
     summary = {
         "rows": len(frame),
-        "input_sha256": sha256(args.input),
+        "input_sha256": sha256(args.input, chunk_bytes),
         "ratings_files": [p.name for p in sorted(args.ratings_dir.glob("*.csv"))],
         "ratings_rows": len(ratings),
         "quantile_normalization": "average ranks mapped through standard-normal inverse CDF; ties share average rank",
         "normalization_scope": "entire assessment corpus, all languages combined, independently per judge",
         "consensus_formula": "mean(gemma_z,mistral_z,llama_z) - 0.5 * population_std(gemma_z,mistral_z,llama_z)",
-        "consensus_penalty": PENALTY,
+        "consensus_mean_weight": mean_weight,
+        "consensus_penalty": penalty,
         "quality_flags_are_non_filtering": True,
         "sentence_text_included": bool(args.include_text),
         "capitalization": frame["initial_capitalization"].value_counts().to_dict(),
@@ -166,6 +216,7 @@ def main() -> None:
             for col in z_columns + ["jql_mean", "jql_disagreement", "jql_consensus"]
         },
         "selection_note": "Corpus-relative ranking only; recalculate normalization when the reference corpus changes.",
+        "pruning": pruning_summary,
     }
     if args.summary:
         args.summary.parent.mkdir(parents=True, exist_ok=True)
