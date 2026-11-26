@@ -16,7 +16,7 @@
 
 ### Common Voice 22.0 — HF-hosted text conversion (`fsicoli/common_voice_22_0`)
 
-**Description.** Text-only extraction from `transcript/<locale>/validated_sentences.tsv`; no audio, clip paths, speaker/client identifiers or demographic metadata. The current adapter resolves and records an immutable HF revision, TSV hashes and sentence IDs. The source is restricted in the checked-in implementation to five locales.
+**Description.** Text-only extraction from `transcript/<locale>/validated_sentences.tsv`; no audio, clip paths, speaker/client identifiers or demographic metadata. The current adapter resolves and records an immutable HF revision, TSV hashes and sentence IDs. Common Voice 22 has five upstream locales; Croatian (`hr`) is absent from this release. This is the sole source-specific language availability exception.
 
 **Sentence/segment matrix (current source acquisition):**
 
@@ -49,7 +49,7 @@ Historical pilot: 259,352 rows across 33 labels; it is not reused as a current c
 
 **Description.** Translation-memory units staged from the 2021 DGT-TM release. Historical refresh: 120,000 translation units, exactly 5,000 per each of the 24 EU official languages. These are sentence/part-sentence translation units; source-language identity is not reliably known and some units may originally have been English.
 
-**Sentence/translation-unit matrix.** The historical staging evidence records **5,000 units each** for: bg, cs, da, de, el, en, es, et, fi, fr, ga, hr, hu, it, lt, lv, mt, nl, pl, pt, ro, sk, sl, sv. These are staged translation units, not necessarily 5,000 independent original-language sentences. The current source rule in `config/langid32.toml` currently lists only hr, fi, el, mt and sl; this narrower allowlist conflicts with the historical 24-language acquisition decision and must be reconciled before launch.
+**Sentence/translation-unit matrix.** The historical staging evidence records **5,000 units each** for: bg, cs, da, de, el, en, es, et, fi, fr, ga, hr, hu, it, lt, lv, mt, nl, pl, pt, ro, sk, sl, sv. These are staged translation units, not necessarily 5,000 independent original-language sentences. The former source-language allowlist has been removed. The DGT adapter must retain all target-language translation units it actually encounters; source-native language coverage and translation-unit counts are reported from the archive rather than configured allowlists.
 
 **Licence and attribution.** JRC reuse conditions grant non-exclusive, free worldwide reuse of the DGT-TM database and structured elements under Commission Decision 2011/833/EU. Required attribution includes the source website, latest-update date and statement that the European Commission retains ownership. This does not automatically clear every underlying source document; some material is outside the Acquis.
 
@@ -57,19 +57,19 @@ Historical pilot: 259,352 rows across 33 labels; it is not reused as a current c
 
 ### Leipzig Corpora Collection — Leipzig Wikipedia and Leipzig News
 
-**Description.** Two distinct original sources: `leipzig_wikipedia` and `leipzig_news`. A pinned historical artifact contains the earlier 34-label acquisition. The historical source register says 3,000 news plus 3,000 Wikipedia sentences per language in the subset then retained. The pipeline contract/config now allow only hr, fi, el, mt, sl, is, rejecting 28 other labels from the historical artifact.
+**Description.** Two distinct original sources: `leipzig_wikipedia` and `leipzig_news`. A pinned historical artifact contains the earlier 34-label acquisition. The historical source register says 3,000 news plus 3,000 Wikipedia sentences per language in the subset then retained. The pipeline no longer applies a project-language allowlist to either Leipzig source. The historical artifact is validated against all configured labels; only genuine upstream absence may yield an empty source/language cell.
 
 **Sentence matrix.** Historical artifact: 3,000 news + 3,000 Wikipedia rows for each of hr, fi, el, mt, sl, is (36,000 rows across these six labels if the artifact is exactly as described). The artifact also contains the earlier 34-label acquisition, but the source register/config do not provide a verified per-language/per-source breakdown for all 34 in the checked-in summary. For the other 28 labels: historical artifact rows exist, but current pipeline rules discard them. Do not describe those cells as source-empty.
 
 **Licence and attribution.** Leipzig's official downloadable-corpora usage statement declares CC BY 4.0. Attribute Leipzig, link the licence/usage statement, cite Goldhahn et al. (LREC 2012), and preserve archive IDs, hashes, sentence/source mappings, URLs and timestamps.
 
-**Pending questions/checks.** The current six-language allowlist is a pipeline exclusion, not a source limitation. It contradicts the project's instruction to retain sources and the earlier decision to stream up to 20,000 eligible rows from each source/language. Reconcile and restore the approved 34-language scope. The pinned artifact's complete JSONL validation remains a preflight gate because the 1.45 GB artifact exceeded the connector's 512 MB inspection limit. Report exact per-language × source counts after validation; do not treat the historical 3,000-per-source counts as current caps.
+**Pending questions/checks.** The six-language allowlist has been removed from the config and workflow. All 31 FineWeb2 subsets and all configured Leipzig language labels are now scheduled; the remaining verification is that the adapter and source manifest report actual upstream availability rather than filtering by project policy. The pinned artifact's complete JSONL validation remains a preflight gate because the 1.45 GB artifact exceeded the connector's 512 MB inspection limit. Report exact per-language × source counts after validation; do not treat the historical 3,000-per-source counts as current caps.
 
 ### FineWeb2 v2.1.1
 
-**Description.** Multilingual Common Crawl-derived web-text dataset. The historical v5 artifact contains 510,702 FineWeb2 rows across 31 labels. A historical waiting-source artifact also contains FineWeb2 samples for Catalan and Icelandic. Current config and source register restrict fresh acquisition to hr, fi, el, mt, sl, is; this is a code/config allowlist, not a statement that FineWeb2 has no other languages.
+**Description.** Multilingual Common Crawl-derived web-text dataset. The historical v5 artifact contains 510,702 FineWeb2 rows across 31 labels. A historical waiting-source artifact also contains FineWeb2 samples for Catalan and Icelandic. The current configuration and workflow schedule all 31 FineWeb2 non-English subsets available for project labels; no project-language allowlist is applied.
 
-**Sentence matrix.** Historical v5 total: 510,702 rows across 31 labels; the checked-in summary does not provide a complete 31-language breakdown. Current fresh matrix: hr, fi, el, mt, sl, is configured; exact eligible sentence counts are not yet measured by a successful clean full run. The remaining labels are currently excluded by the allowlist, not absent from the upstream corpus.
+**Sentence matrix.** Historical v5 total: 510,702 rows across 31 labels; the checked-in summary does not provide a complete 31-language breakdown. Current fresh matrix: all 31 available non-English project subsets are scheduled; exact eligible sentence counts are not yet measured by a successful clean full run. English is naturally separate in FineWeb, not a FineWeb2 language subset.
 
 **Licence and attribution.** ODC-BY 1.0 applies to the database/compilation, not automatically to individual page contents (ODC-BY §2.4). The dataset card also points to Common Crawl Terms of Use. The underlying web-page rights are not individually established by the compilation licence. This uncertainty is a rights-review question; it is not evidence that all crawled text is categorically prohibited. Keep rights status distinct from technical candidate eligibility and from the project's inclusion decision.
 
@@ -281,10 +281,10 @@ This audit compares the checked-in `docs/source-register.md`, `docs/pipeline-con
 
 ### Blocking contradictions to correct
 
-1. **Leipzig source/language scope is narrowed without support from the recorded project decision.** The config and contract allow only hr/fi/el/mt/sl/is for Leipzig News and Wikipedia and reject the other 28 labels in the pinned 34-label snapshot. This conflicts with the recorded decision to stream up to 20,000 eligible entries from each source as the first pass and the instruction not to remove sources. Restore the full approved language/source scope; the historical 3,000-per-source rows are a starting snapshot, not a new cap.
-2. **FineWeb2 is restricted to six labels in both config and contract.** The source register describes the other labels as excluded. The recorded project decision did not approve a six-language allowlist or a blanket exclusion of English based on a legal conclusion. Remove that restriction unless explicitly confirmed as a project selection decision. Keep the underlying-page rights review as a separate status field; do not misstate it as a prohibition.
+1. **Leipzig source/language scope has been restored in config.** No source-specific language allowlist is used for News or Wikipedia. The historical 3,000-per-source rows are a starting snapshot, not a new cap; the acquisition process must retain every supported project label and report actual archive absence.
+2. **FineWeb2's six-label restriction has been removed.** The workflow now schedules all 31 available non-English project subsets. The source-wide technical-candidate/release-rights status remains a separate review flag, not a language exclusion.
 3. **DGT-TM is narrowed to five labels in config**, despite the historical 24-language artifact at 5,000 units per language and the broader approved first-pass acquisition decision. Restore all approved DGT languages and the 20,000/source/language first-pass ceiling; report source exhaustion honestly.
-4. **English is deliberately left without an active source** because FineWeb is excluded and FineWeb2 is restricted. This is an implementation consequence of the above source exclusions, not evidence that English material is unavailable. It conflicts with the user's instruction not to silently remove sources.
+4. **English source availability is distinct from language allowlists.** FineWeb2 does not supply English; FineWeb is a separate source currently excluded by its source-wide rights hold. No other source-language allowlist is used to exclude English.
 5. **Targets are inconsistent across project truth files.** README/config/contract say 34 labels and 30,000 per language (20k core + 10k reserve); earlier recorded project decisions specify a 32-language project and 25,000 final sentences per language with at least 35,000 candidates. This must be reconciled explicitly. Do not silently treat the newer README/config values as approved decisions.
 6. **No automatic top-up after global deduplication is currently permitted.** The contract says not to top up shortfalls, whereas the recorded project decision calls for adaptive oversampling/replenishment when quotas fail and additional material acquisition. This is a material policy mismatch and must be corrected in contract/config before a run.
 7. **The source register's status vocabulary mixes technical staging with approval and legal holds.** Each source needs separate fields for acquisition state, adapter integration, sentence-count evidence, rights/attribution status, project selection decision and first-run verification. "HOLD" must not automatically mean "do not ingest for private technical candidate evaluation" unless that exact exclusion was approved.
@@ -305,7 +305,7 @@ This audit compares the checked-in `docs/source-register.md`, `docs/pipeline-con
 ### Required correction order
 
 1. Reconcile the 32-vs-34 language inventory and 25k/35k-vs-30k targets against the actual approved decision record.
-2. Restore approved source/language coverage (Leipzig, FineWeb2, DGT, ParlaMint) and remove unsupported allowlists/exclusions.
+2. Keep the source-language allowlist invariant: Common Voice 22 alone has an explicit locale list because Croatian is absent; all other sources must derive coverage from their actual source content, with no config-level language allowlists.
 3. Restore adaptive oversampling/replenishment policy while preserving per-source provenance and the 6-hour batch ceiling.
 4. Reconcile source register, config, pipeline contract, README and trigger hashes as one reviewed contract change.
 5. Re-run full CI and source-adapter synthetic tests.
