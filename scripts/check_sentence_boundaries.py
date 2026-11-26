@@ -40,23 +40,35 @@ def main() -> None:
         import pyarrow.parquet as pq
     except ImportError as exc:
         raise SystemExit("Install pyarrow: python -m pip install pyarrow") from exc
-    table = pq.read_table(args.input, columns=["id", "lang", "sentence"])
+    parquet = pq.ParquetFile(args.input)
     args.output.parent.mkdir(parents=True, exist_ok=True)
+    total_rows = 0
     with args.output.open("w", encoding="utf-8", newline="") as stream:
         writer = csv.DictWriter(stream, fieldnames=[
             "id", "lang", "initial_capitalization", "terminal_punctuation"
         ])
         writer.writeheader()
-        for row in table.to_pylist():
-            text = str(row["sentence"] or "")
-            lang = str(row["lang"] or "").lower()
-            writer.writerow({
-                "id": str(row["id"]),
-                "lang": lang,
-                "initial_capitalization": capitalization_status(text, lang),
-                "terminal_punctuation": punctuation_status(text),
-            })
-    print(f"Flagged {table.num_rows} sentences: {args.output}")
+        for row_group in range(parquet.num_row_groups):
+            table = parquet.read_row_group(
+                row_group, columns=["id", "lang", "sentence"]
+            )
+            for batch in table.to_batches(max_chunksize=8192):
+                for row in batch.to_pylist():
+                    sentence = str(row["sentence"] or "")
+                    lang = str(row["lang"] or "").lower()
+                    writer.writerow({
+                        "id": str(row["id"]),
+                        "lang": lang,
+                        "initial_capitalization": capitalization_status(sentence, lang),
+                        "terminal_punctuation": punctuation_status(sentence),
+                    })
+                    total_rows += 1
+    if total_rows != parquet.metadata.num_rows:
+        raise RuntimeError(
+            f"Sentence-boundary diagnostic row mismatch: "
+            f"{total_rows} != {parquet.metadata.num_rows}"
+        )
+    print(f"Flagged {total_rows} sentences: {args.output}")
 
 
 if __name__ == "__main__":
