@@ -13,6 +13,23 @@ MODULE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(MODULE)
 
 
+def test_common_voice_project_labels_accept_their_upstream_locales():
+    cases = {
+        "ga": ["ga-IE"],
+        "sv": ["sv-SE"],
+        "nb": ["nb-NO"],
+        "nn": ["nn-NO"],
+        "zh": ["zh-CN", "zh-TW"],
+        "fi": ["fi"],
+    }
+    for language, locales in cases.items():
+        metadata = {"locales": locales}
+        for locale in locales:
+            assert MODULE.source_locale_allowed(metadata, locale)
+        assert not MODULE.source_locale_allowed(metadata, language + "-unexpected")
+    assert not MODULE.source_locale_allowed({"locales": ["zh-CN"]}, "zh-TW")
+
+
 def test_common_voice_expected_script_filter():
     assert MODULE.script_ratio("Καλημέρα σε όλους", "GREEK") > 0.95
     assert MODULE.script_ratio("Terve kaikille ystäville", "LATIN") > 0.95
