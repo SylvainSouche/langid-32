@@ -4,6 +4,7 @@ import pytest
 
 from scripts.sample_jql_assessment import original_source_id
 from scripts.merge_jql_ratings import read_score_manifests, validate_split_manifest
+from scripts.split_jql_parquet import shard_sizes
 
 
 def _write_manifest(directory, shards_dir, index, *, head_revision="b" * 40):
@@ -127,3 +128,14 @@ def test_split_manifest_rejects_missing_rows_or_unsafe_paths(tmp_path):
     (shards / "manifest.json").write_text(json.dumps(manifest))
     with pytest.raises(SystemExit, match="Invalid or duplicate shard filename"):
         validate_split_manifest(assessment, shards, 1, 1)
+
+def test_jql_shard_plan_is_balanced_and_exact():
+    sizes = shard_sizes(10, 4)
+    assert sizes == [3, 3, 2, 2]
+    assert sum(sizes) == 10
+    assert max(sizes) - min(sizes) <= 1
+
+
+def test_jql_shard_plan_rejects_empty_shards():
+    with pytest.raises(ValueError):
+        shard_sizes(3, 4)
