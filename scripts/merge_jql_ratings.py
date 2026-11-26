@@ -388,7 +388,7 @@ def main() -> None:
         "ratings_rows": len(ratings),
         "quantile_normalization": "average ranks mapped through standard-normal inverse CDF; ties share average rank",
         "normalization_scope": "entire assessment corpus, all languages combined, independently per judge",
-        "jql_out_of_training_languages": sorted(out_of_training),
+        "jql_out_of_training_languages": list(jql_config["out_of_training_languages"]),
         "jql_training_domain_counts_by_language_source": [
             {"language": str(language), "source": str(source), "domain_status": str(status), "count": int(count)}
             for (language, source, status), count in frame.groupby(
