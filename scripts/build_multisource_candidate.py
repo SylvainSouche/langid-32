@@ -216,7 +216,7 @@ def main():
                         help="Fail unless every language reaches every core split target")
     args = parser.parse_args()
     cfg = load_config(args.config)
-    # Keep the complete eligible pool for JQL. Final 30k/language selection and
+    # Keep the complete eligible pool for JQL. Final 35k/language selection and
     # source balancing are intentionally deferred until after global JQL pruning.
     args.seed = args.seed or cfg["candidate"]["splits"]["seed"]
 
