@@ -119,6 +119,8 @@ def read_score_manifests(
         if int(manifest.get("input_rows", -1)) != file_rows[csv_name]:
             raise SystemExit(f"Shard is incomplete according to manifest {manifest_path.name}")
         input_name = str(manifest.get("input_file", ""))
+        if Path(input_name).name != input_name or not input_name.endswith(".parquet"):
+            raise SystemExit(f"Unsafe shard filename in manifest {manifest_path.name}: {input_name!r}")
         input_path = shards_dir / input_name
         if not input_name or not input_path.is_file():
             raise SystemExit(f"Missing input shard for manifest {manifest_path.name}: {input_name}")
@@ -134,10 +136,10 @@ def read_score_manifests(
             raise SystemExit(f"Incomplete model provenance in {manifest_path.name}")
         for key in ("embedder_revision_resolved",):
             revision = provenance["models"].get(key)
-            if not isinstance(revision, str) or len(revision) != 40:
+            if not isinstance(revision, str) or len(revision) != 40 or any(ch not in "0123456789abcdef" for ch in revision.lower()):
                 raise SystemExit(f"Unpinned model revision in {manifest_path.name}: {key}")
         head_revision = provenance["models"].get("head_revision_resolved")
-        if not isinstance(head_revision, str) or len(head_revision) != 40:
+        if not isinstance(head_revision, str) or len(head_revision) != 40 or any(ch not in "0123456789abcdef" for ch in head_revision.lower()):
             raise SystemExit(f"Unpinned JQL head revision in {manifest_path.name}")
         if common_provenance is None:
             common_provenance = provenance
@@ -238,7 +240,9 @@ def main() -> None:
         raise SystemExit("JQL judge set does not match the authoritative config")
     checkpoint_hashes = model_provenance["head_checkpoint_sha256"]
     if set(checkpoint_hashes) != set(JUDGES) or any(
-        not isinstance(value, str) or len(value) != 64 for value in checkpoint_hashes.values()
+        not isinstance(value, str) or len(value) != 64
+        or any(ch not in "0123456789abcdef" for ch in value.lower())
+        for value in checkpoint_hashes.values()
     ):
         raise SystemExit("JQL checkpoint hashes are missing or malformed")
     expected, actual = set(frame["id"]), set(ratings)
