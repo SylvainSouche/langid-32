@@ -100,3 +100,11 @@ def test_jql_policy_rejects_automatic_final_selection():
     config["candidate"]["source_balance"]["enabled"] = True
     with pytest.raises(ValueError, match="must remain disabled"):
         validate_jql_policy(config)
+
+
+def test_fineweb2_retry_policy_is_bounded_and_configured():
+    config = load_config()
+    execution = config["execution"]
+    assert execution["fineweb2_rowgroup_retry_attempts"] == 8
+    assert execution["fineweb2_rowgroup_retry_base_seconds"] == 5
+    assert execution["fineweb2_rowgroup_retry_max_seconds"] == 120
