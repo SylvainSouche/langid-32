@@ -11,6 +11,7 @@ import argparse
 import csv
 import hashlib
 import json
+import os
 import unicodedata
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -51,7 +52,7 @@ def main() -> None:
     parser.add_argument("--input-root", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--per-language-cap", type=int, default=None)
-    parser.add_argument("--config", type=Path, default=ROOT / "config/langid32.toml")
+    parser.add_argument("--config", type=Path, default=Path(os.environ.get("LANGID32_CONFIG", ROOT / "config/langid32.toml")) )
     args = parser.parse_args()
     cfg = load_config(args.config)
     languages = tuple(cfg["project"]["languages"])
