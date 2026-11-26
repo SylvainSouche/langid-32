@@ -52,7 +52,7 @@ def test_common_voice_curation_retains_safe_sentence_provenance_only(tmp_path, m
     (input_root / "hf-common-voice-download-manifest.json").write_text(
         json.dumps({
             "source": "fsicoli/common_voice_22_0",
-            "revision_resolved": "a" * 40,
+            "revision_resolved": "b" * 40,
             "results": [{
                 "locale": "fi", "repo_commit": "b" * 40,
                 "sha256": tsv_sha256, "bytes": len(tsv_bytes),
