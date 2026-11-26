@@ -44,7 +44,7 @@ Build a private, reproducible, multi-source candidate pool for all 34 configured
 - Deduplicate exact normalized text within each language across all sources.
 - If the same normalized text occurs under more than one language label, exclude **every occurrence in every language**. Never use first-language-wins.
 - Preserve stable source/document/group identity for split integrity and provenance. Keep private provenance separate from text-only candidate outputs.
-- Source-exclusion URL/domain matching resolves document URLs (`source_document_url`/`document_url`) and archive URLs (`source_archive_url`/`archive_url`) as well as legacy URL fields. This keeps MaCoCu/Greynir document takedowns and Gaois archive/domain exclusions effective after candidate normalization.
+- Source-exclusion URL/domain matching resolves document URLs (`source_document_url`/`document_url`) and archive URLs (`source_archive_url`/`archive_url`) as well as legacy URL fields. This keeps MaCoCu/Greynir document takedowns and Gaois archive/domain exclusions effective after candidate normalization. The active legacy `source-dataset` exclusion for `greynir` is exact-name only; current Copper/Silver records use distinct `greynir_copper`/`greynir_silver` source IDs and have a regression test proving the Gold hold does not suppress them.
 - Report input, accepted, rejected, duplicate, cross-language collision, privacy rejection/quarantine and quota counts by original source and language. Reports must never include matched personal text or personal metadata values.
 
 ### Stage 3 — JQL assessment and pruning
