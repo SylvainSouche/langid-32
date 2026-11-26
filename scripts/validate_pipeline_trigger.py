@@ -23,9 +23,15 @@ def main() -> None:
             raise SystemExit("Pipeline push trigger is allowed only on main")
         payload_path = Path(os.environ.get("GITHUB_EVENT_PATH", ""))
         payload = json.loads(payload_path.read_text(encoding="utf-8"))
+        commits = payload.get("commits", [])
+        declared_size = payload.get("size")
+        if declared_size is not None and int(declared_size) != len(commits):
+            raise SystemExit(
+                "Push event commit list is incomplete; refusing to validate a possibly truncated change set"
+            )
         changed = {
             name
-            for commit in payload.get("commits", [])
+            for commit in commits
             for name in (commit.get("added", []) + commit.get("modified", []) + commit.get("removed", []))
         }
         if changed != {"pipeline-trigger.json"}:
