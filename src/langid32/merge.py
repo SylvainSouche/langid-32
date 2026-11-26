@@ -122,8 +122,10 @@ def _row_source_url(row):
     return str(
         provenance.get("source_url") or provenance.get("source_document_url") or
         provenance.get("document_url") or provenance.get("url") or
-        provenance.get("canonical_url") or row.get("source_url") or
-        row.get("source_document_url") or row.get("url") or row.get("canonical_url") or ""
+        provenance.get("canonical_url") or provenance.get("source_archive_url") or
+        provenance.get("archive_url") or row.get("source_url") or
+        row.get("source_document_url") or row.get("source_archive_url") or
+        row.get("url") or row.get("canonical_url") or ""
     )
 
 
