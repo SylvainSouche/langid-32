@@ -125,7 +125,7 @@ jobs:
           retention-days: "${{ steps.runtime.outputs.checkpoint_retention_days }}"
   common-voice:
     if: github.ref == 'refs/heads/main'
-    needs: [config]
+    needs: [config, historical]
     runs-on: ubuntu-latest
     timeout-minutes: ${{ fromJSON(needs.config.outputs.acquisition_job_timeout_minutes) }}
     steps:
@@ -163,7 +163,7 @@ jobs:
           retention-days: "${{ steps.runtime.outputs.checkpoint_retention_days }}"
   waiting-source:
     if: github.ref == 'refs/heads/main'
-    needs: [config]
+    needs: [config, historical]
     runs-on: ubuntu-latest
     timeout-minutes: ${{ fromJSON(needs.config.outputs.acquisition_job_timeout_minutes) }}
     strategy:
