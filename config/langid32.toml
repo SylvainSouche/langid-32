@@ -7,6 +7,36 @@ schema_version = 1
 [project]
 languages = ["bg","hr","cs","da","nl","en","et","fi","fr","de","el","hu","ga","it","lv","lt","mt","pl","pt","ro","sk","sl","es","sv","nb","nn","ru","ja","zh","ko","ar","tr","ca","is"]
 
+# Explicitly approved immutable historical source snapshots. These are the only
+# prior-run artifacts allowed as inputs to a clean staged pipeline execution.
+[historical_snapshots.v5]
+run_id = 43950037392
+artifact_id = 14266897039
+artifact_name = "multisource-candidate-v5-fineweb-en"
+expires_at = "2026-11-30T20:30:01Z"
+filename = "records.jsonl"
+
+[historical_snapshots.leipzig]
+run_id = 44361364340
+artifact_id = 14454427333
+artifact_name = "leipzig-balanced-34-44361364340"
+expires_at = "2026-12-18T17:46:23Z"
+filename = "leipzig-candidates.jsonl"
+
+[historical_snapshots.tatoeba]
+run_id = 44121162591
+artifact_id = 14345216923
+artifact_name = "tatoeba-cc0-staged-weekly-2026-11-14"
+expires_at = "2026-12-01T16:03:33Z"
+filename = "tatoeba-cc0-staged.jsonl"
+
+[historical_snapshots.dgt]
+run_id = 44291075180
+artifact_id = 14421763101
+artifact_name = "dgt-tm-2021-staged-5k"
+expires_at = "2026-12-02T11:07:30Z"
+filename = "dgt-tm-2021-staged.jsonl"
+
 [acquisition]
 # First pass: stream up to this many eligible, unique records from EACH
 # individual source for EACH language. This is not a family-wide/candidate cap.
