@@ -1,10 +1,10 @@
 # Source exclusion registry
 
-This file is the versioned, machine-readable input to the corpus exclusion filter. It intentionally starts empty: no source is excluded merely by example or assumption. Add one JSON object per line when a notice, provider restriction, privacy request or legal review requires exclusion.
+`data/source-exclusions.jsonl` is the versioned, machine-readable input to the corpus exclusion filter. It currently contains three active source-dataset exclusions: the two mislabelled Catalan DPO components and the legacy generic Greynir source identity. The Greynir rule matches only the exact original source `greynir`; it does not match the separately approved `greynir_copper` or `greynir_silver` identities. Add one JSON object per line when a documented notice, provider restriction, privacy request or legal review requires exclusion.
 
 Fields:
 - `scope`: `document`, `url`, `domain`, `archive-batch`, or `source-dataset`.
-- `reason_code`: `rights_notice`, `privacy_notice`, `provider_restriction`, `legal_review`, or `source_unknown`.
+- `reason_code`: a stable, non-identifying reason code. Current active values include `mixed_language_mislabelled` and `quality_hold_nonrepresentative_gold_dev_sample`; other examples include `rights_notice`, `privacy_notice`, `provider_restriction`, `legal_review`, `source_unknown` and `archive_takedown`.
 - `effective_at`: ISO-8601 timestamp/date.
 - `status`: `active` (default) or `superseded`.
 - `case_id`: internal case reference; never claimant identity.
