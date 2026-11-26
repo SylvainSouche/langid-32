@@ -82,3 +82,11 @@ def test_exact_source_identity_is_not_shared_across_source_components(tmp_path):
     assert first["rows_out"] == 1
     assert second["rows_out"] == 1
     assert second["filtered_superseded_sources"] == {}
+
+
+
+def test_input_manifest_documents_encrypted_text_retention():
+    source = SCRIPT.read_text(encoding="utf-8")
+    assert "raw TSV and candidate text are retained only inside the encrypted checkpoint" in source
+    assert "candidate text is retained only inside the encrypted checkpoint" in source
+    assert "candidate text removed before artifact upload" not in source
