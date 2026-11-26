@@ -79,6 +79,20 @@ def main():
     ap.add_argument("--head-repo", default=None)
     args = ap.parse_args()
     jql_cfg = load_config(args.config)["jql"]
+    runtime = {
+        "python_version": platform.python_version(),
+        "torch_version": torch.__version__,
+        "transformers_version": transformers.__version__,
+        "huggingface_hub_version": huggingface_hub.__version__,
+    }
+    if not runtime["python_version"].startswith(str(jql_cfg["python_version"]) + "."):
+        raise SystemExit(f"JQL requires Python {jql_cfg['python_version']}, found {runtime['python_version']}")
+    if runtime["torch_version"].split("+")[0] != jql_cfg["torch_version"]:
+        raise SystemExit(f"JQL requires torch {jql_cfg['torch_version']}, found {runtime['torch_version']}")
+    if runtime["transformers_version"] != jql_cfg["transformers_version"]:
+        raise SystemExit(f"JQL requires transformers {jql_cfg['transformers_version']}, found {runtime['transformers_version']}")
+    if runtime["huggingface_hub_version"] != jql_cfg["huggingface_hub_version"]:
+        raise SystemExit(f"JQL requires huggingface_hub {jql_cfg['huggingface_hub_version']}, found {runtime['huggingface_hub_version']}")
     args.batch_size = args.batch_size if args.batch_size is not None else jql_cfg["inference_batch_size"]
     args.max_length = args.max_length if args.max_length is not None else jql_cfg["max_token_length"]
     args.torch_threads = args.torch_threads if args.torch_threads is not None else jql_cfg["cpu_torch_threads"]
@@ -192,12 +206,7 @@ def main():
             "pooling": "CLS",
             "normalization": "L2",
         },
-        "runtime": {
-            "python_version": platform.python_version(),
-            "torch_version": torch.__version__,
-            "transformers_version": transformers.__version__,
-            "huggingface_hub_version": huggingface_hub.__version__,
-        },
+        "runtime": runtime,
     }
     if args.resume and args.output.is_file():
         if not manifest_path.is_file():
