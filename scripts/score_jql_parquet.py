@@ -229,7 +229,7 @@ def main():
                 stream.flush()
                 os.fsync(stream.fileno())
                 manifest = {**provenance, "schema_version": 1,
-                            "input_rows": int(len(pd.read_parquet(args.input, columns=["id"]))),
+                            "input_rows": input_rows,
                             "scored_rows": len(completed_ids),
                             "updated_at": datetime.now(timezone.utc).isoformat()}
                 write_manifest(manifest_path, manifest)
@@ -268,7 +268,7 @@ def main():
             os.fsync(stream.fileno())
             completed_ids.update(ids[start:start + len(batch_texts)])
             manifest = {**provenance, "schema_version": 1,
-                        "input_rows": int(len(pd.read_parquet(args.input, columns=["id"]))),
+                        "input_rows": input_rows,
                         "scored_rows": len(completed_ids),
                         "updated_at": datetime.now(timezone.utc).isoformat()}
             write_manifest(manifest_path, manifest)
