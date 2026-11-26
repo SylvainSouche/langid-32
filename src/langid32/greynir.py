@@ -11,8 +11,9 @@ import re
 from pathlib import Path
 
 REVISION = "deb60c4b2775a4e0c709a6890c28678b913f44aa"
+COPPER_FILES = tuple(f"psd/copper/copper{index:02d}.gz" for index in range(1, 11))
 PARTITION_FILES = {
-    "copper": "psd/copper/copper01.gz",
+    "copper": COPPER_FILES[0],
     "silver": "psd/silver/silver.gz",
 }
 UPSTREAM = "https://github.com/mideind/GreynirCorpus"
