@@ -312,6 +312,9 @@ acquisition_global_budget_minutes = 330
 acquisition_safety_margin_minutes = 30
 acquisition_retry_attempts = 3
 acquisition_checkpoint_every_files = 1
+fineweb2_rowgroup_retry_attempts = 8
+fineweb2_rowgroup_retry_base_seconds = 5
+fineweb2_rowgroup_retry_max_seconds = 120
 # Runtime controls are centralized here too; workflows should reference these.
 python_version = "3.12"
 leipzig_pause_seconds = 1
