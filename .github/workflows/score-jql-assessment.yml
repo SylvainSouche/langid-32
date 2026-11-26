@@ -133,6 +133,9 @@ jobs:
       LANGID32_SOURCE_SHA: ${{ needs.prepare.outputs.source_sha }}
       LANGID32_SOURCE_RUN_ID: ${{ needs.prepare.outputs.source_run_id }}
     steps:
+      - id: job_clock
+        name: Start the shard work-budget clock before setup
+        run: echo "started_epoch=$(date +%s)" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v4
         with:
           ref: ${{ needs.prepare.outputs.source_sha }}
@@ -172,13 +175,15 @@ jobs:
             echo "No previous partial artifact for shard $SHARD_INDEX; starting that shard from scratch."
           fi
       - name: Score all three JQL heads in resumable one-hour batches
+        env:
+          JQL_JOB_STARTED_EPOCH: ${{ steps.job_clock.outputs.started_epoch }}
         run: |
           set +e
-          started=$SECONDS
           output="ratings/shard-${{ matrix.index }}.csv"
           mkdir -p ratings
           while true; do
-            elapsed=$((SECONDS - started))
+            now=$(date +%s)
+            elapsed=$((now - JQL_JOB_STARTED_EPOCH))
             remaining=$((JQL_WORK_BUDGET_MINUTES * 60 - elapsed))
             # Leave one inference mini-batch for orderly checkpointing, plus the
             # separately configured ten-minute artifact-upload reserve.
