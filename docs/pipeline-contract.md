@@ -141,6 +141,8 @@ The current staged workflow's source coverage is narrower than the full set of a
 | ParlaMint 4.0 (IS/SI) | TEI audit workflow/script only; no utterance-to-candidate adapter in the staged workflow | Audited/registered, **not acquired by this pipeline** |
 | Soranoha Japanese literature | Audit artifact/source-register entry only; no active config rule or staged acquisition adapter | Audited/registered, **not acquired by this pipeline** |
 
+The v5 artifact is a composite historical snapshot. Restoring it does not override source exclusions: rows from held/excluded sources (including FineWeb where marked held) must still be filtered by the source register and exclusion registry before candidate construction.
+
 The `config/langid32.toml` contains target rules for Greynir Copper/Silver, MaCoCu and ParlaMint despite the absence of acquisition adapters/jobs for them. These config entries are not evidence that their text enters the candidate pool. **Do not silently count these sources or imply source completeness.** Before a full acquisition launch, the intended scope of these audited-but-not-integrated sources must be resolved: implement and test adapters, or explicitly defer them in the source register/config and record that scope decision here. This is a launch blocker if the user's intended current source set includes them.
 
 ### Resolved findings from run #178
