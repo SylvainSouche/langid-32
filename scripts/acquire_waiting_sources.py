@@ -187,7 +187,7 @@ def main():
         "lit_Latn": "lt", "mlt_Latn": "mt", "pol_Latn": "pl",
         "por_Latn": "pt", "ron_Latn": "ro", "slk_Latn": "sk",
         "slv_Latn": "sl", "spa_Latn": "es", "swe_Latn": "sv",
-        "nob_Latn": "nb", "nno_Latn": "nn", "rus_Cyrl": "ru",
+        "nob_Latn": "nb", "nno_Latn": "nn", "isl_Latn": "is", "rus_Cyrl": "ru",
         "jpn_Jpan": "ja", "cmn_Hani": "zh", "kor_Hang": "ko",
         "arb_Arab": "ar", "tur_Latn": "tr",
     }
