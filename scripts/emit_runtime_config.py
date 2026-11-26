@@ -86,7 +86,7 @@ def main() -> None:
     manifest_path = ROOT / "out" / "preflight-manifest.json"
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
     manifest_path.write_text(
-        json.dumps(manifest, ensure_ascii=False, indent=2) + "\\n",
+        json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
     values["preflight_manifest_sha256"] = hashlib.sha256(manifest_path.read_bytes()).hexdigest()
