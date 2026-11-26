@@ -149,7 +149,8 @@ def main():
                         for record in reader:
                             writer.writerow({**record,"source_locale":piece["locale"]})
             manifest.setdefault("combined",{})[language]={"locales":[x["locale"] for x in pieces],
-                "bytes":combined.stat().st_size,"sha256":hashlib.sha256(combined.read_bytes()).hexdigest()}
+                "repo_commit":resolved_revision,"bytes":combined.stat().st_size,
+                "sha256":hashlib.sha256(combined.read_bytes()).hexdigest()}
     manifest["finished_at_utc"]=now()
     manifest_path.write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     print(f"Manifest: {manifest_path}")
