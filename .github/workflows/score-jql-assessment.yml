@@ -114,13 +114,6 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
           python -m pip install -r requirements-jql.txt cryptography
-      - name: Download and decrypt assessment shard set
-        env:
-          LANGID32_CHECKPOINT_KEY: ${{ secrets.LANGID32_CHECKPOINT_KEY }}
-        run: |
-          mkdir -p encrypted jql-work
-          # This artifact was produced by the prepare job in this same workflow run.
-          python -c "print('Waiting for same-run encrypted shard artifact')"
       - uses: actions/download-artifact@v4
         with:
           name: jql-shards-encrypted
