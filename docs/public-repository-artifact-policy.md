@@ -1,7 +1,7 @@
 # Public repository and Actions artifact handling
 
 **Repository:** https://github.com/SylvainSouche/langid-32  
-**Checked:** 18 November 2026  
+**Updated:** 26 November 2026  
 **Observed repository visibility:** public (`private=false`).
 
 ## Why this matters
@@ -13,29 +13,27 @@ GitHub's documentation says people signed in to GitHub who have read access to a
 
 Because this repository is public, Actions artifacts containing candidate JSONL, Parquet, archives or other source text must be treated as publicly accessible. An artifact upload is not the same thing as a formal dataset release, but it can still make source excerpts available to third parties. That is inappropriate for sources whose underlying-text rights or redistribution terms remain unresolved.
 
-## Policy applied on 18 November 2026
+## Original metadata-only policy applied on 18 November 2026
 
-For future runs in this public repository:
+The 18 November policy prohibited uploading plaintext candidate JSONL, internal provenance JSONL, Parquet datasets, downloaded archives or other source text. That prohibition remains in force for **plaintext** artifacts and for all legacy/standalone workflows that do not implement the encrypted-checkpoint protocol below.
 
-- Upload metadata manifests, hashes, counts, source revisions, quality summaries and rights-status reports only.
-- Do not upload candidate sentence JSONL, internal provenance JSONL, Parquet datasets, downloaded archives or other source text.
-- Candidate text may be processed transiently on the Actions runner for technical validation, but must be deleted from the runner workspace before the job ends and must not be included in an artifact.
-- Do not upload a prepared Hugging Face dataset package until every included record has passed its source-level rights gate and the intended destination/release terms have been approved.
+Metadata-only artifacts may be uploaded in plaintext. This includes hashes, counts, source revisions, rights-status reports, sentence IDs, numeric JQL scores and non-text quality flags, provided they contain no sentence text or identifying contributor data.
 
-Workflow changes made to implement metadata-only artifacts include:
+## Current staged-pipeline encrypted-artifact exception (26 November 2026)
 
-- `acquire-waiting-sources.yml`
-- `common-voice-cc0-hf.yml`
-- `dgt-tmx-ingest.yml`
-- `tatoeba-ingest.yml`
-- `fineweb-extract.yml`
-- `corpus-integrate-fineweb.yml`
-- `corpus-integrate-fineweb2.yml`
-- the FineWeb2 assemble, buffer, extract, extract-all, top-up and Turkish/Chinese buffer workflows
-- `prepare-hf-dataset.yml`
-- `acquire-leipzig-corpora.yml`
+The later `docs/pipeline-contract.md` defines a specific exception for the staged corpus and JQL workflows. The repository remains public, so every Actions artifact is still publicly downloadable. Text-bearing data is therefore allowed in a new staged-pipeline artifact **only as authenticated ciphertext**:
 
-The Leipzig REST API probe uploads only OpenAPI, corpus catalogue and metadata-only probe reports; it does not retain sentence text.
+- `scripts/checkpoint.py` packages the `input/` and `out/` working trees and encrypts the archive in 64 MiB chunks with AES-256-GCM.
+- The AES key is derived from the GitHub Actions secret `LANGID32_CHECKPOINT_KEY` using SHA-256. The secret is not committed, printed, written into a manifest or uploaded. It must be a high-entropy random value of at least 32 characters; the workflow checks the minimum length before acquisition.
+- Text-bearing acquisition, candidate, full JQL assessment, shard and pruned-pool artifacts are uploaded only as encrypted checkpoint files. No plaintext sentence JSONL, text-bearing Parquet, source archive or decrypted checkpoint is uploaded.
+- Plaintext source/candidate/assessment workspaces are removed in cleanup steps after artifact upload, including on failed jobs. The waiting-source Hugging Face cache is kept inside the workspace and removed by the same cleanup. Scoring model weights may remain in the job-local cache because they are not corpus text.
+- Plaintext metadata-only outputs remain allowed: the preflight manifest, sentence-boundary flags and per-shard rating files contain identifiers/counts/scores/statuses, not sentence text.
+- Acquisition and candidate checkpoints use the configured short retention period (7 days); the full and pruned JQL encrypted artifact uses the configured artifact retention period (30 days).
+- Ciphertext is public and encryption is not repository access control. Anyone can download the encrypted bytes; decryption requires the separate secret. If that secret is disclosed or weak, the confidentiality guarantee is lost.
+
+The four pinned historical snapshots listed below are an explicit, previously accepted exception: they are existing, unencrypted source artifacts. They are downloaded from their pinned successful runs, validated, and included in the new pipeline's encrypted checkpoint before any new artifact upload. They are not re-uploaded as plaintext.
+
+This exception applies only to `.github/workflows/langid32-pipeline.yml` and its downstream `.github/workflows/score-jql-assessment.yml`. It does not relax the metadata-only rule for unrelated workflows or authorize publication/re-hosting of source text.
 
 ## Existing artifacts requiring an owner decision
 
