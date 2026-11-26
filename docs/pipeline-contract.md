@@ -1,6 +1,6 @@
 # langid-32 pipeline contract and execution protocol
 
-**Status:** audit baseline, 2026-11-26. This document records the agreed operational contract and the implementation state observed on `main` at commit `1e6f8319b6cfd102c650c3b516cc4583d0d42730`. It is not a claim that the pipeline currently satisfies the contract.
+**Status:** contract and implementation audit, refreshed 2026-11-26 against `main` commit `71fde5b0c2b02b34783d120fdfa3ada0c290f71f`. CI run [45798217209](https://github.com/SylvainSouche/langid-32/actions/runs/45798217209) passed all 110 tests, including the synthetic JQL integration test, actionlint, script compilation and Make dependency validation. This verifies the tested code paths only; it is **not** a successful real-data end-to-end pipeline run.
 
 **Authority:** this is the single pipeline-level source of truth for stage order, acceptance criteria, execution constraints and the rule for triggering a run. Numeric acquisition/JQL settings remain centralized in `config/langid32.toml`; source-specific rights and inclusion decisions remain in `docs/source-register.md`. If those sources conflict with this contract, stop and reconcile them in a reviewed change. Never silently choose one.
 
@@ -124,7 +124,7 @@ The original audit baseline was `main` commit `1e6f8319b6cfd102c650c3b516cc4583d
 | Deterministic JQL sharding | `scripts/split_jql_parquet.py`; streaming Parquet batches, SQLite global ID uniqueness, balanced eight-shard plan, per-shard hashes and manifest | Implemented; unit and synthetic integration coverage added |
 | Three-judge scoring | `scripts/score_jql_parquet.py`; three balanced heads, bfloat16, pinned runtime, source pipeline SHA/run ID, immutable model revisions and checkpoint hashes in each shard manifest | Implemented; actual model inference on the full pool not yet verified |
 | Global normalization, consensus and pruning | `scripts/merge_jql_ratings.py`; validates exact split manifest, all candidate IDs, all three judge ratings, source run/commit, model/runtime provenance, global quantile normalization, consensus and exact global bottom-25% pruning | Implemented; synthetic end-to-end JQL integration test added |
-| JQL workflow integration and resumption | `.github/workflows/score-jql-assessment.yml`; automatic `workflow_run` after staged pipeline success, exact source-run SHA checkout, optional resume from previous scoring-run artifacts with provenance checks | Implemented; workflow syntax/CI verification pending |
+| JQL workflow integration and resumption | `.github/workflows/score-jql-assessment.yml`; automatic `workflow_run` after staged pipeline success, exact source-run SHA checkout, optional resume from previous scoring-run artifacts with provenance checks | Implemented; workflow syntax and repository CI passed in run `45798217209`; real downstream scoring run not yet exercised |
 | Manual review hand-off | Text-bearing candidate/JQL outputs are encrypted before Actions artifact upload; final 30k selector is disabled | Implemented; no review artifact from a new full run yet |
 | Full real-data end-to-end proof | Staged acquisition → candidate → full-pool JQL scoring → merge/prune → encrypted hand-off | **Not yet verified**; do not describe the pipeline as production-verified until a complete run succeeds |
 
@@ -160,7 +160,7 @@ The `config/langid32.toml` contains target rules for Greynir Copper/Silver, MaCo
 
 ### Remaining verification gates
 
-- Latest CI must pass, including Python tests, the synthetic candidate→assessment→shard→three-rating-manifest→global-pruning integration test, CPU bfloat16 operation, fail-closed guarded-trigger tests and actionlint over all workflows.
+- CI gate: **passed** in run `45798217209` on commit `71fde5b0c2b02b34783d120fdfa3ada0c290f71f` (110 tests; CPU PyTorch/bfloat16 dependency installed; actionlint, script compilation and Make dependency validation passed). Earlier run `45795368247` failed two tests; those failures were subsequently corrected and the later run is green. CI success does not replace a full real-data pipeline run.
 - Resolve the source-scope blocker in the source-adapter matrix: determine whether Greynir Copper/Silver, MaCoCu, ParlaMint and Soranoha are required in this current candidate run. If required, implement and test their acquisition adapters; if deferred, update the source register and configuration with the user's explicit scope decision. Do not silently omit or claim they are included.
 - The historical job must validate the full Leipzig JSONL as well as the other three snapshots before any fresh acquisition job starts.
 - A clean real-data run must complete all in-scope acquisitions, candidate construction, every JQL shard, exact merge/pruning and encrypted artifact upload. The run must produce reconciled per-language × original-source counts.
