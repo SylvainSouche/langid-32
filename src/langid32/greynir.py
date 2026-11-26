@@ -137,6 +137,7 @@ def iter_sentences(path: str | Path, partition: str):
                 continue
             corpus_id = _field(tree, "ID-CORPUS")
             local_id = _field(tree, "ID-LOCAL")
+            source_url = _field(tree, "URL")
             text = _detokenize(_terminals(sentence_tree))
             if not text:
                 continue
@@ -149,6 +150,7 @@ def iter_sentences(path: str | Path, partition: str):
                     "source_record_number": record_number,
                     "source_corpus_id": corpus_id,
                     "source_local_id": local_id,
+                    "source_document_url": source_url,
                     "publisher": "Miðeind ehf.",
                     "upstream_revision": REVISION,
                 },
