@@ -93,11 +93,11 @@ def test_common_voice_hf_acquisition_is_enabled_for_configured_locales():
     downloader = (ROOT / "scripts/download_common_voice_hf.py").read_text()
     assert "individual locale terms acceptance" not in downloader
     from scripts.download_common_voice_hf import LOCALES
-    assert set(LOCALES) == set(config["languages"]) - {"hr"}
+    assert set(LOCALES) == set(config["project"]["languages"]) - {"hr"}
     assert LOCALES["zh"] == ["zh-CN", "zh-TW"]
     assert "unavailable_languages" in downloader
     curator = (ROOT / "scripts/curate_common_voice_hf.py").read_text()
-    assert 'languages = tuple(cfg["languages"])' in curator
+    assert 'languages = tuple(cfg["project"]["languages"])' in curator
     assert "lack recorded individual terms acceptance" not in downloader
     assert 'BASE = f"https://huggingface.co/datasets/{REPO}/resolve"' in downloader
 
