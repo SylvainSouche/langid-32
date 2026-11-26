@@ -169,6 +169,6 @@ def test_no_source_has_a_configured_language_allowlist():
     register = (ROOT / "docs/source-register.md").read_text(encoding="utf-8")
     assert "Common Voice 22" in register
     assert "Croatian" in register
-    assert "all HF-hosted Common Voice 22 locales" in register
+    assert "HF-hosted Common Voice 22 locales mapped to project labels" in register
     contract = (ROOT / "docs/pipeline-contract.md").read_text(encoding="utf-8")
     assert "Common Voice 22" in contract
