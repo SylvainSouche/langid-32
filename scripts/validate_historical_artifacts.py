@@ -85,7 +85,11 @@ def main() -> None:
             "size_in_bytes": int(artifact["size_in_bytes"]),
             "expires_at": artifact["expires_at"],
         })
-    print(json.dumps({"historical_artifacts_preflight": "passed", "artifacts": verified}, indent=2))
+    result = {"historical_artifacts_preflight": "passed", "artifacts": verified}
+    output = ROOT / "out" / "historical-artifact-preflight.json"
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(json.dumps(result, indent=2) + "\\n", encoding="utf-8")
+    print(json.dumps(result, indent=2))
 
 
 if __name__ == "__main__":
