@@ -162,7 +162,12 @@ def iter_sentences(path: str | Path, partition: str, source_file: str | None = N
             if sentence_tree is None or _contains_heading(sentence_tree):
                 continue
             corpus_id = _field(tree, "ID-CORPUS")
-            local_id = _field(tree, "ID-LOCAL")
+            local_id_node = _find_node(tree, "ID-LOCAL")
+            local_id = (
+                local_id_node[1]
+                if local_id_node is not None and len(local_id_node) > 1
+                and isinstance(local_id_node[1], str) else None
+            )
             source_url = _field(tree, "URL")
             text = _detokenize(_terminals(sentence_tree))
             if not text:
@@ -175,7 +180,7 @@ def iter_sentences(path: str | Path, partition: str, source_file: str | None = N
                     "source_partition": partition,
                     "source_record_number": record_number,
                     "source_corpus_id": corpus_id,
-                    "source_local_id": local_id,
+                    **({"source_local_id": local_id} if local_id else {}),
                     "source_document_url": source_url,
                     "publisher": "Miðeind ehf.",
                     "upstream_revision": REVISION,
