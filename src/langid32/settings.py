@@ -32,8 +32,8 @@ def validate_acquisition_policy(config: dict[str, Any]) -> None:
     if target != 20000:
         raise ValueError(f"Expected the approved 20,000 post-filter target, got {target}")
     for source, rule in acquisition.get("source_rules", {}).items():
-        if source != "common_voice_v22" and "languages" in rule:
-            raise ValueError(f"Source-language allowlists are forbidden outside Common Voice 22: {source}.languages")
+        if "languages" in rule:
+            raise ValueError(f"Source-language allowlists are forbidden: {source}.languages")
         if "quota_key" in rule:
             raise ValueError(
                 f"Source-family quota alias is forbidden: {source}.quota_key; "
