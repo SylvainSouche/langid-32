@@ -125,10 +125,11 @@ def _detokenize(tokens: list[str]) -> str:
     return " ".join(text.split())
 
 
-def iter_sentences(path: str | Path, partition: str):
+def iter_sentences(path: str | Path, partition: str, source_file: str | None = None):
     """Yield text and non-identifying provenance from one pinned LFS partition."""
     if partition not in PARTITION_FILES:
         raise ValueError(f"Unsupported Greynir partition: {partition}")
+    source_file = source_file or PARTITION_FILES[partition]
     path = Path(path)
     with gzip.open(path, "rt", encoding="utf-8", errors="strict", newline=None) as stream:
         for record_number, block in enumerate(_record_blocks(stream), 1):
@@ -146,7 +147,7 @@ def iter_sentences(path: str | Path, partition: str):
                 "text": text,
                 "group_id": corpus_id,
                 "provenance": {
-                    "source_file": PARTITION_FILES[partition],
+                    "source_file": source_file,
                     "source_partition": partition,
                     "source_record_number": record_number,
                     "source_corpus_id": corpus_id,
