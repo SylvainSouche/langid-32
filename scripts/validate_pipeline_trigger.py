@@ -47,7 +47,7 @@ def main() -> None:
         if not re.fullmatch(r"[A-Za-z0-9._-]{12,80}", nonce):
             raise SystemExit("Pipeline trigger nonce is missing or malformed")
         hashes = {
-            "config_sha256": sha256(ROOT / "config/langid32.toml"),
+            "config_sha256": sha256(ROOT / os.environ.get("LANGID32_CONFIG", "config/langid32.toml")),
             "source_register_sha256": sha256(ROOT / "docs/source-register.md"),
             "pipeline_contract_sha256": sha256(ROOT / "docs/pipeline-contract.md"),
         }
