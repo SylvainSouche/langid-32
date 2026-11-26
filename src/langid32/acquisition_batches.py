@@ -13,6 +13,50 @@ from pathlib import Path
 from typing import Iterable, Mapping, Sequence
 
 
+_RETRYABLE_HTTP_STATUSES = {408, 425, 429, 500, 502, 503, 504}
+
+
+def is_retryable_remote_error(exc: BaseException) -> bool:
+    """Return true only for transient HTTP/transport failures suitable for replay."""
+    pending = [exc]
+    seen = set()
+    while pending:
+        current = pending.pop()
+        if id(current) in seen:
+            continue
+        seen.add(id(current))
+        for attr in ("status", "status_code", "code"):
+            value = getattr(current, attr, None)
+            try:
+                if int(value) in _RETRYABLE_HTTP_STATUSES:
+                    return True
+            except (TypeError, ValueError):
+                pass
+        for attr in ("response", "__cause__", "__context__"):
+            nested = getattr(current, attr, None)
+            if nested is not None:
+                pending.append(nested)
+        if isinstance(current, (TimeoutError, ConnectionError, EOFError, BrokenPipeError)):
+            return True
+        message = str(current).casefold()
+        if any(token in message for token in (
+            "http 408", "http 425", "http 429", "http 500", "http 502",
+            "http 503", "http 504", "status code 429", "status=429",
+            "timed out", "timeout", "connection reset", "connection aborted",
+            "server disconnected", "remote end closed", "incomplete read",
+            "temporarily unavailable",
+        )):
+            return True
+    return False
+
+
+def retry_delay_seconds(attempt: int, base_seconds: int, max_seconds: int) -> int:
+    """Deterministic capped exponential backoff; attempt numbering starts at one."""
+    if attempt < 1 or base_seconds < 1 or max_seconds < 1:
+        raise ValueError("attempt, base_seconds and max_seconds must be positive")
+    return min(base_seconds * (2 ** (attempt - 1)), max_seconds)
+
+
 def open_state(path: str | Path) -> sqlite3.Connection:
     db = sqlite3.connect(str(path), timeout=60)
     db.execute("PRAGMA journal_mode=WAL")
