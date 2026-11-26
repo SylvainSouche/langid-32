@@ -3,7 +3,7 @@ import json
 import pytest
 
 from scripts.sample_jql_assessment import original_source_id
-from scripts.merge_jql_ratings import read_score_manifests
+from scripts.merge_jql_ratings import read_score_manifests, validate_split_manifest
 
 
 def _write_manifest(directory, shards_dir, index, *, head_revision="b" * 40):
@@ -86,3 +86,44 @@ def test_score_manifests_reject_mixed_model_revisions(tmp_path):
         read_score_manifests(
             ratings, {csv0: 1, csv1: 1}, shards, expected_shards=2
         )
+
+def test_split_manifest_proves_exact_assessment_partition(tmp_path):
+    shards = tmp_path / "shards"
+    shards.mkdir()
+    assessment = tmp_path / "assessment.parquet"
+    assessment.write_bytes(b"assessment")
+    shard = shards / "shard-00.parquet"
+    shard.write_bytes(b"shard-data")
+    import hashlib
+
+    manifest = {
+        "input": assessment.name,
+        "input_sha256": hashlib.sha256(assessment.read_bytes()).hexdigest(),
+        "rows": 3,
+        "shards": 1,
+        "files": [{
+            "file": shard.name,
+            "rows": 3,
+            "sha256": hashlib.sha256(shard.read_bytes()).hexdigest(),
+        }],
+    }
+    (shards / "manifest.json").write_text(json.dumps(manifest))
+    _, files = validate_split_manifest(assessment, shards, 3, 1)
+    assert files["shard-00.parquet"]["rows"] == 3
+
+
+def test_split_manifest_rejects_missing_rows_or_unsafe_paths(tmp_path):
+    shards = tmp_path / "shards"
+    shards.mkdir()
+    assessment = tmp_path / "assessment.parquet"
+    assessment.write_bytes(b"assessment")
+    manifest = {
+        "input": assessment.name,
+        "input_sha256": "x",
+        "rows": 1,
+        "shards": 1,
+        "files": [{"file": "../outside.parquet", "rows": 1, "sha256": "x"}],
+    }
+    (shards / "manifest.json").write_text(json.dumps(manifest))
+    with pytest.raises(SystemExit, match="assessment hash mismatch"):
+        validate_split_manifest(assessment, shards, 1, 1)
