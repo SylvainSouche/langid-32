@@ -1,6 +1,6 @@
 import pytest
 
-from langid32.settings import acquisition_target, language_target, load_config
+from langid32.settings import acquisition_target, language_target, load_config, validate_jql_policy
 
 
 def test_central_config_has_34_unique_target_languages():
@@ -20,6 +20,7 @@ def test_source_and_language_overrides_are_explicit_and_inherit_defaults():
     assert acquisition_target(config, "parlamint_is", "is") == 20000
     assert acquisition_target(config, "greynir_copper", "is") == 20000
     assert acquisition_target(config, "greynir_silver", "is") == 20000
+    assert acquisition_target(config, "gaois_irish_legislation", "ga") == 50000
     with pytest.raises(ValueError):
         acquisition_target(config, "greynir_gold_dev_test", "is")
     with pytest.raises(ValueError):
@@ -57,3 +58,36 @@ def test_approved_source_scopes_and_deferred_final_selection_policy():
     assert config["jql"]["final_selection_requires_user_approval"] is True
     assert config["quality"]["initial_capitalization"] == "record_flag_only"
     assert config["quality"]["terminal_punctuation"] == "record_flag_only"
+
+def test_jql_contract_is_locked_to_full_pool_global_quartile_and_deferred_selection():
+    config = load_config()
+    assert config["jql"]["assessment_all_candidate_rows"] is True
+    assert config["jql"]["assessment_sample_per_language"] == 0
+    assert config["jql"]["max_rows"] == 0
+    assert config["jql"]["judges"] == ["gemma", "mistral", "llama"]
+    assert config["jql"]["prune_bottom_quantile"] == 0.25
+    assert config["jql"]["max_seconds"] == 3600
+    assert config["jql"]["shard_count"] == 8
+    assert config["jql"]["max_parallel_shards"] == 4
+    assert config["jql"]["job_timeout_minutes"] == 360
+    assert config["jql"]["upload_buffer_minutes"] == 10
+    assert config["candidate"]["source_balance"]["preferred_share"] == 0.30
+    assert config["candidate"]["source_balance"]["hard_max_share"] == 0.50
+
+
+def test_jql_policy_rejects_sampling_and_per_language_pruning():
+    config = load_config()
+    config["jql"]["assessment_all_candidate_rows"] = False
+    with pytest.raises(ValueError, match="assess every"):
+        validate_jql_policy(config)
+    config = load_config()
+    config["jql"]["prune_bottom_quantile"] = 0.20
+    with pytest.raises(ValueError, match="global bottom 25"):
+        validate_jql_policy(config)
+
+
+def test_jql_policy_rejects_automatic_final_selection():
+    config = load_config()
+    config["candidate"]["source_balance"]["enabled"] = True
+    with pytest.raises(ValueError, match="must remain disabled"):
+        validate_jql_policy(config)
