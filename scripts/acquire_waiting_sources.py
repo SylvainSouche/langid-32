@@ -289,6 +289,19 @@ def main():
             return (f"MaCoCu-{language}-2.0@{revision}", "CC0-1.0",
                     f"paragraph text extracted from MaCoCu-{language}-2.0 XML",
                     "declared_cc0_accepted")
+
+        if source in {"greynir_copper", "greynir_silver"}:
+            from langid32.greynir import REVISION as GREYNIR_REVISION, PARTITION_FILES
+            partition = source.rsplit("_", 1)[1]
+            relative = PARTITION_FILES[partition]
+            item = next((row for row in downloads
+                         if row.get("source_file") == relative), None)
+            if item is None:
+                raise RuntimeError(f"Missing pinned Greynir file manifest for {relative}")
+            return (f"GreynirCorpus-1.1-{partition}@{GREYNIR_REVISION}",
+                    "CC-BY-4.0",
+                    f"Icelandic parsed sentence from GreynirCorpus 1.1 {partition}; publisher Miðeind ehf.",
+                    "declared_cc_by_4_0_accepted")
         if source.startswith("maalfrid2026:"):
             language = source.rsplit(":", 1)[1]
             suffix = "nob.tar" if language == "nb" else "nno.tar"
@@ -820,6 +833,77 @@ def main():
                 notes.append(f"{config}: reached the {limit_for(*bucket_key)}-record source/language quota.")
             notes.append(config + ": underlying web-text rights unresolved; technical candidates only.")
 
+        elif args.source == "greynir":
+            from langid32.greynir import (
+                PARTITION_FILES as GREYNIR_FILES, REVISION as GREYNIR_REVISION,
+                UPSTREAM as GREYNIR_UPSTREAM, iter_sentences,
+            )
+            repository = temp_root / "GreynirCorpus"
+            include = ",".join(GREYNIR_FILES.values())
+            try:
+                if not repository.exists():
+                    subprocess.run(["git", "init", str(repository)], check=True)
+                    subprocess.run([
+                        "git", "-C", str(repository), "remote", "add",
+                        "origin", GREYNIR_UPSTREAM + ".git",
+                    ], check=True)
+                    subprocess.run([
+                        "git", "-C", str(repository), "fetch", "--depth=1",
+                        "origin", GREYNIR_REVISION,
+                    ], check=True)
+                    subprocess.run([
+                        "git", "-C", str(repository), "checkout", "--detach", "FETCH_HEAD",
+                    ], check=True)
+                    subprocess.run([
+                        "git", "-C", str(repository), "lfs", "install", "--local",
+                    ], check=True)
+                    subprocess.run([
+                        "git", "-C", str(repository), "lfs", "fetch",
+                        f"--include={include}", "origin", GREYNIR_REVISION,
+                    ], check=True)
+                    subprocess.run([
+                        "git", "-C", str(repository), "lfs", "checkout",
+                    ], check=True)
+
+                for partition in ("copper", "silver"):
+                    source = f"greynir_{partition}"
+                    bucket_key = ("is", source)
+                    if quota_reached(bucket_key):
+                        continue
+                    relative = GREYNIR_FILES[partition]
+                    corpus_file = repository / relative
+                    if not corpus_file.is_file():
+                        raise RuntimeError(f"Pinned Greynir file is missing: {relative}")
+                    with corpus_file.open("rb") as stream:
+                        if stream.read(200).startswith(b"version https://git-lfs.github.com/spec"):
+                            raise RuntimeError(f"Greynir LFS object was not hydrated: {relative}")
+                    digest = hashlib.sha256()
+                    size = 0
+                    with corpus_file.open("rb") as stream:
+                        for block in iter(lambda: stream.read(EXECUTION["file_copy_chunk_bytes"]), b""):
+                            digest.update(block)
+                            size += len(block)
+                    downloads.append({
+                        "source_file": relative,
+                        "url": f"{GREYNIR_UPSTREAM}/blob/{GREYNIR_REVISION}/{relative}",
+                        "bytes": size,
+                        "sha256": digest.hexdigest(),
+                        "revision": GREYNIR_REVISION,
+                    })
+                    for record in iter_sentences(corpus_file, partition):
+                        if quota_reached(bucket_key):
+                            break
+                        add("is", source, record["text"], record["group_id"], record["provenance"])
+                    if quota_reached(bucket_key):
+                        notes.append(f"Greynir {partition}: reached the source/language quota.")
+                    else:
+                        notes.append(
+                            f"Greynir {partition}: source file exhausted at "
+                            f"{retained_count(state_db, source, 'is')} retained records."
+                        )
+            finally:
+                shutil.rmtree(repository, ignore_errors=True)
+
         elif args.source == "macocu":
             from langid32.macocu import SOURCES as MACOCU_SOURCES, iter_paragraphs
             for language in ("hr", "mt", "sl"):
@@ -982,6 +1066,7 @@ def main():
             "arabic": {"ar"},
             "parlamint": {"is", "sl"},
             "macocu": {"hr", "mt", "sl"},
+            "greynir": {"is"},
         }
         actual_languages = {language for (language, _bucket), items in retained.items() if items}
         missing_languages = sorted(expected_languages.get(args.source, set()) - actual_languages)
