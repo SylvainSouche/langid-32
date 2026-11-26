@@ -61,7 +61,7 @@ def test_jql_scoring_invocation_cannot_overrun_job_upload_budget():
     root = Path(__file__).resolve().parents[1]
     workflow = (root / ".github/workflows/score-jql-assessment.yml").read_text(encoding="utf-8")
     scorer = (root / "scripts/score_jql_parquet.py").read_text(encoding="utf-8")
-    score_job = workflow.split("\\n  score:\\n", 1)[1]
+    score_job = workflow.split("\n  score:\n", 1)[1]
     assert score_job.index("Start the shard work-budget clock before setup") < score_job.index("actions/checkout@v4")
     assert 'JQL_JOB_STARTED_EPOCH: ${{ steps.job_clock.outputs.started_epoch }}' in score_job
     assert 'elapsed=$((now - JQL_JOB_STARTED_EPOCH))' in score_job
