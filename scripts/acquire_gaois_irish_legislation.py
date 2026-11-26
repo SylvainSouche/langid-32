@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 """Acquire a bounded, deduplicated Irish-side sample from Gaois legislation TMX."""
 from __future__ import annotations
-import argparse, hashlib, heapq, json, re, sqlite3, tempfile, unicodedata, zipfile
+import argparse, hashlib, heapq, json, re, sqlite3, tempfile, time, unicodedata, zipfile
 from pathlib import Path
 import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 from langid32.settings import load_config, acquisition_target
 from langid32.merge import EMAIL_RE, URL_RE, IPV4_RE, LONG_NUMBER_RE
+from langid32.privacy import screen_text, sanitize_provenance
+from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 from xml.etree.ElementTree import iterparse
 
@@ -39,18 +41,31 @@ def clean(value, rules):
     return text
 
 def download(url, path, execution):
-    req = Request(url, headers={"User-Agent": "langid-32-source-acquisition/1.0"})
-    digest = hashlib.sha256()
-    size = 0
-    with urlopen(req, timeout=execution["http_read_timeout_seconds"]) as response, path.open("wb") as out:
-        expected = int(response.headers.get("Content-Length") or 0)
-        while True:
-            block = response.read(execution["download_chunk_bytes"])
-            if not block: break
-            out.write(block); digest.update(block); size += len(block)
-    if expected and size != expected:
-        raise IOError(f"truncated download {url}: {size}/{expected}")
-    return {"url": url, "bytes": size, "sha256": digest.hexdigest()}
+    attempts = int(execution["acquisition_retry_attempts"])
+    for attempt in range(1, attempts + 1):
+        req = Request(url, headers={"User-Agent": "langid-32-source-acquisition/1.0"})
+        digest = hashlib.sha256()
+        size = 0
+        try:
+            with urlopen(req, timeout=execution["http_read_timeout_seconds"]) as response, path.open("wb") as out:
+                expected = int(response.headers.get("Content-Length") or 0)
+                while True:
+                    block = response.read(execution["download_chunk_bytes"])
+                    if not block:
+                        break
+                    out.write(block)
+                    digest.update(block)
+                    size += len(block)
+            if expected and size != expected:
+                raise IOError(f"truncated download {url}: {size}/{expected}")
+            return {"url": url, "bytes": size, "sha256": digest.hexdigest()}
+        except HTTPError as exc:
+            if exc.code not in {429, 500, 502, 503, 504} or attempt == attempts:
+                raise
+            retry_after = exc.headers.get("Retry-After", "")
+            delay = min(int(retry_after), 120) if retry_after.isdigit() else min(5 * (2 ** (attempt - 1)), 60)
+            time.sleep(delay)
+    raise RuntimeError(f"Download retry budget exhausted for {url}")
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
