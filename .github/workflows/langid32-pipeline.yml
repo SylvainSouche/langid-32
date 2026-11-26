@@ -186,17 +186,69 @@ jobs:
           - target: norwegian
           - target: korean
           - target: fineweb2
-            config: isl_Latn
+            config: bul_Cyrl
           - target: fineweb2
             config: hrv_Latn
           - target: fineweb2
+            config: cat_Latn
+          - target: fineweb2
+            config: ces_Latn
+          - target: fineweb2
+            config: dan_Latn
+          - target: fineweb2
+            config: nld_Latn
+          - target: fineweb2
+            config: ekk_Latn
+          - target: fineweb2
             config: fin_Latn
+          - target: fineweb2
+            config: fra_Latn
+          - target: fineweb2
+            config: deu_Latn
           - target: fineweb2
             config: ell_Grek
           - target: fineweb2
+            config: hun_Latn
+          - target: fineweb2
+            config: gle_Latn
+          - target: fineweb2
+            config: ita_Latn
+          - target: fineweb2
+            config: lvs_Latn
+          - target: fineweb2
+            config: lit_Latn
+          - target: fineweb2
             config: mlt_Latn
           - target: fineweb2
+            config: pol_Latn
+          - target: fineweb2
+            config: por_Latn
+          - target: fineweb2
+            config: ron_Latn
+          - target: fineweb2
+            config: slk_Latn
+          - target: fineweb2
             config: slv_Latn
+          - target: fineweb2
+            config: spa_Latn
+          - target: fineweb2
+            config: swe_Latn
+          - target: fineweb2
+            config: nob_Latn
+          - target: fineweb2
+            config: nno_Latn
+          - target: fineweb2
+            config: rus_Cyrl
+          - target: fineweb2
+            config: jpn_Jpan
+          - target: fineweb2
+            config: cmn_Hani
+          - target: fineweb2
+            config: kor_Hang
+          - target: fineweb2
+            config: arb_Arab
+          - target: fineweb2
+            config: tur_Latn
           - target: arabic
           - target: gaois
           - target: parlamint
