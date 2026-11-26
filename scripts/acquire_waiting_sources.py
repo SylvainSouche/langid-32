@@ -168,11 +168,20 @@ def main():
     output_root.mkdir(parents=True, exist_ok=True)
     temp_root = output_root / ".work"
     temp_root.mkdir(parents=True, exist_ok=True)
-    policy_digest = hashlib.sha256(
-        Path(__file__).read_bytes()
-        + (ROOT / "src/langid32/privacy.py").read_bytes()
-        + args.config.read_bytes()
-    ).hexdigest()[:12]
+    policy_files = [
+        Path(__file__),
+        ROOT / "src/langid32/privacy.py",
+        args.config,
+        *sorted((ROOT / "src/langid32").glob("*.py")),
+        *sorted((ROOT / "stages/01-acquisition/targets").glob("*.py")),
+    ]
+    policy_hash = hashlib.sha256()
+    for policy_file in sorted(set(policy_files), key=lambda item: str(item)):
+        label = (policy_file.relative_to(ROOT).as_posix()
+                 if policy_file.is_relative_to(ROOT) else policy_file.name)
+        policy_hash.update(label.encode("utf-8"))
+        policy_hash.update(policy_file.read_bytes())
+    policy_digest = policy_hash.hexdigest()[:12]
     state_path = args.state_db or (output_root / f"acquisition-state-{policy_digest}.sqlite")
     state_path.parent.mkdir(parents=True, exist_ok=True)
     state_db = open_state(state_path)
@@ -271,6 +280,15 @@ def main():
             return (f"ParlaMint-4.0-{language}@{revision}", "CC-BY-4.0",
                     "parliamentary utterance paragraph from ParlaMint 4.0 TEI",
                     "declared_cc_by_4_0_accepted")
+
+        if source.startswith("macocu_"):
+            language = source.split("_", 2)[1]
+            item = next((row for row in downloads
+                         if f"MaCoCu-{language}-2.0.xml.zip" in row["url"]), None)
+            revision = f"sha256:{item['sha256']}" if item else "archive-hash-unresolved"
+            return (f"MaCoCu-{language}-2.0@{revision}", "CC0-1.0",
+                    f"paragraph text extracted from MaCoCu-{language}-2.0 XML",
+                    "declared_cc0_accepted")
         if source.startswith("maalfrid2026:"):
             language = source.rsplit(":", 1)[1]
             suffix = "nob.tar" if language == "nb" else "nno.tar"
@@ -802,6 +820,49 @@ def main():
                 notes.append(f"{config}: reached the {limit_for(*bucket_key)}-record source/language quota.")
             notes.append(config + ": underlying web-text rights unresolved; technical candidates only.")
 
+        elif args.source == "macocu":
+            from langid32.macocu import SOURCES as MACOCU_SOURCES, iter_paragraphs
+            for language in ("hr", "mt", "sl"):
+                meta = MACOCU_SOURCES[language]
+                source = meta["source"]
+                bucket_key = (language, source)
+                if quota_reached(bucket_key):
+                    continue
+                archive = temp_root / f"macocu-{language}-2.0.xml.zip"
+                download = fetch(meta["url"], archive)
+                md5 = hashlib.md5()
+                with archive.open("rb") as stream:
+                    for block in iter(lambda: stream.read(EXECUTION["file_copy_chunk_bytes"]), b""):
+                        md5.update(block)
+                if md5.hexdigest() != meta["md5"]:
+                    raise RuntimeError(
+                        f"MaCoCu {language.upper()} archive MD5 mismatch: "
+                        f"{md5.hexdigest()} != {meta['md5']}"
+                    )
+                downloads.append({**download, "catalogue_md5": meta["md5"], "md5_matches": True})
+                for record in iter_paragraphs(archive, language):
+                    if quota_reached(bucket_key):
+                        break
+                    provenance = record["provenance"]
+                    if provenance["paragraph_heading"]:
+                        privacy_counts["source_heading_rejected"] += 1
+                        continue
+                    if provenance["paragraph_sensitive"]:
+                        privacy_counts["source_sensitive_rejected"] += 1
+                        continue
+                    if provenance["paragraph_language"] != language:
+                        privacy_counts["source_language_rejected"] += 1
+                        continue
+                    add(language, source, record["text"], record["group_id"], provenance)
+                if quota_reached(bucket_key):
+                    notes.append(f"MaCoCu {language.upper()}: reached the source/language quota.")
+                else:
+                    notes.append(
+                        f"MaCoCu {language.upper()}: archive exhausted at "
+                        f"{retained_count(state_db, source, language)} retained records."
+                    )
+                archive.unlink(missing_ok=True)
+
         elif args.source == "parlamint":
             from langid32.parlamint import SOURCES as PARLAMINT_SOURCES, iter_utterances
             for language in ("is", "sl"):
@@ -920,6 +981,7 @@ def main():
             "fineweb2": {fineweb2_languages[args.fineweb2_config]} if args.source == "fineweb2" else set(),
             "arabic": {"ar"},
             "parlamint": {"is", "sl"},
+            "macocu": {"hr", "mt", "sl"},
         }
         actual_languages = {language for (language, _bucket), items in retained.items() if items}
         missing_languages = sorted(expected_languages.get(args.source, set()) - actual_languages)
