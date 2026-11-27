@@ -76,14 +76,33 @@ def _record_blocks(stream):
     if buffer or depth or in_string:
         raise RuntimeError("Greynir PSD file ended inside an incomplete tree record or quoted string")
 
-def _parse_sexpr(source: str):
-    """Parse one Greynir record with the maintained sexpdata reader.
+class _GreynirSexpParser(sexpdata.Parser):
+    """Use sexpdata's reader with Greynir's delimiter/atom conventions."""
 
-    Disable Lisp nil/boolean coercions so corpus atoms retain their literal
-    values. sexpdata handles escaped delimiters in unquoted symbols.
-    """
+    def __init__(self, source: str):
+        # Greynir uses only parentheses as structural delimiters. Square
+        # brackets, semicolons and other punctuation may occur in URL atoms.
+        super().__init__(source, nil=None, true=None, false=None, line_comment="\0")
+        self.brackets = {"(": ")"}
+        self.closing_brackets = {")"}
+        self._atom_end_basic = set('()"') | set(" \t\n\r\v\f")
+        self._atom_end_basic_or_escape_regexp = "|".join(
+            map(re.escape, self._atom_end_basic | {"\\"})
+        )
+        self.atom_end = {self.line_comment} | self._atom_end_basic
+        self.atom_end_or_escape_re = re.compile(
+            f"{self._atom_end_basic_or_escape_regexp}|{re.escape(self.line_comment)}"
+        )
+
+
+def _parse_sexpr(source: str):
+    """Parse one Greynir record with sexpdata's mature S-expression reader."""
     try:
-        parsed = sexpdata.loads(source, nil=None, true=None, false=None)
+        parsed = _GreynirSexpParser(source).parse()
+        if len(parsed) != 1:
+            raise RuntimeError(
+                f"Expected one Greynir PSD record, found {len(parsed)} top-level expressions"
+            )
 
         def normalize(value):
             if isinstance(value, sexpdata.String):
@@ -96,8 +115,10 @@ def _parse_sexpr(source: str):
                 return str(value)
             return value
 
-        return normalize(parsed)
-    except (sexpdata.SExpError, AssertionError, ValueError) as exc:
+        return normalize(parsed[0])
+    except Exception as exc:
+        if isinstance(exc, RuntimeError):
+            raise
         position = getattr(exc, "position", None)
         where = f" at {position}" if position is not None else ""
         raise RuntimeError(f"Invalid Greynir PSD S-expression{where}: {exc}") from exc
