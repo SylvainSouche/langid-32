@@ -74,7 +74,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install assessment preparation dependencies
-        run: python -m pip install --upgrade pip pyarrow cryptography
+        run: python -m pip install --upgrade pip -e . -r requirements-corpus.txt cryptography
       - id: profile
         name: Bind JQL to the exact source run configuration
         env:
@@ -187,7 +187,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install torch==2.6.0+cpu --index-url https://download.pytorch.org/whl/cpu
-          python -m pip install -r requirements-jql.txt cryptography
+          python -m pip install -e . -r requirements-jql.txt cryptography
       - uses: actions/download-artifact@v4
         with:
           name: jql-shards-encrypted
@@ -272,7 +272,7 @@ jobs:
           python-version: ${{ needs.prepare.outputs.python_version }}
           cache: pip
       - name: Install merge and encryption dependencies
-        run: python -m pip install --upgrade pip pyarrow pandas cryptography
+        run: python -m pip install --upgrade pip -e . -r requirements-corpus.txt pandas cryptography
       - uses: actions/download-artifact@v4
         with:
           name: jql-shards-encrypted
