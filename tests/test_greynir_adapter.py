@@ -98,3 +98,24 @@ def test_greynir_quoted_parentheses_do_not_change_tree_depth(tmp_path):
     rows = list(iter_sentences(path, "copper"))
     assert len(rows) == 1
     assert rows[0]["text"] == "Próf (A) virkar."
+
+
+def test_greynir_escaped_parenthesis_in_unquoted_atom(tmp_path):
+    from src.langid32.greynir import _parse_sexpr, _record_blocks
+
+    record = r"""(
+        (META (ID-CORPUS escaped-1)
+              (URL https://example.is/escaped)
+              (COMMENT ))
+        (S0
+            (S-PREFIX (sequence 5 (lemma 5)) (grm \)))
+            (S-MAIN (IP (NP (no_et_hk_nf Próf (lemma próf)))))
+            (grm .))
+    )"""
+    blocks = list(_record_blocks(record.splitlines(keepends=True)))
+    assert len(blocks) == 1
+
+    tree = _parse_sexpr(blocks[0])
+    sentence = next(child for child in tree if isinstance(child, list) and child[0] == "S0")
+    prefix = next(child for child in sentence if isinstance(child, list) and child[0] == "S-PREFIX")
+    assert prefix[2] == ["grm", ")"]
