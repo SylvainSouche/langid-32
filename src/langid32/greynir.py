@@ -33,7 +33,7 @@ LFS_POINTERS = {
 }
 UPSTREAM = "https://github.com/mideind/GreynirCorpus"
 
-TOKEN = re.compile(r'"(?:\\.|[^"\\])*"|\\(|\\)|[^\\s()]+')
+TOKEN = re.compile(r'"(?:\\.|[^"\\])*"|[()]|[^\s()]+')
 def is_punctuation_token(value: str) -> bool:
     return bool(value) and all(unicodedata.category(char).startswith("P") for char in value)
 
