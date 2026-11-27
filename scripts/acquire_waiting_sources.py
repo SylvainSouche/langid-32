@@ -190,7 +190,12 @@ def fetch(url, destination, max_attempts=None):
             if offset:
                 headers["Range"] = f"bytes={offset}-"
             request = Request(url, headers=headers)
-            with urlopen(request, timeout=EXECUTION["http_read_timeout_seconds"]) as response:
+            # Bound connection establishment separately from body reads. A dead
+            # CLARIN connection previously consumed five minutes per retry.
+            with urlopen(request, timeout=EXECUTION["http_connect_timeout_seconds"]) as response:
+                raw_socket = getattr(getattr(getattr(response, "fp", None), "raw", None), "_sock", None)
+                if raw_socket is not None:
+                    raw_socket.settimeout(EXECUTION["http_read_timeout_seconds"])
                 if offset and response.status != 206:
                     destination.unlink(missing_ok=True)
                     raise IOError(f"server did not honour Range at byte {offset}: HTTP {response.status}; restarting download")
