@@ -82,3 +82,19 @@ def test_greynir_preserves_multiword_terminal_nodes():
     assert _terminals(node) == ["Anna", "Jónsdóttir"]
     assert _terminals(["grm", "„"]) == ["„"]
     assert _terminals(["grm", "—"]) == ["—"]
+
+
+def test_greynir_quoted_parentheses_do_not_change_tree_depth(tmp_path):
+    path = tmp_path / "quoted-parentheses.gz"
+    _write(path, [
+        """( (META (ID-CORPUS quoted-1)
+                (ID-LOCAL quoted.psd,.1)
+                (URL https://example.is/quoted)
+                (COMMENT "literal ( and ) parentheses"))
+            (S0 (S-MAIN (IP (NP-SUBJ (no_et_nf_hk "Próf (A)" (lemma próf)))
+                            (VP (so_1_þf_fh_p3_et_nt_gm virkar (lemma virka))
+                                (grm .))))))"""
+    ])
+    rows = list(iter_sentences(path, "copper"))
+    assert len(rows) == 1
+    assert rows[0]["text"] == "Próf (A) virkar."
