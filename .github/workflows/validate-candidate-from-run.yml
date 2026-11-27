@@ -1,12 +1,9 @@
 name: Validate candidate construction from prior acquisition
 
 on:
-  workflow_dispatch:
-    inputs:
-      source_run_id:
-        description: Successful acquisition pipeline run ID whose encrypted acquisition artifacts should be reused
-        required: true
-        type: string
+  push:
+    branches: [main]
+    paths: ["candidate-validation.trigger"]
 
 permissions:
   actions: read
@@ -22,6 +19,7 @@ jobs:
     timeout-minutes: 360
     env:
       LANGID32_CONFIG: config/langid32.toml
+      SOURCE_RUN_ID: "46029288194"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -43,7 +41,7 @@ jobs:
           pattern: acquisition-*
           path: checkpoints
           merge-multiple: false
-          run-id: ${{ inputs.source_run_id }}
+          run-id: ${{ env.SOURCE_RUN_ID }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Restore acquisition checkpoints
         env:
