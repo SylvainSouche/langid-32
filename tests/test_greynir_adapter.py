@@ -105,7 +105,7 @@ def test_greynir_escaped_parenthesis_in_unquoted_atom(tmp_path):
 
     record = r"""(
         (META (ID-CORPUS escaped-1)
-              (URL https://example.is/escaped)
+              (URL [https://example.is/a;b](https://example.is/a;b))
               (COMMENT ))
         (S0
             (S-PREFIX (sequence 5 (lemma 5)) (grm \)))
