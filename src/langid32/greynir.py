@@ -7,8 +7,8 @@ read by this adapter.
 from __future__ import annotations
 
 import gzip
-import json
 import re
+import sexpdata
 import unicodedata
 from pathlib import Path
 
@@ -33,7 +33,6 @@ LFS_POINTERS = {
 }
 UPSTREAM = "https://github.com/mideind/GreynirCorpus"
 
-TOKEN = re.compile(r'"(?:\\.|[^"\\])*"|[()]|[^\s()]+')
 def is_punctuation_token(value: str) -> bool:
     return bool(value) and all(unicodedata.category(char).startswith("P") for char in value)
 
@@ -57,7 +56,13 @@ def _record_blocks(stream):
                 elif char == '"':
                     in_string = False
                 continue
-            if char == '"':
+            # Greynir escapes delimiters in unquoted atoms too, e.g. (grm \)).
+            if escaped:
+                escaped = False
+                continue
+            if char == "\\":
+                escaped = True
+            elif char == '"':
                 in_string = True
             elif char == "(":
                 depth += 1
@@ -71,34 +76,18 @@ def _record_blocks(stream):
     if buffer or depth or in_string:
         raise RuntimeError("Greynir PSD file ended inside an incomplete tree record or quoted string")
 
-
 def _parse_sexpr(source: str):
-    tokens = TOKEN.findall(source)
-    position = 0
+    """Parse one Greynir record with the maintained sexpdata reader.
 
-    def parse_node():
-        nonlocal position
-        if position >= len(tokens) or tokens[position] != "(":
-            raise RuntimeError("Expected '(' in Greynir PSD record")
-        position += 1
-        node = []
-        while position < len(tokens) and tokens[position] != ")":
-            if tokens[position] == "(":
-                node.append(parse_node())
-            else:
-                token = tokens[position]
-                node.append(json.loads(token) if token.startswith('"') else token)
-                position += 1
-        if position >= len(tokens):
-            raise RuntimeError("Unclosed node in Greynir PSD record")
-        position += 1
-        return node
-
-    result = parse_node()
-    if position != len(tokens):
-        raise RuntimeError("Trailing tokens after Greynir PSD record")
-    return result
-
+    Disable Lisp nil/boolean coercions so corpus atoms retain their literal
+    values. sexpdata handles escaped delimiters in unquoted symbols.
+    """
+    try:
+        return sexpdata.loads(source, nil=None, true=None, false=None)
+    except (sexpdata.SExpError, AssertionError, ValueError) as exc:
+        position = getattr(exc, "position", None)
+        where = f" at {position}" if position is not None else ""
+        raise RuntimeError(f"Invalid Greynir PSD S-expression{where}: {exc}") from exc
 
 def _walk(node):
     if isinstance(node, list):
