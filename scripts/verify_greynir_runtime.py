@@ -6,7 +6,7 @@ import hashlib
 import sys
 from pathlib import Path
 
-from src.langid32.greynir import LFS_POINTERS, PARTITION_FILES, iter_sentences
+from langid32.greynir import LFS_POINTERS, PARTITION_FILES, iter_sentences
 
 
 def main() -> int:
