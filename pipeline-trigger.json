@@ -1,6 +1,6 @@
 {
   "run_mode": "clean_full_pipeline",
-  "nonce": "release-run-20261126-arabic-runtime-verified",
+  "nonce": "release-run-20261127-greynir-parlamint-fix",
   "config_sha256": "105a836494bfb76c29da2f42b56f5d993a930b7753b925603f543e5a9a8728e1",
   "source_register_sha256": "0facb5065d1ae187f4a9eb1692903a69a0bfbc4e4f533f9aa669fee93a77e419",
   "pipeline_contract_sha256": "3945534fcc358455c69d6aa38bd7c5b3d8587977b707b8f2ab1766933df236e9",
