@@ -1,0 +1,37 @@
+name: Verify Greynir Copper parser runtime
+on:
+  push:
+    branches: [main]
+    paths:
+      - "greynir-runtime-test.trigger"
+permissions:
+  contents: read
+concurrency:
+  group: langid32-greynir-runtime-verification
+  cancel-in-progress: false
+jobs:
+  greynir-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout langid-32
+        uses: actions/checkout@v4
+      - name: Checkout pinned GreynirCorpus revision
+        uses: actions/checkout@v4
+        with:
+          repository: mideind/GreynirCorpus
+          ref: deb60c4b2775a4e0c709a6890c28678b913f44aa
+          path: upstream/GreynirCorpus
+          lfs: false
+      - name: Download only Copper 01 Git LFS object
+        run: |
+          git lfs version
+          git lfs install --local
+          git -C upstream/GreynirCorpus lfs pull --include="psd/copper/copper01.gz"
+      - name: Install langid-32 and parser dependency
+        run: python -m pip install -e .
+      - name: Parse and verify complete Copper 01
+        run: python scripts/verify_greynir_runtime.py upstream/GreynirCorpus/psd/copper/copper01.gz
+      - name: Remove downloaded upstream corpus
+        if: always()
+        run: rm -rf upstream
