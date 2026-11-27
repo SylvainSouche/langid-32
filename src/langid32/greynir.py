@@ -7,6 +7,7 @@ read by this adapter.
 from __future__ import annotations
 
 import gzip
+import json
 import re
 import unicodedata
 from pathlib import Path
@@ -32,7 +33,7 @@ LFS_POINTERS = {
 }
 UPSTREAM = "https://github.com/mideind/GreynirCorpus"
 
-TOKEN = re.compile(r"\(|\)|[^\s()]+")
+TOKEN = re.compile(r'"(?:\\.|[^"\\])*"|\\(|\\)|[^\\s()]+')
 def is_punctuation_token(value: str) -> bool:
     return bool(value) and all(unicodedata.category(char).startswith("P") for char in value)
 
@@ -41,22 +42,34 @@ def _record_blocks(stream):
     """Read one balanced PSD record at a time, bounding memory by one sentence."""
     buffer = []
     depth = 0
+    in_string = False
+    escaped = False
     for line_number, line in enumerate(stream, 1):
         if not buffer and not line.strip():
             continue
         buffer.append(line)
         for char in line:
-            if char == "(":
+            if in_string:
+                if escaped:
+                    escaped = False
+                elif char == "\\":
+                    escaped = True
+                elif char == '"':
+                    in_string = False
+                continue
+            if char == '"':
+                in_string = True
+            elif char == "(":
                 depth += 1
             elif char == ")":
                 depth -= 1
                 if depth < 0:
                     raise RuntimeError(f"Unbalanced Greynir PSD parentheses near line {line_number}")
-        if depth == 0 and buffer:
+        if depth == 0 and not in_string and buffer:
             yield "".join(buffer)
             buffer.clear()
-    if buffer or depth:
-        raise RuntimeError("Greynir PSD file ended inside an incomplete tree record")
+    if buffer or depth or in_string:
+        raise RuntimeError("Greynir PSD file ended inside an incomplete tree record or quoted string")
 
 
 def _parse_sexpr(source: str):
@@ -73,7 +86,8 @@ def _parse_sexpr(source: str):
             if tokens[position] == "(":
                 node.append(parse_node())
             else:
-                node.append(tokens[position])
+                token = tokens[position]
+                node.append(json.loads(token) if token.startswith('"') else token)
                 position += 1
         if position >= len(tokens):
             raise RuntimeError("Unclosed node in Greynir PSD record")
