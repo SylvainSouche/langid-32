@@ -83,7 +83,20 @@ def _parse_sexpr(source: str):
     values. sexpdata handles escaped delimiters in unquoted symbols.
     """
     try:
-        return sexpdata.loads(source, nil=None, true=None, false=None)
+        parsed = sexpdata.loads(source, nil=None, true=None, false=None)
+
+        def normalize(value):
+            if isinstance(value, sexpdata.String):
+                return str(value)
+            if isinstance(value, sexpdata.Delimiters):
+                return [normalize(item) for item in value.I]
+            if isinstance(value, list):
+                return [normalize(item) for item in value]
+            if isinstance(value, (int, float, bool)):
+                return str(value)
+            return value
+
+        return normalize(parsed)
     except (sexpdata.SExpError, AssertionError, ValueError) as exc:
         position = getattr(exc, "position", None)
         where = f" at {position}" if position is not None else ""
