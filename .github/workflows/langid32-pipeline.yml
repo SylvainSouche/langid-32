@@ -87,7 +87,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "${{ steps.runtime.outputs.python_version }}"
-      - run: python -m pip install cryptography
+      - run: python -m pip install -e . -r requirements-corpus.txt cryptography
       - uses: actions/download-artifact@v4
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
@@ -156,7 +156,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "${{ steps.runtime.outputs.python_version }}"
-      - run: python -m pip install cryptography
+      - run: python -m pip install -e . -r requirements-corpus.txt cryptography
       - name: Acquire Common Voice HF text
         id: acquire
         run: python stages/01-acquisition/run.py --target common-voice
@@ -281,7 +281,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "${{ steps.runtime.outputs.python_version }}"
-      - run: python -m pip install "datasets==${{ steps.runtime.outputs.datasets_version }}" "huggingface_hub==${{ steps.runtime.outputs.huggingface_hub_version }}" "pyarrow==${{ steps.runtime.outputs.pyarrow_version }}" fasttext-wheel cryptography "sexpdata>=1.0.2,<2"
+      - run: python -m pip install -e . -r requirements-corpus.txt "datasets==${{ steps.runtime.outputs.datasets_version }}" "huggingface_hub==${{ steps.runtime.outputs.huggingface_hub_version }}" "pyarrow==${{ steps.runtime.outputs.pyarrow_version }}" fasttext-wheel cryptography
       - name: Acquire waiting-source target
         id: acquire
         env:
@@ -324,7 +324,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "${{ steps.runtime.outputs.python_version }}"
-      - run: python -m pip install cryptography pyarrow
+      - run: python -m pip install -e . -r requirements-corpus.txt cryptography
       - uses: actions/download-artifact@v4
         with:
           pattern: "acquisition-*"
@@ -375,7 +375,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "${{ steps.runtime.outputs.python_version }}"
-      - run: python -m pip install cryptography pyarrow
+      - run: python -m pip install -e . -r requirements-corpus.txt cryptography pyarrow
       - uses: actions/download-artifact@v4
         with:
           name: candidate-checkpoint
