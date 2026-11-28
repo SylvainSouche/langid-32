@@ -59,15 +59,24 @@ jobs:
       - name: Build candidate corpus
         env:
           PYTHONPATH: src
+          PYTHONUNBUFFERED: "1"
         run: python stages/02-candidate/run.py
-      - name: Encrypt candidate checkpoint
+      - name: Encrypt candidate checkpoint (including partial diagnostics on ordinary failure)
+        if: always()
         env:
           LANGID32_CHECKPOINT_KEY: ${{ secrets.LANGID32_CHECKPOINT_KEY }}
-        run: python scripts/checkpoint.py pack --archive candidate.bin
+        run: |
+          if [ -d input ] || [ -d out ]; then
+            python scripts/checkpoint.py pack --archive candidate.bin
+          else
+            echo "No working tree to checkpoint"
+          fi
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: candidate-checkpoint-validation
           path: candidate.bin
+          if-no-files-found: ignore
           retention-days: 7
       - name: Remove plaintext working files
         if: always()
