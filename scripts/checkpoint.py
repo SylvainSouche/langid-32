@@ -31,12 +31,12 @@ def read_exact(stream, size):
     return data
 
 
-def pack(root, archive):
+def pack(root, archive, include):
     key = getkey()
     archive.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryFile() as plain:
         with tarfile.open(fileobj=plain, mode="w:gz") as tar:
-            for name in ("input", "out"):
+            for name in include:
                 path = root / name
                 if path.exists():
                     tar.add(path, arcname=name)
@@ -89,10 +89,14 @@ parser = argparse.ArgumentParser()
 parser.add_argument("mode", choices=("pack", "unpack"))
 parser.add_argument("--root", default=".")
 parser.add_argument("--archive", required=True)
+parser.add_argument(
+    "--include", nargs="+", choices=("input", "out"), default=("input", "out"),
+    help="Working-tree directories to include; default preserves both for acquisition checkpoints",
+)
 args = parser.parse_args()
 root = Path(args.root)
 archive = Path(args.archive)
 if args.mode == "pack":
-    pack(root, archive)
+    pack(root, archive, args.include)
 else:
     unpack(root, archive)
