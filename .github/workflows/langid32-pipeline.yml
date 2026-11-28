@@ -341,10 +341,17 @@ jobs:
         env:
           PYTHONPATH: src
         run: python stages/02-candidate/run.py
-      - name: Encrypt candidate checkpoint
+      - name: Report candidate workspace size
+        if: always()
+        run: |
+          echo "Candidate workspace disk usage:"
+          df -h .
+          du -sh input out 2>/dev/null || true
+          du -sh out/* 2>/dev/null | sort -h | tail -20 || true
+      - name: Encrypt candidate checkpoint (JQL inputs and candidate provenance only)
         env:
           LANGID32_CHECKPOINT_KEY: "${{ secrets.LANGID32_CHECKPOINT_KEY }}"
-        run: python scripts/checkpoint.py pack --archive candidate.bin
+        run: python scripts/checkpoint.py pack --include out --archive candidate.bin
       - uses: actions/upload-artifact@v4
         with:
           name: candidate-checkpoint
