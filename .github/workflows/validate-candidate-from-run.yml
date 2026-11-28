@@ -56,21 +56,33 @@ jobs:
           for archive in "${archives[@]}"; do
             python scripts/checkpoint.py unpack --archive "$archive"
           done
+          echo "Disk after restore:"
+          df -h .
+          du -sh input out checkpoints 2>/dev/null || true
+          # The acquisition artifacts remain stored on the source run; their local encrypted copies are redundant.
+          rm -rf checkpoints
+          echo "Disk after removing redundant encrypted downloads:"
+          df -h .
+          du -sh input out 2>/dev/null || true
+      - name: Disk usage before candidate construction
+        run: df -h . && du -sh input out 2>/dev/null || true
       - name: Build candidate corpus
         env:
           PYTHONPATH: src
           PYTHONUNBUFFERED: "1"
         run: python stages/02-candidate/run.py
-      - name: Encrypt candidate checkpoint (including partial diagnostics on ordinary failure)
+      - name: Report candidate workspace size
         if: always()
+        run: |
+          echo "Candidate workspace disk usage:"
+          df -h .
+          du -sh input out 2>/dev/null || true
+          du -sh out/* 2>/dev/null | sort -h | tail -20 || true
+      - name: Encrypt candidate checkpoint (JQL inputs and candidate provenance only)
+        if: always() && success()
         env:
           LANGID32_CHECKPOINT_KEY: ${{ secrets.LANGID32_CHECKPOINT_KEY }}
-        run: |
-          if [ -d input ] || [ -d out ]; then
-            python scripts/checkpoint.py pack --archive candidate.bin
-          else
-            echo "No working tree to checkpoint"
-          fi
+        run: python scripts/checkpoint.py pack --include out --archive candidate.bin
       - uses: actions/upload-artifact@v4
         if: always()
         with:
