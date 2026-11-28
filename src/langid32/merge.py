@@ -76,6 +76,46 @@ def digest(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
 
 
+def file_digest(path: Path) -> str:
+    hasher = hashlib.sha256()
+    with path.open("rb") as stream:
+        for block in iter(lambda: stream.read(1024 * 1024), b""):
+            hasher.update(block)
+    return hasher.hexdigest()
+
+
+def runtime_snapshot(stage: str, **fields) -> None:
+    """Log process and cgroup memory without optional dependencies."""
+    rss_kib = None
+    try:
+        with open("/proc/self/status", encoding="ascii") as status:
+            for line in status:
+                if line.startswith("VmRSS:"):
+                    rss_kib = int(line.split()[1])
+                    break
+    except (OSError, ValueError):
+        pass
+    cgroup_current = cgroup_limit = None
+    for base in (Path("/sys/fs/cgroup"), Path("/sys/fs/cgroup/memory")):
+        try:
+            current = base / "memory.current"
+            limit = base / "memory.max"
+            if current.exists():
+                raw = current.read_text(encoding="ascii").strip()
+                cgroup_current = int(raw) if raw.isdigit() else raw
+                raw_limit = limit.read_text(encoding="ascii").strip()
+                cgroup_limit = int(raw_limit) if raw_limit.isdigit() else raw_limit
+                break
+        except (OSError, ValueError):
+            continue
+    details = " ".join(f"{key}={value}" for key, value in fields.items())
+    print(
+        f"[candidate-merge] runtime stage={stage} rss_kib={rss_kib} "
+        f"cgroup_current={cgroup_current} cgroup_limit={cgroup_limit} {details}".rstrip(),
+        flush=True,
+    )
+
+
 def original_source_identity(row: dict) -> str:
     provenance = row.get("provenance") if isinstance(row.get("provenance"), dict) else {}
     return str(provenance.get("source_original_name") or row.get("source") or "").strip()
@@ -381,26 +421,39 @@ def merge(args):
     rows, rejected, source_intake_counts = read_inputs(args.inputs, args)
     print(f"[candidate-merge] input_validation_complete rows={len(rows)}", flush=True)
 
-    owners = defaultdict(set)
-    for row in rows:
-        owners[row["text"]].add(row["language"])
-    print(f"[candidate-merge] cross_language_index_complete unique_texts={len(owners)}", flush=True)
-    cross_language_texts = {
-        text for text, languages in owners.items() if len(languages) > 1
-    }
+    runtime_snapshot("input_validation_complete", rows=len(rows))
+    # A single language value per text detects cross-language collisions
+    # without allocating millions of one-element set objects.
+    text_language = {}
+    cross_language_texts = set()
+    for index, row in enumerate(rows, 1):
+        previous = text_language.setdefault(row["text"], row["language"])
+        if previous != row["language"]:
+            cross_language_texts.add(row["text"])
+        if index % 250000 == 0:
+            runtime_snapshot("cross_language_index", rows=index,
+                             unique_texts=len(text_language),
+                             collisions=len(cross_language_texts))
+    print(
+        f"[candidate-merge] cross_language_index_complete "
+        f"unique_texts={len(text_language)} collisions={len(cross_language_texts)}",
+        flush=True,
+    )
+    del text_language
     if cross_language_texts:
         before = len(rows)
         rows = [row for row in rows if row["text"] not in cross_language_texts]
         rejected["cross_language_collision"] += before - len(rows)
+    runtime_snapshot("cross_language_filter_complete", rows=len(rows),
+                     collisions=len(cross_language_texts))
 
-    print(f"[candidate-merge] cross_language_filter_complete rows={len(rows)}", flush=True)
     print("[candidate-merge] deterministic_sort_start", flush=True)
     rows.sort(key=lambda row: (row["language"], row["_priority"]))
     print("[candidate-merge] deterministic_sort_complete", flush=True)
-    seen_text = set()
+    # One dictionary replaces the previous seen_text set plus first_source map.
+    first_source = {}
     selected = []
     duplicate_by_source_pair = Counter()
-    first_source = {}
     group_splits = {}
     for row_index, row in enumerate(rows, 1):
         if row_index % 100000 == 0:
@@ -410,18 +463,19 @@ def merge(args):
                 flush=True,
             )
         key = (row["language"], row["text"])
-        if key in seen_text:
+        if key in first_source:
             rejected["duplicate_text_across_inputs_or_sources"] += 1
             original = first_source[key]
             duplicate_by_source_pair[f"{original}->{row['source']}"] += 1
             continue
-        seen_text.add(key)
         first_source[key] = original_source_identity(row)
         previous = group_splits.setdefault(row["split_group_id"], row["split"])
         if previous != row["split"]:
             raise ValueError(f"split-group inconsistency: {row['split_group_id']}")
         selected.append(row)
     print(f"[candidate-merge] global_dedup_complete unique={len(selected)}", flush=True)
+    runtime_snapshot("global_dedup_complete", rows=len(rows), unique=len(selected),
+                     group_splits=len(group_splits))
 
     cfg = load_config(getattr(args, "config", None))
     balance_cfg = cfg["candidate"]["source_balance"]
@@ -457,8 +511,11 @@ def merge(args):
         core_caps = {name: None for name in SPLITS}
 
     by_bucket = defaultdict(list)
-    for row in selected:
+    for index, row in enumerate(selected, 1):
         by_bucket[(row["language"], row["split"])].append(row)
+        if index % 250000 == 0:
+            runtime_snapshot("bucket_index", rows=index, buckets=len(by_bucket))
+    runtime_snapshot("bucket_index_complete", buckets=len(by_bucket))
 
     core_by_bucket = {}
     source_quota_shortfalls = {}
@@ -481,6 +538,8 @@ def merge(args):
                 chosen = bucket
             core_by_bucket[(language, split)] = chosen
             core_split_groups.update(row["split_group_id"] for row in chosen)
+        runtime_snapshot("core_bucket_complete", language=language,
+                         core_groups=len(core_split_groups))
 
     reserve_by_language = {language: [] for language in LANGUAGES}
     reserve_counts = Counter()
@@ -514,15 +573,25 @@ def merge(args):
     source_counts = Counter()
     output_hashes = {}
     public_keys = ("text", "language", "source", "split")
-    internal_rows = []
-    for language in LANGUAGES:
-        for split in SPLITS:
-            for row in core_by_bucket[(language, split)]:
-                item = dict(row)
-                item["pool_role"] = "core"
-                internal_rows.append(item)
-    for language in LANGUAGES:
-        internal_rows.extend(reserve_by_language[language])
+    privacy_flag_counts = Counter()
+    rights_status_counts = Counter()
+    output_groups = set()
+    output_groups_by_source = defaultdict(set)
+    core_group_ids = set()
+    reserve_group_ids = set()
+
+    def write_internal_row(stream, row, pool_role):
+        item = dict(row)
+        item["pool_role"] = pool_role
+        stream.write(json.dumps(item, ensure_ascii=False, separators=(",", ":")) + "\n")
+        privacy_flag_counts.update(item.get("provenance", {}).get("privacy_flags", []))
+        rights_status_counts[item.get("provenance", {}).get("rights_status", "unclassified")] += 1
+        output_groups.add(item["group_id"])
+        output_groups_by_source[original_source_identity(item)].add(item["group_id"])
+        if pool_role == "core":
+            core_group_ids.add(item["split_group_id"])
+        else:
+            reserve_group_ids.add(item["split_group_id"])
 
     for split in SPLITS:
         public_path = output / f"{split}.jsonl"
@@ -535,7 +604,7 @@ def merge(args):
                     ) + "\n")
                     counts[f"{language}:{split}"] += 1
                     source_counts[f"{original_source_identity(row)}:{language}:core:{split}"] += 1
-        output_hashes[public_path.name] = digest(public_path.read_text(encoding="utf-8"))
+        output_hashes[public_path.name] = file_digest(public_path)
 
     reserve_path = output / "reserve.jsonl"
     with reserve_path.open("w", encoding="utf-8", newline="\n") as reserve:
@@ -548,7 +617,7 @@ def merge(args):
                     "pool_role": "reserve",
                 }, ensure_ascii=False, separators=(",", ":")) + "\n")
                 source_counts[f"{original_source_identity(row)}:{language}:reserve"] += 1
-    output_hashes[reserve_path.name] = digest(reserve_path.read_text(encoding="utf-8"))
+    output_hashes[reserve_path.name] = file_digest(reserve_path)
 
     if args.require_exact_counts and args.max_per_language:
         shortfalls = {
@@ -591,34 +660,34 @@ def merge(args):
             )
 
     internal_path = output / "records.jsonl"
+    runtime_snapshot("record_write_start",
+                     core_rows=sum(len(v) for v in core_by_bucket.values()),
+                     reserve_rows=sum(len(v) for v in reserve_by_language.values()))
+    written_rows = 0
     with internal_path.open("w", encoding="utf-8", newline="\n") as stream:
-        for row in internal_rows:
-            stream.write(json.dumps(row, ensure_ascii=False,
-                                    separators=(",", ":")) + "\n")
-    output_hashes[internal_path.name] = digest(internal_path.read_text(encoding="utf-8"))
-
-    privacy_flag_counts = Counter()
-    rights_status_counts = Counter()
-    output_groups = set()
-    output_groups_by_source = defaultdict(set)
-    core_group_ids = set()
-    reserve_group_ids = set()
-    for row in internal_rows:
-        privacy_flag_counts.update(row.get("provenance", {}).get("privacy_flags", []))
-        rights_status_counts[row.get("provenance", {}).get("rights_status", "unclassified")] += 1
-        output_groups.add(row["group_id"])
-        output_groups_by_source[original_source_identity(row)].add(row["group_id"])
-        if row["pool_role"] == "core":
-            core_group_ids.add(row["split_group_id"])
-        else:
-            reserve_group_ids.add(row["split_group_id"])
+        for language in LANGUAGES:
+            for split in SPLITS:
+                for row in core_by_bucket[(language, split)]:
+                    write_internal_row(stream, row, "core")
+                    written_rows += 1
+                    if written_rows % 100000 == 0:
+                        runtime_snapshot("record_write", rows=written_rows)
+        for language in LANGUAGES:
+            for row in reserve_by_language[language]:
+                write_internal_row(stream, row, "reserve")
+                written_rows += 1
+                if written_rows % 100000 == 0:
+                    runtime_snapshot("record_write", rows=written_rows)
+    runtime_snapshot("record_write_complete", rows=written_rows)
+    output_hashes[internal_path.name] = file_digest(internal_path)
+    runtime_snapshot("records_hash_complete", bytes=internal_path.stat().st_size)
 
     manifest = {
         "schema_version": 1,
         "project": "langid-32",
         "status": "candidate_not_rights_cleared",
         "languages": LANGUAGES,
-        "input_files": [{"name": path.name, "sha256": digest(path.read_text(encoding="utf-8"))}
+        "input_files": [{"name": path.name, "sha256": file_digest(path)}
                         for path in args.inputs],
         "preparation": {
             "normalization": "Unicode NFC; collapse whitespace",
