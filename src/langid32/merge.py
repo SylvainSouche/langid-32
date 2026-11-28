@@ -175,9 +175,24 @@ def read_inputs(paths: list[Path], args):
     source_limit = getattr(args, "max_sentences_per_source", 0)
     exclusions_path = getattr(args, "exclusions", None)
     exclusions = load_exclusions(exclusions_path)
-    for path in paths:
+    total_lines = 0
+    for path_index, path in enumerate(paths, 1):
+        print(
+            f"[candidate-merge] input_start={path_index}/{len(paths)} "
+            f"file={path.name} bytes={path.stat().st_size}",
+            flush=True,
+        )
+        path_lines = 0
         with path.open("r", encoding="utf-8") as stream:
             for line_number, line in enumerate(stream, 1):
+                path_lines += 1
+                total_lines += 1
+                if total_lines % 100000 == 0:
+                    print(
+                        f"[candidate-merge] rows_scanned={total_lines} "
+                        f"retained={len(rows)} current_file={path.name}",
+                        flush=True,
+                    )
                 if not line.strip():
                     continue
                 try:
@@ -290,6 +305,16 @@ def read_inputs(paths: list[Path], args):
                     f"{args.seed}\0{language}\0{text}\0{source}\0{group}"
                 )
                 rows.append(normalized)
+        print(
+            f"[candidate-merge] input_complete={path_index}/{len(paths)} "
+            f"file={path.name} rows={path_lines} retained_total={len(rows)}",
+            flush=True,
+        )
+    print(
+        f"[candidate-merge] input_scan_complete rows_scanned={total_lines} "
+        f"retained={len(rows)}",
+        flush=True,
+    )
     if exclusions:
         matched_rules = Counter()
         excluded_groups = set()
@@ -352,11 +377,14 @@ def _select_source_balanced(bucket, target, preferred_share, hard_share):
 def merge(args):
     exclusions_path = getattr(args, "exclusions", None)
     exclusions = load_exclusions(exclusions_path)
+    print(f"[candidate-merge] starting inputs={len(args.inputs)}", flush=True)
     rows, rejected, source_intake_counts = read_inputs(args.inputs, args)
+    print(f"[candidate-merge] input_validation_complete rows={len(rows)}", flush=True)
 
     owners = defaultdict(set)
     for row in rows:
         owners[row["text"]].add(row["language"])
+    print(f"[candidate-merge] cross_language_index_complete unique_texts={len(owners)}", flush=True)
     cross_language_texts = {
         text for text, languages in owners.items() if len(languages) > 1
     }
@@ -365,13 +393,22 @@ def merge(args):
         rows = [row for row in rows if row["text"] not in cross_language_texts]
         rejected["cross_language_collision"] += before - len(rows)
 
+    print(f"[candidate-merge] cross_language_filter_complete rows={len(rows)}", flush=True)
+    print("[candidate-merge] deterministic_sort_start", flush=True)
     rows.sort(key=lambda row: (row["language"], row["_priority"]))
+    print("[candidate-merge] deterministic_sort_complete", flush=True)
     seen_text = set()
     selected = []
     duplicate_by_source_pair = Counter()
     first_source = {}
     group_splits = {}
-    for row in rows:
+    for row_index, row in enumerate(rows, 1):
+        if row_index % 100000 == 0:
+            print(
+                f"[candidate-merge] global_dedup_rows={row_index}/{len(rows)} "
+                f"unique={len(selected)}",
+                flush=True,
+            )
         key = (row["language"], row["text"])
         if key in seen_text:
             rejected["duplicate_text_across_inputs_or_sources"] += 1
@@ -384,6 +421,7 @@ def merge(args):
         if previous != row["split"]:
             raise ValueError(f"split-group inconsistency: {row['split_group_id']}")
         selected.append(row)
+    print(f"[candidate-merge] global_dedup_complete unique={len(selected)}", flush=True)
 
     cfg = load_config(getattr(args, "config", None))
     balance_cfg = cfg["candidate"]["source_balance"]
