@@ -2,7 +2,7 @@ name: Parallel JQL full-pool scoring and global pruning
 
 on:
   workflow_run:
-    workflows: ["langid-32 staged corpus pipeline"]
+    workflows: ["langid-32 staged corpus pipeline", "langid-32 candidate-to-JQL continuation"]
     types: [completed]
   workflow_dispatch:
     inputs:
@@ -60,7 +60,7 @@ jobs:
           workflow_name="$(printf '%s' "$response" | jq -r '.name')"
           status="$(printf '%s' "$response" | jq -r '.status')"
           conclusion="$(printf '%s' "$response" | jq -r '.conclusion')"
-          test "$workflow_name" = "langid-32 staged corpus pipeline"
+          case "$workflow_name" in\n            "langid-32 staged corpus pipeline"|"langid-32 candidate-to-JQL continuation") ;;\n            *) echo "Unexpected source workflow: $workflow_name" >&2; exit 1 ;;\n          esac
           test "$head_branch" = "main"
           test "$status" = "completed"
           test "$conclusion" = "success"
