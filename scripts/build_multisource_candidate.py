@@ -76,6 +76,12 @@ def normalize_file(source_path: Path, destination: Path, *, config=None, source_
             if not line.strip():
                 continue
             rows_in += 1
+            if rows_in % 50000 == 0:
+                print(
+                    f"[candidate-normalize] file={source_path.name} "
+                    f"rows_in={rows_in} rows_out={rows_out} filtered={sum(filtered.values())}",
+                    flush=True,
+                )
             try:
                 row = json.loads(line)
             except json.JSONDecodeError as exc:
@@ -246,11 +252,41 @@ def main():
     merge_inputs = []
     source_language_counts = Counter()
     source_language_seen = defaultdict(set)
-    for label, path, filter_superseded in sources:
+    progress_path = args.output / "build-progress.json"
+    for source_index, (label, path, filter_superseded) in enumerate(sources, 1):
+        print(
+            f"[candidate-stage] normalize_start={source_index}/{len(sources)} "
+            f"label={label} input_bytes={path.stat().st_size}",
+            flush=True,
+        )
         destination = normalized_dir / f"{label}.jsonl"
-        reports.append(normalize_file(path, destination, config=cfg, source_language_counts=source_language_counts, source_language_seen=source_language_seen, filter_superseded=filter_superseded))
+        report = normalize_file(
+            path, destination, config=cfg,
+            source_language_counts=source_language_counts,
+            source_language_seen=source_language_seen,
+            filter_superseded=filter_superseded,
+        )
+        reports.append(report)
         if destination.stat().st_size:
             merge_inputs.append(destination)
+        progress_path.write_text(
+            json.dumps({
+                "phase": "normalization",
+                "completed_sources": source_index,
+                "total_sources": len(sources),
+                "last_source": label,
+                "last_source_rows_in": report["rows_in"],
+                "last_source_rows_out": report["rows_out"],
+                "normalized_input_count": len(merge_inputs),
+            }, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        print(
+            f"[candidate-stage] normalize_complete={source_index}/{len(sources)} "
+            f"label={label} rows_in={report['rows_in']} rows_out={report['rows_out']} "
+            f"sha256={report['input_sha256']}",
+            flush=True,
+        )
 
     if not merge_inputs:
         raise RuntimeError("No non-empty normalized inputs were prepared")
@@ -259,12 +295,28 @@ def main():
     combined_path = args.output / "all-source-inputs.jsonl"
     combined_rows = 0
     with combined_path.open("w", encoding="utf-8") as combined:
-        for path in merge_inputs:
+        for input_index, path in enumerate(merge_inputs, 1):
+            print(
+                f"[candidate-stage] combine_start={input_index}/{len(merge_inputs)} "
+                f"file={path.name} bytes={path.stat().st_size}",
+                flush=True,
+            )
             with path.open("r", encoding="utf-8") as source:
                 for line in source:
                     if line.strip():
                         combined.write(line)
                         combined_rows += 1
+                        if combined_rows % 100000 == 0:
+                            print(
+                                f"[candidate-stage] combined_rows={combined_rows}",
+                                flush=True,
+                            )
+            combined.flush()
+            print(
+                f"[candidate-stage] combine_complete={input_index}/{len(merge_inputs)} "
+                f"file={path.name} cumulative_rows={combined_rows}",
+                flush=True,
+            )
 
     input_manifest = {
         "status": "prepared_for_global_candidate_merge",
@@ -303,7 +355,9 @@ def main():
     if args.require_exact_counts:
         command.append("--require-exact-counts")
     command.extend(["--input", str(combined_path)])
-    subprocess.run(command, check=True)
+    print("[candidate-stage] global_merge_start", flush=True)
+    subprocess.run(command, check=True, env={**os.environ, "PYTHONUNBUFFERED": "1"})
+    print("[candidate-stage] global_merge_complete", flush=True)
 
     summary = {
         "status": "candidate_built_not_rights_cleared",
